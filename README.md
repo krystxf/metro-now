@@ -1,15 +1,39 @@
-# server
+# Metro now websocket server
 
-To install dependencies:
+Websocket endpoint to simplify getting real-time data from Golemio departureboards API
+
+- stack: [Bun](https://github.com/oven-sh/bun), [Typescript](https://github.com/microsoft/TypeScript)
+
+## Run dev
+
+1. install dependencies:
+
+   ```bash
+   bun install
+   ```
+
+2. create `.env` according to `.env.example`
+
+3. run
+   ```bash
+   bun run start
+   # run in watch mode
+   bun run start:dev
+   ```
+
+## Run build
 
 ```bash
-bun install
+bun run build
+
+bun run start:build
 ```
 
-To run:
+## Run in Docker
 
 ```bash
-bun run index.ts
-```
+bun run docker:build
 
-This project was created using `bun init` in bun v1.1.1. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+# update GOLEMIO_API_KEY in docker-compose.yml
+docker-compose up
+```
