@@ -1,8 +1,11 @@
 node_modules
+build
+
 Dockerfile*
 docker-compose*
 .dockerignore
+
 .git
 .gitignore
-*.md
-.env
+
+*.md 

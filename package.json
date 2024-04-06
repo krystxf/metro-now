@@ -1,14 +1,31 @@
 {
   "name": "metro-now-server",
-  "module": "index.ts",
+  "module": "src/server.ts",
   "type": "module",
-   "scripts": {
-    "start": "bun run index.ts",
-    "start:dev": "bun  --watch index.ts",
+  "version": "0.0.1",
+  "author": {
+    "name": "Krystof",
+    "url": "https://github.com/krystxf"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krystxf/metro-now-backend"
+  },
+  "scripts": {
+    "start": "bun run src/server.ts",
+    "start:dev": "bun --watch src/server.ts",
+    "start:build": "bun run src/server.js",
+    "build": "bun build src/server.ts --outdir build --minify",
     "docker:build": "docker build -t metro-now-server ."
   },
+  "dependencies": {
+    "radash": "^12.1.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/uuid": "^9.0.8"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
