@@ -2,7 +2,9 @@ import { z } from "zod";
 import { MetroLine } from "./types";
 import { stopIDs } from "./data/stop-ids";
 
-export const StopIDsSchema = z.array(z.enum(stopIDs)).nonempty().max(10);
+const stopIDSchema = z.enum(stopIDs);
+
+export const StopIDsSchema = z.array(stopIDSchema).nonempty().max(10);
 
 export const SubscribeSchema = z.object({
   subscribe: StopIDsSchema,
@@ -27,7 +29,7 @@ export const ApiResponseSchema = z.object({
         short_name: z.nativeEnum(MetroLine),
       }),
       stop: z.object({
-        id: z.string(),
+        id: stopIDSchema,
       }),
       trip: z.object({
         headsign: z.string(),

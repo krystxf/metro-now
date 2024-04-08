@@ -1,13 +1,6 @@
 import type { Departure } from "../types";
 import type { ApiResponse } from "../schemas";
 
-export const getErrorResponse = (message: string): Response => {
-  return new Response(message, {
-    status: 500,
-    headers: [["error", message]], // Postman doesn't show response body when testing websocket
-  });
-};
-
 export const getParsedDeparture = (
   departure: ApiResponse["departures"][0]
 ): Departure => {

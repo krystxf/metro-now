@@ -20,12 +20,10 @@
   },
   "dependencies": {
     "radash": "^12.1.0",
-    "uuid": "^9.0.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/uuid": "^9.0.8"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

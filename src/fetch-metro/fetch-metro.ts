@@ -4,7 +4,9 @@ import { endpointUrl, headers, paramsAsArray } from "./fetch-metro.const";
 import { ApiResponseSchema } from "../schemas";
 
 export const fetchApiData = async (stopIDs: string[]) => {
-  if (!stopIDs.length) return { departures: [] };
+  if (!stopIDs.length) {
+    return { departures: [] };
+  }
 
   const stopIDsParams = unique(stopIDs).map(
     (id) => ["ids[]", id] satisfies [string, string]
@@ -23,6 +25,7 @@ export const fetchApiData = async (stopIDs: string[]) => {
 
   const body = await res.json();
   const parsed = ApiResponseSchema.safeParse(body);
+
   if (!parsed.success) {
     console.error("Golemio API response:", body);
     throw new Error("Golemio API response is in unexpected format");
