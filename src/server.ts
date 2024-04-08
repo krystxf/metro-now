@@ -7,10 +7,10 @@ import { group } from "radash";
 import { STOP_IDS_HEADER, INTERVAL } from "./server/server.const";
 import { fetchApiData } from "./fetch-metro/fetch-metro";
 import { StopIDsSchema, SubscribeSchema, type ApiResponse } from "./schemas";
-import { getParsedDeparture } from "./server/server.utils";
+import { getErrorResponse, getParsedDeparture } from "./server/server.utils";
 
 if (!process.env.GOLEMIO_API_KEY) {
-  throw new Error("GOLEMIO_API_KEY is not set");
+  throw new Error("GOLEMIO_API_KEY is not set in .env");
 }
 
 let intervalId: number | null = null;
@@ -99,17 +99,27 @@ const fetchData = async (clientID?: string) => {
 const server = Bun.serve<ClientData>({
   fetch(req, server) {
     const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER);
-    const StopIDsHeaderParsed = JSON.parse(stopIDsHeaderRaw ?? "");
-    const res = StopIDsSchema.safeParse(StopIDsHeaderParsed);
+    if (!stopIDsHeaderRaw)
+      return getErrorResponse(`"${STOP_IDS_HEADER}" header is missing`);
 
-    if (!res.success) return new Response("Invalid request", { status: 400 });
+    let StopIDsHeaderParsed: unknown;
+    try {
+      StopIDsHeaderParsed = JSON.parse(stopIDsHeaderRaw);
+    } catch (error) {
+      return getErrorResponse(`"${STOP_IDS_HEADER}" header ${error}`);
+    }
+
+    const res = StopIDsSchema.safeParse(StopIDsHeaderParsed);
+    if (!res.success)
+      return getErrorResponse(
+        `"${STOP_IDS_HEADER}" error: ${res.error.errors[0].message}`
+      );
 
     const clientID = uuid();
     subscribedStopIDsByClientID.set(clientID, res.data);
     const success = server.upgrade(req, { data: { clientID } });
 
-    if (!success)
-      return new Response("Failed to upgrade connection", { status: 500 });
+    if (!success) return getErrorResponse("Failed to upgrade connection");
   },
   websocket: {
     open(ws) {
@@ -125,8 +135,24 @@ const server = Bun.serve<ClientData>({
       intervalId = intervalObj[Symbol.toPrimitive]();
     },
     message(ws, message) {
-      const res = SubscribeSchema.safeParse(message);
-      if (!res.success) return;
+      if (typeof message !== "string") {
+        ws.close(1011, "Message has to be string");
+        return;
+      }
+
+      let StopIDsHeaderParsed: unknown;
+      try {
+        StopIDsHeaderParsed = JSON.parse(message);
+      } catch (error) {
+        ws.close(1011, String(error));
+        return;
+      }
+
+      const res = SubscribeSchema.safeParse(StopIDsHeaderParsed);
+      if (!res.success) {
+        ws.close(1011, res.error.errors[0].message);
+        return;
+      }
 
       subscribedStopIDsByClientID.set(ws.data.clientID, res.data.subscribe);
     },

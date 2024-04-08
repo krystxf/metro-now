@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { MetroLine } from "./types";
+import { stopIDs } from "./data/stop-ids";
 
-export const StopIDsSchema = z.array(z.string()).nonempty().max(10);
+export const StopIDsSchema = z.array(z.enum(stopIDs)).nonempty().max(10);
 
 export const SubscribeSchema = z.object({
   subscribe: StopIDsSchema,
