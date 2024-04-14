@@ -1,7 +1,6 @@
 import type { ServerWebSocket } from "bun";
 import type { ClientData, Departure } from "./types";
 
-import { v4 as uuid } from "uuid";
 import { group } from "radash";
 
 import { STOP_IDS_HEADER, INTERVAL } from "./server/server.const";
@@ -10,7 +9,7 @@ import { StopIDsSchema, SubscribeSchema, type ApiResponse } from "./schemas";
 import { getParsedDeparture } from "./server/server.utils";
 
 if (!process.env.GOLEMIO_API_KEY) {
-  throw new Error("GOLEMIO_API_KEY is not set");
+  throw new Error("GOLEMIO_API_KEY is not set in .env");
 }
 
 let intervalId: number | null = null;
@@ -20,23 +19,41 @@ const wsByClientID = new Map<string, ServerWebSocket<ClientData>>();
 
 const departuresByStopID = new Map<string, Departure[]>();
 
-const getAllSubscribedStopIDs = (): string[] => {
+/**
+ * If clientID is provided, fetch only the stopIDs that the client is subscribed to
+ * and that haven't been fetched yet.
+ *
+ * Otherwise, refetch all stopIDs that are subscribed by any client.
+ */
+const getStopIDsToFetch = (clientID?: string): string[] => {
+  if (clientID !== undefined) {
+    const subscribedStopIDs = subscribedStopIDsByClientID.get(clientID) ?? [];
+    const notFetchedStopIDs = subscribedStopIDs.filter(
+      (stopID) => !departuresByStopID.has(stopID)
+    );
+    return notFetchedStopIDs;
+  }
+
   const stopIDsByClientIDMapValues = subscribedStopIDsByClientID.values();
-  return Array.from(stopIDsByClientIDMapValues).flat();
+  return [...stopIDsByClientIDMapValues].flat();
+};
+
+/**
+ * Return only the data that the client is subscribed to
+ * as stringified object
+ */
+const getStringifiedDataForClientID = (clientID: string): string => {
+  const clientsStopIDs = subscribedStopIDsByClientID.get(clientID)!;
+  const dataForClientEntries = clientsStopIDs.map((stopID) => [
+    stopID,
+    departuresByStopID.get(stopID),
+  ]);
+  const dataForClient = Object.fromEntries(dataForClientEntries);
+  return JSON.stringify(dataForClient);
 };
 
 const fetchData = async (clientID?: string) => {
-  /**
-   * If clientID is provided, fetch only the stopIDs that the client is subscribed to
-   * and that haven't been fetched yet.
-   *
-   * Otherwise, refetch all stopIDs that are subscribed by any client.
-   */
-  const stopIDsToFetch: string[] = clientID
-    ? subscribedStopIDsByClientID
-        .get(clientID)!
-        .filter((stopID) => !departuresByStopID.has(stopID))
-    : getAllSubscribedStopIDs();
+  const stopIDsToFetch: string[] = getStopIDsToFetch(clientID);
 
   const res = await fetchApiData(stopIDsToFetch);
   /**
@@ -61,36 +78,14 @@ const fetchData = async (clientID?: string) => {
     });
   }
 
-  /**
-   * Return only the data that the client is subscribed to
-   * as stringified object
-   */
-  const getStringifiedDataForClientID = (clientID: string): string => {
-    const stopIDsSubscribedByClient =
-      subscribedStopIDsByClientID.get(clientID)!;
-    const dataForClient = Object.fromEntries(
-      stopIDsSubscribedByClient.map((stopID) => [
-        stopID,
-        departuresByStopID.get(stopID),
-      ])
-    );
-    return JSON.stringify(dataForClient);
-  };
-
-  /**
-   * If clientID is provided, send data to the client
-   */
+  // If clientID is provided, send data only to the client
   if (clientID) {
     const ws = wsByClientID.get(clientID)!;
-
     ws.send(getStringifiedDataForClientID(clientID));
-
     return;
   }
 
-  /**
-   * If clientID is not provided, send data to all clients
-   */
+  // If clientID is not provided, send data to all clients
   wsByClientID.forEach((ws, clientID) =>
     ws.send(getStringifiedDataForClientID(clientID))
   );
@@ -98,18 +93,32 @@ const fetchData = async (clientID?: string) => {
 
 const server = Bun.serve<ClientData>({
   fetch(req, server) {
-    const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER);
-    const StopIDsHeaderParsed = JSON.parse(stopIDsHeaderRaw ?? "");
-    const res = StopIDsSchema.safeParse(StopIDsHeaderParsed);
+    try {
+      const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER);
+      if (!stopIDsHeaderRaw) {
+        throw `"${STOP_IDS_HEADER}" header is missing`;
+      }
 
-    if (!res.success) return new Response("Invalid request", { status: 400 });
+      const StopIDsHeaderParsed: unknown = JSON.parse(stopIDsHeaderRaw);
+      const res = StopIDsSchema.safeParse(StopIDsHeaderParsed);
+      if (!res.success) {
+        throw (
+          `Invalid "${STOP_IDS_HEADER}" header: ` +
+          JSON.stringify(res.error.errors[0].message)
+        );
+      }
 
-    const clientID = uuid();
-    subscribedStopIDsByClientID.set(clientID, res.data);
-    const success = server.upgrade(req, { data: { clientID } });
+      const clientID = crypto.randomUUID();
+      subscribedStopIDsByClientID.set(clientID, res.data);
 
-    if (!success)
-      return new Response("Failed to upgrade connection", { status: 500 });
+      const success = server.upgrade(req, { data: { clientID } });
+      if (!success) throw "Failed to upgrade connection";
+    } catch (e) {
+      return new Response(String(e), {
+        status: 500,
+        headers: [["error", String(e)]], // Postman doesn't show response body when testing websocket
+      });
+    }
   },
   websocket: {
     open(ws) {
@@ -125,10 +134,17 @@ const server = Bun.serve<ClientData>({
       intervalId = intervalObj[Symbol.toPrimitive]();
     },
     message(ws, message) {
-      const res = SubscribeSchema.safeParse(message);
-      if (!res.success) return;
+      try {
+        if (typeof message !== "string") throw "Message has to be string";
 
-      subscribedStopIDsByClientID.set(ws.data.clientID, res.data.subscribe);
+        var StopIDsHeaderParsed: unknown = JSON.parse(message);
+        const res = SubscribeSchema.safeParse(StopIDsHeaderParsed);
+        if (!res.success) throw JSON.stringify(res.error.errors[0].message);
+
+        subscribedStopIDsByClientID.set(ws.data.clientID, res.data.subscribe);
+      } catch (e) {
+        ws.close(1011, String(e));
+      }
     },
     close(ws) {
       const clientID = ws.data.clientID;
