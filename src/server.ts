@@ -60,7 +60,8 @@ const fetchData = async (clientID?: string) => {
    * If there are no departures and clientID is not
    * provided, there is no need to update the state.
    */
-  if (!res.departures.length && !clientID) return;
+
+  if (res.departures.length === 0) return;
 
   /**
    * update the state with the fetched departures
@@ -94,11 +95,7 @@ const fetchData = async (clientID?: string) => {
 const server = Bun.serve<ClientData>({
   fetch(req, server) {
     try {
-      const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER);
-      if (!stopIDsHeaderRaw) {
-        throw `"${STOP_IDS_HEADER}" header is missing`;
-      }
-
+      const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER) ?? "[]";
       const StopIDsHeaderParsed: unknown = JSON.parse(stopIDsHeaderRaw);
       const res = StopIDsSchema.safeParse(StopIDsHeaderParsed);
       if (!res.success) {

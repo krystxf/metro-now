@@ -4,7 +4,7 @@ import { stopIDs } from "./data/stop-ids";
 
 const stopIDSchema = z.enum(stopIDs);
 
-export const StopIDsSchema = z.array(stopIDSchema).nonempty().max(10);
+export const StopIDsSchema = z.array(stopIDSchema).max(10);
 
 export const SubscribeSchema = z.object({
   subscribe: StopIDsSchema,
