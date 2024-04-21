@@ -8,9 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
- 
-      - run: bun install 
-      - run: bun run build
+
+      - run: |
+          cd ./backend
+          bun install 
+          bun run build
 
   build-docker:
     name: Build Docker Image
@@ -19,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
- 
-      - run: bun install 
-      - run: bun run docker:build
+
+      - run: |
+          cd ./backend
+          bun install 
+          bun run docker:build
