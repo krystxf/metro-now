@@ -26,7 +26,7 @@ const LandingPage = () => {
         priority
       />
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
+      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-3 lg:text-left">
         <a
           href="https://github.com/krystxf/metro-now"
           className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-50"
@@ -42,6 +42,41 @@ const LandingPage = () => {
             Every line of code for this project is available on GitHub.
           </p>
         </a>
+
+        <a
+          href="/docs"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-50"
+        >
+          <h2 className="mb-3 text-2xl font-semibold">
+            Documentation
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            Learn how to use the API and what is under the hood.
+          </p>
+        </a>
+
+        <div className="rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-50">
+          <h2 className="mb-3 text-2xl font-semibold">Legal</h2>
+          <a href="/privacy-policy" className="px-5" target="_blank">
+            <h3 className="group text-sm font-semibold">
+              Privacy policy
+              <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                -&gt;
+              </span>
+            </h3>
+          </a>
+          <a href="/terms-and-conditions" className="px-5" target="_blank">
+            <h3 className="group text-sm font-semibold">
+              Terms & conditions
+              <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                -&gt;
+              </span>
+            </h3>
+          </a>
+        </div>
       </div>
     </main>
   );
