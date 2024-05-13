@@ -29,7 +29,7 @@ const getStopIDsToFetch = (clientID?: string): string[] => {
   if (clientID !== undefined) {
     const subscribedStopIDs = subscribedStopIDsByClientID.get(clientID) ?? [];
     const notFetchedStopIDs = subscribedStopIDs.filter(
-      (stopID) => !departuresByStopID.has(stopID)
+      (stopID) => !departuresByStopID.has(stopID),
     );
     return notFetchedStopIDs;
   }
@@ -69,7 +69,7 @@ const fetchData = async (clientID?: string) => {
   if (res.departures.length) {
     const resDeparturesByStopID = group(
       res.departures,
-      (departure) => departure.stop.id
+      (departure) => departure.stop.id,
     );
 
     const resDeparturesByStopIDEntries = Object.entries(resDeparturesByStopID);
@@ -88,7 +88,7 @@ const fetchData = async (clientID?: string) => {
 
   // If clientID is not provided, send data to all clients
   wsByClientID.forEach((ws, clientID) =>
-    ws.send(getStringifiedDataForClientID(clientID))
+    ws.send(getStringifiedDataForClientID(clientID)),
   );
 };
 

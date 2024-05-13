@@ -1,0 +1,18 @@
+{
+  "name": "metro-now-monorepo",
+  "author": {
+    "name": "Krystof Kratky",
+    "url": "https://github.com/krystxf"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krystxf/metro-now"
+  },
+  "scripts": {
+    "format": "pnpm exec prettier . --write",
+    "check:format": "pnpm exec prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
+}

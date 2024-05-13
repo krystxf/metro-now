@@ -1,0 +1,6 @@
+# app is formatted with swiftformat
+./app 
+
+node_modules
+.next
+pnpm-lock.yaml

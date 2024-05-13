@@ -37,7 +37,7 @@ export const ApiResponseSchema = z.object({
         is_at_stop: z.boolean(),
         is_canceled: z.boolean(),
       }),
-    })
+    }),
   ),
 });
 

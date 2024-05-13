@@ -3,14 +3,6 @@
   "module": "src/server.ts",
   "type": "module",
   "version": "0.0.1",
-  "author": {
-    "name": "Krystof",
-    "url": "https://github.com/krystxf"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/krystxf/metro-now-backend"
-  },
   "scripts": {
     "start": "bun run src/server.ts",
     "start:dev": "bun --watch src/server.ts",

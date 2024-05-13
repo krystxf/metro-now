@@ -9,7 +9,7 @@ export const fetchApiData = async (stopIDs: string[]) => {
   }
 
   const stopIDsParams = unique(stopIDs).map(
-    (id) => ["ids[]", id] satisfies [string, string]
+    (id) => ["ids[]", id] satisfies [string, string],
   );
 
   const searchParams = new URLSearchParams(paramsAsArray.concat(stopIDsParams));

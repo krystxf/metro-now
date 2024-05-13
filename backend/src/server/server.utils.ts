@@ -2,7 +2,7 @@ import type { Departure } from "../types";
 import type { ApiResponse } from "../schemas";
 
 export const getParsedDeparture = (
-  departure: ApiResponse["departures"][0]
+  departure: ApiResponse["departures"][0],
 ): Departure => {
   const parsedDeparture = {
     route: {

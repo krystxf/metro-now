@@ -1,6 +1,6 @@
 export const endpointUrl = new URL(
   "/v2/pid/departureboards",
-  "https://api.golemio.cz"
+  "https://api.golemio.cz",
 );
 export const headers = new Headers({
   "Content-Type": "application/json",
