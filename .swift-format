@@ -1,0 +1,10 @@
+{
+     "version": 1, 
+     "lineLength": 100,
+         "maximumBlankLines": 1,
+           "lineBreakBeforeControlFlowKeywords": true,
+    "lineBreakBeforeEachArgument": true,
+     "indentation": {
+        "spaces": 4
+    }
+}

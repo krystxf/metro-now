@@ -1,0 +1,36 @@
+name: CI
+
+on: push
+
+jobs:
+    frontend-ci:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 8
+
+            - name: Check format
+              run: |
+                  pnpm install 
+                  pnpm run check:format
+
+            - name: Frontend lint
+              run: |
+                  cd ./frontend
+                  pnpm install 
+                  pnpm run lint
+
+            - name: Frontend build
+              run: |
+                  cd ./frontend
+                  pnpm install 
+                  pnpm run build

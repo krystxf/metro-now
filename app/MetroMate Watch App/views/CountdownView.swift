@@ -27,7 +27,7 @@ func formatTime(seconds: Int) -> String {
         output.append("\(m)m")
     }
     // don't show seconds if wait time is over 1 hour
-    if h == 0 && s > 0 {
+    if h == 0, s > 0 {
         output.append("\(s)s")
     }
 
@@ -47,13 +47,12 @@ struct CountdownView: View {
     }
 }
 
-  let dateFormatter = ISO8601DateFormatter()
+let dateFormatter = ISO8601DateFormatter()
 
 class CountdownViewModel: ObservableObject {
     @Published var remainingTimeInSeconds: Int = 0
 
     private var timer: Timer?
-
 
     private let targetDate: Date
 
@@ -67,10 +66,10 @@ class CountdownViewModel: ObservableObject {
 
     func startCountdown() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
+            guard let self else { return }
             let currentDate = Date()
-            let remainingTime = Int(self.targetDate.timeIntervalSince(currentDate))
-            self.remainingTimeInSeconds = remainingTime
+            let remainingTime = Int(targetDate.timeIntervalSince(currentDate))
+            remainingTimeInSeconds = remainingTime
         }
     }
 

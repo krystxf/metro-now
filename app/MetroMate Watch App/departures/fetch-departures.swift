@@ -15,8 +15,7 @@ let REQUEST_PARAMETERS = [
     URLQueryItem(name: "order", value: "real"),
     URLQueryItem(name: "filter", value: "none"),
     URLQueryItem(name: "minutesBefore", value: String(2)),
-    URLQueryItem(name: "minutesAfter", value: String(360))
-    
+    URLQueryItem(name: "minutesAfter", value: String(360)),
 ]
 
 struct DepartureBoardResponse: Codable {
@@ -53,7 +52,7 @@ func fetchDepartureBoardData(
     )
 
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
-        if let error = error {
+        if let error {
             completion(.failure(error))
             return
         }
@@ -73,7 +72,7 @@ func fetchDepartureBoardData(
             return
         }
 
-        if let data = data {
+        if let data {
             do {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase

@@ -11,12 +11,12 @@ import SwiftUI
 func getLineColor(line: String) -> Color {
     switch line {
     case "A":
-        return .green
+        .green
     case "B":
-        return .yellow
+        .yellow
     case "C":
-        return .red
+        .red
     default:
-        return .white
+        .white
     }
 }

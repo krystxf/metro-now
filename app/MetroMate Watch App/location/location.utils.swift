@@ -31,27 +31,27 @@ func getDistanceBetweenCoordinates(lat1: Double, lon1: Double, lat2: Double, lon
     return distance
 }
 
-func getDistanceToStation(lat:Double, lon:Double,station:Station)->Double{
+func getDistanceToStation(lat: Double, lon: Double, station: Station) -> Double {
     let distanceToStation = getDistanceBetweenCoordinates(lat1: lat, lon1: lon, lat2: station.avgLat, lon2: station.avgLon)
-    
+
     return distanceToStation
 }
 
 func getClosestStation(lat: Double, lon: Double) -> Station {
     let stations = Station.allStations
 
-    var closestStationIndex: Int = 0
+    var closestStationIndex = 0
     var distanceToClosestStation = Double.infinity
 
     for (index, station) in stations.enumerated() {
-        let distanceToStation = getDistanceToStation(lat:lat, lon:lon, station:station)
-        
+        let distanceToStation = getDistanceToStation(lat: lat, lon: lon, station: station)
+
         if distanceToStation < distanceToClosestStation {
             distanceToClosestStation = distanceToStation
             closestStationIndex = index
         }
     }
-    
+
     return stations[closestStationIndex]
 }
 
@@ -59,12 +59,12 @@ func getClosestStation(lat: Double, lon: Double) -> Station {
 func getStationsSortedByDistance(lat: Double, lon: Double) -> [Station] {
     let stations = Station.allStations
 
-    let sortedStations = stations.sorted{station1,station2 in 
+    let sortedStations = stations.sorted { station1, station2 in
         let distanceToStation1 = getDistanceToStation(lat: lat, lon: lon, station: station1)
         let distanceToStation2 = getDistanceToStation(lat: lat, lon: lon, station: station2)
-        
+
         return distanceToStation1 < distanceToStation2
     }
 
-    return [];
+    return []
 }

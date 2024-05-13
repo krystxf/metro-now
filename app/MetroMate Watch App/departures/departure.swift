@@ -14,14 +14,14 @@ struct Departure: Codable, Identifiable, Hashable {
     let stop: DepartureStop
     let route: DepartureRoute
 
-    var id: String { return trip.id }
+    var id: String { trip.id }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(trip.id)
     }
 
     static func == (lhs: Departure, rhs: Departure) -> Bool {
-        return lhs.trip.id == rhs.trip.id
+        lhs.trip.id == rhs.trip.id
     }
 }
 
