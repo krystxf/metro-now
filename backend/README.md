@@ -2,24 +2,24 @@
 
 Websocket endpoint to simplify getting real-time data from Golemio departureboards API
 
-- stack: [Bun](https://github.com/oven-sh/bun), [Typescript](https://github.com/microsoft/TypeScript)
+-   stack: [Bun](https://github.com/oven-sh/bun), [Typescript](https://github.com/microsoft/TypeScript)
 
 ## Run dev
 
 1. install dependencies:
 
-   ```bash
-   bun install
-   ```
+    ```bash
+    bun install
+    ```
 
 2. create `.env` according to `.env.example`
 
 3. run
-   ```bash
-   bun run start
-   # run in watch mode
-   bun run start:dev
-   ```
+    ```bash
+    bun run start
+    # run in watch mode
+    bun run start:dev
+    ```
 
 ## Run build
 

@@ -1,5 +1,5 @@
 //
-//  env.swift
+//  env.example.swift
 //  MetroMate Watch App
 //
 //  Created by Kryštof Krátký on 01.04.2024.

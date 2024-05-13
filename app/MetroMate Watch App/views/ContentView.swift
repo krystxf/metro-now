@@ -5,15 +5,14 @@
 //  Created by Kryštof Krátký on 31.03.2024.
 //
 
+import CoreLocation
 import os
 import SwiftUI
-import CoreLocation
- 
 
 struct ContentView: View {
 //    let logger = Logger(subsystem: "com.apple.liveUpdatesSample", category: "DemoView")
 //    @ObservedObject var locationsHandler = LocationsHandler.shared
-    
+
     @ObservedObject var locationManager = LocationManager.shared
     @State private var isLoading: Bool = true
     @State private var station: Station?
@@ -22,14 +21,12 @@ struct ContentView: View {
 
     @State var selectedPlatform: Platform.ID?
 
-
-
     func populateStation() {
         let userCoordinates = locationManager.userLocation?.coordinate
         let lat = userCoordinates?.latitude
         let lon = userCoordinates?.longitude
 
-        if let lat = lat, let lon = lon {
+        if let lat, let lon {
             station = getClosestStation(lat: lat, lon: lon)
         }
     }
@@ -49,12 +46,12 @@ struct ContentView: View {
     func populateAll() {
         populateStation()
 
-        let platformIDs = station?.platforms.map { $0.gtfsId }
-        if let platformIDs = platformIDs {
+        let platformIDs = station?.platforms.map(\.gtfsId)
+        if let platformIDs {
             populateDepartures(platformIDs: platformIDs)
         }
     }
-    
+
 //    var body: some View {
 //        VStack {
 //            Spacer()
@@ -92,31 +89,31 @@ struct ContentView: View {
                 ) { _ in
                     populateAll()
                 }
-            }  
+            }
         } else if allDepartures.count == 0 {
             NoDeparturesView()
         } else {
             NavigationSplitView {
                 TabView {
-                    let platformIDs = station?.platforms.map { $0.gtfsId }
+                    let platformIDs = station?.platforms.map(\.gtfsId)
                     let departures = platformIDs?.compactMap { platformID in
                         allDepartures.first { departureBoardRecord in
                             departureBoardRecord.stop.id == platformID
                         }
                     }
 
-                    List( station!.platforms, selection: $selectedPlatform) { platform in
-                        let departure =  allDepartures.first(where: {
+                    List(station!.platforms, selection: $selectedPlatform) { platform in
+                        let departure = allDepartures.first(where: {
                             $0.stop.id == platform.gtfsId
                         })!
-                        
+
                         HStack {
                             Text(getShortenStationName(departure.trip.headsign)).fontWeight(.semibold)
                             Spacer()
                             CountdownView(countdownViewModel: CountdownViewModel(targetDateString: departure.departureTimestamp.predicted))
                         }
                         .tag(platform.gtfsId)
-                        .listItemTint( getLineColor(line: departure.route.shortName))
+                        .listItemTint(getLineColor(line: departure.route.shortName))
                     }
                     .navigationTitle(
                         getShortenStationName(station?.name ?? String())
@@ -138,9 +135,8 @@ struct ContentView: View {
                     let departureRecord = allDepartures.first {
                         $0.stop.id == selectedPlatform
                     }
-                    
-                
-                    if let departureRecord = departureRecord {
+
+                    if let departureRecord {
                         let filteredDepartures = allDepartures
                             .filter {
                                 $0.stop.id == departureRecord.stop.id
@@ -202,7 +198,7 @@ struct ContentView: View {
                         $0.id == selectedDeparture
                     }
 
-                    if let departureRecord = departureRecord {
+                    if let departureRecord {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button {} label: { Label(
                                 "Metro Line \(departureRecord.route.shortName)", systemImage: "\(departureRecord.route.shortName.lowercased()).circle"

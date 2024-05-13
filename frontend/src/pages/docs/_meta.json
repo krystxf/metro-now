@@ -1,8 +1,8 @@
 {
-  "index": "About",
-  "---": {
-    "type": "separator"
-  },
-  "backend": "Backend",
-  "legal": "Legal"
+    "index": "About",
+    "---": {
+        "type": "separator"
+    },
+    "backend": "Backend",
+    "legal": "Legal"
 }

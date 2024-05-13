@@ -22,14 +22,12 @@ struct Station: Codable {
 }
 
 struct Platform: Codable, Identifiable {
-    var id: String { return gtfsId }
-    
+    var id: String { gtfsId }
+
     let gtfsId: String
     let name: String // "A" / "B" / "C"
     let direction: String
 }
-
- 
 
 extension Bundle {
     func decode<T: Decodable>(file: String) -> T {
