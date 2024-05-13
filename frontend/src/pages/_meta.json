@@ -1,0 +1,20 @@
+{
+  "docs": {
+    "title": "Docs",
+    "type": "page"
+  },
+  "legal": {
+    "title": "Legal",
+    "type": "menu",
+    "items": {
+      "about": {
+        "title": "Privacy policy",
+        "href": "/docs/legal/privacy-policy"
+      },
+      "contact": {
+        "title": "Terms & conditions",
+        "href": "/docs/legal/terms-and-conditions"
+      }
+    }
+  }
+}
