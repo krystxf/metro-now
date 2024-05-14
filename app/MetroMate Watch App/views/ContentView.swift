@@ -119,16 +119,18 @@ struct ContentView: View {
                         getShortenStationName(station?.name ?? String())
                     )
                 }
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) { NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Label(
-                            "Settings", systemImage: "gear"
-                        )
-                    }
-                    }
-                }
+
+// TODO:
+//                .toolbar {
+//                    ToolbarItem(placement: .topBarLeading) { NavigationLink {
+//                        SettingsView()
+//                    } label: {
+//                        Label(
+//                            "Settings", systemImage: "gear"
+//                        )
+//                    }
+//                    }
+//                }
             }
             detail: {
                 TabView {
