@@ -17,6 +17,7 @@
 		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */; };
 		2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A032BF4C1E200A72C7F /* MainTabView.swift */; };
 		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
+		2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlatformDetailDepartureListView:.swift"; sourceTree = "<group>"; };
 		2DC63A032BF4C1E200A72C7F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 			children = (
 				2DC639EE2BF4B00A00A72C7F /* Utils */,
 				2DC639E92BF3CD3900A72C7F /* Core */,
+				2DC63A092BF4C4EA00A72C7F /* Models */,
 				2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */,
 				2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */,
 				2DC639E12BF3CCBC00A72C7F /* Preview Content */,
@@ -131,6 +134,14 @@
 				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
 			);
 			path = Map;
+			sourceTree = "<group>";
+		};
+		2DC63A092BF4C4EA00A72C7F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -207,6 +218,7 @@
 				2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */,
 				2DC639F02BF4B02B00A72C7F /* formatTime.swift in Sources */,
 				2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */,
+				2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
 				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
@@ -347,6 +359,7 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -376,6 +389,7 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
