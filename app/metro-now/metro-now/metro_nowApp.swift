@@ -11,7 +11,7 @@ import SwiftUI
 struct metro_nowApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
     }
 }

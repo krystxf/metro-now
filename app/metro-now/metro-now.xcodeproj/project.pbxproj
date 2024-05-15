@@ -8,17 +8,29 @@
 
 /* Begin PBXBuildFile section */
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
-		2DC639DE2BF3CCBA00A72C7F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DD2BF3CCBA00A72C7F /* ContentView.swift */; };
+		2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */; };
 		2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */; };
 		2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */; };
+		2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */; };
+		2DC639F02BF4B02B00A72C7F /* formatTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EF2BF4B02B00A72C7F /* formatTime.swift */; };
+		2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */; };
+		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */; };
+		2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A032BF4C1E200A72C7F /* MainTabView.swift */; };
+		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_nowApp.swift; sourceTree = "<group>"; };
-		2DC639DD2BF3CCBA00A72C7F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListView.swift; sourceTree = "<group>"; };
 		2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListItem.swift; sourceTree = "<group>"; };
+		2DC639EF2BF4B02B00A72C7F /* formatTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = formatTime.swift; sourceTree = "<group>"; };
+		2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformDetailView.swift; sourceTree = "<group>"; };
+		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlatformDetailDepartureListView:.swift"; sourceTree = "<group>"; };
+		2DC63A032BF4C1E200A72C7F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,8 +63,9 @@
 		2DC639DA2BF3CCBA00A72C7F /* metro-now */ = {
 			isa = PBXGroup;
 			children = (
+				2DC639EE2BF4B00A00A72C7F /* Utils */,
+				2DC639E92BF3CD3900A72C7F /* Core */,
 				2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */,
-				2DC639DD2BF3CCBA00A72C7F /* ContentView.swift */,
 				2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */,
 				2DC639E12BF3CCBC00A72C7F /* Preview Content */,
 			);
@@ -65,6 +78,59 @@
 				2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		2DC639E92BF3CD3900A72C7F /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A062BF4C24C00A72C7F /* Map */,
+				2DC639FE2BF4B1C600A72C7F /* PlatformDetail */,
+				2DC639EA2BF3CD4700A72C7F /* PlatformList */,
+				2DC63A052BF4C1E800A72C7F /* TabBar */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2DC639EA2BF3CD4700A72C7F /* PlatformList */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */,
+				2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */,
+			);
+			path = PlatformList;
+			sourceTree = "<group>";
+		};
+		2DC639EE2BF4B00A00A72C7F /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639EF2BF4B02B00A72C7F /* formatTime.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		2DC639FE2BF4B1C600A72C7F /* PlatformDetail */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */,
+				2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */,
+			);
+			path = PlatformDetail;
+			sourceTree = "<group>";
+		};
+		2DC63A052BF4C1E800A72C7F /* TabBar */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A032BF4C1E200A72C7F /* MainTabView.swift */,
+			);
+			path = TabBar;
+			sourceTree = "<group>";
+		};
+		2DC63A062BF4C24C00A72C7F /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
+			);
+			path = Map;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -137,8 +203,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DC639DE2BF3CCBA00A72C7F /* ContentView.swift in Sources */,
+				2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */,
+				2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */,
+				2DC639F02BF4B02B00A72C7F /* formatTime.swift in Sources */,
+				2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
+				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
+				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
