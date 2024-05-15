@@ -24,6 +24,7 @@
 		2DC63A132BF4D98F00A72C7F /* getMetroLineColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */; };
 		2DC63A222BF50EDD00A72C7F /* formatTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */; };
 		2DC63A242BF5266700A72C7F /* getMetroLineColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */; };
+		2DC63A262BF5280F00A72C7F /* getStationsFromJSONTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* getStationsFromJSONTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-now-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = formatTimeTests.swift; sourceTree = "<group>"; };
 		2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getMetroLineColorTests.swift; sourceTree = "<group>"; };
+		2DC63A252BF5280F00A72C7F /* getStationsFromJSONTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getStationsFromJSONTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +187,7 @@
 			children = (
 				2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */,
 				2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */,
+				2DC63A252BF5280F00A72C7F /* getStationsFromJSONTest.swift */,
 			);
 			path = "metro-now-tests";
 			sourceTree = "<group>";
@@ -310,6 +313,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2DC63A242BF5266700A72C7F /* getMetroLineColorTests.swift in Sources */,
+				2DC63A262BF5280F00A72C7F /* getStationsFromJSONTest.swift in Sources */,
 				2DC63A222BF50EDD00A72C7F /* formatTimeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
