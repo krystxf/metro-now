@@ -1,0 +1,23 @@
+name: App CI
+
+on: push
+
+jobs:
+    ci:
+        name: App CI 🚀
+        runs-on: macos-latest
+        steps:
+            - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+              with:
+                  swift-version: 5.10
+            - uses: actions/checkout@v4
+
+            - name: Unit tests
+              run: |
+                  cd ./app/metro-now  
+                  xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' | xcpretty && exit ${PIPESTATUS[0]}
+
+            - name: Build and test
+              run: |
+                  cd ./app/metro-now  
+                  xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' | xcpretty && exit ${PIPESTATUS[0]}
