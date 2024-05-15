@@ -22,8 +22,8 @@
 		2DC63A0F2BF4D13200A72C7F /* stationsJSONManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0E2BF4D13200A72C7F /* stationsJSONManager.swift */; };
 		2DC63A112BF4D3F800A72C7F /* stations.json in Resources */ = {isa = PBXBuildFile; fileRef = 2DC63A102BF4D3F800A72C7F /* stations.json */; };
 		2DC63A132BF4D98F00A72C7F /* getMetroLineColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */; };
-		2DC63A1B2BF50E8F00A72C7F /* metro_now_tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A1A2BF50E8F00A72C7F /* metro_now_tests.swift */; };
 		2DC63A222BF50EDD00A72C7F /* formatTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */; };
+		2DC63A242BF5266700A72C7F /* getMetroLineColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,8 +54,8 @@
 		2DC63A102BF4D3F800A72C7F /* stations.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = stations.json; path = ../../../../data/stations.json; sourceTree = "<group>"; };
 		2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getMetroLineColor.swift; sourceTree = "<group>"; };
 		2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-now-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2DC63A1A2BF50E8F00A72C7F /* metro_now_tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_tests.swift; sourceTree = "<group>"; };
 		2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = formatTimeTests.swift; sourceTree = "<group>"; };
+		2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getMetroLineColorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -183,8 +183,8 @@
 		2DC63A192BF50E8F00A72C7F /* metro-now-tests */ = {
 			isa = PBXGroup;
 			children = (
-				2DC63A1A2BF50E8F00A72C7F /* metro_now_tests.swift */,
 				2DC63A212BF50EDD00A72C7F /* formatTimeTests.swift */,
+				2DC63A232BF5266700A72C7F /* getMetroLineColorTests.swift */,
 			);
 			path = "metro-now-tests";
 			sourceTree = "<group>";
@@ -309,7 +309,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DC63A1B2BF50E8F00A72C7F /* metro_now_tests.swift in Sources */,
+				2DC63A242BF5266700A72C7F /* getMetroLineColorTests.swift in Sources */,
 				2DC63A222BF50EDD00A72C7F /* formatTimeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

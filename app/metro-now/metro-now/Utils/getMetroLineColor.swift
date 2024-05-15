@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 func getMetroLineColor(_ letter: String) -> Color {
-    switch letter {
+    switch letter.uppercased() {
     case "A":
         .green
     case "B":
