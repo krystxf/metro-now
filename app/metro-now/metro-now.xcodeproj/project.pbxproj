@@ -19,6 +19,9 @@
 		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
 		2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */; };
 		2DC63A0D2BF4CD9900A72C7F /* mapUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */; };
+		2DC63A0F2BF4D13200A72C7F /* stationsJSONManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0E2BF4D13200A72C7F /* stationsJSONManager.swift */; };
+		2DC63A112BF4D3F800A72C7F /* stations.json in Resources */ = {isa = PBXBuildFile; fileRef = 2DC63A102BF4D3F800A72C7F /* stations.json */; };
+		2DC63A132BF4D98F00A72C7F /* getMetroLineColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +38,9 @@
 		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 		2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mapUtils.swift; sourceTree = "<group>"; };
+		2DC63A0E2BF4D13200A72C7F /* stationsJSONManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stationsJSONManager.swift; sourceTree = "<group>"; };
+		2DC63A102BF4D3F800A72C7F /* stations.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = stations.json; path = ../../../../data/stations.json; sourceTree = "<group>"; };
+		2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getMetroLineColor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,7 +115,10 @@
 			isa = PBXGroup;
 			children = (
 				2DC639EF2BF4B02B00A72C7F /* formatTime.swift */,
+				2DC63A0E2BF4D13200A72C7F /* stationsJSONManager.swift */,
+				2DC63A102BF4D3F800A72C7F /* stations.json */,
 				2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */,
+				2DC63A122BF4D98F00A72C7F /* getMetroLineColor.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -207,6 +216,7 @@
 			files = (
 				2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */,
 				2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */,
+				2DC63A112BF4D3F800A72C7F /* stations.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,8 +235,10 @@
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
 				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2DC63A132BF4D98F00A72C7F /* getMetroLineColor.swift in Sources */,
 				2DC63A0D2BF4CD9900A72C7F /* mapUtils.swift in Sources */,
 				2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */,
+				2DC63A0F2BF4D13200A72C7F /* stationsJSONManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
