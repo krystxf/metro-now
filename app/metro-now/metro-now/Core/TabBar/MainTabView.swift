@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var locationModel = LocationModel()
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TabView {
@@ -22,6 +23,9 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
+        }
+        .onReceive(locationModel.$location) { location in
+            print("User's location: \(location)")
         }
         .onAppear {
             locationModel.checkLocationServicesEnabled()

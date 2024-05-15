@@ -9,6 +9,7 @@ import Foundation
 import MapKit
 
 final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+    @Published var location: CLLocation?
     var locationManager: CLLocationManager?
 
     func checkLocationServicesEnabled() {
@@ -16,10 +17,18 @@ final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate
 
         if isEnabled {
             locationManager = CLLocationManager()
-            locationManager!.delegate = self
+            if let locationManager {
+                locationManager.delegate = self
+                locationManager.distanceFilter = 10.0
+                locationManager.startUpdatingLocation()
+            }
         } else {
             print("Location services not enabled")
         }
+    }
+
+    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        location = locations.last
     }
 
     private func checkLocationAuthorization() {
