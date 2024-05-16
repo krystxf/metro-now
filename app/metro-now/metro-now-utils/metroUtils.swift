@@ -8,10 +8,6 @@
 import Foundation
 import SwiftUI
 
-let metroRoutesGeoJSON: MetroRoutesGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
-
-let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
-
 enum MetroLine: String {
     case A
     case B

@@ -12,14 +12,13 @@ final class jsonUtilsTests: XCTestCase {
     // MARK: - check if JSON data loads successfully
 
     func testMetroRoutesGeoJSON() {
-        let result: MetroRoutesGeoJSON! = getParsedJSONFile(.METRO_ROUTES_FILE)
+        let result: MetroRoutesGeoJSON? = getParsedJSONFile(.METRO_ROUTES_FILE)
 
         XCTAssertNotNil(result)
     }
 
     func testMetroStationsGeoJSON() {
-        let result: MetroStationsGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
-
+        let result: MetroStationsGeoJSON? = getParsedJSONFile(.METRO_STATIONS_FILE)
         XCTAssertNotNil(result)
     }
 }
