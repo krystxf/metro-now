@@ -1,5 +1,5 @@
 //
-//  formatTimeTests.swift
+//  timeUtilsTests.swift
 //  metro-now-tests
 //
 //  Created by Kryštof Krátký on 15.05.2024.
@@ -8,12 +8,12 @@
 @testable import metro_now
 import XCTest
 
-final class formatTimeTests: XCTestCase {
+final class timeUtilsTests: XCTestCase {
     // MARK: - outputs with seconds
 
     /// should show positive and negative or zero seconds without any issues
 
-    func testFormatTimePositiveSeconds() {
+    func testsFormatTimePositiveSeconds() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -41,7 +41,7 @@ final class formatTimeTests: XCTestCase {
         XCTAssertEqual(result, expectedResult)
     }
 
-    func testFormatTimeNegativeSeconds() {
+    func testsFormatTimeNegativeSeconds() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -76,7 +76,7 @@ final class formatTimeTests: XCTestCase {
         XCTAssertEqual(result, expectedResult)
     }
 
-    func testFormatTimeZeroSeconds() {
+    func testsFormatTimeZeroSeconds() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -101,7 +101,7 @@ final class formatTimeTests: XCTestCase {
 
     /// should show minutes and seconds (if seconds is > 0)
 
-    func testFormatTimePositiveMinutes() {
+    func testsFormatTimePositiveMinutes() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -143,7 +143,7 @@ final class formatTimeTests: XCTestCase {
         XCTAssertEqual(result, expectedResult)
     }
 
-    func testFormatTimeNegativeMinutes() {
+    func testsFormatTimeNegativeMinutes() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -189,7 +189,7 @@ final class formatTimeTests: XCTestCase {
 
     /// shouldn't return seconds if value > 1hr
 
-    func testFormatTimePositiveHours() {
+    func testsFormatTimePositiveHours() {
         /// init variables for testing
         var seconds: Int
         var result: String
@@ -278,7 +278,7 @@ final class formatTimeTests: XCTestCase {
         XCTAssertEqual(result, expectedResult)
     }
 
-    func testFormatTimeNegativeHours() {
+    func testsFormatTimeNegativeHours() {
         /// init variables for testing
         var seconds: Int
         var result: String
