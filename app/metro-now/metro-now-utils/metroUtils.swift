@@ -40,6 +40,14 @@ func getMetroLineColor(_ letter: MetroLine) -> Color {
     }
 }
 
+func getMetroLineIcon(_ letter: String) -> String {
+    "\(letter.lowercased()).circle.fill"
+}
+
+func getMetroLineIcon(_ letter: MetroLine) -> String {
+    getMetroLineIcon(letter.rawValue)
+}
+
 func getClosestStationFromGeoJSON(location: CLLocation) -> MetroStationsGeoJSONFeature? {
     let stations: MetroStationsGeoJSON? = getParsedJSONFile(.METRO_STATIONS_FILE)
 

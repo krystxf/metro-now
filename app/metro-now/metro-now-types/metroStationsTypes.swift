@@ -25,7 +25,7 @@ struct MetroStationsGeoJSONFeatureGeometryProperties: Codable {
     let platforms: [MetroStationsGeoJSONFeatureGeometryPropertiesPlatform]
 }
 
-struct MetroStationsGeoJSONFeatureGeometryPropertiesPlatform: Codable {
+struct MetroStationsGeoJSONFeatureGeometryPropertiesPlatform: Codable, Hashable {
     let gtfsID: String?
     let name: String?
     let direction: String?

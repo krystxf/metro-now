@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlatformDetailView: View {
-    var direction: String
+    let direction: String
 
     var body: some View {
         ZStack {

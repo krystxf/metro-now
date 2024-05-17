@@ -10,11 +10,13 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var locationModel = LocationModel()
+    @State var closestStation: MetroStationsGeoJSONFeature?
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TabView {
-            PlatformsListView()
+            PlatformsListView(
+                station: closestStation)
                 .tabItem {
                     Label("Near me", systemImage: "location.circle")
                 }
@@ -25,14 +27,24 @@ struct MainTabView: View {
                 }
         }
         .onReceive(locationModel.$location) { location in
+
+            guard let location else {
+                print("Unknown location")
+                return
+            }
             print("User's location: \(location)")
+
+            let res = getClosestStationFromGeoJSON(location: location)
+
+            guard let res else {
+                print("Unknown closest station")
+                return
+            }
+
+            closestStation = res
         }
         .onAppear {
             locationModel.checkLocationServicesEnabled()
         }
     }
-}
-
-#Preview {
-    MainTabView()
 }
