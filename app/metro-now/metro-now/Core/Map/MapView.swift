@@ -2,8 +2,6 @@
 //  MapView.swift
 //  metro-now
 //
-//  Created by Kryštof Krátký on 15.05.2024.
-//
 
 import MapKit
 import SwiftUI
@@ -14,6 +12,8 @@ struct MapView: View {
     var body: some View {
         Map {
             ForEach(metroStationsGeoJSON!.features, id: \.properties.name) { feature in
+                let metroLines: [String] = Array(Set(feature.properties.platforms.map { $0.name! }))
+
                 Annotation(
                     feature.properties.name,
                     coordinate: CLLocationCoordinate2D(
@@ -22,22 +22,32 @@ struct MapView: View {
                     )
                 ) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: .infinity)
-                            .foregroundColor(
-                                .white
+                        ForEach(Array(metroLines.enumerated()), id: \.0) {
+                            index, metroLine in
+
+                  
+                                Rectangle()
+                                    .foregroundStyle(.white)
+                                
+                                    .clipShape(.rect(cornerRadius: .infinity))
+                                    .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
+                            
+                            Image(
+                                systemName:
+                                getMetroLineIcon(metroLine)
                             )
-                        Image(systemName: "\(feature.properties.platforms[0].name!.lowercased()).circle.fill")
-                            .foregroundColor(
-                                getMetroLineColor(feature.properties.platforms[0].name!)
-                            )
+                            .foregroundStyle(getMetroLineColor(metroLine))
+                            .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
+                        }
                     }
                 }
             }
         }
+        .mapStyle(.standard(elevation: .realistic))
+
     }
 }
 
 #Preview {
-    MapView(
-    )
+    MapView()
 }
