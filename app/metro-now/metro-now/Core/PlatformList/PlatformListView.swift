@@ -15,11 +15,16 @@ struct PlatformsListView: View {
                 LazyVStack(spacing: 10) {
                     if let station {
                         ForEach(station.properties.platforms, id: \.self) { platform in
-                            NavigationLink(value: platform) {
+                            NavigationLink {
+                                PlatformDetailView(
+                                    direction: platform.direction
+                                )
+                            }
+                            label: {
                                 PlatformListItemView(
-                                    direction: platform.direction!,
+                                    direction: platform.direction,
                                     departure: formatTime(seconds: 20),
-                                    metroLine: MetroLine(rawValue: platform.name!)!,
+                                    metroLine: MetroLine(rawValue: platform.name)!,
                                     nextDeparture: formatTime(seconds: 200)
                                 )
                             }
@@ -28,12 +33,7 @@ struct PlatformsListView: View {
                 }
                 .padding(10)
             }
-            .navigationDestination(for: Int.self) {
-                _ in
-                PlatformDetailView(
-                    direction: "Háje"
-                )
-            }
+
             .navigationTitle(station?.properties.name ?? "")
         }
     }

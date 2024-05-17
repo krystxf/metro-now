@@ -27,12 +27,12 @@ jobs:
             - name: Lint
               continue-on-error: true
               run: |
-                  cd ./frontend
+                  cd ./docs
                   pnpm install 
                   pnpm run lint
 
             - name: Build
               run: |
-                  cd ./frontend
+                  cd ./docs
                   pnpm install 
                   pnpm run build

@@ -26,7 +26,7 @@ struct PlatformDetailView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                 Text(formatTime(seconds: 20))
-                    .font(.title)
+                    .font(.largeTitle)
                     .foregroundStyle(.white)
                 Text("Also in \(formatTime(seconds: 200))")
                     .font(.title2)
@@ -34,6 +34,7 @@ struct PlatformDetailView: View {
 
                 Spacer()
             }
+            .padding(.top, 50)
         }
     }
 }

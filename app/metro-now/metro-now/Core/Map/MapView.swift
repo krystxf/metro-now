@@ -12,7 +12,7 @@ struct MapView: View {
     var body: some View {
         Map {
             ForEach(metroStationsGeoJSON!.features, id: \.properties.name) { feature in
-                let metroLines: [String] = Array(Set(feature.properties.platforms.map { $0.name! }))
+                let metroLines: [String] = Array(Set(feature.properties.platforms.map(\.name)))
 
                 Annotation(
                     feature.properties.name,
@@ -25,13 +25,11 @@ struct MapView: View {
                         ForEach(Array(metroLines.enumerated()), id: \.0) {
                             index, metroLine in
 
-                  
-                                Rectangle()
-                                    .foregroundStyle(.white)
-                                
-                                    .clipShape(.rect(cornerRadius: .infinity))
-                                    .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
-                            
+                            Rectangle()
+                                .foregroundStyle(.white)
+                                .clipShape(.rect(cornerRadius: .infinity))
+                                .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
+
                             Image(
                                 systemName:
                                 getMetroLineIcon(metroLine)
@@ -44,7 +42,6 @@ struct MapView: View {
             }
         }
         .mapStyle(.standard(elevation: .realistic))
-
     }
 }
 
