@@ -3,8 +3,8 @@ name: Backend CI
 on: push
 
 jobs:
-    build:
-        name: Build 🏗️
+    build-v1:
+        name: Build v1 🏗️
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest]
@@ -19,9 +19,36 @@ jobs:
                   bun install 
                   bun run build
 
-    publish-docker-image:
+    build-v2:
+        name: Build v2 🏗️
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+                node: [20, 22]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v1
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 8
+
+            - run: |
+                  cd ./backend/v2
+                  pnpm install 
+                  pnpm run build
+
+    publish-v1-docker-image:
         name: Publish Docker image 🚀
-        needs: build
+        needs: build-v1
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main'
 
@@ -46,4 +73,4 @@ jobs:
               with:
                   context: ./backend/v1
                   push: true
-                  tags: krystxf/metro-now-backend:latest
+                  tags: krystxf/metro-now-backend:v1-latest
