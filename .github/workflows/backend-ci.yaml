@@ -15,7 +15,7 @@ jobs:
             - uses: oven-sh/setup-bun@v1
 
             - run: |
-                  cd ./backend
+                  cd ./backend/v1
                   bun install 
                   bun run build
 
@@ -44,6 +44,6 @@ jobs:
             - name: Build and publish
               uses: docker/build-push-action@v5
               with:
-                  context: ./backend
+                  context: ./backend/v1
                   push: true
                   tags: krystxf/metro-now-backend:latest
