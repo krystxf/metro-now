@@ -1,0 +1,24 @@
+name: App CI
+
+on: push
+
+jobs:
+    ci:
+        runs-on: macos-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                device: [14, 15]
+                iOS: [17.4, 17.5]
+        name: App CI 🚀 (iPhone ${{ matrix.device }}, iOS ${{ matrix.iOS }} )
+
+        steps:
+            - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+              with:
+                  swift-version: 5.10
+            - uses: actions/checkout@v4
+
+            - name: Build and test
+              run: |
+                  cd ./app/metro-now  
+                  xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}

@@ -1,10 +1,10 @@
-name: Backend
+name: Backend CI
 
 on: push
 
 jobs:
-    backend-ci:
-        name: CI
+    build:
+        name: Build 🏗️
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest]
@@ -20,7 +20,8 @@ jobs:
                   bun run build
 
     publish-docker-image:
-        needs: backend-ci
+        name: Publish Docker image 🚀
+        needs: build
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main'
 

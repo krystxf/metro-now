@@ -96,7 +96,25 @@ const fetchData = async (clientID?: string) => {
 };
 
 const server = Bun.serve<ClientData>({
-    fetch(req, server) {
+    async fetch(req, server) {
+        const url = new URL(req.url);
+        if (req.method === "GET" && url.pathname === "/departures") {
+            const gtfsIDs = StopIDsSchema.safeParse(
+                url.searchParams.getAll("gtfsID") ?? [],
+            );
+            if (!gtfsIDs.success) {
+                return new Response(
+                    `Invalid gtfsIDs: ` +
+                        JSON.stringify(gtfsIDs.error, null, 2),
+                    { status: 500 },
+                );
+            }
+
+            const data = await fetchApiData(gtfsIDs.data);
+
+            return new Response(JSON.stringify(data));
+        }
+
         try {
             const stopIDsHeaderRaw = req.headers.get(STOP_IDS_HEADER) ?? "[]";
             const StopIDsHeaderParsed: unknown = JSON.parse(stopIDsHeaderRaw);

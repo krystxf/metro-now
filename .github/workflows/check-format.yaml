@@ -1,0 +1,42 @@
+name: Check format
+
+on: push
+
+jobs:
+    swift-format-check:
+        name: Swift format check 💅
+        runs-on: macos-latest
+
+        steps:
+            - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+              with:
+                  swift-version: 5.10
+            - uses: actions/checkout@v4
+
+            - name: Check Swift format
+              run: swiftformat . --lint
+
+    js-format-check:
+        name: JS format check 💅
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 8
+
+            - name: Check JS format
+              run: |
+                  pnpm install 
+                  pnpm run check:format

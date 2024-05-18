@@ -1,0 +1,616 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2D05EC612BF65E0B003D9581 /* fileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D05EC602BF65E0B003D9581 /* fileUtils.swift */; };
+		2DAD3B552BF699EE00D51285 /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DAD3B532BF699EE00D51285 /* metro-routes.geojson */; };
+		2DAD3B562BF699EE00D51285 /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DAD3B542BF699EE00D51285 /* metro-stations.geojson */; };
+		2DAD3B5A2BF6A2F100D51285 /* metroRoutesTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAD3B592BF6A2F100D51285 /* metroRoutesTypes.swift */; };
+		2DAD3B5C2BF6A31700D51285 /* metroStationsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAD3B5B2BF6A31700D51285 /* metroStationsTypes.swift */; };
+		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
+		2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */; };
+		2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */; };
+		2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */; };
+		2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */; };
+		2DC639F02BF4B02B00A72C7F /* timeUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EF2BF4B02B00A72C7F /* timeUtils.swift */; };
+		2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */; };
+		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */; };
+		2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A032BF4C1E200A72C7F /* MainTabView.swift */; };
+		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
+		2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */; };
+		2DC63A0D2BF4CD9900A72C7F /* mapUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */; };
+		2DC63A0F2BF4D13200A72C7F /* jsonUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A0E2BF4D13200A72C7F /* jsonUtils.swift */; };
+		2DC63A132BF4D98F00A72C7F /* metroUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A122BF4D98F00A72C7F /* metroUtils.swift */; };
+		2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */; };
+		2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */; };
+		2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2DC63A1C2BF50E8F00A72C7F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2DC639D02BF3CCBA00A72C7F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2DC639D72BF3CCBA00A72C7F;
+			remoteInfo = "metro-now";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2D05EC602BF65E0B003D9581 /* fileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fileUtils.swift; sourceTree = "<group>"; };
+		2DAD3B532BF699EE00D51285 /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
+		2DAD3B542BF699EE00D51285 /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../data/metro-stations.geojson"; sourceTree = "<group>"; };
+		2DAD3B592BF6A2F100D51285 /* metroRoutesTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroRoutesTypes.swift; sourceTree = "<group>"; };
+		2DAD3B5B2BF6A31700D51285 /* metroStationsTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroStationsTypes.swift; sourceTree = "<group>"; };
+		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_nowApp.swift; sourceTree = "<group>"; };
+		2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListView.swift; sourceTree = "<group>"; };
+		2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListItem.swift; sourceTree = "<group>"; };
+		2DC639EF2BF4B02B00A72C7F /* timeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtils.swift; sourceTree = "<group>"; };
+		2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformDetailView.swift; sourceTree = "<group>"; };
+		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlatformDetailDepartureListView:.swift"; sourceTree = "<group>"; };
+		2DC63A032BF4C1E200A72C7F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
+		2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mapUtils.swift; sourceTree = "<group>"; };
+		2DC63A0E2BF4D13200A72C7F /* jsonUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtils.swift; sourceTree = "<group>"; };
+		2DC63A122BF4D98F00A72C7F /* metroUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtils.swift; sourceTree = "<group>"; };
+		2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-now-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtilsTests.swift; sourceTree = "<group>"; };
+		2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtilsTests.swift; sourceTree = "<group>"; };
+		2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtilsTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2DC639D52BF3CCBA00A72C7F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DC63A152BF50E8F00A72C7F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2D2B0F222BF67B7C00EF9D95 /* metro-now-data */ = {
+			isa = PBXGroup;
+			children = (
+				2DAD3B532BF699EE00D51285 /* metro-routes.geojson */,
+				2DAD3B542BF699EE00D51285 /* metro-stations.geojson */,
+			);
+			path = "metro-now-data";
+			sourceTree = "<group>";
+		};
+		2DAD3B572BF69A0500D51285 /* metro-now-utils */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639EF2BF4B02B00A72C7F /* timeUtils.swift */,
+				2DC63A0E2BF4D13200A72C7F /* jsonUtils.swift */,
+				2DC63A0C2BF4CD9900A72C7F /* mapUtils.swift */,
+				2DC63A122BF4D98F00A72C7F /* metroUtils.swift */,
+				2D05EC602BF65E0B003D9581 /* fileUtils.swift */,
+			);
+			path = "metro-now-utils";
+			sourceTree = "<group>";
+		};
+		2DAD3B582BF6A2AE00D51285 /* metro-now-types */ = {
+			isa = PBXGroup;
+			children = (
+				2DAD3B592BF6A2F100D51285 /* metroRoutesTypes.swift */,
+				2DAD3B5B2BF6A31700D51285 /* metroStationsTypes.swift */,
+			);
+			path = "metro-now-types";
+			sourceTree = "<group>";
+		};
+		2DC639CF2BF3CCBA00A72C7F = {
+			isa = PBXGroup;
+			children = (
+				2DC639DA2BF3CCBA00A72C7F /* metro-now */,
+				2DAD3B582BF6A2AE00D51285 /* metro-now-types */,
+				2DAD3B572BF69A0500D51285 /* metro-now-utils */,
+				2D2B0F222BF67B7C00EF9D95 /* metro-now-data */,
+				2DC63A192BF50E8F00A72C7F /* metro-now-tests */,
+				2DC639D92BF3CCBA00A72C7F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2DC639D92BF3CCBA00A72C7F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639D82BF3CCBA00A72C7F /* metro-now.app */,
+				2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2DC639DA2BF3CCBA00A72C7F /* metro-now */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639E92BF3CD3900A72C7F /* Core */,
+				2DC63A092BF4C4EA00A72C7F /* Models */,
+				2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */,
+				2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */,
+				2DC639E12BF3CCBC00A72C7F /* Preview Content */,
+			);
+			path = "metro-now";
+			sourceTree = "<group>";
+		};
+		2DC639E12BF3CCBC00A72C7F /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		2DC639E92BF3CD3900A72C7F /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A062BF4C24C00A72C7F /* Map */,
+				2DC639FE2BF4B1C600A72C7F /* PlatformDetail */,
+				2DC639EA2BF3CD4700A72C7F /* PlatformList */,
+				2DC63A052BF4C1E800A72C7F /* TabBar */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2DC639EA2BF3CD4700A72C7F /* PlatformList */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */,
+				2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */,
+			);
+			path = PlatformList;
+			sourceTree = "<group>";
+		};
+		2DC639FE2BF4B1C600A72C7F /* PlatformDetail */ = {
+			isa = PBXGroup;
+			children = (
+				2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */,
+				2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */,
+			);
+			path = PlatformDetail;
+			sourceTree = "<group>";
+		};
+		2DC63A052BF4C1E800A72C7F /* TabBar */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A032BF4C1E200A72C7F /* MainTabView.swift */,
+			);
+			path = TabBar;
+			sourceTree = "<group>";
+		};
+		2DC63A062BF4C24C00A72C7F /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
+		2DC63A092BF4C4EA00A72C7F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A0A2BF4C5B900A72C7F /* LocationModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2DC63A192BF50E8F00A72C7F /* metro-now-tests */ = {
+			isa = PBXGroup;
+			children = (
+				2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */,
+				2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */,
+				2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */,
+			);
+			path = "metro-now-tests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2DC639D72BF3CCBA00A72C7F /* metro-now */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2DC639E62BF3CCBC00A72C7F /* Build configuration list for PBXNativeTarget "metro-now" */;
+			buildPhases = (
+				2DC639D42BF3CCBA00A72C7F /* Sources */,
+				2DC639D52BF3CCBA00A72C7F /* Frameworks */,
+				2DC639D62BF3CCBA00A72C7F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "metro-now";
+			productName = "metro-now";
+			productReference = 2DC639D82BF3CCBA00A72C7F /* metro-now.app */;
+			productType = "com.apple.product-type.application";
+		};
+		2DC63A172BF50E8F00A72C7F /* metro-now-tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2DC63A1E2BF50E8F00A72C7F /* Build configuration list for PBXNativeTarget "metro-now-tests" */;
+			buildPhases = (
+				2DC63A142BF50E8F00A72C7F /* Sources */,
+				2DC63A152BF50E8F00A72C7F /* Frameworks */,
+				2DC63A162BF50E8F00A72C7F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2DC63A1D2BF50E8F00A72C7F /* PBXTargetDependency */,
+			);
+			name = "metro-now-tests";
+			productName = "metro-now-tests";
+			productReference = 2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2DC639D02BF3CCBA00A72C7F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					2DC639D72BF3CCBA00A72C7F = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					2DC63A172BF50E8F00A72C7F = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = 2DC639D72BF3CCBA00A72C7F;
+					};
+				};
+			};
+			buildConfigurationList = 2DC639D32BF3CCBA00A72C7F /* Build configuration list for PBXProject "metro-now" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 2DC639CF2BF3CCBA00A72C7F;
+			productRefGroup = 2DC639D92BF3CCBA00A72C7F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2DC639D72BF3CCBA00A72C7F /* metro-now */,
+				2DC63A172BF50E8F00A72C7F /* metro-now-tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2DC639D62BF3CCBA00A72C7F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DAD3B552BF699EE00D51285 /* metro-routes.geojson in Resources */,
+				2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */,
+				2DAD3B562BF699EE00D51285 /* metro-stations.geojson in Resources */,
+				2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DC63A162BF50E8F00A72C7F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2DC639D42BF3CCBA00A72C7F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */,
+				2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */,
+				2DC639F02BF4B02B00A72C7F /* timeUtils.swift in Sources */,
+				2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */,
+				2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */,
+				2DAD3B5A2BF6A2F100D51285 /* metroRoutesTypes.swift in Sources */,
+				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
+				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
+				2D05EC612BF65E0B003D9581 /* fileUtils.swift in Sources */,
+				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2DC63A132BF4D98F00A72C7F /* metroUtils.swift in Sources */,
+				2DC63A0D2BF4CD9900A72C7F /* mapUtils.swift in Sources */,
+				2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */,
+				2DAD3B5C2BF6A31700D51285 /* metroStationsTypes.swift in Sources */,
+				2DC63A0F2BF4D13200A72C7F /* jsonUtils.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DC63A142BF50E8F00A72C7F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */,
+				2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */,
+				2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2DC63A1D2BF50E8F00A72C7F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
+			targetProxy = 2DC63A1C2BF50E8F00A72C7F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2DC639E42BF3CCBC00A72C7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		2DC639E52BF3CCBC00A72C7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2DC639E72BF3CCBC00A72C7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2DC639E82BF3CCBC00A72C7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		2DC63A1F2BF50E8F00A72C7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/metro-now.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/metro-now";
+			};
+			name = Debug;
+		};
+		2DC63A202BF50E8F00A72C7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/metro-now.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/metro-now";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2DC639D32BF3CCBA00A72C7F /* Build configuration list for PBXProject "metro-now" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DC639E42BF3CCBC00A72C7F /* Debug */,
+				2DC639E52BF3CCBC00A72C7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2DC639E62BF3CCBC00A72C7F /* Build configuration list for PBXNativeTarget "metro-now" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DC639E72BF3CCBC00A72C7F /* Debug */,
+				2DC639E82BF3CCBC00A72C7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2DC63A1E2BF50E8F00A72C7F /* Build configuration list for PBXNativeTarget "metro-now-tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DC63A1F2BF50E8F00A72C7F /* Debug */,
+				2DC63A202BF50E8F00A72C7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 2DC639D02BF3CCBA00A72C7F /* Project object */;
+}
