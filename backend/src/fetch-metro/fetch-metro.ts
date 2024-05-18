@@ -30,10 +30,10 @@ export const fetchApiData = async (stopIDs: string[]) => {
     const body = await res.json();
     const parsed = ApiResponseSchema.safeParse(body);
 
-    if (!parsed.success) {
-        console.error("Golemio API response:", body);
-        throw new Error("Golemio API response is in unexpected format");
-    }
+    // if (!parsed.success) {
+    //     console.error("Golemio API response:", body);
+    //     throw new Error("Golemio API response is in unexpected format");
+    // }
 
-    return parsed.data;
+    return body;
 };

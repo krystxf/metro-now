@@ -15,11 +15,12 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            PlatformsListView(
+            if let closestStation { PlatformsListView(
                 station: closestStation)
                 .tabItem {
                     Label("Near me", systemImage: "location.circle")
                 }
+            }
 
             MapView()
                 .tabItem {

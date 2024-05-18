@@ -11,6 +11,9 @@ struct MapView: View {
 
     var body: some View {
         Map {
+            UserAnnotation(
+            )
+
             ForEach(metroStationsGeoJSON!.features, id: \.properties.name) { feature in
                 let metroLines: [String] = Array(Set(feature.properties.platforms.map(\.name)))
 
@@ -42,6 +45,9 @@ struct MapView: View {
             }
         }
         .mapStyle(.standard(elevation: .realistic))
+        .mapControls {
+            MapUserLocationButton()
+        }
     }
 }
 

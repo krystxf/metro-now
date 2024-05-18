@@ -6,8 +6,16 @@
 import CoreLocation
 import SwiftUI
 
+struct Departure {
+    let platform: String
+    let direction: String
+    let departure: Date
+}
+
 struct PlatformsListView: View {
     var station: MetroStationsGeoJSONFeature?
+    @StateObject private var viewModel = PlatformListViewModel()
+    @State private var departures: [Departure1] = []
 
     var body: some View {
         NavigationStack {
@@ -35,6 +43,21 @@ struct PlatformsListView: View {
             }
 
             .navigationTitle(station?.properties.name ?? "")
+            .task {
+                print("Fetching departures")
+                guard let station else {
+                    print("empty station")
+                    return
+                }
+
+                do {
+                    print("Fetching departures")
+                    departures = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
+                    print(departures)
+                }
+
+                catch {}
+            }
         }
     }
 }

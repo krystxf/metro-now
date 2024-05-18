@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2D05EC612BF65E0B003D9581 /* fileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D05EC602BF65E0B003D9581 /* fileUtils.swift */; };
+		2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */; };
+		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2DAD3B552BF699EE00D51285 /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DAD3B532BF699EE00D51285 /* metro-routes.geojson */; };
 		2DAD3B562BF699EE00D51285 /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DAD3B542BF699EE00D51285 /* metro-stations.geojson */; };
 		2DAD3B5A2BF6A2F100D51285 /* metroRoutesTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAD3B592BF6A2F100D51285 /* metroRoutesTypes.swift */; };
@@ -43,6 +45,8 @@
 
 /* Begin PBXFileReference section */
 		2D05EC602BF65E0B003D9581 /* fileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fileUtils.swift; sourceTree = "<group>"; };
+		2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListModel.swift; sourceTree = "<group>"; };
+		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2DAD3B532BF699EE00D51285 /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
 		2DAD3B542BF699EE00D51285 /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../data/metro-stations.geojson"; sourceTree = "<group>"; };
 		2DAD3B592BF6A2F100D51285 /* metroRoutesTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroRoutesTypes.swift; sourceTree = "<group>"; };
@@ -172,6 +176,8 @@
 			isa = PBXGroup;
 			children = (
 				2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */,
+				2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */,
+				2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */,
 				2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */,
 			);
 			path = PlatformList;
@@ -326,12 +332,14 @@
 				2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */,
 				2DC639F02BF4B02B00A72C7F /* timeUtils.swift in Sources */,
 				2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */,
+				2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */,
 				2DC63A0B2BF4C5B900A72C7F /* LocationModel.swift in Sources */,
 				2DAD3B5A2BF6A2F100D51285 /* metroRoutesTypes.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
 				2D05EC612BF65E0B003D9581 /* fileUtils.swift in Sources */,
 				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */,
 				2DC63A132BF4D98F00A72C7F /* metroUtils.swift in Sources */,
 				2DC63A0D2BF4CD9900A72C7F /* mapUtils.swift in Sources */,
 				2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */,
@@ -413,7 +421,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -470,7 +478,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -491,6 +499,8 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -522,6 +532,8 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
