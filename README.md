@@ -1,7 +1,8 @@
 # METRO NOW
 
-[![Backend](https://github.com/krystxf/metro-now/actions/workflows/backend.yaml/badge.svg)](https://github.com/krystxf/metro-now/actions/workflows/backend.yaml)
-[![Frontend](https://github.com/krystxf/metro-now/actions/workflows/frontend.yaml/badge.svg)](https://github.com/krystxf/metro-now/actions/workflows/frontend.yaml)
+[![App CI](https://github.com/krystxf/metro-now/actions/workflows/app-ci.yaml/badge.svg)](https://github.com/krystxf/metro-now/actions/workflows/app-ci.yaml)
+[![Backend CI](https://github.com/krystxf/metro-now/actions/workflows/backend-ci.yaml/badge.svg)](https://github.com/krystxf/metro-now/actions/workflows/backend-ci.yaml)
+[![Check format](https://github.com/krystxf/metro-now/actions/workflows/check-format.yaml/badge.svg)](https://github.com/krystxf/metro-now/actions/workflows/check-format.yaml)
 
 Soon on App store\
 ![Download_on_the_App Store](https://github.com/krystxf/metro-now/assets/48121710/4cafe145-eab2-4c79-9ef2-0fced1111b09)
