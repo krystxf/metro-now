@@ -18,7 +18,12 @@ jobs:
                   swift-version: 5.10
             - uses: actions/checkout@v4
 
-            - name: Build and test
+            - name: Build
+              run: |
+                  cd ./app/metro-now  
+                  xcodebuild build -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
+
+            - name: Test
               run: |
                   cd ./app/metro-now  
                   xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}

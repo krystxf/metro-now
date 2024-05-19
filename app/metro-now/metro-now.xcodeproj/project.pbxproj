@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		2D05EC612BF65E0B003D9581 /* fileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D05EC602BF65E0B003D9581 /* fileUtils.swift */; };
+		2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */; };
+		2D4486882BFAA10A005C59CE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486872BFAA10A005C59CE /* ContentView.swift */; };
+		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
+		2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */; };
+		2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */; };
 		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2DAD3B552BF699EE00D51285 /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DAD3B532BF699EE00D51285 /* metro-routes.geojson */; };
@@ -34,6 +39,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2D44868E2BFAA10B005C59CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2DC639D02BF3CCBA00A72C7F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D4486822BFAA10A005C59CE;
+			remoteInfo = "metro-now-watch Watch App";
+		};
 		2DC63A1C2BF50E8F00A72C7F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2DC639D02BF3CCBA00A72C7F /* Project object */;
@@ -43,8 +55,27 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		2D4486912BFAA10B005C59CE /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		2D05EC602BF65E0B003D9581 /* fileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fileUtils.swift; sourceTree = "<group>"; };
+		2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now-watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_watchApp.swift; sourceTree = "<group>"; };
+		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2D4486892BFAA10B005C59CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListModel.swift; sourceTree = "<group>"; };
 		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2DAD3B532BF699EE00D51285 /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
@@ -73,6 +104,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2D4486802BFAA10A005C59CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DC639D52BF3CCBA00A72C7F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -97,6 +135,25 @@
 				2DAD3B542BF699EE00D51285 /* metro-stations.geojson */,
 			);
 			path = "metro-now-data";
+			sourceTree = "<group>";
+		};
+		2D4486842BFAA10A005C59CE /* metro-now-watch Watch App */ = {
+			isa = PBXGroup;
+			children = (
+				2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */,
+				2D4486872BFAA10A005C59CE /* ContentView.swift */,
+				2D4486892BFAA10B005C59CE /* Assets.xcassets */,
+				2D44868B2BFAA10B005C59CE /* Preview Content */,
+			);
+			path = "metro-now-watch Watch App";
+			sourceTree = "<group>";
+		};
+		2D44868B2BFAA10B005C59CE /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		2DAD3B572BF69A0500D51285 /* metro-now-utils */ = {
@@ -128,6 +185,7 @@
 				2DAD3B572BF69A0500D51285 /* metro-now-utils */,
 				2D2B0F222BF67B7C00EF9D95 /* metro-now-data */,
 				2DC63A192BF50E8F00A72C7F /* metro-now-tests */,
+				2D4486842BFAA10A005C59CE /* metro-now-watch Watch App */,
 				2DC639D92BF3CCBA00A72C7F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -137,6 +195,7 @@
 			children = (
 				2DC639D82BF3CCBA00A72C7F /* metro-now.app */,
 				2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */,
+				2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -229,6 +288,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2D4486822BFAA10A005C59CE /* metro-now-watch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D4486942BFAA10B005C59CE /* Build configuration list for PBXNativeTarget "metro-now-watch Watch App" */;
+			buildPhases = (
+				2D44867F2BFAA10A005C59CE /* Sources */,
+				2D4486802BFAA10A005C59CE /* Frameworks */,
+				2D4486812BFAA10A005C59CE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "metro-now-watch Watch App";
+			productName = "metro-now-watch Watch App";
+			productReference = 2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		2DC639D72BF3CCBA00A72C7F /* metro-now */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2DC639E62BF3CCBC00A72C7F /* Build configuration list for PBXNativeTarget "metro-now" */;
@@ -236,10 +312,12 @@
 				2DC639D42BF3CCBA00A72C7F /* Sources */,
 				2DC639D52BF3CCBA00A72C7F /* Frameworks */,
 				2DC639D62BF3CCBA00A72C7F /* Resources */,
+				2D4486912BFAA10B005C59CE /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				2D44868F2BFAA10B005C59CE /* PBXTargetDependency */,
 			);
 			name = "metro-now";
 			productName = "metro-now";
@@ -274,6 +352,9 @@
 				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
+					2D4486822BFAA10A005C59CE = {
+						CreatedOnToolsVersion = 15.4;
+					};
 					2DC639D72BF3CCBA00A72C7F = {
 						CreatedOnToolsVersion = 15.4;
 					};
@@ -298,11 +379,21 @@
 			targets = (
 				2DC639D72BF3CCBA00A72C7F /* metro-now */,
 				2DC63A172BF50E8F00A72C7F /* metro-now-tests */,
+				2D4486822BFAA10A005C59CE /* metro-now-watch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2D4486812BFAA10A005C59CE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */,
+				2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DC639D62BF3CCBA00A72C7F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -324,6 +415,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2D44867F2BFAA10A005C59CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D4486882BFAA10A005C59CE /* ContentView.swift in Sources */,
+				2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DC639D42BF3CCBA00A72C7F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -361,6 +461,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2D44868F2BFAA10B005C59CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D4486822BFAA10A005C59CE /* metro-now-watch Watch App */;
+			targetProxy = 2D44868E2BFAA10B005C59CE /* PBXContainerItemProxy */;
+		};
 		2DC63A1D2BF50E8F00A72C7F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
@@ -369,6 +474,66 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2D4486922BFAA10B005C59CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"metro-now-watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.krystof.metro-now";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.5;
+			};
+			name = Debug;
+		};
+		2D4486932BFAA10B005C59CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"metro-now-watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.krystof.metro-now";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.5;
+			};
+			name = Release;
+		};
 		2DC639E42BF3CCBC00A72C7F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -491,6 +656,7 @@
 		2DC639E72BF3CCBC00A72C7F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -524,6 +690,7 @@
 		2DC639E82BF3CCBC00A72C7F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -595,6 +762,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2D4486942BFAA10B005C59CE /* Build configuration list for PBXNativeTarget "metro-now-watch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D4486922BFAA10B005C59CE /* Debug */,
+				2D4486932BFAA10B005C59CE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2DC639D32BF3CCBA00A72C7F /* Build configuration list for PBXProject "metro-now" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
