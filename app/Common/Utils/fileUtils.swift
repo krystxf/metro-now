@@ -1,5 +1,4 @@
 //
-//  fileUtils.swift
 //  metro-now
 //
 //  Created by Kryštof Krátký on 16.05.2024.

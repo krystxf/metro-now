@@ -1,5 +1,4 @@
 //
-//  jsonUtils.swift
 //  metro-now
 //
 //  Created by Kryštof Krátký on 15.05.2024.
