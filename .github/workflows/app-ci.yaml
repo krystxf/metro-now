@@ -18,6 +18,11 @@ jobs:
                   swift-version: 5.10
             - uses: actions/checkout@v4
 
+            - name: Setup Xcode
+              run: |
+                  cd ./app
+                  xcodebuild -downloadAllPlatforms
+
             - name: Build
               run: |
                   cd ./app
