@@ -1,52 +1,53 @@
 //
-//  MapView.swift
 //  metro-now
 //
 
 import MapKit
 import SwiftUI
 
+private struct MetroStationAnnotation {
+    let name: String
+    let coordinate: CLLocationCoordinate2D
+    let metroLines: [String] // A | B | C
+}
+
 struct MapView: View {
-    let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
+    @State private var metroStationAnnotations: [MetroStationAnnotation] = []
 
     var body: some View {
         Map {
-            UserAnnotation(
-            )
+            UserAnnotation()
 
-            ForEach(metroStationsGeoJSON!.features, id: \.properties.name) { feature in
-                let metroLines: [String] = Array(Set(feature.properties.platforms.map(\.name)))
+            ForEach(metroStationAnnotations, id: \.name) { station in
+                Annotation(station.name, coordinate: station.coordinate) {
+                    MapMetroStationView(metroLines: station.metroLines)
+                }
+            }
+        }
+        .task {
+            let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
+            guard metroStationsGeoJSON != nil, metroStationsGeoJSON?.features != nil else {
+                return
+            }
 
-                Annotation(
-                    feature.properties.name,
+            metroStationAnnotations = metroStationsGeoJSON.features.map { feature in
+                MetroStationAnnotation(
+                    name: feature.properties.name,
                     coordinate: CLLocationCoordinate2D(
                         latitude: feature.geometry.coordinates[1],
                         longitude: feature.geometry.coordinates[0]
-                    )
-                ) {
-                    ZStack {
-                        ForEach(Array(metroLines.enumerated()), id: \.0) {
-                            index, metroLine in
-
-                            Rectangle()
-                                .foregroundStyle(.white)
-                                .clipShape(.rect(cornerRadius: .infinity))
-                                .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
-
-                            Image(
-                                systemName:
-                                getMetroLineIcon(metroLine)
-                            )
-                            .foregroundStyle(getMetroLineColor(metroLine))
-                            .offset(x: index == 0 ? 0 : -10, y: index == 0 ? 0 : -10)
-                        }
-                    }
-                }
+                    ),
+                    metroLines: Array(Set(feature.properties.platforms.map(\.name)))
+                )
             }
         }
         .mapStyle(.standard(elevation: .realistic))
         .mapControls {
             MapUserLocationButton()
+            /// Shows up when you rotate the map
+            MapCompass()
+            /// 3D and 2D button on the top right
+            MapPitchToggle()
         }
     }
 }

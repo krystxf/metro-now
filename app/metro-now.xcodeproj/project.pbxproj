@@ -27,6 +27,7 @@
 		2D1B2C582BFAD9FB007ED5EB /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D1B2C552BFAD9FB007ED5EB /* metro-routes.geojson */; };
 		2D1B2C592BFAD9FB007ED5EB /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */; };
 		2D1B2C5A2BFAD9FB007ED5EB /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */; };
+		2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */; };
 		2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */; };
 		2D4486882BFAA10A005C59CE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486872BFAA10A005C59CE /* ContentView.swift */; };
 		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
@@ -90,6 +91,7 @@
 		2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroStationsTypes.swift; sourceTree = "<group>"; };
 		2D1B2C552BFAD9FB007ED5EB /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
 		2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../data/metro-stations.geojson"; sourceTree = "<group>"; };
+		2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapStationAnnotationView.swift; sourceTree = "<group>"; };
 		2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now-watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_watchApp.swift; sourceTree = "<group>"; };
 		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -297,6 +299,7 @@
 			isa = PBXGroup;
 			children = (
 				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
+				2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -471,6 +474,7 @@
 				2D1B2C4B2BFAD807007ED5EB /* fileUtils.swift in Sources */,
 				2D1B2C482BFAD7F2007ED5EB /* metroUtils.swift in Sources */,
 				2D1B2C3B2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
+				2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */,
 				2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */,
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
 				2D1B2C3F2BFAD70F007ED5EB /* timeUtils.swift in Sources */,
