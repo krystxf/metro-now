@@ -1,12 +1,19 @@
 {
     "name": "metro-now-monorepo",
-    "author": {
-        "name": "Krystof Kratky",
-        "url": "https://github.com/krystxf"
-    },
+    "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
+    "license": "MPL-2.0",
+    "homepage": "https://metro-now.vercel.app/",
     "repository": {
         "type": "git",
         "url": "https://github.com/krystxf/metro-now"
+    },
+    "bugs": {
+        "url": "https://github.com/krystxf/metro-now/issues/new"
+    },
+    "author": {
+        "name": "Krystof Kratky",
+        "url": "https://github.com/krystxf",
+        "email": "krystof.kratky2003@gmail.com"
     },
     "scripts": {
         "format:all": "pnpm run format && pnpm run format-swift",

@@ -1,6 +1,7 @@
 {
-    "name": "metro-now-web-app",
-    "version": "0.0.1",
+    "name": "metro-now-docs",
+    "homepage": "https://metro-now.vercel.app/",
+    "license": "MPL-2.0",
     "scripts": {
         "dev": "next dev",
         "build": "next build",

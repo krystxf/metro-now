@@ -1,16 +1,18 @@
 {
-    "name": "metr-now-backend-v2",
+    "name": "metro-now-backend-v2",
     "version": "0.2.0",
-    "description": "",
+    "license": "MPL-2.0",
+    "author": {
+        "name": "Krystof Kratky",
+        "url": "https://github.com/krystxf",
+        "email": "krystof.kratky2003@gmail.com"
+    },
     "main": "src/server.ts",
     "scripts": {
         "build": "npx tsc",
         "start": "node dist/server.js",
         "dev": "nodemon src/server.ts"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
     "dependencies": {
         "dotenv": "^16.4.5",
         "express": "^4.19.2",
