@@ -42,7 +42,8 @@ departuresRoute.get("/departures", async (req, res) => {
 
     await Promise.all(
         uniqueGtfsIDs.map(async (gtfsID) => {
-            data[gtfsID] = await redisClient.get(gtfsID);
+            const raw = await redisClient.get(gtfsID);
+            data[gtfsID] = raw ? JSON.parse(raw) : null;
         }),
     );
 
