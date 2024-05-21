@@ -54,6 +54,15 @@ struct PlatformsListView: View {
                     departuresByGtfsID = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
                 } catch {}
             }
+            .refreshable {
+                guard let station else {
+                    return
+                }
+
+                do {
+                    departuresByGtfsID = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
+                } catch {}
+            }
         }
     }
 }
