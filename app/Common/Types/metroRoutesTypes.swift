@@ -24,7 +24,8 @@ struct MetroRoutesGeoJSONFeatureGeometry: Codable {
 
 struct MetroRoutesGeoJSONFeatureGeometryProperties: Codable {
     let objectid: Int?
-    let routeID, routeShortName, routeLongName, routeType: String?
+    let routeShortName: String
+    let routeID, routeLongName, routeType: String?
     let routeURL: String?
     let routeColor, isNight, isRegional, isSubstituteTransport: String?
     let validity: String?

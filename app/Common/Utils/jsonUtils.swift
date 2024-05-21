@@ -18,7 +18,9 @@ func getParsedJSONFile<T: Decodable>(_ filename: FileName) -> T? {
         let data = try Data(
             contentsOf: URL(fileURLWithPath: path)
         )
-        let stations = try JSONDecoder().decode(
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+        let stations = try jsonDecoder.decode(
             T.self,
             from: data
         )
