@@ -46,3 +46,7 @@ func formatTime(seconds: Int) -> String {
 
     return String(format: "\(output)%ds", remainingSeconds)
 }
+
+func secondsFromNow(_ date: Date) -> Int {
+    Int(date.timeIntervalSince(Date.now))
+}

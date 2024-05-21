@@ -47,6 +47,8 @@
 		2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */; };
 		2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */; };
 		2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */; };
+		2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */; };
+		2DF66D992BFD39B000B31FA2 /* test-coordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,6 +115,7 @@
 		2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtilsTests.swift; sourceTree = "<group>"; };
+		2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "test-coordinates.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +189,7 @@
 			children = (
 				2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */,
 				2D350E682BFBF6B100F68039 /* metro-routes.geojson */,
+				2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -454,6 +458,7 @@
 				2D4486882BFAA10A005C59CE /* ContentView.swift in Sources */,
 				2D1B2C492BFAD7F2007ED5EB /* metroUtils.swift in Sources */,
 				2D1B2C4C2BFAD807007ED5EB /* fileUtils.swift in Sources */,
+				2DF66D992BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
 				2D1B2C532BFAD90B007ED5EB /* metroStationsTypes.swift in Sources */,
 				2D1B2C502BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D1B2C462BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
@@ -479,6 +484,7 @@
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
 				2D1B2C3F2BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
+				2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
 				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
 				2D1B2C4F2BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,

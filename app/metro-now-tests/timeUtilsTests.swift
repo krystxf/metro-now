@@ -8,7 +8,44 @@
 @testable import metro_now
 import XCTest
 
+let SECONDS_FROM_NOW_TESTS_ACCURACY = 1 // seconds
+
 final class timeUtilsTests: XCTestCase {
+    func testSecondsFromNowWithFutureDate() {
+        let now = Date.now
+        let futureDate = now.addingTimeInterval(60)
+
+        let result = secondsFromNow(futureDate)
+
+        XCTAssert(abs(result - 60) <= SECONDS_FROM_NOW_TESTS_ACCURACY)
+    }
+
+    func testSecondsFromNowWithPastDate() {
+        let now = Date.now
+        let pastDate = now.addingTimeInterval(-30)
+
+        let result = secondsFromNow(pastDate)
+
+        XCTAssert(abs(result + 30) <= SECONDS_FROM_NOW_TESTS_ACCURACY)
+    }
+
+    func testSecondsFromNowWithCurrentDate() {
+        let now = Date.now
+
+        let result = secondsFromNow(now)
+
+        XCTAssert(abs(result) <= SECONDS_FROM_NOW_TESTS_ACCURACY)
+    }
+
+    func testSecondsFromNowWithPrecision() {
+        let now = Date()
+        let almostFutureDate = now.addingTimeInterval(2)
+
+        let result = secondsFromNow(almostFutureDate)
+
+        XCTAssert(abs(result - 2) <= SECONDS_FROM_NOW_TESTS_ACCURACY)
+    }
+
     // MARK: - outputs with seconds
 
     /// should show positive and negative or zero seconds without any issues

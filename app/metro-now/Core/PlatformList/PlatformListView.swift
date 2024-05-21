@@ -15,25 +15,27 @@ struct Departure {
 struct PlatformsListView: View {
     var station: MetroStationsGeoJSONFeature?
     @StateObject private var viewModel = PlatformListViewModel()
-    @State private var departures: [Departure1] = []
+    @State private var departuresByGtfsID: [String: [ApiDeparture]]?
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 10) {
-                    if let station {
+                    if let station, let departuresByGtfsID {
                         ForEach(station.properties.platforms, id: \.self) { platform in
+                            let platformDepartures = departuresByGtfsID[platform.gtfsId] ?? []
+                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
+
                             NavigationLink {
                                 PlatformDetailView(
-                                    direction: platform.direction
+                                    direction: direction
                                 )
                             }
                             label: {
                                 PlatformListItemView(
-                                    direction: platform.direction,
-                                    departure: formatTime(seconds: 20),
-                                    metroLine: MetroLine(rawValue: platform.name)!,
-                                    nextDeparture: formatTime(seconds: 200)
+                                    direction: direction,
+                                    departureDates: platformDepartures.map(\.departureTimestamp.predicted) as! [Date],
+                                    metroLine: MetroLine(rawValue: platform.name) ?? .A
                                 )
                             }
                         }
@@ -44,19 +46,13 @@ struct PlatformsListView: View {
 
             .navigationTitle(station?.properties.name ?? "")
             .task {
-                print("Fetching departures")
                 guard let station else {
-                    print("empty station")
                     return
                 }
 
                 do {
-                    print("Fetching departures")
-                    departures = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
-                    print(departures)
-                }
-
-                catch {}
+                    departuresByGtfsID = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
+                } catch {}
             }
         }
     }
@@ -64,54 +60,36 @@ struct PlatformsListView: View {
 
 #Preview("Muzeum") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.078453,
-            longitude: 14.430676
-        )
-    )!)
+        location: MUZEUM_COORDINATES
+    ))
 }
 
 #Preview("Florenc") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.090583,
-            longitude: 14.438805
-        )
-    )!)
+        location: FLORENC_COORDINATES
+    ))
 }
 
 #Preview("Můstek") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.083956,
-            longitude: 14.423844
-        )
-    )!)
+        location: MUSTEK_COORDINATES
+    ))
 }
 
 #Preview("Dejvická") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.100485,
-            longitude: 14.393898
-        )
-    )!)
+        location: DEJVICKA_COORDINATES
+    ))
 }
 
 #Preview("Hlavní nádraží") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.082637,
-            longitude: 14.434300
-        )
-    )!)
+        location: HLAVNI_NADRAZI_COORDINATES
+    ))
 }
 
 #Preview("Černý Most") {
     PlatformsListView(station: getClosestStationFromGeoJSON(
-        location: CLLocation(
-            latitude: 50.111485,
-            longitude: 14.587877
-        )
-    )!)
+        location: CERNY_MOST_COORDINATES
+    ))
 }

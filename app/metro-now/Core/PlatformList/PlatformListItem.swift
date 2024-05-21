@@ -1,5 +1,4 @@
 //
-//  PlatformListItem.swift
 //  metro-now
 //
 //  Created by Kryštof Krátký on 14.05.2024.
@@ -8,10 +7,19 @@
 import SwiftUI
 
 struct PlatformListItemView: View {
-    var direction: String
-    var departure: String
-    var metroLine: MetroLine
-    var nextDeparture: String?
+    @State var direction: String
+
+    /// only first two items from array are shown
+    /// this view doesn't handle logic of deciding which departures are outdated (shouldn't be shown)
+    @State var departureDates: [Date]
+
+    /// time until departure in human readable form
+    @State private var departureStrings: [String] = []
+
+    @State var metroLine: MetroLine
+    private let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
+
+    @State private var deltatime: Double = 0
 
     var body: some View {
         HStack {
@@ -26,19 +34,28 @@ struct PlatformListItemView: View {
             Spacer()
 
             VStack {
-                Text(departure)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .foregroundStyle(.white)
-                if let nextDeparture {
+                if departureStrings.count >= 1 {
+                    Text(departureStrings[0])
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .foregroundStyle(.white)
+                }
+                if departureStrings.count >= 2 {
                     Text(
-                        "Also in \(nextDeparture)"
+                        "Also in \(departureStrings[1])"
                     )
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                     .opacity(0.9)
                 }
+            }
+        }
+        .onReceive(timer) {
+            _ in
+            guard departureDates.count > 0 else { return }
+            departureStrings = departureDates[0 ..< 2].map {
+                formatTime(seconds: secondsFromNow($0))
             }
         }
         .padding(.horizontal, 20)
@@ -54,39 +71,4 @@ struct PlatformListItemView: View {
 
         .clipShape(.rect(cornerRadius: 15))
     }
-}
-
-#Preview("Last train") {
-    PlatformListItemView(
-        direction: "Nemocnice Motol",
-        departure: formatTime(seconds: 20),
-        metroLine: MetroLine.A
-    )
-}
-
-#Preview("Line A") {
-    PlatformListItemView(
-        direction: "Nemocnice Motol",
-        departure: formatTime(seconds: 20),
-        metroLine: MetroLine.A,
-        nextDeparture: formatTime(seconds: 220)
-    )
-}
-
-#Preview("Line B") {
-    PlatformListItemView(
-        direction: "Černý Most",
-        departure: formatTime(seconds: 20),
-        metroLine: MetroLine.B,
-        nextDeparture: formatTime(seconds: 220)
-    )
-}
-
-#Preview("Line C") {
-    PlatformListItemView(
-        direction: "Háje",
-        departure: formatTime(seconds: 20),
-        metroLine: MetroLine.C,
-        nextDeparture: formatTime(seconds: 220)
-    )
 }

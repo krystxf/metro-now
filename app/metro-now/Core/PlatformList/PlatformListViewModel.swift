@@ -7,73 +7,22 @@
 
 import Foundation
 
-// MARK: - Departures
-
-struct Departures: Codable {
-    let departures: [Departure1]
-}
-
-// MARK: - Departure
-
-struct Departure1: Codable {
-    let arrivalTimestamp, departureTimestamp: Timestamp
-    let delay: Delay
+struct ApiDeparture: Codable {
+    let departureTimestamp: DepartureTimestamp
     let route: Route
-    let stop: Stop
     let trip: Trip
-
-    enum CodingKeys: String, CodingKey {
-        case arrivalTimestamp
-        case departureTimestamp
-        case delay, route, stop, trip
-    }
 }
 
-// MARK: - Timestamp
-
-struct Timestamp: Codable {
-    let predicted, scheduled: String
+struct DepartureTimestamp: Codable {
+    let predicted: Date
 }
-
-// MARK: - Delay
-
-struct Delay: Codable {
-    let isAvailable: Bool
-    let minutes, seconds: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case isAvailable
-        case minutes, seconds
-    }
-}
-
-// MARK: - Route
 
 struct Route: Codable {
     let shortName: String
-
-    enum CodingKeys: String, CodingKey {
-        case shortName
-    }
 }
-
-// MARK: - Stop
-
-struct Stop: Codable {
-    let id: String
-}
-
-// MARK: - Trip
 
 struct Trip: Codable {
-    let headsign, id: String
-    let isAtStop, isCanceled: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case headsign, id
-        case isAtStop
-        case isCanceled
-    }
+    let headsign: String
 }
 
 enum FetchError:
@@ -85,11 +34,11 @@ enum FetchError:
 }
 
 final class PlatformListViewModel: ObservableObject {
-    @Published var departures: [Departure1] = []
+    @Published var departures: [String: [ApiDeparture]] = Dictionary()
 
-    func getData(gtfsIDs: [String]) async throws -> [Departure1] {
+    func getData(gtfsIDs: [String]) async throws -> [String: [ApiDeparture]] {
         let params = (gtfsIDs.map { "gtfsID=\($0)" }).joined(separator: "&")
-        let endpoint = "http://localhost:3000/departures?\(params)"
+        let endpoint = "http://localhost:3000/v1/metro/departures?\(params)"
 
         guard let url = URL(string: endpoint) else { throw FetchError.InvalidURL }
 
@@ -102,7 +51,10 @@ final class PlatformListViewModel: ObservableObject {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
-            return try decoder.decode(Departures.self, from: data).departures
+            decoder.dateDecodingStrategy = .iso8601
+            let decoded = try decoder.decode([String: [ApiDeparture]].self, from: data)
+
+            return decoded
         }
 
         catch {
