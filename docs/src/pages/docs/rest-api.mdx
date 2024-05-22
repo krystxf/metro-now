@@ -1,0 +1,25 @@
+# REST API
+
+Backend gets data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/) caches it and serves it without need to authenticate.
+
+## Metro departures
+
+Wrapper for [Golemio departures API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%9A%8F%20PID%20Departure%20Boards/get_pid_departureboards)
+
+```http
+GET https://api.metronow.dev/v1/metro/v1/metro/departures
+```
+
+### Example requests
+
+**Departures for one platform:**
+
+```http
+GET https://api.metronow.dev/v1/metro/departures?gtfsID=U1040Z101P
+```
+
+**Departures from multiple platforms (max. 10):**
+
+```http
+GET https://api.metronow.dev/v1/metro/departures?gtfsID=U1040Z101P&gtfsID=U1040Z102P
+```
