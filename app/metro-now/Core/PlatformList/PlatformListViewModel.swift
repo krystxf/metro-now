@@ -38,7 +38,7 @@ final class PlatformListViewModel: ObservableObject {
 
     func getData(gtfsIDs: [String]) async throws -> [String: [ApiDeparture]] {
         let params = (gtfsIDs.map { "gtfsID=\($0)" }).joined(separator: "&")
-        let endpoint = "http://localhost:3000/v1/metro/departures?\(params)"
+        let endpoint = "\(METRO_NOW_API)/v1/metro/departures?\(params)"
 
         guard let url = URL(string: endpoint) else { throw FetchError.InvalidURL }
 

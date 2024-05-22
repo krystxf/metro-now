@@ -33,6 +33,8 @@
 		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
 		2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */; };
 		2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2D4D8F822BFE4420006F9080 /* const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F812BFE4420006F9080 /* const.swift */; };
+		2D4D8F832BFE4420006F9080 /* const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F812BFE4420006F9080 /* const.swift */; };
 		2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */; };
 		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
@@ -99,6 +101,7 @@
 		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2D4486892BFAA10B005C59CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		2D4D8F812BFE4420006F9080 /* const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = const.swift; sourceTree = "<group>"; };
 		2D84CC9E2BF8BD7000D2382B /* PlatformListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListModel.swift; sourceTree = "<group>"; };
 		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -171,6 +174,7 @@
 				2D1B2C442BFAD7DB007ED5EB /* mapUtils.swift */,
 				2D1B2C4A2BFAD807007ED5EB /* fileUtils.swift */,
 				2D1B2C472BFAD7F2007ED5EB /* metroUtils.swift */,
+				2D4D8F812BFE4420006F9080 /* const.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -463,6 +467,7 @@
 				2D1B2C502BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D1B2C462BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
 				2D1B2C3C2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
+				2D4D8F832BFE4420006F9080 /* const.swift in Sources */,
 				2D1B2C402BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */,
 			);
@@ -481,6 +486,7 @@
 				2D1B2C3B2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
 				2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */,
 				2D84CC9F2BF8BD7000D2382B /* PlatformListModel.swift in Sources */,
+				2D4D8F822BFE4420006F9080 /* const.swift in Sources */,
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
 				2D1B2C3F2BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
