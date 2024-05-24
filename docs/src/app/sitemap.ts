@@ -1,6 +1,5 @@
-import { MetadataRoute } from "next";
-
-const HOMEPAGE = "https://metro-now.vercel.app";
+import { HOMEPAGE } from "@/utils/const";
+import type { MetadataRoute } from "next";
 
 const pages = [
     "/",
@@ -21,7 +20,7 @@ const priorityByPage: PriorityByPage = {
 
 const sitemap = (): MetadataRoute.Sitemap => {
     return pages.map((url) => ({
-        url: `${HOMEPAGE}${String(url)}`,
+        url: `${HOMEPAGE}${url}`,
         lastModified: new Date(),
         priority: priorityByPage[url] ?? 0.5,
     }));
