@@ -3,17 +3,23 @@
         "title": "Docs",
         "type": "page"
     },
+
+    "api": {
+        "title": "API",
+        "type": "page",
+        "href": "/docs/rest-api"
+    },
     "legal": {
         "title": "Legal",
         "type": "menu",
         "items": {
             "about": {
                 "title": "Privacy policy",
-                "href": "/docs/legal/privacy-policy"
+                "href": "/docs/privacy-policy"
             },
             "contact": {
                 "title": "Terms & conditions",
-                "href": "/docs/legal/terms-and-conditions"
+                "href": "/docs/terms-and-conditions"
             }
         }
     }

@@ -4,20 +4,6 @@ import nextra from "nextra";
 const nextConfig = {
     // Configure `pageExtensions` to include markdown and MDX files
     pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
-    redirects: () => {
-        return [
-            {
-                source: "/privacy-policy",
-                destination: "/docs/legal/privacy-policy",
-                permanent: true,
-            },
-            {
-                source: "/terms-and-conditions",
-                destination: "/docs/legal/terms-and-conditions",
-                permanent: true,
-            },
-        ];
-    },
 };
 
 const withNextra = nextra({

@@ -5,5 +5,8 @@
     },
     "rest-api": "REST API",
     "backend": "Backend",
-    "legal": "Legal"
+    "-- Legal": {
+        "type": "separator",
+        "title": "Legal"
+    }
 }

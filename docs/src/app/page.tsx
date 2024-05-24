@@ -63,7 +63,11 @@ const LandingPage = () => {
 
                 <div className="rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-50">
                     <h2 className="mb-3 text-2xl font-semibold">Legal</h2>
-                    <a href="/privacy-policy" className="px-5" target="_blank">
+                    <a
+                        href="/docs/privacy-policy"
+                        className="px-5"
+                        target="_blank"
+                    >
                         <h3 className="group text-sm font-semibold">
                             Privacy policy
                             <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
@@ -72,7 +76,7 @@ const LandingPage = () => {
                         </h3>
                     </a>
                     <a
-                        href="/terms-and-conditions"
+                        href="/docs/terms-and-conditions"
                         className="px-5"
                         target="_blank"
                     >
