@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct PlatformDetailView: View {
-    let direction: String
+    let defaultDirection: String
+    @State var gtfsID: String
+    @State private var departures: [ApiDeparture]?
 
     var body: some View {
         ZStack {
@@ -21,25 +23,44 @@ struct PlatformDetailView: View {
             )
             .edgesIgnoringSafeArea(.all)
             VStack {
-                Label(direction, systemImage: "arrowshape.right.fill")
+                Label(departures?.first?.trip.headsign ?? defaultDirection, systemImage: "arrowshape.right.fill")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
-                Text(formatTime(seconds: 20))
-                    .font(.largeTitle)
-                    .foregroundStyle(.white)
-                Text("Also in \(formatTime(seconds: 200))")
-                    .font(.title2)
-                    .foregroundStyle(.white)
-
+                if let departures, departures.count >= 1 {
+                    Text(formatTime(seconds: secondsFromNow(departures[0].departureTimestamp.predicted)))
+                        .font(.largeTitle)
+                        .foregroundStyle(.white)
+                }
+                if let departures, departures.count >= 2 {
+                    Text("Also in \(formatTime(seconds: secondsFromNow(departures[1].departureTimestamp.predicted)))")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                }
                 Spacer()
             }
             .padding(.top, 50)
+            .task {
+                do {
+                    departures = try await getDeparturesByGtfsID(gtfsID)
+
+                } catch {
+                    print(error)
+                }
+            }
+            .refreshable {
+                do {
+                    departures = try await getDeparturesByGtfsID(gtfsID)
+
+                } catch {
+                    print(error)
+                }
+            }
         }
     }
 }
 
-#Preview {
-    PlatformDetailView(
-        direction: "Háje")
-}
+// #Preview {
+//    PlatformDetailView(
+//        direction: "Háje")
+// }

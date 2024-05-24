@@ -14,31 +14,70 @@ struct Departure {
 
 struct PlatformsListView: View {
     var station: MetroStationsGeoJSONFeature?
-    @StateObject private var viewModel = PlatformListViewModel()
-    @State private var departuresByGtfsID: [String: [ApiDeparture]]?
+//    @StateObject private var viewModel = PlatformListViewModel()
+    @State private var departuresByGtfsID: DeparturesByGtfsIDs?
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 10) {
-                    if let station, let departuresByGtfsID {
-                        ForEach(station.properties.platforms, id: \.self) { platform in
-                            let platformDepartures = departuresByGtfsID[platform.gtfsId] ?? []
+                VStack(spacing: 10) {
+                    if let station, departuresByGtfsID != nil {
+                        ForEach(station.properties.platforms, id: \.gtfsId) { platform in
+                            let platformDepartures = departuresByGtfsID?[platform.gtfsId] ?? []
+
                             let direction = platformDepartures.first?.trip.headsign ?? platform.direction
 
                             NavigationLink {
                                 PlatformDetailView(
-                                    direction: direction
+                                    defaultDirection: direction,
+                                    gtfsID: platform.gtfsId
                                 )
                             }
                             label: {
                                 PlatformListItemView(
                                     direction: direction,
                                     departureDates: platformDepartures.map(\.departureTimestamp.predicted) as! [Date],
-                                    metroLine: MetroLine(rawValue: platform.name) ?? .A
+                                    metroLine: platform.name
                                 )
                             }
                         }
+//                        List($station.properties.platforms, id: \.self.gtfsId){platform in
+//                            let platformDepartures = viewModel.departuresByGtfsID[platform.gtfsId] ?? []
+//
+//                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
+//
+//
+//                            NavigationLink {
+//                                PlatformDetailView(
+//                                    direction: direction
+//                                )
+//                            }
+//                            label: {
+//                                PlatformListItemView(
+//                                    direction: direction,
+//                                    departureDates: platformDepartures.map{$0.departureTimestamp.predicted} as! [Date],
+//                                    metroLine: platform.name
+//                                )
+//                            }
+//                        }
+//                        ForEach(station.properties.platforms, id: \.self.gtfsId) { platform in
+//                            let platformDepartures = viewModel.departuresByGtfsID[platform.gtfsId]
+//
+//                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
+//
+//                            NavigationLink {
+//                                PlatformDetailView(
+//                                    direction: direction
+//                                )
+//                            }
+//                            label: {
+//                                PlatformListItemView(
+//                                    direction: direction,
+//                                    departureDates: platformDepartures.map{$0.departureTimestamp.predicted} as! [Date],
+//                                    metroLine: platform.name
+//                                )
+//                            }
+//                        }
                     }
                 }
                 .padding(10)
@@ -51,8 +90,12 @@ struct PlatformsListView: View {
                 }
 
                 do {
-                    departuresByGtfsID = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
-                } catch {}
+                    let gtfsIDs = station.properties.platforms.map(\.gtfsId)
+                    departuresByGtfsID = try await getDeparturesByGtfsID(gtfsIDs: gtfsIDs)
+                    print(departuresByGtfsID)
+                } catch {
+                    print(error)
+                }
             }
             .refreshable {
                 guard let station else {
@@ -60,9 +103,34 @@ struct PlatformsListView: View {
                 }
 
                 do {
-                    departuresByGtfsID = try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
-                } catch {}
+                    let gtfsIDs = station.properties.platforms.map(\.gtfsId)
+                    departuresByGtfsID = try await getDeparturesByGtfsID(gtfsIDs: gtfsIDs)
+                    print(departuresByGtfsID)
+                } catch {
+                    print(error)
+                }
             }
+//            .onAppear {
+//                viewModel.$departuresByGtfsID
+//                //                guard let station else {
+            ////                    return
+            ////                }
+            ////
+            ////                do {
+            ////                     try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
+            ////                } catch {}
+//            }
+//            .refreshable {
+//                guard let station else {
+//                    return
+//                }
+//
+//            do {
+//                     try await viewModel.getData(gtfsIDs: station.properties.platforms.map(\.gtfsId))
+//                } catch {
+//                    print(error)
+//                }//
+//            }
         }
     }
 }

@@ -16,7 +16,7 @@ struct PlatformListItemView: View {
     /// time until departure in human readable form
     @State private var departureStrings: [String] = []
 
-    @State var metroLine: MetroLine
+    @State var metroLine: String
     private let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
     @State private var deltatime: Double = 0
