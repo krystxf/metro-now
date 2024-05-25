@@ -9,17 +9,14 @@ struct SmallWidgetView: View {
 
     var body: some View {
         VStack {
-            WidgetHeading(stationName: "Kacerov")
-            Departure(
-                direction: "Haje",
-                departureDate: Date(),
-                metroLine: "C"
-            )
-            Departure(
-                direction: "Letnany",
-                departureDate: Date(),
-                metroLine: "C"
-            )
+            WidgetHeading(stationName: entry.stationName)
+            ForEach(entry.departures, id: \.departureDate) { departure in
+                Departure(
+                    direction: departure.direction,
+                    departureDate: departure.departureDate,
+                    metroLine: departure.metroLine
+                )
+            }
         }
     }
 }

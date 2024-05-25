@@ -7,32 +7,7 @@ import WidgetKit
 
 import CoreLocation
 
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let locationManager = CLLocationManager()
-    @Published var location: CLLocation?
-
-    override init() {
-        super.init()
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-    }
-
-    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            self.location = location
-            locationManager.stopUpdatingLocation()
-        }
-    }
-
-    func locationManager(_: CLLocationManager, didFailWithError error: Error) {
-        print("Failed to find user's location: \(error.localizedDescription)")
-    }
-}
-
 struct Provider: TimelineProvider {
-    let locationManager = LocationManager()
-
     func placeholder(in _: Context) -> WidgetEntry {
         WidgetEntry(date: Date(), stationName: "Loading...", departures: [])
     }
@@ -44,31 +19,32 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         Task {
-            let departures = []
-        }
+            let gtfsIDs = ["U286Z101P"]
+            let departures = try! await getDeparturesByGtfsID(gtfsIDs: gtfsIDs)
 
-        var entries: [WidgetEntry] = []
+            var entries: [WidgetEntry] = []
+            var parsedDepartures: [WidgetEntryDeparture] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = WidgetEntry(date: Date(), stationName: "Kacerov", departures: [])
+            for gtfsID in gtfsIDs {
+                let dep = departures[gtfsID] ?? []
+
+                let parsedDeparture = WidgetEntryDeparture(
+                    departureDate: dep[0].departureTimestamp.predicted, direction: dep[0].trip.headsign, metroLine: dep[0].route.shortName
+                )
+                parsedDepartures.append(parsedDeparture)
+            }
+
+            let entry = WidgetEntry(date: .now, stationName: "Unkown", departures: parsedDepartures.map {
+                WidgetEntryDeparture(
+                    departureDate: $0.departureDate, direction: $0.direction, metroLine: $0.metroLine
+                )
+            })
             entries.append(entry)
+
+            print(entries)
+
+            let timeline = Timeline(entries: entries, policy: .atEnd)
+            completion(timeline)
         }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
-    }
-
-    private func fetchNearestMetroStation(completion: @escaping (String) -> Void) {
-        guard let location = locationManager.location else {
-            completion("Location not available")
-            return
-        }
-
-        // Replace with actual API call to fetch nearest metro station using location.coordinate
-        let nearestStation = "Mock Metro Station"
-        completion(nearestStation)
     }
 }
