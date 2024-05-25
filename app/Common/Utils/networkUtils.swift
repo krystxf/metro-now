@@ -8,6 +8,16 @@
 import Foundation
 import SwiftUI
 
+let METRO_NOW_API = "https://api.metronow.dev"
+
+enum FetchError:
+    Error
+{
+    case InvalidURL
+    case InvalidResponse
+    case InvalidaData
+}
+
 typealias DeparturesByGtfsIDs = [String: [ApiDeparture]]
 
 func getDeparturesByGtfsID(gtfsIDs: [String]) async throws -> DeparturesByGtfsIDs {

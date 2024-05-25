@@ -1,38 +1,9 @@
 //
-//  PlatformListViewModel.swift
-//  metro-now
-//
-//  Created by Kryštof Krátký on 18.05.2024.
+//  Author: Kryštof Krátký
 //
 
 import Foundation
 import SwiftUI
-
-struct ApiDeparture: Codable {
-    let departureTimestamp: DepartureTimestamp
-    let route: Route
-    let trip: Trip
-}
-
-struct DepartureTimestamp: Codable {
-    let predicted: Date
-}
-
-struct Route: Codable {
-    let shortName: String
-}
-
-struct Trip: Codable {
-    let headsign: String
-}
-
-enum FetchError:
-    Error
-{
-    case InvalidURL
-    case InvalidResponse
-    case InvalidaData
-}
 
 final class PlatformListViewModel: ObservableObject {
     @Published var departuresByGtfsID: [String: [ApiDeparture]] = [:]

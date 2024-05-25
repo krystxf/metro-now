@@ -33,8 +33,6 @@
 		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
 		2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */; };
 		2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		2D4D8F822BFE4420006F9080 /* const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F812BFE4420006F9080 /* const.swift */; };
-		2D4D8F832BFE4420006F9080 /* const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F812BFE4420006F9080 /* const.swift */; };
 		2D4D8F852C0010A5006F9080 /* networkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F842C0010A5006F9080 /* networkUtils.swift */; };
 		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
@@ -49,6 +47,25 @@
 		2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */; };
 		2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */; };
 		2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */; };
+		2DF48A472C01F185002F754E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A462C01F185002F754E /* WidgetKit.framework */; };
+		2DF48A492C01F185002F754E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A482C01F185002F754E /* SwiftUI.framework */; };
+		2DF48A4C2C01F186002F754E /* metro_now_widgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A4B2C01F186002F754E /* metro_now_widgetsBundle.swift */; };
+		2DF48A4E2C01F186002F754E /* metro_now_widgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A4D2C01F186002F754E /* metro_now_widgets.swift */; };
+		2DF48A502C01F186002F754E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DF48A4F2C01F186002F754E /* Assets.xcassets */; };
+		2DF48A542C01F186002F754E /* metro-now-widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DF48A442C01F185002F754E /* metro-now-widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DF48A592C01FF41002F754E /* metroUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C472BFAD7F2007ED5EB /* metroUtils.swift */; };
+		2DF48A5A2C01FF58002F754E /* metroStationsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */; };
+		2DF48A5B2C01FF9B002F754E /* jsonUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C412BFAD72C007ED5EB /* jsonUtils.swift */; };
+		2DF48A5C2C01FFAA002F754E /* fileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C4A2BFAD807007ED5EB /* fileUtils.swift */; };
+		2DF48A5F2C01FFE7002F754E /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A5E2C01FFE7002F754E /* Departure.swift */; };
+		2DF48A612C020010002F754E /* WidgetHeading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A602C020010002F754E /* WidgetHeading.swift */; };
+		2DF48A652C020088002F754E /* SimpleEntryType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A642C020088002F754E /* SimpleEntryType.swift */; };
+		2DF48A672C02017F002F754E /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A662C02017F002F754E /* Provider.swift */; };
+		2DF48A692C0201F8002F754E /* SmallWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A682C0201F8002F754E /* SmallWidgetView.swift */; };
+		2DF48A6D2C020543002F754E /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A6C2C020543002F754E /* PlaceholderView.swift */; };
+		2DF48A6E2C02510C002F754E /* networkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F842C0010A5006F9080 /* networkUtils.swift */; };
+		2DF48A712C02514E002F754E /* departuresResponseTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A702C02514E002F754E /* departuresResponseTypes.swift */; };
+		2DF48A722C02514E002F754E /* departuresResponseTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A702C02514E002F754E /* departuresResponseTypes.swift */; };
 		2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */; };
 		2DF66D992BFD39B000B31FA2 /* test-coordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */; };
 /* End PBXBuildFile section */
@@ -68,6 +85,13 @@
 			remoteGlobalIDString = 2DC639D72BF3CCBA00A72C7F;
 			remoteInfo = "metro-now";
 		};
+		2DF48A522C01F186002F754E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2DC639D02BF3CCBA00A72C7F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2DF48A432C01F185002F754E;
+			remoteInfo = "metro-now-widgetsExtension";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -80,6 +104,17 @@
 				2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DF48A552C01F186002F754E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2DF48A542C01F186002F754E /* metro-now-widgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -101,7 +136,6 @@
 		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2D4486892BFAA10B005C59CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2D4D8F812BFE4420006F9080 /* const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = const.swift; sourceTree = "<group>"; };
 		2D4D8F842C0010A5006F9080 /* networkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = networkUtils.swift; sourceTree = "<group>"; };
 		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,6 +152,20 @@
 		2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtilsTests.swift; sourceTree = "<group>"; };
+		2DF48A442C01F185002F754E /* metro-now-widgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "metro-now-widgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DF48A462C01F185002F754E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		2DF48A482C01F185002F754E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		2DF48A4B2C01F186002F754E /* metro_now_widgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_widgetsBundle.swift; sourceTree = "<group>"; };
+		2DF48A4D2C01F186002F754E /* metro_now_widgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_widgets.swift; sourceTree = "<group>"; };
+		2DF48A4F2C01F186002F754E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2DF48A512C01F186002F754E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2DF48A5E2C01FFE7002F754E /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
+		2DF48A602C020010002F754E /* WidgetHeading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetHeading.swift; sourceTree = "<group>"; };
+		2DF48A642C020088002F754E /* SimpleEntryType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleEntryType.swift; sourceTree = "<group>"; };
+		2DF48A662C02017F002F754E /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		2DF48A682C0201F8002F754E /* SmallWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallWidgetView.swift; sourceTree = "<group>"; };
+		2DF48A6C2C020543002F754E /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
+		2DF48A702C02514E002F754E /* departuresResponseTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = departuresResponseTypes.swift; sourceTree = "<group>"; };
 		2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "test-coordinates.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -140,6 +188,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DF48A412C01F185002F754E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DF48A492C01F185002F754E /* SwiftUI.framework in Frameworks */,
+				2DF48A472C01F185002F754E /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,7 +232,6 @@
 				2D1B2C442BFAD7DB007ED5EB /* mapUtils.swift */,
 				2D1B2C4A2BFAD807007ED5EB /* fileUtils.swift */,
 				2D1B2C472BFAD7F2007ED5EB /* metroUtils.swift */,
-				2D4D8F812BFE4420006F9080 /* const.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -185,6 +241,7 @@
 			children = (
 				2D1B2C4E2BFAD8ED007ED5EB /* metroRoutesTypes.swift */,
 				2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */,
+				2DF48A702C02514E002F754E /* departuresResponseTypes.swift */,
 			);
 			path = Types;
 			sourceTree = "<group>";
@@ -232,6 +289,8 @@
 				2DC639DA2BF3CCBA00A72C7F /* metro-now */,
 				2DC63A192BF50E8F00A72C7F /* metro-now-tests */,
 				2D4486842BFAA10A005C59CE /* metro-now-watch Watch App */,
+				2DF48A4A2C01F186002F754E /* metro-now-widgets */,
+				2DF48A452C01F185002F754E /* Frameworks */,
 				2DC639D92BF3CCBA00A72C7F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -242,6 +301,7 @@
 				2DC639D82BF3CCBA00A72C7F /* metro-now.app */,
 				2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */,
 				2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */,
+				2DF48A442C01F185002F754E /* metro-now-widgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -322,6 +382,56 @@
 			path = "metro-now-tests";
 			sourceTree = "<group>";
 		};
+		2DF48A452C01F185002F754E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2DF48A462C01F185002F754E /* WidgetKit.framework */,
+				2DF48A482C01F185002F754E /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2DF48A4A2C01F186002F754E /* metro-now-widgets */ = {
+			isa = PBXGroup;
+			children = (
+				2DF48A5D2C01FFD6002F754E /* Core */,
+				2DF48A4B2C01F186002F754E /* metro_now_widgetsBundle.swift */,
+				2DF48A4D2C01F186002F754E /* metro_now_widgets.swift */,
+				2DF48A4F2C01F186002F754E /* Assets.xcassets */,
+				2DF48A512C01F186002F754E /* Info.plist */,
+			);
+			path = "metro-now-widgets";
+			sourceTree = "<group>";
+		};
+		2DF48A5D2C01FFD6002F754E /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				2DF48A632C020079002F754E /* Types */,
+				2DF48A622C02006C002F754E /* Views */,
+				2DF48A662C02017F002F754E /* Provider.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2DF48A622C02006C002F754E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2DF48A5E2C01FFE7002F754E /* Departure.swift */,
+				2DF48A682C0201F8002F754E /* SmallWidgetView.swift */,
+				2DF48A602C020010002F754E /* WidgetHeading.swift */,
+				2DF48A6C2C020543002F754E /* PlaceholderView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		2DF48A632C020079002F754E /* Types */ = {
+			isa = PBXGroup;
+			children = (
+				2DF48A642C020088002F754E /* SimpleEntryType.swift */,
+			);
+			path = Types;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -350,11 +460,13 @@
 				2DC639D52BF3CCBA00A72C7F /* Frameworks */,
 				2DC639D62BF3CCBA00A72C7F /* Resources */,
 				2D4486912BFAA10B005C59CE /* Embed Watch Content */,
+				2DF48A552C01F186002F754E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				2D44868F2BFAA10B005C59CE /* PBXTargetDependency */,
+				2DF48A532C01F186002F754E /* PBXTargetDependency */,
 			);
 			name = "metro-now";
 			productName = "metro-now";
@@ -379,6 +491,23 @@
 			productReference = 2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		2DF48A432C01F185002F754E /* metro-now-widgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2DF48A582C01F186002F754E /* Build configuration list for PBXNativeTarget "metro-now-widgetsExtension" */;
+			buildPhases = (
+				2DF48A402C01F185002F754E /* Sources */,
+				2DF48A412C01F185002F754E /* Frameworks */,
+				2DF48A422C01F185002F754E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "metro-now-widgetsExtension";
+			productName = "metro-now-widgetsExtension";
+			productReference = 2DF48A442C01F185002F754E /* metro-now-widgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -399,6 +528,9 @@
 						CreatedOnToolsVersion = 15.4;
 						TestTargetID = 2DC639D72BF3CCBA00A72C7F;
 					};
+					2DF48A432C01F185002F754E = {
+						CreatedOnToolsVersion = 15.4;
+					};
 				};
 			};
 			buildConfigurationList = 2DC639D32BF3CCBA00A72C7F /* Build configuration list for PBXProject "metro-now" */;
@@ -417,6 +549,7 @@
 				2DC639D72BF3CCBA00A72C7F /* metro-now */,
 				2DC63A172BF50E8F00A72C7F /* metro-now-tests */,
 				2D4486822BFAA10A005C59CE /* metro-now-watch Watch App */,
+				2DF48A432C01F185002F754E /* metro-now-widgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -451,6 +584,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DF48A422C01F185002F754E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DF48A502C01F186002F754E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -467,7 +608,6 @@
 				2D1B2C502BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D1B2C462BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
 				2D1B2C3C2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
-				2D4D8F832BFE4420006F9080 /* const.swift in Sources */,
 				2D1B2C402BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */,
 			);
@@ -485,7 +625,6 @@
 				2D1B2C482BFAD7F2007ED5EB /* metroUtils.swift in Sources */,
 				2D1B2C3B2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
 				2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */,
-				2D4D8F822BFE4420006F9080 /* const.swift in Sources */,
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
 				2D1B2C3F2BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
@@ -493,6 +632,7 @@
 				2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
 				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2DF48A712C02514E002F754E /* departuresResponseTypes.swift in Sources */,
 				2D1B2C4F2BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */,
 				2D1B2C452BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
@@ -510,6 +650,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DF48A402C01F185002F754E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DF48A5B2C01FF9B002F754E /* jsonUtils.swift in Sources */,
+				2DF48A722C02514E002F754E /* departuresResponseTypes.swift in Sources */,
+				2DF48A5A2C01FF58002F754E /* metroStationsTypes.swift in Sources */,
+				2DF48A6D2C020543002F754E /* PlaceholderView.swift in Sources */,
+				2DF48A612C020010002F754E /* WidgetHeading.swift in Sources */,
+				2DF48A592C01FF41002F754E /* metroUtils.swift in Sources */,
+				2DF48A5F2C01FFE7002F754E /* Departure.swift in Sources */,
+				2DF48A6E2C02510C002F754E /* networkUtils.swift in Sources */,
+				2DF48A5C2C01FFAA002F754E /* fileUtils.swift in Sources */,
+				2DF48A692C0201F8002F754E /* SmallWidgetView.swift in Sources */,
+				2DF48A652C020088002F754E /* SimpleEntryType.swift in Sources */,
+				2DF48A4E2C01F186002F754E /* metro_now_widgets.swift in Sources */,
+				2DF48A672C02017F002F754E /* Provider.swift in Sources */,
+				2DF48A4C2C01F186002F754E /* metro_now_widgetsBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -522,6 +683,11 @@
 			isa = PBXTargetDependency;
 			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
 			targetProxy = 2DC63A1C2BF50E8F00A72C7F /* PBXContainerItemProxy */;
+		};
+		2DF48A532C01F186002F754E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2DF48A432C01F185002F754E /* metro-now-widgetsExtension */;
+			targetProxy = 2DF48A522C01F186002F754E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -811,6 +977,62 @@
 			};
 			name = Release;
 		};
+		2DF48A562C01F186002F754E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now-widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.metro-now-widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2DF48A572C01F186002F754E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now-widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.metro-now-widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -846,6 +1068,15 @@
 			buildConfigurations = (
 				2DC63A1F2BF50E8F00A72C7F /* Debug */,
 				2DC63A202BF50E8F00A72C7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2DF48A582C01F186002F754E /* Build configuration list for PBXNativeTarget "metro-now-widgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DF48A562C01F186002F754E /* Debug */,
+				2DF48A572C01F186002F754E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

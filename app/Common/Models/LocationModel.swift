@@ -1,15 +1,31 @@
 //
-//  metro-now
-//
-//  Created by Kryštof Krátký on 15.05.2024.
+//  Author: Kryštof Krátký
 //
 
 import Foundation
 import MapKit
 
 final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var location: CLLocation?
+    @Published var location: CLLocation? {
+        didSet {
+            saveLocationToUserDefaults(location)
+        }
+    }
+
     var locationManager: CLLocationManager?
+
+    override init() {
+        super.init()
+        checkLocationServicesEnabled()
+    }
+
+    private func saveLocationToUserDefaults(_ location: CLLocation?) {
+        let userDefaults = UserDefaults(suiteName: "group.com.yourapp.group")
+        if let location {
+            userDefaults?.set(location.coordinate.latitude, forKey: "latitude")
+            userDefaults?.set(location.coordinate.longitude, forKey: "longitude")
+        }
+    }
 
     func checkLocationServicesEnabled() {
         let isEnabled = CLLocationManager.locationServicesEnabled()
