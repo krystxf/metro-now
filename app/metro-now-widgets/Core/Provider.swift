@@ -17,7 +17,7 @@ struct Provider: TimelineProvider {
         completion(entry)
     }
 
-    func getTimeline(in _: Context, completion: @escaping (Timeline<Entry>) -> Void) {
+    func getTimeline(in _: Context, completion: @escaping (Timeline<WidgetEntry>) -> Void) {
         Task {
             let gtfsIDs = ["U286Z101P"]
             let departures = try! await getDeparturesByGtfsID(gtfsIDs: gtfsIDs)
