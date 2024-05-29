@@ -45,10 +45,8 @@
 		2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */; };
 		2DD3DEA92C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
 		2DD3DEAA2C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
-		2DD3DEAB2C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
 		2DD3DEAC2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
 		2DD3DEAD2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
-		2DD3DEAE2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
 		2DF48A472C01F185002F754E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A462C01F185002F754E /* WidgetKit.framework */; };
 		2DF48A492C01F185002F754E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A482C01F185002F754E /* SwiftUI.framework */; };
 		2DF48A4C2C01F186002F754E /* metro_now_widgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A4B2C01F186002F754E /* metro_now_widgetsBundle.swift */; };
@@ -590,8 +588,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DD3DEAE2C07D319002233DE /* metro-routes.geojson in Resources */,
-				2DD3DEAB2C07D319002233DE /* metro-stations.geojson in Resources */,
 				2DF48A502C01F186002F754E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
