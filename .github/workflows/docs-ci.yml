@@ -13,7 +13,7 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
 
             - name: Install Node.js
               uses: actions/setup-node@v4
@@ -27,12 +27,12 @@ jobs:
             - name: Lint
               continue-on-error: true
               run: |
-                  cd ./docs
-                  pnpm install 
-                  pnpm run lint
+                  pnpm i -g turbo
+                  pnpm i -r
+                  turbo run docs:lint
 
             - name: Build
               run: |
-                  cd ./docs
-                  pnpm install 
-                  pnpm run build
+                  pnpm i -g turbo
+                  pnpm i -r
+                  turbo run docs:build

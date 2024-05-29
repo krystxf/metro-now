@@ -16,11 +16,25 @@
         "email": "krystof.kratky2003@gmail.com"
     },
     "scripts": {
-        "format:all": "pnpm run format && pnpm run format-swift",
-        "format": "pnpm exec prettier . --write",
-        "check:format": "pnpm exec prettier . --check",
-        "format-swift": "swiftformat .",
-        "check:format-swift": "swiftformat . --lint"
+        "prettier:format": "pnpm exec prettier . --write",
+        "prettier:format:check": "pnpm exec prettier . --check",
+        "app:format": "swiftformat .",
+        "app:format:check": "swiftformat . --lint",
+        "docs:build": "cd docs && pnpm run build",
+        "docs:start": "cd docs && pnpm run start",
+        "docs:lint": "cd docs && pnpm run lint",
+        "docs:dev": "cd docs && pnpm run dev",
+        "backend:v1:dev": "cd backend/v1 && pnpm run dev",
+        "backend:v1:start": "cd backend/v1 && pnpm run start",
+        "backend:v1:build": "cd backend/v1 && pnpm run build",
+        "backend:v1:docker:build": "cd backend/v1 && pnpm run docker:build",
+        "backend:v2:dev": "cd backend/v2 && pnpm run dev",
+        "backend:v2:start": "cd backend/v2 && pnpm run start",
+        "backend:v2:build": "cd backend/v2 && pnpm run build",
+        "app:ios:build": "xcodebuild -workspace app/metro-now.xcodeproj/project.xcworkspace -scheme metro-now build | xcbeautify",
+        "app:ios:test": "xcodebuild -workspace app/metro-now.xcodeproj/project.xcworkspace -scheme metro-now test | xcbeautify",
+        "app:ios:widgets:build": "xcodebuild -workspace app/metro-now.xcodeproj/project.xcworkspace -scheme metro-now-widgetsExtension build | xcbeautify",
+        "app:watch:build": "xcodebuild -workspace app/metro-now.xcodeproj/project.xcworkspace -scheme \"metro-now-watch Watch App\" build | xcbeautify"
     },
     "devDependencies": {
         "prettier": "^3.2.5"

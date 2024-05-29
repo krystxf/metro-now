@@ -12,12 +12,19 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v1
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 8
 
             - run: |
-                  cd ./backend/v1
-                  bun install 
-                  bun run build
+                  pnpm i -g turbo bun
+                  pnpm i -r
+                  turbo run backend:v1:build backend:v1:docker:build
 
     build-v2:
         name: Build v2 🏗️
@@ -30,7 +37,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v1
 
             - name: Install Node.js
               uses: actions/setup-node@v4
@@ -42,9 +48,9 @@ jobs:
                   version: 8
 
             - run: |
-                  cd ./backend/v2
-                  pnpm install 
-                  pnpm run build
+                  pnpm i -g turbo
+                  pnpm i -r
+                  turbo run backend:v2:build
 
     publish-v1-docker-image:
         name: Publish Docker image 🚀

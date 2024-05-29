@@ -5,6 +5,6 @@ export const routes = express.Router();
 
 routes.use("/v1", v1routes);
 
-routes.get("/", (req, res) => {
+routes.get("/", (_, res) => {
     res.send(`Server is running! 🚀`);
 });

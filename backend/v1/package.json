@@ -5,8 +5,7 @@
     "version": "0.0.1",
     "scripts": {
         "start": "bun run src/server.ts",
-        "start:dev": "bun --watch src/server.ts",
-        "start:build": "bun run src/server.js",
+        "dev": "bun --watch src/server.ts",
         "build": "bun build src/server.ts --outdir build --minify",
         "docker:build": "docker build -t metro-now-server ."
     },

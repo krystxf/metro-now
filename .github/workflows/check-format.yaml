@@ -34,5 +34,6 @@ jobs:
 
             - name: Check JS format
               run: |
-                  pnpm install 
-                  pnpm run check:format
+                  pnpm i -g turbo
+                  pnpm i -r
+                  pnpm run prettier:format:check
