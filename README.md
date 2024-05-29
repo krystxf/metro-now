@@ -7,7 +7,7 @@
 this project uses [turbo repo](https://turbo.build/repo/docs)
 
 ```bash
-pnpm install -r # install dependencies recursively
+pnpm install # install dependencies
 brew install xcbeautify swiftformat # install swift dependencies
 
 # turbo options

@@ -23,11 +23,7 @@
 		2D1B2C502BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C4E2BFAD8ED007ED5EB /* metroRoutesTypes.swift */; };
 		2D1B2C522BFAD90B007ED5EB /* metroStationsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */; };
 		2D1B2C532BFAD90B007ED5EB /* metroStationsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */; };
-		2D1B2C592BFAD9FB007ED5EB /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */; };
-		2D1B2C5A2BFAD9FB007ED5EB /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */; };
 		2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */; };
-		2D350E692BFBF6B100F68039 /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D350E682BFBF6B100F68039 /* metro-routes.geojson */; };
-		2D350E6A2BFBF6B100F68039 /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2D350E682BFBF6B100F68039 /* metro-routes.geojson */; };
 		2D4486862BFAA10A005C59CE /* metro_now_watchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */; };
 		2D4486882BFAA10A005C59CE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4486872BFAA10A005C59CE /* ContentView.swift */; };
 		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
@@ -47,6 +43,12 @@
 		2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */; };
 		2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */; };
 		2DC63A262BF5280F00A72C7F /* jsonUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */; };
+		2DD3DEA92C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
+		2DD3DEAA2C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
+		2DD3DEAB2C07D319002233DE /* metro-stations.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA72C07D319002233DE /* metro-stations.geojson */; };
+		2DD3DEAC2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
+		2DD3DEAD2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
+		2DD3DEAE2C07D319002233DE /* metro-routes.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 2DD3DEA82C07D319002233DE /* metro-routes.geojson */; };
 		2DF48A472C01F185002F754E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A462C01F185002F754E /* WidgetKit.framework */; };
 		2DF48A492C01F185002F754E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DF48A482C01F185002F754E /* SwiftUI.framework */; };
 		2DF48A4C2C01F186002F754E /* metro_now_widgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF48A4B2C01F186002F754E /* metro_now_widgetsBundle.swift */; };
@@ -128,9 +130,7 @@
 		2D1B2C4A2BFAD807007ED5EB /* fileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fileUtils.swift; sourceTree = "<group>"; };
 		2D1B2C4E2BFAD8ED007ED5EB /* metroRoutesTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroRoutesTypes.swift; sourceTree = "<group>"; };
 		2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroStationsTypes.swift; sourceTree = "<group>"; };
-		2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../data/metro-stations.geojson"; sourceTree = "<group>"; };
 		2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapStationAnnotationView.swift; sourceTree = "<group>"; };
-		2D350E682BFBF6B100F68039 /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
 		2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now-watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_now_watchApp.swift; sourceTree = "<group>"; };
 		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -152,6 +152,8 @@
 		2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtilsTests.swift; sourceTree = "<group>"; };
+		2DD3DEA72C07D319002233DE /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../../packages/data/metro-stations.geojson"; sourceTree = "<group>"; };
+		2DD3DEA82C07D319002233DE /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../../packages/data/metro-routes.geojson"; sourceTree = "<group>"; };
 		2DF48A442C01F185002F754E /* metro-now-widgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "metro-now-widgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DF48A462C01F185002F754E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		2DF48A482C01F185002F754E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -249,8 +251,8 @@
 		2D1B2C542BFAD93F007ED5EB /* Data */ = {
 			isa = PBXGroup;
 			children = (
-				2D1B2C562BFAD9FB007ED5EB /* metro-stations.geojson */,
-				2D350E682BFBF6B100F68039 /* metro-routes.geojson */,
+				2DD3DEA82C07D319002233DE /* metro-routes.geojson */,
+				2DD3DEA72C07D319002233DE /* metro-stations.geojson */,
 				2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */,
 			);
 			path = Data;
@@ -560,8 +562,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */,
-				2D350E6A2BFBF6B100F68039 /* metro-routes.geojson in Resources */,
-				2D1B2C5A2BFAD9FB007ED5EB /* metro-stations.geojson in Resources */,
+				2DD3DEAD2C07D319002233DE /* metro-routes.geojson in Resources */,
+				2DD3DEAA2C07D319002233DE /* metro-stations.geojson in Resources */,
 				2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -571,8 +573,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */,
-				2D350E692BFBF6B100F68039 /* metro-routes.geojson in Resources */,
-				2D1B2C592BFAD9FB007ED5EB /* metro-stations.geojson in Resources */,
+				2DD3DEAC2C07D319002233DE /* metro-routes.geojson in Resources */,
+				2DD3DEA92C07D319002233DE /* metro-stations.geojson in Resources */,
 				2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -588,6 +590,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DD3DEAE2C07D319002233DE /* metro-routes.geojson in Resources */,
+				2DD3DEAB2C07D319002233DE /* metro-stations.geojson in Resources */,
 				2DF48A502C01F186002F754E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

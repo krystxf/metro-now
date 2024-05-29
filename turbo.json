@@ -1,112 +1,48 @@
 {
     "$schema": "https://turbo.build/schema.json",
+    "globalDependencies": ["**/.env"],
+    "experimentalUI": true,
     "pipeline": {
-        "app:format": {
-            "inputs": ["app/**/*.swift"],
+        "build": {
+            "outputs": [".next/**", "!.next/cache/**", "^build"],
             "cache": true
         },
-        "app:format:check": {
-            "inputs": ["app/**/*.swift"],
-            "cache": true
+        "start": {
+            "dependsOn": ["build"],
+            "cache": false,
+            "persistent": true
         },
-        "prettier:format": {
-            "cache": true
+        "dev": {
+            "cache": false,
+            "persistent": true
+        },
+        "//#format:swift": {
+            "cache": true,
+            "inputs": ["**/**.swift"]
+        },
+        "//#format:prettier": {
+            "cache": true,
+            "inputs": ["!app/**", "!**/node_modules/**"]
+        },
+        "//#format:swift:check": {
+            "cache": true,
+            "inputs": ["**/**.swift"]
+        },
+        "//#format:prettier:check": {
+            "cache": true,
+            "inputs": ["!app/**", "!**/node_modules/**"]
         },
         "format": {
-            "dependsOn": ["app:format", "prettier:format"],
-            "cache": true
-        },
-        "prettier:format:check": {
+            "dependsOn": ["//#format:swift", "//#format:prettier"],
             "cache": true
         },
         "format:check": {
-            "dependsOn": ["app:format:check", "prettier:format:check"],
-            "cache": true
-        },
-        "docs:build": {
-            "outputs": ["docs/.next/**", "!docs/.next/cache/**"],
-            "cache": true
-        },
-        "docs:start": {
-            "dependsOn": ["docs:build"],
-            "persistent": true,
-            "cache": false
-        },
-        "docs:lint": {
-            "cache": true
-        },
-        "docs:dev": {
-            "persistent": true,
-            "cache": false
-        },
-        "build": {
-            "dependsOn": ["docs:build"]
-        },
-        "backend:v1:docker:build": {
-            "cache": true
-        },
-        "backend:v1:build": {
-            "outputs": ["backend/v1/build/**"],
-            "cache": true
-        },
-        "backend:v1:start": {
-            "dependsOn": ["backend:v1:build"],
-            "persistent": true,
-            "cache": false
-        },
-        "backend:v1:dev": { "persistent": true, "cache": false },
-        "backend:v2:build": {
-            "outputs": ["backend/v2/dist/**"],
-            "inputs": ["backend/v2/**"],
-            "cache": true
-        },
-        "backend:v2:test": {
-            "dependsOn": ["backend:v2:build"], 
-            "cache": true
-        },
-        "backend:v2:start": {
-            "dependsOn": ["backend:v2:build"],
-            "persistent": true,
-            "cache": false
-        },
-        "backend:v2:dev": { "persistent": true, "cache": false },
-        "app:ios:build": {
-            "dependsOn": ["app:ios:widgets:build"],
-            "cache": true
-        },
-        "app:ios:test": {
-            "dependsOn": ["app:ios:build"],
-            "cache": true
-        },
-        "app:watch:build": {
-            "cache": true
-        },
-        "app:ios:widgets:build": {
-            "cache": true
-        },
-        "app:build": {
-            "dependsOn": [
-                "app:ios:build",
-                "app:ios:widgets:build",
-                "app:watch:build"
-            ],
-            "cache": true
-        },
-        "app:test": {
-            "dependsOn": ["app:ios:test"],
+            "dependsOn": ["//#format:swift:check", "//#format:prettier:check"],
             "cache": true
         },
         "precommit": {
-            "dependsOn": [
-                "format",
-                "docs:lint",
-                "docs:build",
-                "app:build",
-                "app:test",
-                "backend:v1:build",
-                "backend:v2:build"
-            ],
-            "cache": true
-        }
+            "dependsOn": ["format", "build", "typecheck"]
+        },
+        "typecheck": {}
     }
 }

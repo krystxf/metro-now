@@ -1,0 +1,11 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "test": "xcodebuild -workspace app/metro-now.xcodeproj/project.xcworkspace -scheme metro-now test | xcbeautify"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}

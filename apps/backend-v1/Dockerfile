@@ -7,13 +7,13 @@ WORKDIR /usr/src/app
 # this will cache them and speed up future builds
 FROM base AS install
 RUN mkdir -p /temp/dev
-COPY package.json pnpm-lock.yaml /temp/dev/
-RUN cd /temp/dev && pnpm install --frozen-lockfile
+COPY package.json   /temp/dev/
+RUN cd /temp/dev && pnpm install
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
-COPY package.json pnpm-lock.yaml /temp/prod/
-RUN cd /temp/prod && pnpm install --frozen-lockfile --production
+COPY package.json   /temp/prod/
+RUN cd /temp/prod && pnpm install --production
 
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image

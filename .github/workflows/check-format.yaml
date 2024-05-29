@@ -13,8 +13,19 @@ jobs:
                   swift-version: 5.10
             - uses: actions/checkout@v4
 
-            - name: Check Swift format
-              run: swiftformat . --lint
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 8
+
+            - name: Check JS format
+              run: |
+                  pnpm install
+                  pnpm format:swift:check
 
     js-format-check:
         name: JS format check 💅
@@ -34,6 +45,5 @@ jobs:
 
             - name: Check JS format
               run: |
-                  pnpm i -g turbo
-                  pnpm i -r
-                  pnpm run prettier:format:check
+                  pnpm install
+                  pnpm format:prettier:check

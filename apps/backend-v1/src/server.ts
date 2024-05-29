@@ -70,7 +70,7 @@ const fetchData = async (clientID?: string) => {
     if (res.departures.length) {
         const resDeparturesByStopID = group(
             res.departures,
-            (departure) => departure.stop.id,
+            (departure: any) => departure.stop.id,
         );
 
         const resDeparturesByStopIDEntries = Object.entries(
