@@ -8,18 +8,13 @@ this project uses [turbo repo](https://turbo.build/repo/docs)
 
 ```bash
 pnpm install -r # install dependencies recursively
-brew install xcbeautify swiftformat
+brew install xcbeautify swiftformat # install swift dependencies
 
 # turbo options
 turbo run format
 
-turbo run docs:start
+turbo run docs:start backend:v1:start backend:v2:start
+# runs on ports 3000, 3001, 3002 respectively
 
-turbo run backend:v1:start
-turbo run backend:v1:build:docker
-
-turbo run backend:v2:start
-
-turbo run app:build
-turbo run app:test
+# open app directory in xcode for better experience
 ```

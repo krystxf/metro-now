@@ -96,6 +96,7 @@ const fetchData = async (clientID?: string) => {
 };
 
 const server = Bun.serve<ClientData>({
+    port: 3001,
     async fetch(req, server) {
         const url = new URL(req.url);
         if (req.method === "GET" && url.pathname === "/departures") {

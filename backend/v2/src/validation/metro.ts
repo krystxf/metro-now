@@ -1,3 +1,5 @@
+import z from "zod";
+
 export const GTFS_IDS = [
     "U1040Z101P",
     "U1040Z102P",
@@ -118,10 +120,4 @@ export const GTFS_IDS = [
     "U921Z102P",
 ] as const satisfies `U${number}Z${number}P`[];
 
-const validateGtfsID = (gtfsID: string): boolean => {
-    return GTFS_IDS.includes(gtfsID as (typeof GTFS_IDS)[number]);
-};
-
-export const validateGtfsIDs = (gtfsIDs: string[]): boolean => {
-    return gtfsIDs.every((gtfsID) => validateGtfsID(gtfsID));
-};
+export const zodGtfsID = z.enum(GTFS_IDS);

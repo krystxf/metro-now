@@ -57,6 +57,11 @@
         "backend:v1:dev": { "persistent": true, "cache": false },
         "backend:v2:build": {
             "outputs": ["backend/v2/dist/**"],
+            "inputs": ["backend/v2/**"],
+            "cache": true
+        },
+        "backend:v2:test": {
+            "dependsOn": ["backend:v2:build"], 
             "cache": true
         },
         "backend:v2:start": {

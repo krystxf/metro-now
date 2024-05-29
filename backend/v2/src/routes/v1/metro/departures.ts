@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { createClient } from "redis";
-import { validateGtfsIDs, GTFS_IDS } from "../../../validation/metro";
+import { zodGtfsID } from "../../../validation/metro";
 import { unique, group } from "radash";
 
 export const departuresRoute = Router();
+
+const departuresScheme = zodGtfsID.or(zodGtfsID.array().max(10));
 
 const GOLEMIO_ENDPOINT = new URL(
     "/v2/pid/departureboards",
@@ -15,24 +17,14 @@ const GOLEMIO_ENDPOINT_HEADERS = new Headers({
 });
 
 departuresRoute.get("/departures", async (req, res) => {
-    if (!req.query.gtfsID) {
-        res.status(400).json({ message: "Missing gtfsID parameter" });
-    }
-
-    const gtfsIDRaw = req.query.gtfsID as string | string[];
-    const parsedGtfsIDs = Array.isArray(gtfsIDRaw) ? gtfsIDRaw : [gtfsIDRaw];
-
-    if (parsedGtfsIDs.length > 10) {
-        res.status(400).json({ message: "Too many gtfsIDs, max 10" });
+    const parsedGtfsIDsQuery = departuresScheme.safeParse(req.query?.gtfsID);
+    if (!parsedGtfsIDsQuery.success) {
+        res.status(400).send(parsedGtfsIDsQuery.error.errors);
         return;
     }
-
-    if (!validateGtfsIDs(parsedGtfsIDs)) {
-        res.status(400).json({
-            message: `${gtfsIDRaw} is not valid GTFS ID, allowed GTFS IDs: ${GTFS_IDS.join(", ")}`,
-        });
-        return;
-    }
+    const parsedGtfsIDs = Array.isArray(parsedGtfsIDsQuery.data)
+        ? parsedGtfsIDsQuery.data
+        : [parsedGtfsIDsQuery.data];
 
     const redisClient = createClient();
     await redisClient.connect();
@@ -51,7 +43,6 @@ departuresRoute.get("/departures", async (req, res) => {
         .filter(([_, value]) => !value)
         .map(([key]) => key);
 
-    console.log("Not cached GTFS IDs: ", notCachedGtfsIDs.join(", "));
     if (notCachedGtfsIDs.length) {
         const response = await fetch(
             new URL(
