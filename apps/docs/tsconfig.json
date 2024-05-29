@@ -1,10 +1,7 @@
 {
+    "extends": "@metro-now/config/tsconfig.base.json",
     "compilerOptions": {
         "lib": ["dom", "dom.iterable", "esnext"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "noEmit": true,
         "esModuleInterop": true,
         "module": "esnext",
         "moduleResolution": "bundler",
@@ -19,7 +16,8 @@
         ],
         "paths": {
             "@/*": ["./src/*"]
-        }
+        },
+        "strictNullChecks": true
     },
     "include": [
         "next-env.d.ts",
@@ -27,6 +25,5 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         "src/pages/terms-and-condition.mdx"
-    ],
-    "exclude": ["node_modules"]
+    ]
 }

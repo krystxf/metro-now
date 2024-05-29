@@ -1,0 +1,24 @@
+{
+    "name": "@metro-now/backend-v1",
+    "module": "src/server.ts",
+    "type": "module",
+    "version": "0.0.1",
+    "scripts": {
+        "start": "pnpm exec bun run src/server.ts",
+        "dev": "pnpm exec bun --watch src/server.ts",
+        "build": "pnpm exec bun build src/server.ts --outdir build --minify",
+        "docker": "docker build -t metro-now-server .",
+        "typecheck": "tsc --pretty"
+    },
+    "dependencies": {
+        "@metro-now/validation": "workspace:*",
+        "radash": "^12.1.0",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

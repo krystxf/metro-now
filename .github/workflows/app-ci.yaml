@@ -20,15 +20,15 @@ jobs:
 
             - name: Setup Xcode
               run: |
-                  cd ./app
+                  cd ./apps/app
                   xcodebuild -downloadAllPlatforms
 
             - name: Build
               run: |
-                  cd ./app
+                  cd ./apps/app
                   xcodebuild build -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
 
             - name: Test
               run: |
-                  cd ./app
+                  cd ./apps/app
                   xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
