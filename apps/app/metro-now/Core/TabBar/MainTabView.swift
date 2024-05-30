@@ -37,11 +37,6 @@ struct MainTabView: View {
 
             let res = getClosestStationFromGeoJSON(location: location)
 
-            guard let res else {
-                print("Unknown closest station")
-                return
-            }
-
             closestStation = res
         }
         .onAppear {

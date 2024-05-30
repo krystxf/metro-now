@@ -47,14 +47,11 @@ func getMetroLineIcon(_ letter: MetroLine) -> String {
     getMetroLineIcon(letter.rawValue)
 }
 
-func getClosestStationFromGeoJSON(location: CLLocation) -> MetroStationsGeoJSONFeature? {
+func getClosestStationFromGeoJSON(location: CLLocation) -> MetroStationsGeoJSONFeature {
     let stations: MetroStationsGeoJSON? = getParsedJSONFile(.METRO_STATIONS_FILE)
 
-    guard let stations else {
-        return nil
-    }
-    guard stations.features.count > 0 else {
-        return nil
+    guard let stations, stations.features.count > 0 else {
+        fatalError("No stations found")
     }
 
     var closestStationIndex = 0

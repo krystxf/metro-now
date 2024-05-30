@@ -6,7 +6,7 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct metro_now_widgetsBundle: WidgetBundle {
+struct Widgets: WidgetBundle {
     var body: some Widget {
         metro_now_widgets()
     }

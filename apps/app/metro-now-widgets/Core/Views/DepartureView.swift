@@ -4,7 +4,7 @@
 
 import SwiftUI
 
-struct Departure: View {
+struct DepartureView: View {
     let direction: String
     let departureDate: Date
     let metroLine: String
@@ -24,6 +24,22 @@ struct Departure: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 5)
         .background(getMetroLineColor(metroLine))
+        .clipShape(.rect(cornerRadius: 10))
+    }
+}
+
+struct DeparturePlaceholderView: View {
+    var body: some View {
+        HStack {
+            Text("Loading...")
+                .frame(alignment: .leading)
+                .font(.caption)
+                .fontWeight(.bold)
+            Spacer()
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
+        .background(.black.opacity(0.1))
         .clipShape(.rect(cornerRadius: 10))
     }
 }

@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>NSWidgetWantsLocation</key>
-	<true/>
-	<key>NSLocationUsageDescription</key>
-	<string>Location is needed to determine nearest metro station</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location is needed to determine nearest metro station</string>
-	<key>NSExtension</key>
 	<dict>
-		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.widgetkit-extension</string>
+		<key>NSWidgetWantsLocation</key>
+		<true />
+		<key>NSLocationUsageDescription</key>
+		<string>Put some text here</string>
+		<key>NSExtension</key>
+		<dict>
+			<key>NSExtensionPointIdentifier</key>
+			<string>com.apple.widgetkit-extension</string>
+		</dict>
 	</dict>
-</dict>
 </plist>

@@ -8,7 +8,8 @@
 import Foundation
 import SwiftUI
 
-let METRO_NOW_API = "https://api.metronow.dev"
+// let METRO_NOW_API = "https://api.metronow.dev"
+let METRO_NOW_API = "http://localhost:3002"
 
 enum FetchError:
     Error

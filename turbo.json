@@ -43,6 +43,11 @@
         "precommit": {
             "dependsOn": ["format", "build", "typecheck"]
         },
-        "typecheck": {}
+        "typecheck": {
+            "cache": true
+        },
+        "test": {
+            "cache": true
+        }
     }
 }
