@@ -1,7 +1,6 @@
 {
     "$schema": "https://turbo.build/schema.json",
     "globalDependencies": ["**/.env"],
-    "experimentalUI": true,
     "pipeline": {
         "build": {
             "outputs": [".next/**", "!.next/cache/**", "^build"],
@@ -17,28 +16,28 @@
             "persistent": true
         },
         "//#format:swift": {
-            "cache": true,
+            "cache": false,
             "inputs": ["**/**.swift"]
         },
         "//#format:prettier": {
-            "cache": true,
+            "cache": false,
             "inputs": ["!app/**", "!**/node_modules/**"]
         },
         "//#format:swift:check": {
-            "cache": true,
+            "cache": false,
             "inputs": ["**/**.swift"]
         },
         "//#format:prettier:check": {
-            "cache": true,
+            "cache": false,
             "inputs": ["!app/**", "!**/node_modules/**"]
         },
         "format": {
             "dependsOn": ["//#format:swift", "//#format:prettier"],
-            "cache": true
+            "cache": false
         },
         "format:check": {
             "dependsOn": ["//#format:swift:check", "//#format:prettier:check"],
-            "cache": true
+            "cache": false
         },
         "precommit": {
             "dependsOn": ["format", "build", "typecheck"]
