@@ -1,8 +1,5 @@
-import {
-  titleByMetroStation,
-  type MetroStation,
-} from 'src/data/metro-stations';
-import { removeDiacritics } from 'src/utils/remove-diacritics';
+import { titleByMetroStation, MetroStation } from '../data/metro-stations';
+import { removeDiacritics } from '../utils/remove-diacritics';
 
 export const parseMetroStation = (
   station: string | undefined,

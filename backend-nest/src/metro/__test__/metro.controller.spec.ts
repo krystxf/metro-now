@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MetroController } from './metro.controller';
+import { MetroController } from '../metro.controller';
 
 describe('MetroController', () => {
   let controller: MetroController;
