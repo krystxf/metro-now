@@ -6,8 +6,7 @@
     "scripts": {
         "build": "npx tsc",
         "start": "node build/src/server.js",
-        "dev": "nodemon src/server.ts",
-        "test": "jest",
+        "dev": "nodemon src/server.ts", 
         "typecheck": "tsc --pretty"
     },
     "dependencies": {
