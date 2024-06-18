@@ -23,17 +23,17 @@ struct PlatformDetailView: View {
             )
             .edgesIgnoringSafeArea(.all)
             VStack {
-                Label(departures?.first?.trip.headsign ?? defaultDirection, systemImage: "arrowshape.right.fill")
+                Label(departures?.first?.heading ?? defaultDirection, systemImage: "arrowshape.right.fill")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                 if let departures, departures.count >= 1 {
-                    Text(formatTime(seconds: secondsFromNow(departures[0].departureTimestamp.predicted)))
+                    Text(formatTime(seconds: secondsFromNow(departures[0].departure)))
                         .font(.largeTitle)
                         .foregroundStyle(.white)
                 }
                 if let departures, departures.count >= 2 {
-                    Text("Also in \(formatTime(seconds: secondsFromNow(departures[1].departureTimestamp.predicted)))")
+                    Text("Also in \(formatTime(seconds: secondsFromNow(departures[1].departure)))")
                         .font(.title2)
                         .foregroundStyle(.white)
                 }

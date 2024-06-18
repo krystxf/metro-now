@@ -27,7 +27,7 @@ struct Provider: TimelineProvider {
                 let dep = departures[gtfsID] ?? []
 
                 let parsedDeparture = WidgetEntryDeparture(
-                    departureDate: dep[0].departureTimestamp.predicted, direction: dep[0].trip.headsign, metroLine: dep[0].route.shortName
+                    departureDate: dep[0].departure, direction: dep[0].heading, metroLine: dep[0].line
                 )
                 parsedDepartures.append(parsedDeparture)
             }
@@ -75,7 +75,7 @@ struct Provider: TimelineProvider {
                 let dep = departures[gtfsID] ?? []
 
                 let parsedDeparture = WidgetEntryDeparture(
-                    departureDate: dep[0].departureTimestamp.predicted, direction: dep[0].trip.headsign, metroLine: dep[0].route.shortName
+                    departureDate: dep[0].departure, direction: dep[0].heading, metroLine: dep[0].line
                 )
                 parsedDepartures.append(parsedDeparture)
             }

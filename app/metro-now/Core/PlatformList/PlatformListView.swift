@@ -23,62 +23,62 @@ struct PlatformsListView: View {
                 VStack(spacing: 10) {
                     if let station, departuresByGtfsID != nil {
                         ForEach(station.properties.platforms, id: \.gtfsId) { platform in
-                            let platformDepartures = departuresByGtfsID?[platform.gtfsId] ?? []
-
-                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
-
-                            NavigationLink {
-                                PlatformDetailView(
-                                    defaultDirection: direction,
-                                    gtfsID: platform.gtfsId
-                                )
-                            }
-                            label: {
-                                PlatformListItemView(
-                                    direction: direction,
-                                    departureDates: platformDepartures.map(\.departureTimestamp.predicted) as! [Date],
-                                    metroLine: platform.name
-                                )
-                            }
+                            PlatformListItemView(
+                                direction: platform.direction, departureDates: [], metroLine: platform.name
+                            )
+                            //                            if  departuresByGtfsID?.contains(k -> k == platform.gtfsId) {
+//                                PlatformListItemView(
+//                                    direction: "platform.direction",
+//                                    departureDates:  Date.now() , // departuresByGtfsID[platform.gtfsId].map(\.departureTimestamp.predicted) as! [Date],
+//                                    metroLine: "A" // platform.name
+//                                )
+//                            }
+//                            else {
+//                                Text("No departures for this platform")
+//                                    .foregroundColor(.red)
+//                                    .font(.headline)
+//                            }
+//                            let platformDepartures =  departuresByGtfsID?[platform.gtfsId]
+//                            let platformDepartures = departuresByGtfsID?[platform.gtfsId]
+//                            let direction = platformDepartures.first?.heading ?? platform.direction
+                            
+//                            NavigationLink {
+//                                PlatformDetailView(
+//                                    defaultDirection: platform.direction,
+//                                    gtfsID: platform.gtfsId
+//                                )
+//                            }
+//                            label: {
+//                                PlatformListItemView(
+//                                    direction: platform.direction,
+//                                    departureDates: platformDepartures.map(\.departureTimestamp.predicted) as! [Date],
+//                                    metroLine: "A" // platform.name
+//                                )
+//                            }
                         }
-//                        List($station.properties.platforms, id: \.self.gtfsId){platform in
-//                            let platformDepartures = viewModel.departuresByGtfsID[platform.gtfsId] ?? []
-//
-//                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
-//
-//
-//                            NavigationLink {
-//                                PlatformDetailView(
-//                                    direction: direction
-//                                )
-//                            }
-//                            label: {
-//                                PlatformListItemView(
-//                                    direction: direction,
-//                                    departureDates: platformDepartures.map{$0.departureTimestamp.predicted} as! [Date],
-//                                    metroLine: platform.name
-//                                )
-//                            }
-//                        }
-//                        ForEach(station.properties.platforms, id: \.self.gtfsId) { platform in
-//                            let platformDepartures = viewModel.departuresByGtfsID[platform.gtfsId]
-//
-//                            let direction = platformDepartures.first?.trip.headsign ?? platform.direction
-//
-//                            NavigationLink {
-//                                PlatformDetailView(
-//                                    direction: direction
-//                                )
-//                            }
-//                            label: {
-//                                PlatformListItemView(
-//                                    direction: direction,
-//                                    departureDates: platformDepartures.map{$0.departureTimestamp.predicted} as! [Date],
-//                                    metroLine: platform.name
-//                                )
-//                            }
-//                        }
                     }
+//                    if let station, departuresByGtfsID != nil {
+//                        ForEach(station.properties.platforms, id: \.gtfsId) { platform in
+//                            let platformDepartures = departuresByGtfsID?[platform.gtfsId] ?? []
+//
+//                            let direction = platformDepartures.first?.heading ?? platform.direction
+//
+//                            NavigationLink {
+//                                PlatformDetailView(
+//                                    defaultDirection: direction,
+//                                    gtfsID: platform.gtfsId
+//                                )
+//                            }
+//                            label: {
+//                                PlatformListItemView(
+//                                    direction: direction,
+//                                    departureDates: platformDepartures.map(\.departureTimestamp.predicted) as! [Date],
+//                                    metroLine: "A" // platform.name
+//                                )
+//                            }
+//                        }
+// 
+//                    }
                 }
                 .padding(10)
             }

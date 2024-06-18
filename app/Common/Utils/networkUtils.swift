@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 // let METRO_NOW_API = "https://api.metronow.dev"
-let METRO_NOW_API = "http://localhost:3002"
+let METRO_NOW_API = "http://localhost:3001"
 
 enum FetchError:
     Error
@@ -22,8 +22,8 @@ enum FetchError:
 typealias DeparturesByGtfsIDs = [String: [ApiDeparture]]
 
 func getDeparturesByGtfsID(gtfsIDs: [String]) async throws -> DeparturesByGtfsIDs {
-    let params = (gtfsIDs.map { "gtfsID=\($0)" }).joined(separator: "&")
-    let endpoint = "\(METRO_NOW_API)/v1/metro/departures?\(params)"
+    let params = (gtfsIDs.map { "platform=\($0)" }).joined(separator: "&")
+    let endpoint = "\(METRO_NOW_API)/metro?\(params)"
     guard let url = URL(string: endpoint) else { throw FetchError.InvalidURL }
     let (data, response) = try await URLSession.shared.data(from: url)
 
@@ -38,7 +38,8 @@ func getDeparturesByGtfsID(gtfsIDs: [String]) async throws -> DeparturesByGtfsID
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(DeparturesByGtfsIDs.self, from: data)
 
-    } catch {
+    }
+    catch {
         throw FetchError.InvalidaData
     }
 }
