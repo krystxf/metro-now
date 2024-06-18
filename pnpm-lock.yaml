@@ -176,8 +176,6 @@ importers:
 
   packages/config: {}
 
-  packages/data: {}
-
   packages/validation:
     dependencies:
       zod:

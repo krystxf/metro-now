@@ -9,7 +9,7 @@ jobs:
             fail-fast: false
             matrix:
                 device: [14, 15]
-                iOS: [17.0, 17.5]
+                iOS: [17.5]
         name: App CI 🚀 (iPhone ${{ matrix.device }}, iOS ${{ matrix.iOS }} )
 
         steps:

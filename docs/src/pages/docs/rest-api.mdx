@@ -4,22 +4,132 @@ Backend gets data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/) c
 
 ## Metro departures
 
-[Golemio departures API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%9A%8F%20PID%20Departure%20Boards/get_pid_departureboards)
+<br />
 
+<a href="https://api.metronow.dev/metro?station=andel" target="_blank">
 ```http
-GET https://api.metronow.dev/v1/metro/v1/metro/departures
+GET https://api.metronow.dev/metro
+```
+</a>
+<details>
+  <summary>Request</summary>
+```http
+## ONE STATION
+
+GET https://api.metronow.dev/metro?station=Anděl
+
+# Can be also written as:
+
+GET https://api.metronow.dev/metro?station=andel
+
+## MULTIPLE STATIONS
+
+# As multiple query parameters:
+
+GET https://api.metronow.dev/metro?station=Anděl&station=Dejvická
+
+# As a comma-separated list:
+
+GET https://api.metronow.dev/metro?station=[Anděl,Dejvická]
+
+# As a JSON array:
+
+GET https://api.metronow.dev/metro?station=["Anděl","Dejvická"]
+
+````
+</details>
+<details>
+  <summary>Response</summary>
+
+**Response schema:**
+```json
+{
+    [platform id]: [
+        {
+            "delay": "number", // seconds
+            "departure": "string", // ISO 8601
+            "heading": "string", // station
+            "line": "A" | "B" | "C"
+        }
+    ]
+}
+````
+
+**Example response:**
+
+```json
+{
+    "U458Z102P": [
+        {
+            "delay": 10,
+            "departure": "2024-06-18T04:45:25+02:00",
+            "heading": "Černý Most",
+            "line": "B"
+        }
+    ]
+}
 ```
 
-### Example requests
+</details>
 
-**Departures for one platform:**
-
-```http
-GET https://api.metronow.dev/v1/metro/departures?gtfsID=U1040Z101P
-```
-
-**Departures from multiple platforms (max. 10):**
-
-```http
-GET https://api.metronow.dev/v1/metro/departures?gtfsID=U1040Z101P&gtfsID=U1040Z102P
-```
+<details>
+    <summary>List of all stations</summary>
+    <li>Anděl</li>
+    <li>Bořislavka</li>
+    <li>Budějovická</li>
+    <li>Černý Most</li>
+    <li>Českomoravská</li>
+    <li>Dejvická</li>
+    <li>Depo Hostivař</li>
+    <li>Flora</li>
+    <li>Florenc</li>
+    <li>Háje</li>
+    <li>Hlavní nádraží</li>
+    <li>Hloubětí</li>
+    <li>Hradčanská</li>
+    <li>Hůrka</li>
+    <li>Chodov</li>
+    <li>I. P. Pavlova</li>
+    <li>Invalidovna</li>
+    <li>Jinonice</li>
+    <li>Jiřího z Poděbrad</li>
+    <li>Kačerov</li>
+    <li>Karlovo náměstí</li>
+    <li>Kobylisy</li>
+    <li>Kolbenova</li>
+    <li>Křižíkova</li>
+    <li>Ládví</li>
+    <li>Letňany</li>
+    <li>Luka</li>
+    <li>Lužiny</li>
+    <li>Malostranská</li>
+    <li>Můstek</li>
+    <li>Muzeum</li>
+    <li>Nádraží Holešovice</li>
+    <li>Nádraží Veleslaví</li>
+    <li>Náměstí Míru</li>
+    <li>Náměstí Republiky</li>
+    <li>Národní třída</li>
+    <li>Nemocnice Motol</li>
+    <li>Nové Butovice</li>
+    <li>Opatov</li>
+    <li>Palmovka</li>
+    <li>Pankrác</li>
+    <li>Petřiny</li>
+    <li>Pražského povstání</li>
+    <li>Prosek</li>
+    <li>Radlická</li>
+    <li>Rajská zahrada</li>
+    <li>Roztyly</li>
+    <li>Skalka</li>
+    <li>Smíchovské nádraží</li>
+    <li>Staroměstská</li>
+    <li>Stodůlky</li>
+    <li>Strašnická</li>
+    <li>Střížkov</li>
+    <li>Vltavská</li>
+    <li>Vysočanská</li>
+    <li>Vyšehrad</li>
+    <li>Zličí</li>
+    <li>Želivského</li>
+</details>
