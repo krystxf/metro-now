@@ -158,8 +158,8 @@
 		2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = timeUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroUtilsTests.swift; sourceTree = "<group>"; };
 		2DC63A252BF5280F00A72C7F /* jsonUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonUtilsTests.swift; sourceTree = "<group>"; };
-		2DD3DEA72C07D319002233DE /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../../packages/data/metro-stations.geojson"; sourceTree = "<group>"; };
-		2DD3DEA82C07D319002233DE /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../../packages/data/metro-routes.geojson"; sourceTree = "<group>"; };
+		2DD3DEA72C07D319002233DE /* metro-stations.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-stations.geojson"; path = "../../../data/metro-stations.geojson"; sourceTree = "<group>"; };
+		2DD3DEA82C07D319002233DE /* metro-routes.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "metro-routes.geojson"; path = "../../../data/metro-routes.geojson"; sourceTree = "<group>"; };
 		2DD3DEB22C07F737002233DE /* MediumWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediumWidgetView.swift; sourceTree = "<group>"; };
 		2DD3DED12C080185002233DE /* SmallWidgetPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallWidgetPlaceholderView.swift; sourceTree = "<group>"; };
 		2DD3DED32C080240002233DE /* MediumWidgetPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediumWidgetPlaceholderView.swift; sourceTree = "<group>"; };
