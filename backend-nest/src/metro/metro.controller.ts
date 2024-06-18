@@ -23,7 +23,7 @@ import {
 } from "../utils/fetch";
 
 const ERROR_MSG = `Invalid "station" parameter. Supported stations: ${Object.keys(titleByMetroStation).join(", ")}`;
-const MAX_STATIONS = 10;
+const MAX_STATIONS = 20;
 
 type DepartureResponse = {
     heading: MetroStationName;
@@ -42,31 +42,48 @@ export class MetroController {
     @Get()
     async getMetroDepartures(
         @Query("station") station?: string | string[],
+        @Query("platform") platform?: string | string[],
     ): Promise<GetMetroResponse> {
-        if (!station) {
+        if (!station && !platform) {
             throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
         }
 
-        const stations = parseQueryParam(station);
-        if (!stations.length) {
+        const stations = parseQueryParam(station) ?? [];
+        const platforms = (parseQueryParam(platform) ?? []) as PlatformID[];
+        if (!stations.length && !platforms.length) {
             throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
         }
 
         const parsedStations = stations.map(parseMetroStation);
         if (parsedStations.includes(null)) {
             throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
-        } else if (parsedStations.length > MAX_STATIONS) {
+        }
+
+        const invalidPlatforms = platforms.every((p) =>
+            platformIDs.includes(p),
+        );
+        if (!invalidPlatforms) {
             throw new HttpException(
-                `Too many stations. Maximum is ${MAX_STATIONS}.`,
+                "Some platforms are invalid.",
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const res = await getDepartures(
-            parsedStations.flatMap(
+        const gtfsIDs = unique([
+            ...platforms,
+            ...parsedStations.flatMap(
                 (station) => platformsByMetroStation[station],
             ),
-        );
+        ]);
+
+        if (gtfsIDs.length > MAX_STATIONS) {
+            throw new HttpException(
+                `Too many stations/platforms. Maximum is ${MAX_STATIONS}.`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        const res = await getDepartures(gtfsIDs);
 
         if (!res) {
             throw new HttpException(
@@ -107,14 +124,13 @@ type GolemioResponse = {
 const getDepartures = async (
     platforms: PlatformID[],
 ): Promise<GetMetroResponse> => {
-    const uniquePlatforms = unique(platforms);
-    if (!uniquePlatforms.every((id) => platformIDs.includes(id))) {
+    if (!platforms.every((p) => platformIDs.includes(p))) {
         return null;
     }
 
     const res = await fetch(
         new URL(
-            `${GOLEMIO_ENDPOINT}?order=real&${uniquePlatforms.map((id) => `ids[]=${id}`).join("&")}`,
+            `${GOLEMIO_ENDPOINT}?order=real&${platforms.map((id) => `ids[]=${id}`).join("&")}`,
         ),
         {
             method: "GET",
@@ -123,12 +139,19 @@ const getDepartures = async (
     );
 
     const parsedRes: GolemioResponse = await res.json();
+
     const parsedDepartures = parsedRes.departures.map((departure) => {
-        const { delay, departure_timestamp, trip, route, stop } = departure;
+        const {
+            delay,
+            departure_timestamp: departureTimestamp,
+            trip,
+            route,
+            stop,
+        } = departure;
 
         return {
             delay: getDelayInSeconds(delay),
-            departure: departure_timestamp.predicted,
+            departure: departureTimestamp.predicted,
             heading: trip.headsign,
             line: route.short_name,
             platform: stop.id as PlatformID,
