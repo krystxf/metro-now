@@ -46,9 +46,9 @@ GET https://api.metronow.dev/metro?station=["Anděl","Dejvická"]
 {
     [platform id]: [
         {
-            "delay": "number", // seconds
+            "delay": "int", // in seconds (can be negative)
             "departure": "string", // ISO 8601
-            "heading": "string", // station
+            "heading": "string", // last stop
             "line": "A" | "B" | "C"
         }
     ]
