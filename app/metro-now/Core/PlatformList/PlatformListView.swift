@@ -41,7 +41,7 @@ struct PlatformsListView: View {
 //                            let platformDepartures =  departuresByGtfsID?[platform.gtfsId]
 //                            let platformDepartures = departuresByGtfsID?[platform.gtfsId]
 //                            let direction = platformDepartures.first?.heading ?? platform.direction
-                            
+
 //                            NavigationLink {
 //                                PlatformDetailView(
 //                                    defaultDirection: platform.direction,
@@ -77,7 +77,7 @@ struct PlatformsListView: View {
 //                                )
 //                            }
 //                        }
-// 
+//
 //                    }
                 }
                 .padding(10)

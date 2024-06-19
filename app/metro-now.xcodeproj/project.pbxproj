@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -34,6 +34,7 @@
 		2D4D8F852C0010A5006F9080 /* networkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F842C0010A5006F9080 /* networkUtils.swift */; };
 		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2D9213E92C081D99004A37C2 /* WidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9213E82C081D99004A37C2 /* WidgetView.swift */; };
+		2D94BD8E2C21DE250006CA04 /* StationLocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D94BD8D2C21DE250006CA04 /* StationLocationMapView.swift */; };
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
 		2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */; };
 		2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */; };
@@ -146,6 +147,7 @@
 		2D4D8F842C0010A5006F9080 /* networkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = networkUtils.swift; sourceTree = "<group>"; };
 		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2D9213E82C081D99004A37C2 /* WidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetView.swift; sourceTree = "<group>"; };
+		2D94BD8D2C21DE250006CA04 /* StationLocationMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationLocationMapView.swift; sourceTree = "<group>"; };
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_nowApp.swift; sourceTree = "<group>"; };
 		2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,10 @@
 		2DF48A702C02514E002F754E /* departuresResponseTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = departuresResponseTypes.swift; sourceTree = "<group>"; };
 		2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "test-coordinates.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		2D94BD892C21BFB90006CA04 /* StationDetail */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = StationDetail; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		2D4486802BFAA10A005C59CE /* Frameworks */ = {
@@ -340,6 +346,7 @@
 		2DC639E92BF3CD3900A72C7F /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				2D94BD892C21BFB90006CA04 /* StationDetail */,
 				2DC63A062BF4C24C00A72C7F /* Map */,
 				2DC639FE2BF4B1C600A72C7F /* PlatformDetail */,
 				2DC639EA2BF3CD4700A72C7F /* PlatformList */,
@@ -381,6 +388,7 @@
 				2D1D11822C25061A00C671CD /* StationLocationMapView.swift */,
 				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
 				2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */,
+				2D94BD8D2C21DE250006CA04 /* StationLocationMapView.swift */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -660,6 +668,7 @@
 				2D1B2C3B2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
 				2D350E672BFBE50600F68039 /* MapStationAnnotationView.swift in Sources */,
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
+				2D94BD8E2C21DE250006CA04 /* StationLocationMapView.swift in Sources */,
 				2D1B2C3F2BFAD70F007ED5EB /* timeUtils.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
 				2D4D8F852C0010A5006F9080 /* networkUtils.swift in Sources */,

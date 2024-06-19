@@ -9,5 +9,3 @@ struct ApiDeparture: Codable {
     let line: String
     let heading: String
 }
-
- 

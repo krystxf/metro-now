@@ -6,7 +6,7 @@ import MapKit
 import SwiftUI
 
 private struct MetroStationAnnotation {
-    let name: String
+    var name: String
     let coordinate: CLLocationCoordinate2D
     let metroLines: [String] // A | B | C
 }
@@ -15,12 +15,16 @@ struct MapView: View {
     @State private var metroStationAnnotations: [MetroStationAnnotation] = []
 
     var body: some View {
-        Map {
-            UserAnnotation()
+        NavigationStack {
+            Map {
+                UserAnnotation()
 
-            ForEach(metroStationAnnotations, id: \.name) { station in
-                Annotation(station.name, coordinate: station.coordinate) {
-                    MapMetroStationView(metroLines: station.metroLines)
+                ForEach(metroStationAnnotations, id: \.name) { station in
+                    Annotation(station.name, coordinate: station.coordinate) {
+                        NavigationLink(destination: StationLocationMapView(stationName: station.name)) {
+                            MapMetroStationView(metroLines: station.metroLines)
+                        }
+                    }
                 }
             }
         }
@@ -31,6 +35,7 @@ struct MapView: View {
             }
 
             metroStationAnnotations = metroStationsGeoJSON.features.map { feature in
+
                 MetroStationAnnotation(
                     name: feature.properties.name,
                     coordinate: CLLocationCoordinate2D(

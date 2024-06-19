@@ -37,9 +37,7 @@ func getDeparturesByGtfsID(gtfsIDs: [String]) async throws -> DeparturesByGtfsID
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(DeparturesByGtfsIDs.self, from: data)
-
-    }
-    catch {
+    } catch {
         throw FetchError.InvalidaData
     }
 }
