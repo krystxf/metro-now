@@ -54,19 +54,28 @@ struct PlatformListItemView: View {
         .onReceive(timer) {
             _ in
             guard departureDates.count > 0 else { return }
-            departureStrings = departureDates[0 ..< 2].map {
-                formatTime(seconds: secondsFromNow($0))
+
+            if departureDates.count >= 2 {
+                departureStrings = departureDates[0 ..< 2].map {
+                    formatTime(seconds: secondsFromNow($0))
+                }
+            } else {
+                departureStrings = [
+                    formatTime(seconds: secondsFromNow(departureDates[0])),
+                ]
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(
-            LinearGradient(colors: [
-                getMetroLineColor(metroLine),
-                getMetroLineColor(metroLine).opacity(0.8),
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing)
+            LinearGradient(
+                colors: [
+                    getMetroLineColor(metroLine),
+                    getMetroLineColor(metroLine).opacity(0.8),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         )
 
         .clipShape(.rect(cornerRadius: 15))

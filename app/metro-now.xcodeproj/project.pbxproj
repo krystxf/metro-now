@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -136,7 +136,7 @@
 		2D1B2C4A2BFAD807007ED5EB /* fileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fileUtils.swift; sourceTree = "<group>"; };
 		2D1B2C4E2BFAD8ED007ED5EB /* metroRoutesTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroRoutesTypes.swift; sourceTree = "<group>"; };
 		2D1B2C512BFAD90B007ED5EB /* metroStationsTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metroStationsTypes.swift; sourceTree = "<group>"; };
-		2D1D11822C25061A00C671CD /* StationLocationMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationLocationMapView.swift; sourceTree = "<group>"; };
+		2D1D11812C23B56A00C671CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2D350E662BFBE50600F68039 /* MapStationAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapStationAnnotationView.swift; sourceTree = "<group>"; };
 		2D373CC12C0825790025BCDF /* ListWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListWidgetView.swift; sourceTree = "<group>"; };
 		2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now-watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -182,10 +182,6 @@
 		2DF48A702C02514E002F754E /* departuresResponseTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = departuresResponseTypes.swift; sourceTree = "<group>"; };
 		2DF66D972BFD39B000B31FA2 /* test-coordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "test-coordinates.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		2D94BD892C21BFB90006CA04 /* StationDetail */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = StationDetail; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		2D4486802BFAA10A005C59CE /* Frameworks */ = {
@@ -327,6 +323,7 @@
 		2DC639DA2BF3CCBA00A72C7F /* metro-now */ = {
 			isa = PBXGroup;
 			children = (
+				2D1D11812C23B56A00C671CD /* Info.plist */,
 				2DC639E92BF3CD3900A72C7F /* Core */,
 				2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */,
 				2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */,
@@ -346,7 +343,6 @@
 		2DC639E92BF3CD3900A72C7F /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				2D94BD892C21BFB90006CA04 /* StationDetail */,
 				2DC63A062BF4C24C00A72C7F /* Map */,
 				2DC639FE2BF4B1C600A72C7F /* PlatformDetail */,
 				2DC639EA2BF3CD4700A72C7F /* PlatformList */,
@@ -932,6 +928,7 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
@@ -966,6 +963,7 @@
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to find metro stations near you";
