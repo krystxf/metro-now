@@ -14,18 +14,21 @@ struct MapMetroStationView: View {
         ZStack {
             ForEach(Array(metroLines.enumerated()), id: \.0) {
                 index, metroLine in
-                let offset: CGFloat = index == 0 ? 0 : (-10 * CGFloat(index))
-
-                Rectangle()
-                    .foregroundStyle(.white)
-                    .clipShape(.rect(cornerRadius: .infinity))
-                    .offset(x: offset, y: offset)
+                let offset: CGFloat = index == 0 ? 0 : (-16 * CGFloat(index))
 
                 Image(
                     systemName:
                     getMetroLineIcon(metroLine)
                 )
-                .foregroundStyle(getMetroLineColor(metroLine))
+                .imageScale(.medium)
+                .padding(5)
+                .foregroundStyle(.white)
+                .background(getMetroLineColor(metroLine))
+                .clipShape(.rect(cornerRadius: 6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(.white, lineWidth: 2)
+                )
                 .offset(x: offset, y: offset)
             }
         }

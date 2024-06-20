@@ -46,7 +46,7 @@ struct MapView: View {
                 )
             }
         }
-        .mapStyle(.standard(elevation: .realistic))
+        .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
         .mapControls {
             MapUserLocationButton()
             /// Shows up when you rotate the map
