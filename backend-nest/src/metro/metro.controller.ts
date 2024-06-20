@@ -33,9 +33,11 @@ type DepartureResponse = {
     platform: PlatformID;
 };
 
-type GetMetroResponse = {
-    [key in PlatformID]?: DepartureResponse[];
-};
+type GetMetroResponse =
+    | {
+          [key in PlatformID]?: DepartureResponse[];
+      }
+    | DepartureResponse[];
 
 @Controller("metro")
 export class MetroController {
@@ -43,6 +45,7 @@ export class MetroController {
     async getMetroDepartures(
         @Query("station") station?: string | string[],
         @Query("platform") platform?: string | string[],
+        @Query("ungrouped") ungrouped?: boolean,
     ): Promise<GetMetroResponse> {
         if (!station && !platform) {
             throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
@@ -83,7 +86,7 @@ export class MetroController {
             );
         }
 
-        const res = await getDepartures(gtfsIDs);
+        const res = await getDepartures(gtfsIDs, ungrouped);
 
         if (!res) {
             throw new HttpException(
@@ -123,6 +126,7 @@ type GolemioResponse = {
 
 const getDepartures = async (
     platforms: PlatformID[],
+    ungrouped?: boolean,
 ): Promise<GetMetroResponse> => {
     if (!platforms.every((p) => platformIDs.includes(p))) {
         return null;
@@ -158,5 +162,8 @@ const getDepartures = async (
         };
     });
 
+    if (ungrouped) {
+        return parsedDepartures;
+    }
     return group(parsedDepartures, (departure) => departure.platform);
 };
