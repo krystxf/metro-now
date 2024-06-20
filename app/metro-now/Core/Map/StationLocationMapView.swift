@@ -9,7 +9,7 @@ struct StationLocationMapView: View {
     let mapUrl: URL
     @StateObject private var locationModel = LocationModel()
     @State var distance: Double = -1
-    @State private var departures: [ApiDeparture] = []
+    @State private var departures: GroupedDepartures = [:]
     @State private var errorMessage: String?
     @State private var cameraPosition: MapCameraPosition
 
@@ -101,14 +101,16 @@ struct StationLocationMapView: View {
                         Spacer()
                     }
 
-                    ForEach(departures, id: \.departure) { departure in
-                        let departureDates = [departure.departure]
+                    ForEach(Array(departures.keys), id: \.self) { k in
+                        let d = departures[k]!
 
-                        PlatformListItemView(
-                            direction: departure.heading,
-                            departureDates: departureDates,
-                            metroLine: departure.line
-                        )
+                        if d.count > 0 {
+                            PlatformListItemView(
+                                direction: d[0].heading,
+                                departureDates: d.map(\.departure),
+                                metroLine: d[0].line
+                            )
+                        }
                     }
                 }
             }
@@ -119,7 +121,6 @@ struct StationLocationMapView: View {
         .toolbarBackground(.thinMaterial, for: .navigationBar)
         .toolbarBackground(.automatic, for: .navigationBar)
         .onReceive(locationModel.$location) { location in
-
             guard let location else {
                 print("Unknown location")
                 return
@@ -137,7 +138,7 @@ struct StationLocationMapView: View {
             distance = userLocation.distance(from: stationLocation)
         }.refreshable {
             do {
-                departures = try await getStationDepartures(station: stationName)
+                departures = try await getDepartures(stations: [stationName], groupBy: .heading)
             } catch {
                 errorMessage = "Failed to fetch departures: \(error)"
             }
@@ -145,7 +146,8 @@ struct StationLocationMapView: View {
         .onAppear {
             Task {
                 do {
-                    departures = try await getStationDepartures(station: stationName)
+                    departures = try await (getDepartures(stations: [stationName], groupBy: .heading))
+
                 } catch {
                     errorMessage = "Failed to fetch departures: \(error)"
                 }

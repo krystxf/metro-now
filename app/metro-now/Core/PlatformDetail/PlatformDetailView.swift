@@ -42,7 +42,7 @@ struct PlatformDetailView: View {
             .padding(.top, 50)
             .task {
                 do {
-                    departures = try await getDeparturesByGtfsID(gtfsID)
+                    departures = try await (getDepartures(gtfsIDs: [gtfsID], groupBy: .platform))[gtfsID]
 
                 } catch {
                     print(error)
@@ -50,7 +50,7 @@ struct PlatformDetailView: View {
             }
             .refreshable {
                 do {
-                    departures = try await getDeparturesByGtfsID(gtfsID)
+                    departures = try await (getDepartures(gtfsIDs: [gtfsID], groupBy: .platform))[gtfsID]
 
                 } catch {
                     print(error)
