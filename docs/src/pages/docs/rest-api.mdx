@@ -7,12 +7,38 @@ Backend gets data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/) c
 <br />
 
 <a href="https://api.metronow.dev/metro?station=andel" target="_blank">
-```http
-GET https://api.metronow.dev/metro
-```
+    ```http GET https://api.metronow.dev/metro ```
 </a>
+### Query parameters
+
+#### `station` or `platform` (required)
+
+One or more station names or platform ids are required. If both `station` and `platform` are provided, both are used.
+
+##### Station
+
+-   station name is case and diacritics insensitive
+-   single value, e.g. `Anděl` | `andel`
+-   multiple values
+    -   as multiple query parameters, e.g. `station=Anděl&station=Dejvická`
+    -   as a comma-separated list, e.g. `station=[Anděl,Dejvická]`
+    -   as a JSON array, e.g. `station=["Anděl","Dejvická"]`
+
+##### Platform
+
+-   platform id is case sensitive
+-   ID is `Stop ID` from [Golemio API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%A7%BE%20GTFS%20Static/get_gtfs_stops)
+-   multiple values are supported in the same way as for `station`
+
+#### `groupBy` (optional)
+
+Returns data as object with keys being the group by value. Possible values:
+
+-   `heading` - groups by heading
+-   `platform` - groups by platform id
+
 <details>
-  <summary>Request</summary>
+  <summary>Example requests</summary>
 ```http
 ## ONE STATION
 
@@ -40,22 +66,51 @@ GET https://api.metronow.dev/metro?station=["Anděl","Dejvická"]
 </details>
 <details>
   <summary>Response</summary>
-
 **Response schema:**
 ```json
+[
+    {
+        "delay": "int", // in seconds (can be negative)
+        "departure": "string", // ISO 8601
+        "heading": "string", // last stop
+        "line": "A" | "B" | "C"
+    },
+    ...
+]
+````
+
+**Example response:**
+
+```json
+[
+    {
+        "delay": 10,
+        "departure": "2024-06-18T04:45:25+02:00",
+        "heading": "Černý Most",
+        "line": "B"
+    }
+]
+```
+
+**Response schema with `groupBy`:**
+
+```json
 {
-    [platform id]: [
+    [platform id | heading]: [
         {
             "delay": "int", // in seconds (can be negative)
             "departure": "string", // ISO 8601
             "heading": "string", // last stop
             "line": "A" | "B" | "C"
         }
+    ],
+    [platform id | heading]: [
+        ...
     ]
 }
-````
+```
 
-**Example response:**
+**Example response with `groupBy`:**
 
 ```json
 {
