@@ -11,8 +11,9 @@ struct StationLocationMapView: View {
     @State var distance: Double = -1
     @State private var departures: GroupedDepartures = [:]
     @State private var errorMessage: String?
-    @State private var cameraPosition: MapCameraPosition
-
+    @State private var cameraPosition: MapCameraPosition = .camera(
+        .init(centerCoordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0), distance: 500, pitch: 60)
+    )
     init(stationName: String) {
         self.stationName = stationName
 
@@ -146,8 +147,8 @@ struct StationLocationMapView: View {
         .onAppear {
             Task {
                 do {
-                    departures = try await (getDepartures(stations: [stationName], groupBy: .heading))
-
+                    departures = try await
+                        (getDepartures(stations: [stationName], groupBy: .heading))
                 } catch {
                     errorMessage = "Failed to fetch departures: \(error)"
                 }
