@@ -21,7 +21,7 @@ struct MapView: View {
 
                 ForEach(metroStationAnnotations, id: \.name) { station in
                     Annotation(station.name, coordinate: station.coordinate) {
-                        NavigationLink(destination: StationLocationMapView(stationName: station.name)) {
+                        NavigationLink(destination: StationDetailView(stationName: station.name)) {
                             MapMetroStationView(metroLines: station.metroLines)
                         }
                     }

@@ -1,19 +1,18 @@
 import MapKit
 import SwiftUI
 
-struct StationLocationMapView: View {
+struct StationDetailView: View {
     let stationName: String
     let station: MetroStationsGeoJSONFeature
     let stationCoordinate: CLLocationCoordinate2D
     let distanceFormatter = MKDistanceFormatter()
     let mapUrl: URL
+    @State private var trigger = false
     @StateObject private var locationModel = LocationModel()
     @State var distance: Double = -1
     @State private var departures: GroupedDepartures = [:]
     @State private var errorMessage: String?
-    @State private var cameraPosition: MapCameraPosition = .camera(
-        .init(centerCoordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0), distance: 500, pitch: 60)
-    )
+
     init(stationName: String) {
         self.stationName = stationName
 
@@ -27,9 +26,6 @@ struct StationLocationMapView: View {
             string:
             "maps://?saddr=&daddr=\(stationCoordinate.latitude),\(stationCoordinate.longitude)"
         )!
-        cameraPosition = .camera(
-            MapCamera(centerCoordinate: stationCoordinate, distance: 500, pitch: 60)
-        )
     }
 
     var body: some View {
@@ -42,27 +38,33 @@ struct StationLocationMapView: View {
             }
 
             .background(alignment: .bottom) {
-                Map(position: $cameraPosition) {
-                    Marker(stationName, coordinate: stationCoordinate)
-                }
-                .mapStyle(.imagery(elevation: .realistic))
-                .mapControlVisibility(.hidden)
-                .disabled(true)
-                .mask {
-                    LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .black.opacity(0.15), location: 0.1),
-                            .init(color: .black, location: 0.6),
-                            .init(color: .black, location: 1),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                TimelineView(.animation) { context in
+                    let seconds = context.date.timeIntervalSince1970
+
+                    DetailedMapView(
+                        location: CLLocation(latitude: stationCoordinate.latitude, longitude: stationCoordinate.longitude),
+                        distance: 500,
+                        pitch: 30,
+                        heading: seconds * 6
                     )
+                    .mask {
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0),
+                                .init(color: .black.opacity(0.15), location: 0.1),
+                                .init(color: .black, location: 0.6),
+                                .init(color: .black, location: 1),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                    .padding(.top, -150)
                 }
-                .padding(.top, -150)
             }
+
             .ignoresSafeArea(edges: .top)
+
             VStack(spacing: 20) {
                 HStack(spacing: 20) {
                     if UIApplication.shared.canOpenURL(mapUrl) {
@@ -154,20 +156,31 @@ struct StationLocationMapView: View {
                 }
             }
         }
+        .task {
+            trigger.toggle()
+        }
     }
 }
 
-#Preview("Muzeun") {
+#Preview("Muzeum") {
     NavigationStack {
-        StationLocationMapView(
+        StationDetailView(
             stationName: "Muzeum"
+        )
+    }
+}
+
+#Preview("Kačerov") {
+    NavigationStack {
+        StationDetailView(
+            stationName: "Kačerov"
         )
     }
 }
 
 #Preview("Florenc") {
     NavigationStack {
-        StationLocationMapView(
+        StationDetailView(
             stationName: "Florenc"
         )
     }
@@ -175,7 +188,7 @@ struct StationLocationMapView: View {
 
 #Preview("I. P. Pavlova") {
     NavigationStack {
-        StationLocationMapView(
+        StationDetailView(
             stationName: "I. P. Pavlova"
         )
     }
