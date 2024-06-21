@@ -7,6 +7,7 @@ struct StationDetailView: View {
     let stationCoordinate: CLLocationCoordinate2D
     let distanceFormatter = MKDistanceFormatter()
     let mapUrl: URL
+    @State private var isFavourite: Bool = false
     @State private var trigger = false
     @StateObject private var locationModel = LocationModel()
     @State var distance: Double = -1
@@ -33,7 +34,7 @@ struct StationDetailView: View {
             ZStack {
                 Text("Map")
                     .hidden()
-                    .frame(height: 350)
+                    .frame(height: 150)
                     .frame(maxWidth: .infinity)
             }
 
@@ -42,7 +43,10 @@ struct StationDetailView: View {
                     let seconds = context.date.timeIntervalSince1970
 
                     DetailedMapView(
-                        location: CLLocation(latitude: stationCoordinate.latitude, longitude: stationCoordinate.longitude),
+                        location: CLLocation(
+                            latitude: stationCoordinate.latitude,
+                            longitude: stationCoordinate.longitude
+                        ),
                         distance: 500,
                         pitch: 30,
                         heading: seconds * 6
@@ -72,26 +76,16 @@ struct StationDetailView: View {
                             UIApplication.shared.open(mapUrl, options: [:], completionHandler: nil)
 
                         }) {
-                            Label("Navigate", systemImage: "figure.walk.circle.fill")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-                    }
-                    if distance > -1 {
-                        VStack(alignment: .leading) {
-                            Text("DISTANCE")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            Label {
-                                Text(distanceFormatter.string(fromDistance: distance))
-                            } icon: {
-                                Image(
-                                    systemName: "point.topleft.down.to.point.bottomright.curvepath"
-                                )
-                                .foregroundColor(.secondary)
-                            }
+                            Label(
+                                distance > -1
+                                    ? distanceFormatter.string(fromDistance: distance)
+                                    : "Directions",
+                                systemImage: "arrow.triangle.turn.up.right.circle.fill"
+                            )
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
                         }
                     }
                     Spacer()
@@ -123,6 +117,14 @@ struct StationDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.thinMaterial, for: .navigationBar)
         .toolbarBackground(.automatic, for: .navigationBar)
+        .toolbar {
+            Button(action: {
+                isFavourite.toggle()
+            }) {
+                Image(systemName: isFavourite ? "heart.fill" : "heart")
+                    .foregroundColor(isFavourite ? .red : .black)
+            }
+        }
         .onReceive(locationModel.$location) { location in
             guard let location else {
                 print("Unknown location")

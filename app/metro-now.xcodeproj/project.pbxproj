@@ -41,7 +41,7 @@
 		2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */; };
 		2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */; };
 		2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */; };
-		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */; };
+		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */; };
 		2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A032BF4C1E200A72C7F /* MainTabView.swift */; };
 		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
 		2DC63A222BF50EDD00A72C7F /* timeUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A212BF50EDD00A72C7F /* timeUtilsTests.swift */; };
@@ -155,7 +155,7 @@
 		2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListItem.swift; sourceTree = "<group>"; };
 		2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformDetailView.swift; sourceTree = "<group>"; };
-		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlatformDetailDepartureListView:.swift"; sourceTree = "<group>"; };
+		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformDetailDepartureListView.swift; sourceTree = "<group>"; };
 		2DC63A032BF4C1E200A72C7F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-now-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -364,7 +364,7 @@
 			isa = PBXGroup;
 			children = (
 				2DC639FF2BF4B1E300A72C7F /* PlatformDetailView.swift */,
-				2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift */,
+				2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */,
 			);
 			path = PlatformDetail;
 			sourceTree = "<group>";
@@ -670,7 +670,7 @@
 				2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
 				2D65850E2C251761002D7F45 /* StationDetailView.swift in Sources */,
 				2DC63A002BF4B1E300A72C7F /* PlatformDetailView.swift in Sources */,
-				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView:.swift in Sources */,
+				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift in Sources */,
 				2DF48A712C02514E002F754E /* departuresResponseTypes.swift in Sources */,
 				2D1B2C4F2BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */,
