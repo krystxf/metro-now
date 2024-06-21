@@ -18,7 +18,7 @@ struct MainTabView: View {
             if let closestStation { PlatformsListView(
                 station: closestStation)
                 .tabItem {
-                    Label("Near me", systemImage: "location.circle")
+                    Label("Near me", systemImage: "tram.fill.tunnel")
                 }
             }
 
@@ -43,4 +43,8 @@ struct MainTabView: View {
             locationModel.checkLocationServicesEnabled()
         }
     }
+}
+
+#Preview {
+    MainTabView()
 }

@@ -33,9 +33,8 @@ type DepartureResponse = {
     platform: PlatformID;
 };
 
-type GetMetroResponse = {
-    [key in PlatformID]?: DepartureResponse[];
-};
+type GetMetroResponse = DepartureResponse[];
+type GetMetroResponseByKey = Record<string, DepartureResponse[]>;
 
 @Controller("metro")
 export class MetroController {
@@ -43,45 +42,9 @@ export class MetroController {
     async getMetroDepartures(
         @Query("station") station?: string | string[],
         @Query("platform") platform?: string | string[],
-    ): Promise<GetMetroResponse> {
-        if (!station && !platform) {
-            throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
-        }
-
-        const stations = parseQueryParam(station) ?? [];
-        const platforms = (parseQueryParam(platform) ?? []) as PlatformID[];
-        if (!stations.length && !platforms.length) {
-            throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
-        }
-
-        const parsedStations = stations.map(parseMetroStation);
-        if (parsedStations.includes(null)) {
-            throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
-        }
-
-        const invalidPlatforms = platforms.every((p) =>
-            platformIDs.includes(p),
-        );
-        if (!invalidPlatforms) {
-            throw new HttpException(
-                "Some platforms are invalid.",
-                HttpStatus.BAD_REQUEST,
-            );
-        }
-
-        const gtfsIDs = unique([
-            ...platforms,
-            ...parsedStations.flatMap(
-                (station) => platformsByMetroStation[station],
-            ),
-        ]);
-
-        if (gtfsIDs.length > MAX_STATIONS) {
-            throw new HttpException(
-                `Too many stations/platforms. Maximum is ${MAX_STATIONS}.`,
-                HttpStatus.BAD_REQUEST,
-            );
-        }
+        @Query("groupBy") groupBy?: "platform" | "heading",
+    ): Promise<GetMetroResponse | GetMetroResponseByKey> {
+        const gtfsIDs = getGtfsIDs({ station, platform });
 
         const res = await getDepartures(gtfsIDs);
 
@@ -92,9 +55,63 @@ export class MetroController {
             );
         }
 
+        if (groupBy === "heading") {
+            return group(res, (departure) => departure.heading);
+        }
+        if (groupBy === "platform") {
+            return group(res, (departure) => departure.platform);
+        }
+
         return res;
     }
 }
+
+const getGtfsIDs = ({
+    station,
+    platform,
+}: {
+    station?: string | string[];
+    platform?: string | string[];
+}): PlatformID[] => {
+    if (!station && !platform) {
+        throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
+    }
+
+    const stations = parseQueryParam(station) ?? [];
+    const platforms = (parseQueryParam(platform) ?? []) as PlatformID[];
+    if (!stations.length && !platforms.length) {
+        throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
+    }
+
+    const parsedStations = stations.map(parseMetroStation);
+    if (parsedStations.includes(null)) {
+        throw new HttpException(ERROR_MSG, HttpStatus.BAD_REQUEST);
+    }
+
+    const invalidPlatforms = platforms.every((p) => platformIDs.includes(p));
+    if (!invalidPlatforms) {
+        throw new HttpException(
+            "Some platforms are invalid.",
+            HttpStatus.BAD_REQUEST,
+        );
+    }
+
+    const gtfsIDs = unique([
+        ...platforms,
+        ...parsedStations.flatMap(
+            (station) => platformsByMetroStation[station],
+        ),
+    ]);
+
+    if (gtfsIDs.length > MAX_STATIONS) {
+        throw new HttpException(
+            `Too many stations/platforms. Maximum is ${MAX_STATIONS}.`,
+            HttpStatus.BAD_REQUEST,
+        );
+    }
+
+    return gtfsIDs;
+};
 
 type GolemioResponse = {
     stops: {
@@ -158,5 +175,5 @@ const getDepartures = async (
         };
     });
 
-    return group(parsedDepartures, (departure) => departure.platform);
+    return parsedDepartures;
 };
