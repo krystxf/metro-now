@@ -4,15 +4,27 @@
 
 # Setup
 
-this project uses [turbo repo](https://turbo.build/repo/docs)
+## Backend
 
-```bash
-pnpm install # install dependencies
-brew install xcbeautify swiftformat # install swift dependencies
+```shell
+cd backend-nest
 
+cp .env.example .env
+vim .env # update you .envs
 
-turbo run start
-
-
-# open app directory in xcode for better experience
+pnpm i
+pnpm dev
 ```
+
+## Docs
+
+```shell
+cd docs
+
+pnpm i
+pnpm dev
+```
+
+## App
+
+Open in xcode for best development experience
