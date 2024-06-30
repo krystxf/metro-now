@@ -1,4 +1,4 @@
-import { removeDiacritics } from "../remove-diacritics";
+import { removeDiacritics } from "./remove-diacritics";
 
 describe("removeDiacritics", () => {
     it("should remove diacritics from a string", () => {

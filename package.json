@@ -16,17 +16,15 @@
         "email": "krystof.kratky2003@gmail.com"
     },
     "scripts": {
-        "build": "turbo build",
-        "precommit": "turbo precommit",
-        "format": "turbo format",
-        "format:check": "turbo format:check",
+        "precommit": "pnpm format",
+        "format": "pnpm format:swift && pnpm format:prettier",
+        "format:check": "pnpm format:swift:check && pnpm format:prettier:check",
         "format:swift": "swiftformat .",
         "format:prettier": "pnpm exec prettier . --write",
         "format:swift:check": "swiftformat . --lint",
         "format:prettier:check": "pnpm exec prettier . --check"
     },
     "devDependencies": {
-        "prettier": "^3.2.5",
-        "turbo": "^1.13.3"
+        "prettier": "^3.2.5"
     }
 }

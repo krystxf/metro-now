@@ -1,5 +1,4 @@
 {
-    "extends": "@metro-now/config/tsconfig.base.json",
     "compilerOptions": {
         "lib": ["dom", "dom.iterable", "esnext"],
         "esModuleInterop": true,

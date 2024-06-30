@@ -1,4 +1,4 @@
-import { getDelayInSeconds } from "../fetch";
+import { getDelayInSeconds } from "./delay";
 
 describe("getDelayInSeconds", () => {
     it("should return 0 when delay is undefined", () => {

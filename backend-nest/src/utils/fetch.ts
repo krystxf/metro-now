@@ -1,4 +1,8 @@
-import { Delay } from "src/types/types";
+import { PlatformID } from "src/data/platforms";
+import { diff, group } from "radash";
+import { getDepartures } from "../metro/getDepartures";
+import type { CacheManager } from "src/types/types";
+import { TTL } from "../constants";
 
 export const GOLEMIO_ENDPOINT = new URL(
     "/v2/pid/departureboards",
@@ -12,19 +16,32 @@ export const getGolemioHeaders = () => {
     });
 };
 
-export const getDelayInSeconds = (delay?: Delay | null): number => {
-    if (!delay) {
-        return 0;
+export const fetchDeparturesByGtfsID = async <TCachedData>(
+    cacheManager: CacheManager<TCachedData>,
+    gtfsIDs: PlatformID[],
+): Promise<{
+    [key: string]: TCachedData;
+}> => {
+    const res: Record<string, TCachedData> = {};
+    const cachedGtfsIDs: PlatformID[] = [];
+
+    for (const gtfsID of gtfsIDs) {
+        const cached = await cacheManager.get(gtfsID);
+        if (!cached) continue;
+
+        cachedGtfsIDs.push(gtfsID);
+        res[gtfsID] = cached;
     }
 
-    let seconds = 0;
+    const newRes = await getDepartures(diff(gtfsIDs, cachedGtfsIDs));
+    const newResByPlatform = group(
+        newRes,
+        (departure) => departure.platform,
+    ) as Record<string, TCachedData>;
 
-    if (typeof delay?.seconds === "number") {
-        seconds += delay.seconds;
-    }
-    if (typeof delay?.minutes === "number") {
-        seconds += delay.minutes * 60;
+    for (const key in newResByPlatform) {
+        await cacheManager.set(key, newResByPlatform[key], TTL);
     }
 
-    return seconds;
+    return { ...res, ...newResByPlatform };
 };
