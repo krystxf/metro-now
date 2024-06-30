@@ -3,8 +3,7 @@ name: Backend CI
 on: push
 
 jobs:
-    turbo-build:
-        name: Build 🏗️
+    ci:
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest]
@@ -16,7 +15,7 @@ jobs:
               with:
                   fetch-depth: 2
 
-            - uses: pnpm/action-setup@v3
+            - uses: pnpm/action-setup@v4
               with:
                   version: 8
 
@@ -28,7 +27,20 @@ jobs:
 
             - name: Install dependencies
               run: |
+                  cd backend-nest
                   pnpm install
-                  pnpm install bun -g
 
-            - run: pnpm build
+            - name: Build
+              run: |
+                  cd backend-nest
+                  pnpm build
+
+            - name: Test
+              run: |
+                  cd backend-nest
+                  pnpm test
+
+            - name: Lint
+              run: |
+                  cd backend-nest
+                  pnpm lint
