@@ -6,35 +6,17 @@ import {
     Query,
 } from "@nestjs/common";
 import { parseMetroStation } from "../validation/metro-station";
-import {
-    platformsByMetroStation,
-    titleByMetroStation,
-} from "../data/metro-stations";
+import { titleByMetroStation } from "../data/metro-stations";
 import { parseQueryParam } from "../utils/query-params";
 import { group, unique } from "radash";
 import { platformIDs } from "../data/platforms";
-import type { MetroStationName } from "../data/metro-stations";
+import { getPlatformsByStation } from "../utils/station";
+import { getDepartures } from "./getDepartures";
+import type { GetMetroResponse, GetMetroResponseByKey } from "./types";
 import type { PlatformID } from "../data/platforms";
-import type { MetroLine, Timestamp } from "../types/types";
-import {
-    getDelayInSeconds,
-    getGolemioHeaders,
-    GOLEMIO_ENDPOINT,
-} from "../utils/fetch";
 
 const ERROR_MSG = `Invalid "station" parameter. Supported stations: ${Object.keys(titleByMetroStation).join(", ")}`;
 const MAX_STATIONS = 20;
-
-type DepartureResponse = {
-    heading: MetroStationName;
-    line: MetroLine;
-    departure: string;
-    delay: number | null; // seconds
-    platform: PlatformID;
-};
-
-type GetMetroResponse = DepartureResponse[];
-type GetMetroResponseByKey = Record<string, DepartureResponse[]>;
 
 @Controller("metro")
 export class MetroController {
@@ -98,9 +80,7 @@ const getGtfsIDs = ({
 
     const gtfsIDs = unique([
         ...platforms,
-        ...parsedStations.flatMap(
-            (station) => platformsByMetroStation[station],
-        ),
+        ...getPlatformsByStation(parsedStations),
     ]);
 
     if (gtfsIDs.length > MAX_STATIONS) {
@@ -111,69 +91,4 @@ const getGtfsIDs = ({
     }
 
     return gtfsIDs;
-};
-
-type GolemioResponse = {
-    stops: {
-        stop_id: PlatformID;
-        stop_name: MetroStationName;
-    }[];
-    departures: {
-        arrival_timestamp: Timestamp;
-        route: {
-            short_name: MetroLine;
-        };
-        stop: {
-            id: string;
-        };
-        delay: {
-            is_available: boolean;
-            minutes: number | undefined;
-            seconds: number | undefined;
-        };
-        departure_timestamp: Timestamp;
-        trip: {
-            headsign: MetroStationName;
-        };
-    }[];
-};
-
-const getDepartures = async (
-    platforms: PlatformID[],
-): Promise<GetMetroResponse> => {
-    if (!platforms.every((p) => platformIDs.includes(p))) {
-        return null;
-    }
-
-    const res = await fetch(
-        new URL(
-            `${GOLEMIO_ENDPOINT}?order=real&${platforms.map((id) => `ids[]=${id}`).join("&")}`,
-        ),
-        {
-            method: "GET",
-            headers: getGolemioHeaders(),
-        },
-    );
-
-    const parsedRes: GolemioResponse = await res.json();
-
-    const parsedDepartures = parsedRes.departures.map((departure) => {
-        const {
-            delay,
-            departure_timestamp: departureTimestamp,
-            trip,
-            route,
-            stop,
-        } = departure;
-
-        return {
-            delay: getDelayInSeconds(delay),
-            departure: departureTimestamp.predicted,
-            heading: trip.headsign,
-            line: route.short_name,
-            platform: stop.id as PlatformID,
-        };
-    });
-
-    return parsedDepartures;
 };
