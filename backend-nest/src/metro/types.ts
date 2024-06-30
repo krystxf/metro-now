@@ -2,7 +2,7 @@ import type { MetroStationName } from "../data/metro-stations";
 import type { PlatformID } from "../data/platforms";
 import type { MetroLine, Timestamp } from "../types/types";
 
-type DepartureResponse = {
+export type DepartureResponse = {
     heading: MetroStationName;
     line: MetroLine;
     departure: string;

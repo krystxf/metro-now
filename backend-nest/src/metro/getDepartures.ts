@@ -1,14 +1,17 @@
 import { platformIDs } from "../data/platforms";
 import { getGolemioHeaders, GOLEMIO_ENDPOINT } from "../utils/fetch";
 import type { PlatformID } from "../data/platforms";
-import type { GetMetroResponse, GolemioResponse } from "./types";
+import type { DepartureResponse, GolemioResponse } from "./types";
 import { getDelayInSeconds } from "../utils/delay";
 
 export const getDepartures = async (
     platforms: PlatformID[],
-): Promise<GetMetroResponse> => {
+): Promise<DepartureResponse[]> => {
+    if (!platforms.length) {
+        return [];
+    }
     if (!platforms.every((p) => platformIDs.includes(p))) {
-        return null;
+        return [];
     }
 
     const res = await fetch(
