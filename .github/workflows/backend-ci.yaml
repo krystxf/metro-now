@@ -40,6 +40,12 @@ jobs:
                   cd backend-nest
                   pnpm test
 
+            - name: Test e2e
+              run: |
+                  cd backend-nest
+                  echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_TOKEN }}" > .env
+                  pnpm test:e2e
+
             - name: Lint
               run: |
                   cd backend-nest

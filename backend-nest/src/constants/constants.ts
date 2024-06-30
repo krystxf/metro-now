@@ -1,1 +1,1 @@
-export const TTL = 2_000;
+export const TTL = 20_000;
