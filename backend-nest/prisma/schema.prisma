@@ -19,4 +19,39 @@ model Stop {
 
   latitude  Float
   longitude Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routes StopsOnRoutes[]
+
+  @@index([name])
+  @@index([latitude])
+  @@index([longitude])
+  @@index([latitude, longitude])
+}
+
+model Route {
+  id   String @id @map("id")
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stops StopsOnRoutes[]
+
+  @@index([name])
+}
+
+model StopsOnRoutes {
+  stop   Stop   @relation(fields: [stopId], references: [id])
+  stopId String
+
+  route   Route  @relation(fields: [routeId], references: [id])
+  routeId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([stopId, routeId])
 }

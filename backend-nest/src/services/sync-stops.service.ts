@@ -1,25 +1,63 @@
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { getGolemioHeaders } from "../utils/fetch";
 import { PrismaService } from "./prisma.service";
-import { GOLEMIO_API } from "../constants";
+import { unique } from "radash";
 
 @Injectable()
 export class SyncStopsService {
     constructor(private prisma: PrismaService) {}
 
-    @Cron("0 0 */2 * *")
+    @Cron("* */2 * * *")
     async handleCron() {
-        console.log("Syncing stops...");
-        const stops = await syncStops();
+        console.log("Syncing stops and routes");
 
-        for (const stop of stops) {
-            await this.prisma.stop.upsert({
-                where: { id: stop.id },
-                update: stop,
-                create: stop,
-            });
-        }
+        const stops = await syncStops();
+        const routes = unique(
+            stops.flatMap((stop) => stop.routes),
+            ({ id }) => id,
+        );
+
+        await this.prisma.$transaction([
+            this.prisma.stopsOnRoutes.deleteMany(),
+            this.prisma.stop.deleteMany(),
+            this.prisma.route.deleteMany(),
+            ...routes.map((route) =>
+                this.prisma.route.upsert({
+                    where: { id: route.id },
+                    create: route,
+                    update: { name: route.name },
+                }),
+            ),
+            ...stops.flatMap((stop) => [
+                this.prisma.stop.upsert({
+                    where: { id: stop.id },
+                    create: {
+                        id: stop.id,
+                        name: stop.name,
+                        latitude: stop.latitude,
+                        longitude: stop.longitude,
+                    },
+                    update: {},
+                }),
+                ...stop.routes.map((route) =>
+                    this.prisma.stopsOnRoutes.upsert({
+                        where: {
+                            stopId_routeId: {
+                                stopId: stop.id,
+                                routeId: route.id,
+                            },
+                        },
+                        create: {
+                            stop: { connect: { id: stop.id } },
+                            route: { connect: { id: route.id } },
+                        },
+                        update: {},
+                    }),
+                ),
+            ]),
+        ]);
+
+        console.log(`Synced ${stops.length} stops and ${routes.length} routes`);
     }
 }
 
@@ -29,6 +67,7 @@ const syncStops = async (): Promise<
         name: string;
         latitude: number;
         longitude: number;
+        routes: { id: string; name: string }[];
     }[]
 > => {
     const data = [];
@@ -36,10 +75,9 @@ const syncStops = async (): Promise<
 
     for (let offset = 0; offset < 30_000; offset += LIMIT) {
         const res = await fetch(
-            new URL(`/v2/gtfs/stops?offset=${offset}`, GOLEMIO_API),
+            new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json"),
             {
                 method: "GET",
-                headers: getGolemioHeaders(),
             },
         );
 
@@ -47,12 +85,21 @@ const syncStops = async (): Promise<
     }
 
     const parsed = data
-        .map((stop) => ({
-            latitude: stop.geometry.coordinates[1],
-            longitude: stop.geometry.coordinates[0],
-            id: stop.properties.stop_id,
-            name: stop.properties.stop_name,
-        }))
+        .map((stop) => {
+            const routeIDs = stop.properties.routes_id?.split(",") ?? [];
+            const routeNames = stop.properties.routes_names?.split(",") ?? [];
+
+            return {
+                latitude: stop.geometry.coordinates[1],
+                longitude: stop.geometry.coordinates[0],
+                id: stop.properties.stop_id,
+                name: stop.properties.stop_name,
+                routes: routeIDs.map((id, index) => ({
+                    id,
+                    name: routeNames[index],
+                })),
+            };
+        })
         .filter(
             (stop) =>
                 !!stop.latitude && !!stop.longitude && !!stop.id && !!stop.name,
