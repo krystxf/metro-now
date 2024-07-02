@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { getGolemioHeaders } from "src/utils/fetch";
+import { getGolemioHeaders } from "../utils/fetch";
 import { PrismaService } from "./prisma.service";
+import { GOLEMIO_API } from "../constants";
 
 @Injectable()
 export class SyncStopsService {
@@ -35,7 +36,7 @@ const syncStops = async (): Promise<
 
     for (let offset = 0; offset < 30_000; offset += LIMIT) {
         const res = await fetch(
-            `https://api.golemio.cz/v2/gtfs/stops?offset=${offset}`,
+            new URL(`/v2/gtfs/stops?offset=${offset}`, GOLEMIO_API),
             {
                 method: "GET",
                 headers: getGolemioHeaders(),

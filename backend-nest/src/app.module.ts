@@ -2,13 +2,14 @@ import { MiddlewareConsumer, Module } from "@nestjs/common";
 import { CacheModule } from "@nestjs/cache-manager";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { MetroController } from "./metro/metro.controller";
+import { MetroController } from "./controllers/metro/metro.controller";
 import { ConfigModule } from "@nestjs/config";
 import { RequestLoggerMiddleware } from "./middleware/request-logger.middleware";
 import { TTL } from "./constants/constants";
 import { ScheduleModule } from "@nestjs/schedule";
-import { SyncStopsService } from "./sync-stops.service";
-import { PrismaService } from "./prisma.service";
+import { SyncStopsService } from "./services/sync-stops.service";
+import { PrismaService } from "./services/prisma.service";
+import { StopController } from "./controllers/stop/stop.controller";
 
 @Module({
     imports: [
@@ -19,7 +20,7 @@ import { PrismaService } from "./prisma.service";
             ttl: TTL,
         }),
     ],
-    controllers: [AppController, MetroController],
+    controllers: [AppController, MetroController, StopController],
     providers: [AppService, PrismaService, SyncStopsService],
 })
 export class AppModule {
