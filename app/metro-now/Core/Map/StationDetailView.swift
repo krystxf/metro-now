@@ -108,7 +108,7 @@ struct StationDetailView: View {
                         let d = departures[k]!
 
                         if d.count > 0 {
-                            PlatformListItemView(
+                            MetroDeparture(
                                 direction: d[0].heading,
                                 departureDates: d.map(\.departure),
                                 metroLine: d[0].line

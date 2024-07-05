@@ -30,7 +30,6 @@ struct MainTabView: View {
                 }
         }
         .onReceive(locationModel.$location) { location in
-
             guard let location else {
                 print("Unknown location")
                 return

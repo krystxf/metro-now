@@ -7,6 +7,26 @@
 import MapKit
 import SwiftUI
 
+struct MetroStationIcon: View {
+    let metroLine: String
+
+    var body: some View {
+        Image(
+            systemName:
+            getMetroLineIcon(metroLine)
+        )
+        .imageScale(.medium)
+        .padding(5)
+        .foregroundStyle(.white)
+        .background(getMetroLineColor(metroLine))
+        .clipShape(.rect(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(.white, lineWidth: 2)
+        )
+    }
+}
+
 struct MapMetroStationView: View {
     let metroLines: [String]
 
@@ -16,20 +36,8 @@ struct MapMetroStationView: View {
                 index, metroLine in
                 let offset: CGFloat = index == 0 ? 0 : (-16 * CGFloat(index))
 
-                Image(
-                    systemName:
-                    getMetroLineIcon(metroLine)
-                )
-                .imageScale(.medium)
-                .padding(5)
-                .foregroundStyle(.white)
-                .background(getMetroLineColor(metroLine))
-                .clipShape(.rect(cornerRadius: 6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(.white, lineWidth: 2)
-                )
-                .offset(x: offset, y: offset)
+                MetroStationIcon(metroLine: metroLine)
+                    .offset(x: offset, y: offset)
             }
         }
     }
