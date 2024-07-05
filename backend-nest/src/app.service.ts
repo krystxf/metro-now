@@ -12,7 +12,7 @@ export const WELCOME_MESSAGE = `
 
 @Injectable()
 export class AppService {
-    getHello(): string {
+    async getHello(): Promise<string> {
         return WELCOME_MESSAGE;
     }
 }

@@ -7,16 +7,16 @@ import {
     Query,
     UseInterceptors,
 } from "@nestjs/common";
-import { parseMetroStation } from "../validation/metro-station";
-import { titleByMetroStation } from "../data/metro-stations";
-import { parseQueryParam } from "../utils/query-params";
+import { parseMetroStation } from "../../validation/metro-station";
+import { titleByMetroStation } from "../../data/metro-stations";
+import { parseQueryParam } from "../../utils/query-params";
 import { group, unique } from "radash";
-import { platformIDs } from "../data/platforms";
-import { getPlatformsByStation } from "../utils/station";
+import { platformIDs } from "../../data/platforms";
+import { getPlatformsByStation } from "../../utils/station";
 import type { DepartureResponse, GetMetroResponseByKey } from "./types";
-import type { PlatformID } from "../data/platforms";
+import type { PlatformID } from "../../data/platforms";
 import { CACHE_MANAGER, CacheInterceptor } from "@nestjs/cache-manager";
-import { fetchDeparturesByGtfsID } from "../utils/fetch";
+import { fetchDeparturesByGtfsID } from "../../utils/fetch";
 
 const ERROR_MSG = `Invalid "station" parameter. Supported stations: ${Object.keys(titleByMetroStation).join(", ")}`;
 const MAX_STATIONS = 20;

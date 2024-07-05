@@ -1,8 +1,9 @@
-import { platformIDs } from "../data/platforms";
-import { getGolemioHeaders, GOLEMIO_ENDPOINT } from "../utils/fetch";
-import type { PlatformID } from "../data/platforms";
+import { platformIDs } from "../../data/platforms";
+import { getGolemioHeaders } from "../../utils/fetch";
+import { getDelayInSeconds } from "../../utils/delay";
+import { GOLEMIO_API } from "../../constants";
+import type { PlatformID } from "../../data/platforms";
 import type { DepartureResponse, GolemioResponse } from "./types";
-import { getDelayInSeconds } from "../utils/delay";
 
 export const getDepartures = async (
     platforms: PlatformID[],
@@ -16,7 +17,8 @@ export const getDepartures = async (
 
     const res = await fetch(
         new URL(
-            `${GOLEMIO_ENDPOINT}?order=real&${platforms.map((id) => `ids[]=${id}`).join("&")}`,
+            `/v2/pid/departureboards?order=real&${platforms.map((id) => `ids[]=${id}`).join("&")}`,
+            GOLEMIO_API,
         ),
         {
             method: "GET",

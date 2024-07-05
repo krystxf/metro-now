@@ -23,6 +23,12 @@ importers:
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.3.9(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.3.9)
+      '@nestjs/schedule':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.3.9(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.3.9)(reflect-metadata@0.2.2)(rxjs@7.8.1))
+      '@prisma/client':
+        specifier: 5.16.1
+        version: 5.16.1(prisma@5.16.1)
       cache-manager:
         specifier: ^5.6.1
         version: 5.6.1
@@ -90,6 +96,9 @@ importers:
       prettier:
         specifier: ^3.0.0
         version: 3.3.2
+      prisma:
+        specifier: ^5.16.1
+        version: 5.16.1
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -522,6 +531,12 @@ packages:
       '@nestjs/common': ^10.0.0
       '@nestjs/core': ^10.0.0
 
+  '@nestjs/schedule@4.0.2':
+    resolution: {integrity: sha512-po9oauE7fO0CjhDKvVC2tzEgjOUwhxYoIsXIVkgfu+xaDMmzzpmXY2s1LT4oP90Z+PaTtPoAHmhslnYmo4mSZg==}
+    peerDependencies:
+      '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
+      '@nestjs/core': ^8.0.0 || ^9.0.0 || ^10.0.0
+
   '@nestjs/schematics@10.1.1':
     resolution: {integrity: sha512-o4lfCnEeIkfJhGBbLZxTuVWcGuqDCFwg5OrvpgRUBM7vI/vONvKKiB5riVNpO+JqXoH0I42NNeDb0m4V5RREig==}
     peerDependencies:
@@ -564,6 +579,30 @@ packages:
   '@pkgr/core@0.1.1':
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@prisma/client@5.16.1':
+    resolution: {integrity: sha512-wM9SKQjF0qLxdnOZIVAIMKiz6Hu7vDt4FFAih85K1dk/Rr2mdahy6d3QP41K62N9O0DJJA//gUDA3Mp49xsKIg==}
+    engines: {node: '>=16.13'}
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+
+  '@prisma/debug@5.16.1':
+    resolution: {integrity: sha512-JsNgZAg6BD9RInLSrg7ZYzo11N7cVvYArq3fHGSD89HSgtN0VDdjV6bib7YddbcO6snzjchTiLfjeTqBjtArVQ==}
+
+  '@prisma/engines-version@5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303':
+    resolution: {integrity: sha512-HkT2WbfmFZ9WUPyuJHhkiADxazHg8Y4gByrTSVeb3OikP6tjQ7txtSUGu9OBOBH0C13dPKN2qqH12xKtHu/Hiw==}
+
+  '@prisma/engines@5.16.1':
+    resolution: {integrity: sha512-KkyF3eIUtBIyp5A/rJHCtwQO18OjpGgx18PzjyGcJDY/+vNgaVyuVd+TgwBgeq6NLdd1XMwRCI+58vinHsAdfA==}
+
+  '@prisma/fetch-engine@5.16.1':
+    resolution: {integrity: sha512-oOkjaPU1lhcA/Rvr4GVfd1NLJBwExgNBE36Ueq7dr71kTMwy++a3U3oLd2ZwrV9dj9xoP6LjCcky799D9nEt4w==}
+
+  '@prisma/get-platform@5.16.1':
+    resolution: {integrity: sha512-R4IKnWnMkR2nUAbU5gjrPehdQYUUd7RENFD2/D+xXTNhcqczp0N+WEGQ3ViyI3+6mtVcjjNIMdnUTNyu3GxIgA==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -642,6 +681,9 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/luxon@3.4.2':
+    resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
 
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
@@ -1170,6 +1212,9 @@ packages:
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
+  cron@3.1.7:
+    resolution: {integrity: sha512-tlBg7ARsAMQLzgwqVxy8AZl/qlTc5nibqYwtNGoCrd+cV+ugI+tvZC1oT/8dFH8W455YrywGykx/KMmAqOr7Jw==}
 
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -2018,6 +2063,10 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  luxon@3.4.4:
+    resolution: {integrity: sha512-zobTr7akeGHnv7eBOXcRgMeCP6+uyYsczwmeRCauvpvaAltgNyTbLH/+VaEAPUeWBT+1GuNmz4wC/6jtQzbbVA==}
+    engines: {node: '>=12'}
+
   magic-string@0.30.5:
     resolution: {integrity: sha512-7xlpfBaQaP/T6Vh8MO/EqXSW5En6INHEvEXQiuff7Gku0PWjU3uf6w/j9o7O+SpB5fOAkrI5HeoNgwjEO0pFsA==}
     engines: {node: '>=12'}
@@ -2316,6 +2365,11 @@ packages:
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+
+  prisma@5.16.1:
+    resolution: {integrity: sha512-Z1Uqodk44diztImxALgJJfNl2Uisl9xDRvqybMKEBYJLNKNhDfAHf+ZIJbZyYiBhLMbKU9cYGdDVG5IIXEnL2Q==}
+    engines: {node: '>=16.13'}
+    hasBin: true
 
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -3544,6 +3598,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@nestjs/schedule@4.0.2(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.3.9(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.3.9)(reflect-metadata@0.2.2)(rxjs@7.8.1))':
+    dependencies:
+      '@nestjs/common': 10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@nestjs/core': 10.3.9(@nestjs/common@10.3.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.3.9)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      cron: 3.1.7
+      uuid: 9.0.1
+
   '@nestjs/schematics@10.1.1(chokidar@3.6.0)(typescript@5.3.3)':
     dependencies:
       '@angular-devkit/core': 17.1.2(chokidar@3.6.0)
@@ -3598,6 +3659,31 @@ snapshots:
     optional: true
 
   '@pkgr/core@0.1.1': {}
+
+  '@prisma/client@5.16.1(prisma@5.16.1)':
+    optionalDependencies:
+      prisma: 5.16.1
+
+  '@prisma/debug@5.16.1': {}
+
+  '@prisma/engines-version@5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303': {}
+
+  '@prisma/engines@5.16.1':
+    dependencies:
+      '@prisma/debug': 5.16.1
+      '@prisma/engines-version': 5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303
+      '@prisma/fetch-engine': 5.16.1
+      '@prisma/get-platform': 5.16.1
+
+  '@prisma/fetch-engine@5.16.1':
+    dependencies:
+      '@prisma/debug': 5.16.1
+      '@prisma/engines-version': 5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303
+      '@prisma/get-platform': 5.16.1
+
+  '@prisma/get-platform@5.16.1':
+    dependencies:
+      '@prisma/debug': 5.16.1
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -3697,6 +3783,8 @@ snapshots:
       pretty-format: 29.7.0
 
   '@types/json-schema@7.0.15': {}
+
+  '@types/luxon@3.4.2': {}
 
   '@types/methods@1.1.4': {}
 
@@ -4312,6 +4400,11 @@ snapshots:
       - ts-node
 
   create-require@1.1.1: {}
+
+  cron@3.1.7:
+    dependencies:
+      '@types/luxon': 3.4.2
+      luxon: 3.4.4
 
   cross-spawn@7.0.3:
     dependencies:
@@ -5377,6 +5470,8 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  luxon@3.4.4: {}
+
   magic-string@0.30.5:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.15
@@ -5624,6 +5719,10 @@ snapshots:
       '@jest/schemas': 29.6.3
       ansi-styles: 5.2.0
       react-is: 18.3.1
+
+  prisma@5.16.1:
+    dependencies:
+      '@prisma/engines': 5.16.1
 
   process-nextick-args@2.0.1: {}
 

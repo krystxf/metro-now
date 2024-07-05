@@ -1,13 +1,8 @@
-import { PlatformID } from "src/data/platforms";
+import { PlatformID } from "../data/platforms";
 import { diff, group } from "radash";
-import { getDepartures } from "../metro/getDepartures";
-import type { CacheManager } from "src/types/types";
+import { getDepartures } from "../controllers/metro/getDepartures";
 import { TTL } from "../constants";
-
-export const GOLEMIO_ENDPOINT = new URL(
-    "/v2/pid/departureboards",
-    "https://api.golemio.cz",
-);
+import type { CacheManager } from "../types/types";
 
 export const getGolemioHeaders = () => {
     return new Headers({
