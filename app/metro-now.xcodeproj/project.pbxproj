@@ -31,14 +31,11 @@
 		2D4D8F852C0010A5006F9080 /* networkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4D8F842C0010A5006F9080 /* networkUtils.swift */; };
 		2D65850E2C251761002D7F45 /* StationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D65850D2C251761002D7F45 /* StationDetailView.swift */; };
 		2D6585102C253944002D7F45 /* DetailedMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D65850F2C253944002D7F45 /* DetailedMapView.swift */; };
-		2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */; };
 		2D9213E92C081D99004A37C2 /* WidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9213E82C081D99004A37C2 /* WidgetView.swift */; };
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
-		2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */; };
 		2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */; };
 		2DC639E32BF3CCBC00A72C7F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */; };
 		2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */; };
-		2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */; };
 		2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A032BF4C1E200A72C7F /* MainTabView.swift */; };
 		2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A072BF4C25B00A72C7F /* MapView.swift */; };
 		2DC63A242BF5266700A72C7F /* metroUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC63A232BF5266700A72C7F /* metroUtilsTests.swift */; };
@@ -141,15 +138,12 @@
 		2D4D8F842C0010A5006F9080 /* networkUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = networkUtils.swift; sourceTree = "<group>"; };
 		2D65850D2C251761002D7F45 /* StationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDetailView.swift; sourceTree = "<group>"; };
 		2D65850F2C253944002D7F45 /* DetailedMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailedMapView.swift; sourceTree = "<group>"; };
-		2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListViewModel.swift; sourceTree = "<group>"; };
 		2D9213E82C081D99004A37C2 /* WidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetView.swift; sourceTree = "<group>"; };
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_nowApp.swift; sourceTree = "<group>"; };
-		2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListView.swift; sourceTree = "<group>"; };
 		2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2DC639E22BF3CCBC00A72C7F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformListItem.swift; sourceTree = "<group>"; };
-		2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformDetailDepartureListView.swift; sourceTree = "<group>"; };
 		2DC63A032BF4C1E200A72C7F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		2DC63A072BF4C25B00A72C7F /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		2DC63A182BF50E8F00A72C7F /* metro-now-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-now-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -335,7 +329,6 @@
 			isa = PBXGroup;
 			children = (
 				2DC63A062BF4C24C00A72C7F /* Map */,
-				2DC639FE2BF4B1C600A72C7F /* PlatformDetail */,
 				2DC639EA2BF3CD4700A72C7F /* PlatformList */,
 				2DC63A052BF4C1E800A72C7F /* TabBar */,
 			);
@@ -345,19 +338,9 @@
 		2DC639EA2BF3CD4700A72C7F /* PlatformList */ = {
 			isa = PBXGroup;
 			children = (
-				2DC639DD2BF3CCBA00A72C7F /* PlatformListView.swift */,
-				2D84CCA02BF8BD7500D2382B /* PlatformListViewModel.swift */,
 				2DC639EC2BF3CFCF00A72C7F /* PlatformListItem.swift */,
 			);
 			path = PlatformList;
-			sourceTree = "<group>";
-		};
-		2DC639FE2BF4B1C600A72C7F /* PlatformDetail */ = {
-			isa = PBXGroup;
-			children = (
-				2DC63A012BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift */,
-			);
-			path = PlatformDetail;
 			sourceTree = "<group>";
 		};
 		2DC63A052BF4C1E800A72C7F /* TabBar */ = {
@@ -644,7 +627,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D1B2C522BFAD90B007ED5EB /* metroStationsTypes.swift in Sources */,
-				2DC639DE2BF3CCBA00A72C7F /* PlatformListView.swift in Sources */,
 				2DC63A082BF4C25B00A72C7F /* MapView.swift in Sources */,
 				2DC63A042BF4C1E200A72C7F /* MainTabView.swift in Sources */,
 				2D1B2C4B2BFAD807007ED5EB /* fileUtils.swift in Sources */,
@@ -657,10 +639,8 @@
 				2D4D8F852C0010A5006F9080 /* networkUtils.swift in Sources */,
 				2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
 				2D65850E2C251761002D7F45 /* StationDetailView.swift in Sources */,
-				2DC63A022BF4B20E00A72C7F /* PlatformDetailDepartureListView.swift in Sources */,
 				2DF48A712C02514E002F754E /* departuresResponseTypes.swift in Sources */,
 				2D1B2C4F2BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
-				2D84CCA12BF8BD7500D2382B /* PlatformListViewModel.swift in Sources */,
 				2D1B2C452BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
 				2DC639ED2BF3CFCF00A72C7F /* PlatformListItem.swift in Sources */,
 			);
