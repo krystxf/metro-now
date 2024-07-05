@@ -181,6 +181,8 @@
 		2D5BA5EB2C382FEA0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AnnotationStack/MetroAnnotationStack.swift,
+				BusAnnotation/BusAnnotation.swift,
 				MetroAnnotation/MetroStationAnnotation.swift,
 			);
 			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;

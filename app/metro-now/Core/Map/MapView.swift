@@ -5,14 +5,14 @@
 import MapKit
 import SwiftUI
 
-private struct MetroStationAnnotation {
+private struct MetroStationAnnotationType {
     var name: String
     let coordinate: CLLocationCoordinate2D
-    let metroLines: [String] // A | B | C
+    let metroLines: [String]  // A | B | C
 }
 
 struct MapView: View {
-    @State private var metroStationAnnotations: [MetroStationAnnotation] = []
+    @State private var metroStationAnnotations: [MetroStationAnnotationType] = []
 
     var body: some View {
         NavigationStack {
@@ -21,22 +21,30 @@ struct MapView: View {
 
                 ForEach(metroStationAnnotations, id: \.name) { station in
                     Annotation(station.name, coordinate: station.coordinate) {
-                        NavigationLink(destination: StationDetailView(stationName: station.name, showMap: true, showDirection: true)) {
-                            MapMetroStationView(metroLines: station.metroLines)
+                        NavigationLink(
+                            destination: StationDetailView(
+                                stationName: station.name,
+                                showMap: true,
+                                showDirection: true
+                            )
+                        ) {
+                            MetroAnnotationStack(metroLines: station.metroLines)
                         }
                     }
                 }
             }
         }
         .task {
-            let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(.METRO_STATIONS_FILE)
+            let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(
+                .METRO_STATIONS_FILE
+            )
             guard metroStationsGeoJSON != nil, metroStationsGeoJSON?.features != nil else {
                 return
             }
 
             metroStationAnnotations = metroStationsGeoJSON.features.map { feature in
 
-                MetroStationAnnotation(
+                MetroStationAnnotationType(
                     name: feature.properties.name,
                     coordinate: CLLocationCoordinate2D(
                         latitude: feature.geometry.coordinates[1],
