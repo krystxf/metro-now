@@ -1,0 +1,17 @@
+name: metro-now
+
+services:
+    postgres:
+        container_name: postgres
+        image: postgres:16-alpine
+
+        restart: always
+        ports:
+            - 5432:${POSTGRES_PORT:-5432}
+        volumes:
+            - postgres-data:/var/lib/postgresql/data/
+        env_file:
+            - ".env.docker"
+
+volumes:
+    postgres-data:

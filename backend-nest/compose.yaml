@@ -1,0 +1,29 @@
+include:
+    - path: compose.postgres.yaml
+
+name: metro-now
+
+services:
+    backend:
+        container_name: backend
+        depends_on:
+            - postgres
+        build:
+            context: .
+        command:
+            - /bin/bash
+            - -c
+            - |
+                pnpm prisma:push
+                pnpm start:prod
+
+        restart: always
+        ports:
+            - 3001:3001
+        volumes:
+            - backend-data:/app
+        env_file:
+            - ".env.docker"
+
+volumes:
+    backend-data:

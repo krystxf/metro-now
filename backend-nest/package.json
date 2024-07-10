@@ -2,6 +2,7 @@
     "name": "@metro-now/backend-nest",
     "version": "0.0.1",
     "scripts": {
+        "prebuild": "pnpm prisma:generate",
         "build": "nest build",
         "start": "nest start",
         "dev": "nest start --watch",
@@ -16,7 +17,7 @@
         "prisma:studio": "pnpm dlx prisma studio",
         "prisma:generate": "pnpm dlx prisma generate",
         "prisma:migrate": "pnpm dlx prisma migrate dev",
-        "prisma:push": "pnpm dlx prisma db push"
+        "prisma:push": "pnpm dlx dotenv-cli -e .env.local -- pnpm dlx prisma db push"
     },
     "dependencies": {
         "@nestjs/cache-manager": "^2.2.2",
