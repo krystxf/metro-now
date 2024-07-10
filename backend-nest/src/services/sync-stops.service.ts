@@ -7,7 +7,7 @@ import { unique } from "radash";
 export class SyncStopsService {
     constructor(private prisma: PrismaService) {}
 
-    @Cron("* */2 * * *")
+    @Cron("0 5 */2 * *")
     async handleCron() {
         console.log("Syncing stops and routes");
 
