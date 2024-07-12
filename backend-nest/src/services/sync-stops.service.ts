@@ -7,7 +7,7 @@ import { unique } from "radash";
 export class SyncStopsService {
     constructor(private prisma: PrismaService) {}
 
-    @Cron("0 5 */2 * *")
+    @Cron("0 3 */2 * *")
     async handleCron() {
         console.log("Syncing stops and routes");
 
@@ -17,45 +17,39 @@ export class SyncStopsService {
             ({ id }) => id,
         );
 
-        await this.prisma.$transaction([
-            this.prisma.stopsOnRoutes.deleteMany(),
-            this.prisma.stop.deleteMany(),
-            this.prisma.route.deleteMany(),
-            ...routes.map((route) =>
-                this.prisma.route.upsert({
-                    where: { id: route.id },
-                    create: route,
-                    update: { name: route.name },
-                }),
-            ),
-            ...stops.flatMap((stop) => [
-                this.prisma.stop.upsert({
-                    where: { id: stop.id },
-                    create: {
-                        id: stop.id,
-                        name: stop.name,
-                        latitude: stop.latitude,
-                        longitude: stop.longitude,
-                    },
-                    update: {},
-                }),
-                ...stop.routes.map((route) =>
-                    this.prisma.stopsOnRoutes.upsert({
-                        where: {
-                            stopId_routeId: {
-                                stopId: stop.id,
-                                routeId: route.id,
-                            },
-                        },
-                        create: {
-                            stop: { connect: { id: stop.id } },
-                            route: { connect: { id: route.id } },
-                        },
-                        update: {},
-                    }),
+        await this.prisma.$transaction(async (transaction) => {
+            await transaction.stopsOnRoutes.deleteMany();
+            await transaction.stop.deleteMany();
+            await transaction.route.deleteMany();
+
+            // Create routes
+            await transaction.route.createMany({
+                data: routes.map((route) => ({
+                    id: route.id,
+                    name: route.name,
+                })),
+            });
+
+            // Create stops
+            await transaction.stop.createMany({
+                data: stops.map((stop) => ({
+                    id: stop.id,
+                    name: stop.name,
+                    latitude: stop.latitude,
+                    longitude: stop.longitude,
+                })),
+            });
+
+            // Create relations
+            await transaction.stopsOnRoutes.createMany({
+                data: stops.flatMap((stop) =>
+                    stop.routes.map((route) => ({
+                        stopId: stop.id,
+                        routeId: route.id,
+                    })),
                 ),
-            ]),
-        ]);
+            });
+        });
 
         console.log(`Synced ${stops.length} stops and ${routes.length} routes`);
     }
@@ -70,30 +64,27 @@ const syncStops = async (): Promise<
         routes: { id: string; name: string }[];
     }[]
 > => {
-    const data = [];
-    const LIMIT = 10_000;
-
-    for (let offset = 0; offset < 30_000; offset += LIMIT) {
-        const res = await fetch(
-            new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json"),
-            {
-                method: "GET",
-            },
-        );
-
-        data.push(...(await res.json()).features);
-    }
+    const res = await fetch(
+        new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json"),
+        {
+            method: "GET",
+        },
+    );
+    const data = (await res.json()).features;
 
     const parsed = data
         .map((stop) => {
-            const routeIDs = stop.properties.routes_id?.split(",") ?? [];
-            const routeNames = stop.properties.routes_names?.split(",") ?? [];
+            const properties = stop.properties;
+            const [longitude, latitude] = stop.geometry.coordinates;
+
+            const routeIDs = properties.routes_id?.split(",") ?? [];
+            const routeNames = properties.routes_names?.split(",") ?? [];
 
             return {
-                latitude: stop.geometry.coordinates[1],
-                longitude: stop.geometry.coordinates[0],
-                id: stop.properties.stop_id,
-                name: stop.properties.stop_name,
+                latitude,
+                longitude,
+                id: properties.stop_id,
+                name: properties.stop_name,
                 routes: routeIDs.map((id, index) => ({
                     id,
                     name: routeNames[index],
