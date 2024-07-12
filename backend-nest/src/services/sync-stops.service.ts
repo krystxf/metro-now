@@ -1,11 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "./prisma.service";
 import { unique } from "radash";
 
 @Injectable()
-export class SyncStopsService {
+export class SyncStopsService implements OnModuleInit {
     constructor(private prisma: PrismaService) {}
+
+    onModuleInit() {
+        this.handleCron();
+    }
 
     @Cron("0 3 */2 * *")
     async handleCron() {
