@@ -26,6 +26,11 @@ services:
             - ".env.docker"
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://host.docker.internal:3001/"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
 
 volumes:
     backend-data:
