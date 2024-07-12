@@ -1,7 +1,7 @@
 import { PlatformID } from "../data/platforms";
 import { diff, group } from "radash";
 import { getDepartures } from "../controllers/metro/getDepartures";
-import { TTL } from "../constants";
+import { TTL_DEFAULT } from "../constants";
 import type { CacheManager } from "../types/types";
 
 export const getGolemioHeaders = () => {
@@ -35,7 +35,7 @@ export const fetchDeparturesByGtfsID = async <TCachedData>(
     ) as Record<string, TCachedData>;
 
     for (const key in newResByPlatform) {
-        await cacheManager.set(key, newResByPlatform[key], TTL);
+        await cacheManager.set(key, newResByPlatform[key], TTL_DEFAULT);
     }
 
     return { ...res, ...newResByPlatform };

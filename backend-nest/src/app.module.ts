@@ -5,7 +5,7 @@ import { AppService } from "./app.service";
 import { MetroController } from "./controllers/metro/metro.controller";
 import { ConfigModule } from "@nestjs/config";
 import { RequestLoggerMiddleware } from "./middleware/request-logger.middleware";
-import { TTL } from "./constants/constants";
+import { TTL_DEFAULT } from "./constants/constants";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SyncStopsService } from "./services/sync-stops.service";
 import { PrismaService } from "./services/prisma.service";
@@ -17,7 +17,7 @@ import { StopController } from "./controllers/stop/stop.controller";
         ScheduleModule.forRoot(),
         CacheModule.register({
             isGlobal: true,
-            ttl: TTL,
+            ttl: TTL_DEFAULT,
         }),
     ],
     controllers: [AppController, MetroController, StopController],
