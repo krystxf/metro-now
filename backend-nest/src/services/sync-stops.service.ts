@@ -1,11 +1,15 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "./prisma.service";
 import { unique } from "radash";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 @Injectable()
 export class SyncStopsService implements OnModuleInit {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager,
+    ) {}
 
     onModuleInit() {
         this.handleCron();
@@ -54,6 +58,8 @@ export class SyncStopsService implements OnModuleInit {
                 ),
             });
         });
+
+        await this.cacheManager.reset();
 
         console.log(`Synced ${stops.length} stops and ${routes.length} routes`);
     }

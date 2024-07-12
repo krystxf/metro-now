@@ -4,7 +4,9 @@ import z from "zod";
 import { minMax } from "src/utils/math";
 import { parseQueryParam } from "src/utils/query-params";
 import { stopSelect } from "./stop.utils";
+import { CacheTTL } from "@nestjs/cache-manager";
 
+@CacheTTL(0)
 @Controller("stop")
 export class StopController {
     constructor(private prisma: PrismaService) {}
@@ -65,7 +67,6 @@ export class StopController {
 
     @Get("all")
     async getAllStops() {
-        console.log("Fetching all stops");
         const stops = await this.prisma.stop.findMany({
             select: stopSelect,
         });
