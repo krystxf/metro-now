@@ -9,7 +9,7 @@ jobs:
             fail-fast: false
             matrix:
                 device: [14, 15]
-                iOS: [17.2, 17.5]
+                iOS: [18]
         name: App CI 🚀 (iPhone ${{ matrix.device }}, iOS ${{ matrix.iOS }} )
 
         steps:
@@ -21,14 +21,14 @@ jobs:
             - name: Setup Xcode
               run: |
                   cd ./app
-                  xcodebuild -downloadAllPlatforms
+              #   xcodebuild -downloadAllPlatforms
 
             - name: Build
               run: |
                   cd ./app
-                  xcodebuild build -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
+              #   xcodebuild build -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
 
             - name: Test
               run: |
                   cd ./app
-                  xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
+              #   xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}

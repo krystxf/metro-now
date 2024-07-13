@@ -1,13 +1,9 @@
-//
-//  metro-now
-//
-//  Created by Kryštof Krátký on 20.05.2024.
-//
+
 
 import MapKit
 import SwiftUI
 
-struct MapMetroStationView: View {
+struct MetroAnnotationStack: View {
     let metroLines: [String]
 
     var body: some View {
@@ -16,20 +12,8 @@ struct MapMetroStationView: View {
                 index, metroLine in
                 let offset: CGFloat = index == 0 ? 0 : (-16 * CGFloat(index))
 
-                Image(
-                    systemName:
-                    getMetroLineIcon(metroLine)
-                )
-                .imageScale(.medium)
-                .padding(5)
-                .foregroundStyle(.white)
-                .background(getMetroLineColor(metroLine))
-                .clipShape(.rect(cornerRadius: 6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(.white, lineWidth: 2)
-                )
-                .offset(x: offset, y: offset)
+                MetroStationAnnotation(metroLine: metroLine)
+                    .offset(x: offset, y: offset)
             }
         }
     }
@@ -41,7 +25,7 @@ struct MapMetroStationView: View {
             "Random place on map", coordinate: CLLocationCoordinate2D(
                 latitude: 50.113680, longitude: 14.449520)
         ) {
-            MapMetroStationView(
+            MetroAnnotationStack(
                 metroLines: ["A"]
             )
         }
@@ -54,7 +38,7 @@ struct MapMetroStationView: View {
             "Random place on map", coordinate: CLLocationCoordinate2D(
                 latitude: 50.113680, longitude: 14.449520)
         ) {
-            MapMetroStationView(
+            MetroAnnotationStack(
                 metroLines: ["A", "B"]
             )
         }
@@ -68,7 +52,7 @@ struct MapMetroStationView: View {
             "Random place on map", coordinate: CLLocationCoordinate2D(
                 latitude: 50.113680, longitude: 14.449520)
         ) {
-            MapMetroStationView(
+            MetroAnnotationStack(
                 metroLines: ["A", "B", "C", "A", "B", "C"]
             )
         }

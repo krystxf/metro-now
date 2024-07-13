@@ -15,8 +15,10 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            if let closestStation { PlatformsListView(
-                station: closestStation)
+            if let closestStation {
+                NavigationStack {
+                    StationDetailView(stationName: closestStation.properties.name)
+                }
                 .tabItem {
                     Label("Near me", systemImage: "tram.fill.tunnel")
                 }
@@ -28,7 +30,6 @@ struct MainTabView: View {
                 }
         }
         .onReceive(locationModel.$location) { location in
-
             guard let location else {
                 print("Unknown location")
                 return
