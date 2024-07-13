@@ -6,9 +6,10 @@ Backend gets data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/) c
 
 <br />
 
-<a href="https://api.metronow.dev/metro?station=andel" target="_blank">
-    ```http GET https://api.metronow.dev/metro ```
-</a>
+```http
+GET https://api.metronow.dev/metro?station=andel
+```
+
 ### Query parameters
 
 #### `station` or `platform` (required)
@@ -188,3 +189,17 @@ GET https://api.metronow.dev/metro?station=["Anděl","Dejvická"]
     <li>Zličí</li>
     <li>Želivského</li>
 </details>
+
+## Public transport stops
+
+### Get all stops
+
+```http
+GET https://api.metronow.dev/stop/all
+```
+
+## Get stops inside bounding box
+
+```http
+GET https://api.metronow.dev/stop?latitude=[48,52]&longitude=[14,15]
+```

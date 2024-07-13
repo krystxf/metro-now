@@ -16,7 +16,11 @@
         "paths": {
             "@/*": ["./src/*"]
         },
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "noEmit": true
     },
     "include": [
         "next-env.d.ts",
@@ -24,5 +28,6 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         "src/pages/terms-and-condition.mdx"
-    ]
+    ],
+    "exclude": ["node_modules"]
 }

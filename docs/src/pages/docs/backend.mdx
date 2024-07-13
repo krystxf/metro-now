@@ -1,60 +1,9 @@
 # Backend
 
-[source code](https://github.com/krystxf/metro-now/tree/main/backend)
+[source code](https://github.com/krystxf/metro-now/tree/main/backend-nest)
 
-Lightweight backend that provides data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%9A%8F%20PID%20Departure%20Boards/get_pid_departureboards).
+Wrapper for [Golemio API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%9A%8F%20PID%20Departure%20Boards/get_pid_departureboards) built with [NestJS](https://nestjs.com/)
 
-## Technologies
+## Setup
 
-### V1
-
-built with [Bun](https://github.com/oven-sh/bun)
-
--   [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) endpoint
-
-**Setup**
-
-```bash
-# Clone the repository
-git clone https://github.com/krystxf/metro-now.git
-
-# Open the backend directory
-cd metro-now/backend/v1
-
-# Install dependencies
-bun install
-
-# Create a .env file
-cp .env.example .env
-
-# Edit the .env files with your own values
-
-# Start the backend
-bun start
-```
-
-### V2
-
-built with [Express.js](https://expressjs.com/)
-
--   REST endpoint
-    **Setup**
-
-```bash
-# Clone the repository
-git clone https://github.com/krystxf/metro-now.git
-
-# Open the backend directory
-cd metro-now/backend/v2
-
-# Install dependencies
-pnpm install
-
-# Create a .env file
-cp .env.example .env
-
-# Edit the .env files with your own values
-
-# Start the backend
-pnpm run dev
-```
+see instructions in the [README](https://github.com/krystxf/metro-now/blob/main/backend-nest/README.md)
