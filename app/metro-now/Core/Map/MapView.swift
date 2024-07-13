@@ -8,7 +8,7 @@ import SwiftUI
 private struct MetroStationAnnotationType {
     var name: String
     let coordinate: CLLocationCoordinate2D
-    let metroLines: [String]  // A | B | C
+    let metroLines: [String] // A | B | C
 }
 
 struct MapView: View {

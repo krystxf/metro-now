@@ -1,8 +1,7 @@
- 
 
-import SwiftUI
+
 import MapKit
-
+import SwiftUI
 
 struct MetroAnnotationStack: View {
     let metroLines: [String]
