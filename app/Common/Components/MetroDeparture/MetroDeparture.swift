@@ -1,14 +1,15 @@
 
 import SwiftUI
 
+struct MetroDepartureDeparture {
+    let direction: String
+    let date: Date
+}
+
 struct MetroDeparture: View {
-    @State var direction: String
-
-    /// only first two items from array are shown
-    /// this view doesn't handle logic of deciding which departures are outdated (shouldn't be shown)
-    @State var departureDates: [Date]
-
     @State var metroLine: String
+    @State var direction: String
+    @State var departures: [ApiDeparture] = []
 
     var body: some View {
         MetroDepartureCard(backgroundColor: getMetroLineColor(metroLine)) {
@@ -17,11 +18,14 @@ struct MetroDeparture: View {
             Spacer()
 
             VStack {
-                if departureDates.count >= 1 {
-                    MetroDepartureCardFirstDeparture(departureDate: departureDates[0])
+                if departures.count >= 1 {
+                    MetroDepartureCardFirstDeparture(departureDate: departures[0].departure)
                 }
-                if departureDates.count >= 2 {
-                    MetroDepartureCardSecondDeparture(departureDate: departureDates[1])
+                if departures.count >= 2 {
+                    MetroDepartureCardSecondDeparture(
+                        direction: departures[0].heading == departures[1].heading ? nil : departures[1].heading,
+                        departureDate: departures[1].departure
+                    )
                 }
             }
         }

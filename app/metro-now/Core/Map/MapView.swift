@@ -13,6 +13,8 @@ private struct MetroStationAnnotationType {
 
 struct MapView: View {
     @State private var metroStationAnnotations: [MetroStationAnnotationType] = []
+    @State private var stops: [Stop]?
+    @State private var visibleStops: [Stop] = []
 
     var body: some View {
         NavigationStack {
@@ -32,7 +34,49 @@ struct MapView: View {
                         }
                     }
                 }
+
+                ForEach($visibleStops.wrappedValue, id: \.id) { stop in
+                    Annotation( // stop.name
+                        "",
+                        coordinate: CLLocationCoordinate2D(
+                            latitude: stop.latitude,
+                            longitude: stop.longitude
+                        )
+                    ) {
+                        BusStationAnnotation()
+                            .frame(
+                                width: 4,
+                                height: 4
+                            )
+                    }
+                }
             }
+        }
+
+        .onMapCameraChange {
+            bounds in
+            print(bounds)
+            let region = bounds.region
+            guard stops?.count ?? 0 > 0 else {
+                visibleStops = []
+                return
+            }
+
+            var i = 0
+            let filteredStops = stops!.compactMap { element in
+                if element.latitude > region.center.latitude - region.span.latitudeDelta,
+                   element.latitude < region.center.latitude + region.span.latitudeDelta,
+                   element.longitude > region.center.longitude - region.span.longitudeDelta,
+                   element.longitude < region.center.longitude + region.span.longitudeDelta,
+                   i < 100
+                {
+                    i += 1
+                    return element
+                }
+                return nil
+            }
+
+            visibleStops = filteredStops
         }
         .task {
             let metroStationsGeoJSON: MetroStationsGeoJSON! = getParsedJSONFile(
@@ -53,7 +97,11 @@ struct MapView: View {
                     metroLines: Array(Set(feature.properties.platforms.map(\.name)))
                 )
             }
+            do {
+                stops = try await fetch("\(METRO_NOW_API)/stop/all")
+            } catch { return }
         }
+
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
         .mapControls {
             MapUserLocationButton()

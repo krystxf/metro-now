@@ -10,11 +10,29 @@ struct StationDetailView: View {
     let mapUrl: URL?
 
     @State private var isFavourite: Bool = false
-    @State private var trigger = false
     @StateObject private var locationModel = LocationModel()
     @State var distance: Double = -1
-    @State private var departures: GroupedDepartures = [:]
+    @State private var departures: [String: [ApiDeparture]] = [:]
     @State private var errorMessage: String?
+
+    func updateDepartures() async {
+        do {
+            let departuresArr = try await getDepartures(stations: [stationName])
+            let upcomingDeparturesArr = departuresArr.filter {
+                $0.departure.timeIntervalSinceNow > 1000
+            }.sorted(by: {
+                $0.platform < $1.platform
+            })
+
+            departures = Dictionary(
+                grouping: upcomingDeparturesArr,
+                by: { $0.platform }
+            )
+        }
+        catch {
+            errorMessage = "Failed to fetch departures: \(error)"
+        }
+    }
 
     init(stationName: String, showMap: Bool = false, showDirection: Bool = false) {
         self.stationName = stationName
@@ -27,10 +45,12 @@ struct StationDetailView: View {
             longitude: station.geometry.coordinates[0]
         )
 
-        mapUrl = showDirection ? URL(
-            string:
-            "maps://?saddr=&daddr=\(stationCoordinate.latitude),\(stationCoordinate.longitude)"
-        ) : nil
+        mapUrl =
+            showDirection
+            ? URL(
+                string:
+                    "maps://?saddr=&daddr=\(stationCoordinate.latitude),\(stationCoordinate.longitude)"
+            ) : nil
     }
 
     var body: some View {
@@ -104,14 +124,14 @@ struct StationDetailView: View {
                         Spacer()
                     }
 
-                    ForEach(Array(departures.keys), id: \.self) { k in
+                    ForEach(Array(departures.keys).sorted { $0 < $1 }, id: \.self) { k in
                         let d = departures[k]!
 
                         if d.count > 0 {
                             MetroDeparture(
+                                metroLine: d[0].line,
                                 direction: d[0].heading,
-                                departureDates: d.map(\.departure),
-                                metroLine: d[0].line
+                                departures: d  
                             )
                         }
                     }
@@ -146,26 +166,19 @@ struct StationDetailView: View {
                 latitude: stationCoordinate.latitude,
                 longitude: stationCoordinate.longitude
             )
+
             distance = userLocation.distance(from: stationLocation)
-        }.refreshable {
-            do {
-                departures = try await getDepartures(stations: [stationName], groupBy: .heading)
-            } catch {
-                errorMessage = "Failed to fetch departures: \(error)"
-            }
-        }
-        .onAppear {
-            Task {
-                do {
-                    departures = try await
-                        (getDepartures(stations: [stationName], groupBy: .heading))
-                } catch {
-                    errorMessage = "Failed to fetch departures: \(error)"
-                }
-            }
         }
         .task {
-            trigger.toggle()
+            await updateDepartures()
+        }
+        .refreshable {
+            await updateDepartures()
+        }
+        .onAppear {
+            //           Task  {
+            //                await updateDepartures()
+            //            }
         }
     }
 }

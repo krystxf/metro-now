@@ -7,6 +7,7 @@
 
 import MapKit
 import SwiftUI
+import WidgetKit
 
 struct MainTabView: View {
     @StateObject private var locationModel = LocationModel()
@@ -36,6 +37,7 @@ struct MainTabView: View {
             }
             print("User's location: \(location)")
 
+            WidgetCenter.shared.reloadAllTimelines()
             let res = getClosestStationFromGeoJSON(location: location)
 
             closestStation = res

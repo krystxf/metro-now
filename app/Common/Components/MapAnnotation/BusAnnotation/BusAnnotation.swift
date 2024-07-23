@@ -7,11 +7,12 @@ struct BusStationAnnotation: View {
         Image(
             systemName: "bus"
         )
-        .imageScale(.medium)
-        .padding(5)
+        .imageScale(.small)
+        .padding(2)
+        .font(.system(size: 16))
         .foregroundStyle(.white)
         .background(.blue)
-        .clipShape(.rect(cornerRadius: 6))
+        .clipShape(.rect(cornerRadius: 4))
         .overlay(
             RoundedRectangle(cornerRadius: 6)
                 .stroke(.white, lineWidth: 2)

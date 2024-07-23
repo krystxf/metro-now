@@ -2,11 +2,12 @@
 import SwiftUI
 
 struct MetroDepartureCardSecondDeparture: View {
+    let direction: String?
     let departureDate: Date
 
     var body: some View {
         Text(
-            "Also in "
+            direction == nil ? "Also in " : "Also to \(String(describing: direction)) in"
         ).font(.caption2)
             .fontWeight(.bold)
             .foregroundStyle(.white)
