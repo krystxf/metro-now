@@ -181,6 +181,13 @@
 			);
 			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
 		};
+		2D6C8CE02C51488E003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Countdown.swift,
+			);
+			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
+		};
 		2DFD2F2B2C4DC2EC009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -206,6 +213,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2D5BA5DE2C382D6A0055F12A /* MetroDeparture */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D5BA5E22C382D8D0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MetroDeparture; sourceTree = "<group>"; };
 		2D5BA5EA2C382FC30055F12A /* MapAnnotation */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D5BA5EB2C382FEA0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MapAnnotation; sourceTree = "<group>"; };
+		2D6C8CDD2C514882003E09A8 /* Countdown */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D6C8CE02C51488E003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Countdown; sourceTree = "<group>"; };
 		2DFD2F272C4DC296009C81CC /* API */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2DFD2F2B2C4DC2EC009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2DFD2F432C4DCC37009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = API; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -297,6 +305,7 @@
 		2D1B2C5B2BFADAAA007ED5EB /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				2D6C8CDD2C514882003E09A8 /* Countdown */,
 				2D5BA5EA2C382FC30055F12A /* MapAnnotation */,
 				2D5BA5DE2C382D6A0055F12A /* MetroDeparture */,
 			);
@@ -925,7 +934,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -959,7 +968,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

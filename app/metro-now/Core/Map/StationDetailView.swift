@@ -28,8 +28,7 @@ struct StationDetailView: View {
                 grouping: upcomingDeparturesArr,
                 by: { $0.platform }
             )
-        }
-        catch {
+        } catch {
             errorMessage = "Failed to fetch departures: \(error)"
         }
     }
@@ -47,10 +46,10 @@ struct StationDetailView: View {
 
         mapUrl =
             showDirection
-            ? URL(
-                string:
+                ? URL(
+                    string:
                     "maps://?saddr=&daddr=\(stationCoordinate.latitude),\(stationCoordinate.longitude)"
-            ) : nil
+                ) : nil
     }
 
     var body: some View {
@@ -131,7 +130,7 @@ struct StationDetailView: View {
                             MetroDeparture(
                                 metroLine: d[0].line,
                                 direction: d[0].heading,
-                                departures: d  
+                                departures: d
                             )
                         }
                     }

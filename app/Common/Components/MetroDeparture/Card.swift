@@ -30,28 +30,32 @@ struct MetroDepartureCard<Content: View>: View {
 }
 
 #Preview {
-    MetroDepartureCard(
-        backgroundColor: getMetroLineColor("A"))
-    {
-        HStack {
-            MetroDepartureCardLabel(direction: "Nemocnice Motol", metroLine: "A")
-            Spacer()
+    VStack {
+        MetroDepartureCard(
+            backgroundColor: getMetroLineColor("A"))
+        {
+            HStack {
+                MetroDepartureCardLabel(direction: "Nemocnice Motol", metroLine: "A")
+                Spacer()
+            }
+        }
+        MetroDepartureCard(
+            backgroundColor: getMetroLineColor("B"))
+        {
+            HStack {
+                MetroDepartureCardLabel(direction: "Černý Most", metroLine: "B")
+                Spacer()
+            }
+        }
+        MetroDepartureCard(
+            backgroundColor: getMetroLineColor("C"))
+        {
+            HStack {
+                MetroDepartureCardLabel(direction: "Haje", metroLine: "C")
+                Spacer()
+            }
         }
     }
-    MetroDepartureCard(
-        backgroundColor: getMetroLineColor("B"))
-    {
-        HStack {
-            MetroDepartureCardLabel(direction: "Černý Most", metroLine: "B")
-            Spacer()
-        }
-    }
-    MetroDepartureCard(
-        backgroundColor: getMetroLineColor("C"))
-    {
-        HStack {
-            MetroDepartureCardLabel(direction: "Haje", metroLine: "C")
-            Spacer()
-        }
-    }
+    .padding(.horizontal, 10)
+    Spacer()
 }
