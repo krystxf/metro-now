@@ -27,8 +27,6 @@
 		2D44868A2BFAA10B005C59CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D4486892BFAA10B005C59CE /* Assets.xcassets */; };
 		2D44868D2BFAA10B005C59CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */; };
 		2D4486902BFAA10B005C59CE /* metro-now-watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D4486832BFAA10A005C59CE /* metro-now-watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		2D65850E2C251761002D7F45 /* StationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D65850D2C251761002D7F45 /* StationDetailView.swift */; };
-		2D6585102C253944002D7F45 /* DetailedMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D65850F2C253944002D7F45 /* DetailedMapView.swift */; };
 		2D9213E92C081D99004A37C2 /* WidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9213E82C081D99004A37C2 /* WidgetView.swift */; };
 		2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */; };
 		2DC639E02BF3CCBC00A72C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2DC639DF2BF3CCBC00A72C7F /* Assets.xcassets */; };
@@ -128,8 +126,6 @@
 		2D4486872BFAA10A005C59CE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2D4486892BFAA10B005C59CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2D44868C2BFAA10B005C59CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2D65850D2C251761002D7F45 /* StationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDetailView.swift; sourceTree = "<group>"; wrapsLines = 0; };
-		2D65850F2C253944002D7F45 /* DetailedMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailedMapView.swift; sourceTree = "<group>"; };
 		2D9213E82C081D99004A37C2 /* WidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetView.swift; sourceTree = "<group>"; };
 		2DC639D82BF3CCBA00A72C7F /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC639DB2BF3CCBA00A72C7F /* metro_nowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = metro_nowApp.swift; sourceTree = "<group>"; };
@@ -188,6 +184,16 @@
 			);
 			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
 		};
+		2D6C8CE22C515802003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DetailedMap.swift,
+				StationDetail.swift,
+				StationDetailMapPreview.swift,
+				StationDetailNavigation.swift,
+			);
+			target = 2DC639D72BF3CCBA00A72C7F /* metro-now */;
+		};
 		2DFD2F2B2C4DC2EC009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -214,6 +220,7 @@
 		2D5BA5DE2C382D6A0055F12A /* MetroDeparture */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D5BA5E22C382D8D0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MetroDeparture; sourceTree = "<group>"; };
 		2D5BA5EA2C382FC30055F12A /* MapAnnotation */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D5BA5EB2C382FEA0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MapAnnotation; sourceTree = "<group>"; };
 		2D6C8CDD2C514882003E09A8 /* Countdown */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D6C8CE02C51488E003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Countdown; sourceTree = "<group>"; };
+		2D6C8CE12C5157FC003E09A8 /* StationDetailView */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D6C8CE22C515802003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StationDetailView; sourceTree = "<group>"; };
 		2DFD2F272C4DC296009C81CC /* API */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2DFD2F2B2C4DC2EC009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2DFD2F432C4DCC37009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = API; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -394,9 +401,8 @@
 		2DC63A062BF4C24C00A72C7F /* Map */ = {
 			isa = PBXGroup;
 			children = (
-				2D65850F2C253944002D7F45 /* DetailedMapView.swift */,
 				2DC63A072BF4C25B00A72C7F /* MapView.swift */,
-				2D65850D2C251761002D7F45 /* StationDetailView.swift */,
+				2D6C8CE12C5157FC003E09A8 /* StationDetailView */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -673,9 +679,7 @@
 				2D1B2C3B2BFAD6CC007ED5EB /* LocationModel.swift in Sources */,
 				2D1B2C422BFAD72C007ED5EB /* jsonUtils.swift in Sources */,
 				2DC639DC2BF3CCBA00A72C7F /* metro_nowApp.swift in Sources */,
-				2D6585102C253944002D7F45 /* DetailedMapView.swift in Sources */,
 				2DF66D982BFD39B000B31FA2 /* test-coordinates.swift in Sources */,
-				2D65850E2C251761002D7F45 /* StationDetailView.swift in Sources */,
 				2D1B2C4F2BFAD8ED007ED5EB /* metroRoutesTypes.swift in Sources */,
 				2D1B2C452BFAD7DB007ED5EB /* mapUtils.swift in Sources */,
 			);

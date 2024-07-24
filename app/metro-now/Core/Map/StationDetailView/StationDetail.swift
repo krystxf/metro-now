@@ -1,6 +1,8 @@
 import MapKit
 import SwiftUI
 
+let MIN_UPDATE_INTERVAL: Double = 1
+
 struct StationDetailView: View {
     let showMap: Bool
     let stationName: String
@@ -8,14 +10,29 @@ struct StationDetailView: View {
     let stationCoordinate: CLLocationCoordinate2D
     let distanceFormatter = MKDistanceFormatter()
     let mapUrl: URL?
+    let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     @State private var isFavourite: Bool = false
     @StateObject private var locationModel = LocationModel()
     @State var distance: Double = -1
     @State private var departures: [String: [ApiDeparture]] = [:]
     @State private var errorMessage: String?
+    @State private var lastUpdate: Date? = nil
 
-    func updateDepartures() async {
+    func updateDepartures(ignoreMinDelay: Bool = false) async {
+        guard ignoreMinDelay || (lastUpdate == nil || lastUpdate!.timeIntervalSinceNow < -MIN_UPDATE_INTERVAL) else {
+            #if DEBUG
+                print("GET blocked - min delay")
+            #endif
+            return
+        }
+
+        #if DEBUG
+            if ignoreMinDelay {
+                print("GET ignored min delay")
+            }
+        #endif
+
         do {
             let departuresArr = try await getDepartures(stations: [stationName])
             let upcomingDeparturesArr = departuresArr.filter {
@@ -28,8 +45,12 @@ struct StationDetailView: View {
                 grouping: upcomingDeparturesArr,
                 by: { $0.platform }
             )
+
+            lastUpdate = .now
         } catch {
-            errorMessage = "Failed to fetch departures: \(error)"
+            #if DEBUG
+                errorMessage = "Failed to fetch departures: \(error)"
+            #endif
         }
     }
 
@@ -55,42 +76,7 @@ struct StationDetailView: View {
     var body: some View {
         ScrollView {
             if showMap {
-                ZStack {
-                    Text("Map")
-                        .hidden()
-                        .frame(height: 150)
-                        .frame(maxWidth: .infinity)
-                }
-                .background(alignment: .bottom) {
-                    TimelineView(.animation) { context in
-                        let seconds = context.date.timeIntervalSince1970
-
-                        DetailedMapView(
-                            location: CLLocation(
-                                latitude: stationCoordinate.latitude,
-                                longitude: stationCoordinate.longitude
-                            ),
-                            distance: 500,
-                            pitch: 30,
-                            heading: seconds * 6
-                        )
-                        .mask {
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .clear, location: 0),
-                                    .init(color: .black.opacity(0.15), location: 0.1),
-                                    .init(color: .black, location: 0.6),
-                                    .init(color: .black, location: 1),
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        }
-                        .padding(.top, -150)
-                    }
-                }
-
-                .ignoresSafeArea(edges: .top)
+                StationDetailMapPreview(stationCoordinate)
             }
 
             VStack(spacing: 20) {
@@ -150,6 +136,11 @@ struct StationDetailView: View {
                     .foregroundColor(isFavourite ? .red : .black)
             }
         }
+        .onReceive(timer) { _ in
+            Task {
+                await updateDepartures()
+            }
+        }
         .onReceive(locationModel.$location) { location in
             guard let location else {
                 print("Unknown location")
@@ -167,17 +158,17 @@ struct StationDetailView: View {
             )
 
             distance = userLocation.distance(from: stationLocation)
-        }
-        .task {
-            await updateDepartures()
-        }
-        .refreshable {
-            await updateDepartures()
+
+            Task {
+                await updateDepartures()
+            }
+        }.refreshable {
+            await updateDepartures(ignoreMinDelay: true)
         }
         .onAppear {
-            //           Task  {
-            //                await updateDepartures()
-            //            }
+            Task {
+                await updateDepartures()
+            }
         }
     }
 }

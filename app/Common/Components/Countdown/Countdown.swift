@@ -14,7 +14,7 @@ struct CountdownIOS18: View {
         Text(
             .currentDate,
             format:
-                    .reference(
+            .reference(
                 to: date,
                 allowedFields: [.second, .minute, .hour],
                 maxFieldCount: 2
@@ -87,7 +87,6 @@ struct Countdown: View {
 #Preview("Hours") {
     Countdown(Date(timeIntervalSinceNow: 10 * 60 * 60))
 }
-
 
 #Preview("Hours in past") {
     Countdown(Date(timeIntervalSinceNow: -1 * 2 * 60 * 60))
