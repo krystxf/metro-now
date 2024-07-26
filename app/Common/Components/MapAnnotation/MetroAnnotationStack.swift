@@ -31,30 +31,3 @@ struct MetroAnnotationStack: View {
         }
     }
 }
-
-#Preview("Two stations annotation") {
-    Map {
-        Annotation(
-            "Random place on map", coordinate: CLLocationCoordinate2D(
-                latitude: 50.113680, longitude: 14.449520)
-        ) {
-            MetroAnnotationStack(
-                metroLines: ["A", "B"]
-            )
-        }
-    }
-}
-
-// this is not very valid for Prague, but might be useful in the future
-#Preview("Multiple stations annotation") {
-    Map {
-        Annotation(
-            "Random place on map", coordinate: CLLocationCoordinate2D(
-                latitude: 50.113680, longitude: 14.449520)
-        ) {
-            MetroAnnotationStack(
-                metroLines: ["A", "B", "C", "A", "B", "C"]
-            )
-        }
-    }
-}

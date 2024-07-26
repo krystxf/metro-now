@@ -18,7 +18,7 @@ struct SmallWidgetView: View {
                 ForEach(0 ..< 2) { index in
                     if entry.departures.count > index {
                         DepartureView(
-                            direction: entry.departures[index].direction,
+                            direction: shortenStopName(entry.departures[index].direction),
                             departureDate: entry.departures[index].departureDate,
                             metroLine: entry.departures[index].metroLine
                         )

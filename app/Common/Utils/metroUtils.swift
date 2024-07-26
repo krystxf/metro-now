@@ -9,6 +9,8 @@ import Foundation
 import MapKit
 import SwiftUI
 
+let METRO_LINES: [String] = ["A", "B", "C"]
+
 enum MetroLine: String {
     case A
     case B
@@ -73,4 +75,20 @@ func getClosestStationFromGeoJSON(location: CLLocation) -> MetroStationsGeoJSONF
     return stations.features[closestStationIndex]
 }
 
-func getSortedStationsByDistance() {}
+func shortenStopName(_ name: String) -> String {
+    if name == "Depo Hostivař" {
+        return "D. Hostivař"
+    } else if name == "Nemocnice Motol" {
+        return "N. Motol"
+    } else if name == "Pražského povstání" {
+        return "P. povstání"
+    }
+
+    let shorten: String = name
+        .replacingOccurrences(of: "Náměstí", with: "Nám.")
+        .replacingOccurrences(of: "náměstí", with: "Nád.")
+        .replacingOccurrences(of: "Nádraží", with: "Nád.")
+        .replacingOccurrences(of: "nádraží", with: "nád.")
+
+    return shorten
+}

@@ -16,6 +16,8 @@ struct MapView: View {
     @State private var stops: [Stop]?
     @State private var visibleStops: [Stop] = []
 
+    @State private var openedAnnotation: String? = nil
+
     var body: some View {
         NavigationStack {
             Map {
@@ -30,24 +32,47 @@ struct MapView: View {
                                 showDirection: true
                             )
                         ) {
-                            MetroAnnotationStack(metroLines: station.metroLines)
+                            StopAnnotation(
+                                routes: station.metroLines
+                            )
                         }
                     }
                 }
 
                 ForEach($visibleStops.wrappedValue, id: \.id) { stop in
-                    Annotation( // stop.name
-                        "",
-                        coordinate: CLLocationCoordinate2D(
-                            latitude: stop.latitude,
-                            longitude: stop.longitude
-                        )
-                    ) {
-                        BusStationAnnotation()
-                            .frame(
-                                width: 4,
-                                height: 4
+                    Annotation(stop.name,
+                               coordinate: CLLocationCoordinate2D(
+                                   latitude: stop.latitude,
+                                   longitude: stop.longitude
+                               )) {
+                
+                            StopAnnotation(
+                                routes: stop.routes.map(\.name)
                             )
+                            .onTapGesture {
+                                openedAnnotation = stop.id
+                            }
+         
+                        .sheet(
+                            isPresented: Binding(
+                                get: { openedAnnotation == stop.id },
+                                set: { newValue in
+                                    if !newValue {
+                                        openedAnnotation = nil
+                                    }
+                                }
+                            ),
+                            onDismiss: {
+                                openedAnnotation = nil
+                            }
+                        ) {
+                            Text(stop.name)
+                                .presentationDetents([ .medium, .large
+                                                     ])
+                                               .presentationDragIndicator(.visible)
+                                               .presentationBackgroundInteraction(.enabled)
+                                               .presentationCornerRadius(32)
+                        }
                     }
                 }
             }
@@ -55,7 +80,6 @@ struct MapView: View {
 
         .onMapCameraChange {
             bounds in
-            print(bounds)
             let region = bounds.region
             guard stops?.count ?? 0 > 0 else {
                 visibleStops = []
@@ -68,6 +92,7 @@ struct MapView: View {
                    element.latitude < region.center.latitude + region.span.latitudeDelta,
                    element.longitude > region.center.longitude - region.span.longitudeDelta,
                    element.longitude < region.center.longitude + region.span.longitudeDelta,
+                   !METRO_LINES.contains(element.routes.first?.name ?? ""),
                    i < 100
                 {
                     i += 1
