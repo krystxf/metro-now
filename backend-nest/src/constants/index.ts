@@ -1,1 +1,1 @@
-export * from "./constants";
+export { GOLEMIO_API, TTL_DEFAULT } from "./constants";
