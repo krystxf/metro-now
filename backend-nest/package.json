@@ -28,12 +28,9 @@
         "@nestjs/schedule": "^4.0.2",
         "@prisma/client": "5.16.1",
         "cache-manager": "^5.6.1",
-        "nest-winston": "^1.10.0",
         "radash": "^12.1.0",
         "reflect-metadata": "^0.2.0",
         "rxjs": "^7.8.1",
-        "winston": "^3.13.0",
-        "winston-daily-rotate-file": "^5.0.0",
         "zod": "^3.23.8"
     },
     "devDependencies": {
