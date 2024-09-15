@@ -2,204 +2,26 @@
 
 Backend gets data from [Golemio API](https://api.golemio.cz/pid/docs/openapi/) caches it and serves it without need to authenticate.
 
-## Metro departures
-
-<br />
-
-```http
-GET https://api.metronow.dev/metro?station=andel
-```
-
-### Query parameters
-
-#### `station` or `platform` (required)
-
-One or more station names or platform ids are required. If both `station` and `platform` are provided, both are used.
-
-##### Station
-
--   station name is case and diacritics insensitive
--   single value, e.g. `Anděl` | `andel`
--   multiple values
-    -   as multiple query parameters, e.g. `station=Anděl&station=Dejvická`
-    -   as a comma-separated list, e.g. `station=[Anděl,Dejvická]`
-    -   as a JSON array, e.g. `station=["Anděl","Dejvická"]`
-
-##### Platform
-
--   platform id is case sensitive
--   ID is `Stop ID` from [Golemio API](https://api.golemio.cz/pid/docs/openapi/#/%F0%9F%A7%BE%20GTFS%20Static/get_gtfs_stops)
--   multiple values are supported in the same way as for `station`
-
-#### `groupBy` (optional)
-
-Returns data as object with keys being the group by value. Possible values:
-
--   `heading` - groups by heading
--   `platform` - groups by platform id
-
-<details>
-  <summary>Example requests</summary>
-```http
-## ONE STATION
-
-GET https://api.metronow.dev/metro?station=Anděl
-
-# Can be also written as:
-
-GET https://api.metronow.dev/metro?station=andel
-
-## MULTIPLE STATIONS
-
-# As multiple query parameters:
-
-GET https://api.metronow.dev/metro?station=Anděl&station=Dejvická
-
-# As a comma-separated list:
-
-GET https://api.metronow.dev/metro?station=[Anděl,Dejvická]
-
-# As a JSON array:
-
-GET https://api.metronow.dev/metro?station=["Anděl","Dejvická"]
-
-````
-</details>
-<details>
-  <summary>Response</summary>
-**Response schema:**
-```json
-[
-    {
-        "delay": "int", // in seconds (can be negative)
-        "departure": "string", // ISO 8601
-        "heading": "string", // last stop
-        "line": "A" | "B" | "C"
-    },
-    ...
-]
-````
-
-**Example response:**
-
-```json
-[
-    {
-        "delay": 10,
-        "departure": "2024-06-18T04:45:25+02:00",
-        "heading": "Černý Most",
-        "line": "B"
-    }
-]
-```
-
-**Response schema with `groupBy`:**
-
-```json
-{
-    [platform id | heading]: [
-        {
-            "delay": "int", // in seconds (can be negative)
-            "departure": "string", // ISO 8601
-            "heading": "string", // last stop
-            "line": "A" | "B" | "C"
-        }
-    ],
-    [platform id | heading]: [
-        ...
-    ]
-}
-```
-
-**Example response with `groupBy`:**
-
-```json
-{
-    "U458Z102P": [
-        {
-            "delay": 10,
-            "departure": "2024-06-18T04:45:25+02:00",
-            "heading": "Černý Most",
-            "line": "B"
-        }
-    ]
-}
-```
-
-</details>
-
-<details>
-    <summary>List of all stations</summary>
-    <li>Anděl</li>
-    <li>Bořislavka</li>
-    <li>Budějovická</li>
-    <li>Černý Most</li>
-    <li>Českomoravská</li>
-    <li>Dejvická</li>
-    <li>Depo Hostivař</li>
-    <li>Flora</li>
-    <li>Florenc</li>
-    <li>Háje</li>
-    <li>Hlavní nádraží</li>
-    <li>Hloubětí</li>
-    <li>Hradčanská</li>
-    <li>Hůrka</li>
-    <li>Chodov</li>
-    <li>I. P. Pavlova</li>
-    <li>Invalidovna</li>
-    <li>Jinonice</li>
-    <li>Jiřího z Poděbrad</li>
-    <li>Kačerov</li>
-    <li>Karlovo náměstí</li>
-    <li>Kobylisy</li>
-    <li>Kolbenova</li>
-    <li>Křižíkova</li>
-    <li>Ládví</li>
-    <li>Letňany</li>
-    <li>Luka</li>
-    <li>Lužiny</li>
-    <li>Malostranská</li>
-    <li>Můstek</li>
-    <li>Muzeum</li>
-    <li>Nádraží Holešovice</li>
-    <li>Nádraží Veleslaví</li>
-    <li>Náměstí Míru</li>
-    <li>Náměstí Republiky</li>
-    <li>Národní třída</li>
-    <li>Nemocnice Motol</li>
-    <li>Nové Butovice</li>
-    <li>Opatov</li>
-    <li>Palmovka</li>
-    <li>Pankrác</li>
-    <li>Petřiny</li>
-    <li>Pražského povstání</li>
-    <li>Prosek</li>
-    <li>Radlická</li>
-    <li>Rajská zahrada</li>
-    <li>Roztyly</li>
-    <li>Skalka</li>
-    <li>Smíchovské nádraží</li>
-    <li>Staroměstská</li>
-    <li>Stodůlky</li>
-    <li>Strašnická</li>
-    <li>Střížkov</li>
-    <li>Vltavská</li>
-    <li>Vysočanská</li>
-    <li>Vyšehrad</li>
-    <li>Zličí</li>
-    <li>Želivského</li>
-</details>
-
-## Public transport stops
-
-### Get all stops
-
 ```http
 GET https://api.metronow.dev/stop/all
 ```
 
-## Get stops inside bounding box
+> All stops
+
+🚧 WIP
 
 ```http
-GET https://api.metronow.dev/stop?latitude=[48,52]&longitude=[14,15]
+GET https://api.metronow.dev/stop/in-box?latitudes=50.1&longitudes=14.4&latitudes=50.2&longitudes=14.5
 ```
+
+> Stops inside bounding box
+
+🚧 WIP
+
+```http
+GET https://api.metronow.dev/departure/platform?platform=U1000Z1&platform=U1000Z12
+```
+
+> Departures from platforms
+
+🚧 WIP

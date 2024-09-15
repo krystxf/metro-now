@@ -1,7 +1,22 @@
 {
     "name": "metro-now",
     "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
-    "license": "MPL-2.0",
+    "scripts": {
+        "build": "pnpm --recursive --parallel run build",
+        "dev": "pnpm --recursive --parallel run dev",
+        "backend:build": "pnpm run build --filter @metro-now/backend-nest",
+        "backend:dev": "pnpm run dev --filter @metro-now/backend-nest",
+        "precommit": "pnpm format",
+        "format": "pnpm format:swift && pnpm format:prettier",
+        "format:check": "pnpm format:swift:check && pnpm format:prettier:check",
+        "format:swift": "swiftformat .",
+        "format:prettier": "pnpm exec prettier . --write",
+        "format:swift:check": "swiftformat . --lint",
+        "format:prettier:check": "pnpm exec prettier . --check"
+    },
+    "devDependencies": {
+        "prettier": "^3.2.5"
+    },
     "homepage": "https://metro-now.vercel.app/",
     "repository": {
         "type": "git",
@@ -14,17 +29,5 @@
         "name": "Krystof Kratky",
         "url": "https://github.com/krystxf",
         "email": "krystof.kratky2003@gmail.com"
-    },
-    "scripts": {
-        "precommit": "pnpm format",
-        "format": "pnpm format:swift && pnpm format:prettier",
-        "format:check": "pnpm format:swift:check && pnpm format:prettier:check",
-        "format:swift": "swiftformat .",
-        "format:prettier": "pnpm exec prettier . --write",
-        "format:swift:check": "swiftformat . --lint",
-        "format:prettier:check": "pnpm exec prettier . --check"
-    },
-    "devDependencies": {
-        "prettier": "^3.2.5"
     }
 }

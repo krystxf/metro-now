@@ -8,6 +8,7 @@ cp .env.docker.example .env.docker
 
 
 ## production
+cp ../pnpm-lock.yaml ./
 docker compose up
 
 

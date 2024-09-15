@@ -45,14 +45,13 @@ struct MapView: View {
                                    latitude: stop.latitude,
                                    longitude: stop.longitude
                                )) {
-                
-                            StopAnnotation(
-                                routes: stop.routes.map(\.name)
-                            )
-                            .onTapGesture {
-                                openedAnnotation = stop.id
-                            }
-         
+                        StopAnnotation(
+                            routes: stop.routes.map(\.name)
+                        )
+                        .onTapGesture {
+                            openedAnnotation = stop.id
+                        }
+
                         .sheet(
                             isPresented: Binding(
                                 get: { openedAnnotation == stop.id },
@@ -67,11 +66,10 @@ struct MapView: View {
                             }
                         ) {
                             Text(stop.name)
-                                .presentationDetents([ .medium, .large
-                                                     ])
-                                               .presentationDragIndicator(.visible)
-                                               .presentationBackgroundInteraction(.enabled)
-                                               .presentationCornerRadius(32)
+                                .presentationDetents([.medium, .large])
+                                .presentationDragIndicator(.visible)
+                                .presentationBackgroundInteraction(.enabled)
+                                .presentationCornerRadius(32)
                         }
                     }
                 }
