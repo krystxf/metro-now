@@ -73,12 +73,8 @@ export class StopService {
     async syncStops(): Promise<void> {
         console.log("Syncing stops and routes");
 
-        const res = await fetch(
-            new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json"),
-            {
-                method: "GET",
-            },
-        );
+        const url = new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json");
+        const res = await fetch(url, { method: "GET" });
         const raw = await res.json();
         const parsed = pidStopsSchema.safeParse(raw);
 

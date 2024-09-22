@@ -9,7 +9,7 @@ import { PrismaService } from "../../database/prisma.service";
 import { CacheTTL } from "@nestjs/cache-manager";
 import { StopService } from "./stop.service";
 import { stopSchema, type StopSchema } from "./schema/stop.schema";
-import { Cron } from "@nestjs/schedule";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { boundingBoxSchema } from "../../schema/bounding-box.schema";
 
 @CacheTTL(0)
@@ -24,7 +24,7 @@ export class StopController implements OnModuleInit {
         await this.stopService.syncStops();
     }
 
-    @Cron("0 3 */2 * *")
+    @Cron(CronExpression.EVERY_7_HOURS)
     async syncStops(): Promise<void> {
         await this.stopService.syncStops();
     }

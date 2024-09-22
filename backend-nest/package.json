@@ -18,7 +18,8 @@
         "prisma:studio": "pnpm dlx prisma studio",
         "prisma:generate": "pnpm dlx prisma generate",
         "prisma:migrate": "pnpm dlx prisma migrate dev",
-        "prisma:push": "pnpm dlx dotenv-cli -e .env.local -- pnpm dlx prisma db push"
+        "prisma:push": "pnpm dlx dotenv-cli -e .env.local -- pnpm dlx prisma db push",
+        "db:start":"docker compose -f compose.postgres.yaml up"
     },
     "dependencies": {
         "@nestjs/cache-manager": "^2.2.2",
@@ -74,5 +75,8 @@
         ],
         "coverageDirectory": "../coverage",
         "testEnvironment": "node"
+    },
+    "prisma":{
+        
     }
 }

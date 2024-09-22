@@ -23,7 +23,7 @@ export const pidStopsSchema = z.object({
                 is_night: z.string(),
                 is_regional: z.string(),
                 route_type: z.string(),
-                zones_id: z.string(),
+                zones_id: z.unknown(),
                 on_request: z.unknown(),
                 validity: z.string(),
             }),
