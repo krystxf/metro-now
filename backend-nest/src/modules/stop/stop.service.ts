@@ -9,12 +9,14 @@ import type { BoundingBox } from "../../schema/bounding-box.schema";
 import { minMax } from "src/utils/math";
 import { Prisma } from "@prisma/client";
 import { StopWithDistanceSchema } from "./schema/stop-with-distance.schema";
+import { METRO_LINES } from "src/utils/metro.utils";
 
 export const stopSelect = {
     id: true,
     latitude: true,
     longitude: true,
     name: true,
+    isMetro: true,
     routes: {
         select: {
             route: {
@@ -143,11 +145,16 @@ export class StopService {
                 const routeIDs = properties.routes_id?.split(",") ?? [];
                 const routeNames = properties.routes_names?.split(",") ?? [];
 
+                const isMetro = routeNames.some((routeName) =>
+                    METRO_LINES.includes(routeName),
+                );
+
                 return {
                     latitude,
                     longitude,
                     id: properties.stop_id,
                     name: properties.stop_name,
+                    isMetro,
                     routes: routeIDs.map((id, index) => ({
                         id,
                         name: routeNames[index],
@@ -185,6 +192,7 @@ export class StopService {
                 data: stops.map((stop) => ({
                     id: stop.id,
                     name: stop.name,
+                    isMetro: stop.isMetro,
                     latitude: stop.latitude,
                     longitude: stop.longitude,
                 })),

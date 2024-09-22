@@ -14,8 +14,9 @@ datasource db {
 }
 
 model Stop {
-  id   String @id @map("id")
-  name String
+  id      String  @id @map("id")
+  name    String
+  isMetro Boolean
 
   latitude  Float
   longitude Float
