@@ -40,10 +40,12 @@ export class StopService {
         latitude,
         longitude,
         count,
+        metroOnly,
     }: {
         latitude: number;
         longitude: number;
         count: number;
+        metroOnly: boolean;
     }): Promise<StopWithDistanceSchema[]> {
         const res = await this.prisma.$transaction(async (transaction) => {
             const stopsWithDistance = await this.prisma.$queryRaw<
@@ -56,6 +58,7 @@ export class StopService {
                         ll_to_earth(${latitude}, ${longitude})
                     ) AS "distance"
                 FROM "Stop"
+                ${metroOnly ? Prisma.sql`WHERE "Stop"."isMetro" = true` : Prisma.empty}
                 ORDER BY "distance"
                 LIMIT ${count}
             `;

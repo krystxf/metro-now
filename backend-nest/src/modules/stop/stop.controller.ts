@@ -43,6 +43,8 @@ export class StopController implements OnModuleInit {
         longitudeQuery: unknown,
         @Query("count")
         countQuery: unknown,
+        @Query("metroOnly")
+        metroOnlyQuery: unknown,
     ): Promise<StopWithDistanceSchema[]> {
         const schema = z.object({
             latitude: z.coerce.number(),
@@ -68,6 +70,7 @@ export class StopController implements OnModuleInit {
             latitude,
             longitude,
             count,
+            metroOnly: Boolean(metroOnlyQuery),
         });
 
         return stopWithDistanceSchema.array().parse(stops);
