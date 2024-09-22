@@ -7,7 +7,8 @@ import { pidStopsSchema } from "./schema/pid-stops.schema";
 import { StopSchema } from "./schema/stop.schema";
 import type { BoundingBox } from "../../schema/bounding-box.schema";
 import { minMax } from "src/utils/math";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { StopWithDistanceSchema } from "./schema/stop-with-distance.schema";
 
 export const stopSelect = {
     id: true,
@@ -32,6 +33,57 @@ export class StopService {
         private prisma: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager,
     ) {}
+
+    async getClosestStops({
+        latitude,
+        longitude,
+        count,
+    }: {
+        latitude: number;
+        longitude: number;
+        count: number;
+    }): Promise<StopWithDistanceSchema[]> {
+        const res = await this.prisma.$transaction(async (transaction) => {
+            const stopsWithDistance = await this.prisma.$queryRaw<
+                { id: string; distance: number }[]
+            >`
+                SELECT 
+                    "Stop"."id",
+                    earth_distance(
+                        ll_to_earth("Stop"."latitude", "Stop"."longitude"),
+                        ll_to_earth(${latitude}, ${longitude})
+                    ) AS "distance"
+                FROM "Stop"
+                ORDER BY "distance"
+                LIMIT ${count}
+            `;
+
+            const distanceByStopID = Object.fromEntries(
+                stopsWithDistance.map(({ id, distance }) => [id, distance]),
+            );
+
+            const stops = await transaction.stop.findMany({
+                select: stopSelect,
+                where: {
+                    id: {
+                        in: stopsWithDistance.map((stop) => stop.id),
+                    },
+                },
+            });
+
+            return stops
+                .map((stop) => ({
+                    ...stop,
+                    distance: distanceByStopID[stop.id],
+                }))
+                .sort((a, b) => a.distance - b.distance);
+        });
+
+        return res.map((stop) => ({
+            ...stop,
+            routes: stop.routes.map(({ route }) => route),
+        }));
+    }
 
     async getStopsInBoundingBox(
         boundingBox: BoundingBox,
