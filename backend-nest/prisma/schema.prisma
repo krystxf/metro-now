@@ -33,8 +33,10 @@ model Stop {
 }
 
 model Route {
-  id   String @id @map("id")
-  name String
+  id          String       @id @map("id")
+  name        String
+  vehicleType VehicleType?
+  isNight     Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,4 +57,13 @@ model StopsOnRoutes {
   updatedAt DateTime @updatedAt
 
   @@id([stopId, routeId])
+}
+
+enum VehicleType {
+  METRO
+  BUS
+  TRAM
+  TRAIN
+  FERRY
+  FUNICULAR
 }
