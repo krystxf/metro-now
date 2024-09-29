@@ -12,7 +12,7 @@ export class StopController {
         @Query("metroOnly")
         metroOnlyQuery: unknown,
     ) {
-        const metroOnly = Boolean(metroOnlyQuery);
+        const metroOnly: boolean = metroOnlyQuery === "true";
         const stops = await this.stopService.getAll({ metroOnly });
 
         return stops;

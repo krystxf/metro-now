@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const pidStopsSchema = z.object({
+export const pidPlatformsSchema = z.object({
     type: z.literal("FeatureCollection"),
     name: z.string(),
     features: z
@@ -31,4 +31,4 @@ export const pidStopsSchema = z.object({
         .array(),
 });
 
-export type PidStopsSchema = z.infer<typeof pidStopsSchema>;
+export type PidPlatformsSchema = z.infer<typeof pidPlatformsSchema>;

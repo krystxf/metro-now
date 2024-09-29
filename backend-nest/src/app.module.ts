@@ -13,6 +13,8 @@ import { DepartureController } from "./modules/departure/departure.controller";
 import { DepartureService } from "./modules/departure/departure.service";
 import { StopService } from "./modules/stop/stop.service";
 import { StopController } from "./modules/stop/stop.controller";
+import { ImportController } from "./modules/import/import.controller";
+import { ImportService } from "./modules/import/import.service";
 
 @Module({
     imports: [
@@ -28,6 +30,7 @@ import { StopController } from "./modules/stop/stop.controller";
         PlatformController,
         DepartureController,
         StopController,
+        ImportController,
     ],
     providers: [
         AppService,
@@ -35,6 +38,7 @@ import { StopController } from "./modules/stop/stop.controller";
         PlatformService,
         DepartureService,
         StopService,
+        ImportService,
         {
             provide: APP_INTERCEPTOR,
             useClass: CacheInterceptor,

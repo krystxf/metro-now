@@ -13,15 +13,20 @@ import {
     type DepartureSchema,
 } from "./schema/departure.schema";
 import { CacheTTL } from "@nestjs/cache-manager";
+import { QUERY_IDS_COUNT_MAX } from "src/constants/constants";
 
 @CacheTTL(5)
 @Controller("departure")
 export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
 
-    @Get("/stop")
+    @Get("/platform")
     async getDeparturesByPlatform(@Query("id") id): Promise<DepartureSchema[]> {
-        const platformSchema = z.string().array().min(1).max(20);
+        const platformSchema = z
+            .string()
+            .array()
+            .min(1)
+            .max(QUERY_IDS_COUNT_MAX);
         const parsed = platformSchema.safeParse(toArray(id));
 
         if (!parsed.success) {

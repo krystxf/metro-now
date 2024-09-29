@@ -3,13 +3,11 @@ import {
     Get,
     HttpException,
     HttpStatus,
-    OnModuleInit,
     Query,
 } from "@nestjs/common";
 import { CacheTTL } from "@nestjs/cache-manager";
 import { PlatformService } from "./platform.service";
 import { stopSchema, type StopSchema } from "./schema/stop.schema";
-import { Cron, CronExpression } from "@nestjs/schedule";
 import { boundingBoxSchema } from "../../schema/bounding-box.schema";
 import { z } from "zod";
 import {
@@ -19,24 +17,15 @@ import {
 
 @CacheTTL(0)
 @Controller("platform")
-export class PlatformController implements OnModuleInit {
+export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
-
-    async onModuleInit() {
-        await this.platformService.syncStops();
-    }
-
-    @Cron(CronExpression.EVERY_7_HOURS)
-    async syncStops(): Promise<void> {
-        await this.platformService.syncStops();
-    }
 
     @Get("/all")
     async getAllStops(
         @Query("metroOnly")
         metroOnlyQuery: unknown,
     ): Promise<StopSchema[]> {
-        const metroOnly = Boolean(metroOnlyQuery);
+        const metroOnly: boolean = metroOnlyQuery === "true";
         const stops = await this.platformService.getAllPlatforms({ metroOnly });
 
         return stopSchema.array().parse(stops);
@@ -53,11 +42,11 @@ export class PlatformController implements OnModuleInit {
         @Query("metroOnly")
         metroOnlyQuery: unknown,
     ): Promise<StopWithDistanceSchema[]> {
-        const metroOnly = Boolean(metroOnlyQuery);
+        const metroOnly: boolean = metroOnlyQuery === "true";
         const schema = z.object({
             latitude: z.coerce.number(),
             longitude: z.coerce.number(),
-            count: z.coerce.number().int().positive().max(100).default(20),
+            count: z.coerce.number().int().positive().min(1).default(20),
         });
 
         const parsed = schema.safeParse({
@@ -93,7 +82,7 @@ export class PlatformController implements OnModuleInit {
         @Query("metroOnly")
         metroOnlyQuery: unknown,
     ): Promise<StopSchema[]> {
-        const metroOnly = Boolean(metroOnlyQuery);
+        const metroOnly: boolean = metroOnlyQuery === "true";
 
         const parsed = boundingBoxSchema.safeParse({
             latitude,
