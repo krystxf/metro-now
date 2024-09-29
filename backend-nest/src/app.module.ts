@@ -6,11 +6,13 @@ import { ConfigModule } from "@nestjs/config";
 import { TTL_DEFAULT } from "./constants/constants";
 import { ScheduleModule } from "@nestjs/schedule";
 import { PrismaService } from "./database/prisma.service";
-import { StopController } from "./modules/stop/stop.controller";
+import { PlatformController } from "./modules/platform/platform.controller";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { StopService } from "./modules/stop/stop.service";
+import { PlatformService } from "./modules/platform/platform.service";
 import { DepartureController } from "./modules/departure/departure.controller";
 import { DepartureService } from "./modules/departure/departure.service";
+import { StopService } from "./modules/stop/stop.service";
+import { StopController } from "./modules/stop/stop.controller";
 
 @Module({
     imports: [
@@ -21,12 +23,18 @@ import { DepartureService } from "./modules/departure/departure.service";
             ttl: TTL_DEFAULT,
         }),
     ],
-    controllers: [AppController, StopController, DepartureController],
+    controllers: [
+        AppController,
+        PlatformController,
+        DepartureController,
+        StopController,
+    ],
     providers: [
         AppService,
         PrismaService,
-        StopService,
+        PlatformService,
         DepartureService,
+        StopService,
         {
             provide: APP_INTERCEPTOR,
             useClass: CacheInterceptor,

@@ -14,7 +14,20 @@ datasource db {
 }
 
 model Stop {
-  id      String  @id @map("id")
+  id   String @id
+  name String
+
+  avgLatitude  Float
+  avgLongitude Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  platforms Platform[]
+}
+
+model Platform {
+  id      String  @id
   name    String
   isMetro Boolean
 
@@ -24,31 +37,29 @@ model Stop {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  routes StopsOnRoutes[]
+  routes PlatformsOnRoutes[]
 
-  @@index([name])
-  @@index([latitude])
-  @@index([longitude])
-  @@index([latitude, longitude])
+  stop   Stop?   @relation(fields: [stopId], references: [id])
+  stopId String?
 }
 
 model Route {
-  id          String       @id @map("id")
-  name        String
+  id   String @id
+  name String
+
   vehicleType VehicleType?
   isNight     Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  stops StopsOnRoutes[]
-
-  @@index([name])
+  stops PlatformsOnRoutes[]
 }
 
-model StopsOnRoutes {
-  stop   Stop   @relation(fields: [stopId], references: [id])
-  stopId String
+model PlatformsOnRoutes {
+  id         String   @id @default(uuid())
+  platform   Platform @relation(fields: [platformId], references: [id])
+  platformId String
 
   route   Route  @relation(fields: [routeId], references: [id])
   routeId String
@@ -56,7 +67,7 @@ model StopsOnRoutes {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@id([stopId, routeId])
+  @@unique([platformId, routeId])
 }
 
 enum VehicleType {
