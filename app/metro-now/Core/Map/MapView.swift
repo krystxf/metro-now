@@ -91,7 +91,7 @@ struct MapView: View {
                    element.longitude > region.center.longitude - region.span.longitudeDelta,
                    element.longitude < region.center.longitude + region.span.longitudeDelta,
                    !METRO_LINES.contains(element.routes.first?.name ?? ""),
-                   i < 100
+                   i < 500
                 {
                     i += 1
                     return element
