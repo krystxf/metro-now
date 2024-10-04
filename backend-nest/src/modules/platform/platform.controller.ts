@@ -6,18 +6,19 @@ import {
     Query,
 } from "@nestjs/common";
 import { CacheTTL } from "@nestjs/cache-manager";
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { z } from "zod";
+
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
     platformSchema,
     type PlatformSchema,
 } from "src/modules/platform/schema/platform.schema";
 import { boundingBoxSchema } from "src/schema/bounding-box.schema";
-import { z } from "zod";
 import {
     platformWithDistanceSchema,
     PlatformWithDistanceSchema,
 } from "src/modules/platform/schema/platform-with-distance.schema";
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import {
     boundingBoxQuery,
     latitudeQuery,
