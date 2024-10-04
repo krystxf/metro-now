@@ -7,10 +7,14 @@ import {
     SWAGGER_TITLE,
     SWAGGER_API_ROOT,
     SWAGGER_VERSION,
-} from "./swagger";
+} from "./swagger/swagger.const";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+
+    if (process.env.GOLEMIO_API_KEY === undefined) {
+        throw new Error("GOLEMIO_API_KEY is not set");
+    }
 
     const config = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
