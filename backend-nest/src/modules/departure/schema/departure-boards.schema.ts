@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { infoTextSchema } from "./info-text.schema";
+import { infoTextSchema } from "src/modules/departure/schema/info-text.schema";
 import { timestampSchema } from "src/schema/timestamp.schema";
 import { delaySchema } from "src/schema/delay.schema";
 

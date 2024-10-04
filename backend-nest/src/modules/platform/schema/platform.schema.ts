@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const stopSchema = z.object({
+export const platformSchema = z.object({
     id: z.string(),
     latitude: z.number(),
     longitude: z.number(),
@@ -13,4 +13,4 @@ export const stopSchema = z.object({
         .array(),
 });
 
-export type StopSchema = z.infer<typeof stopSchema>;
+export type PlatformSchema = z.infer<typeof platformSchema>;

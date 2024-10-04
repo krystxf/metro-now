@@ -6,8 +6,11 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import {
     pidPlatformsSchema,
     type PidPlatformsSchema,
-} from "./schema/pid-platforms.schema";
-import { pidStopsSchema, type PidStopsSchema } from "./schema/pid-stops.schema";
+} from "src/modules/import/schema/pid-platforms.schema";
+import {
+    pidStopsSchema,
+    type PidStopsSchema,
+} from "src/modules/import/schema/pid-stops.schema";
 import { metroLine } from "src/enums/metro.enum";
 
 @Injectable()
@@ -149,7 +152,7 @@ export class ImportService {
         const platforms = platformsData.features
             .map((stop) => {
                 const properties = stop.properties;
-                const [longitude, latitude] = stop.geometry.coordinates;
+                const [latitude, longitude] = stop.geometry.coordinates;
 
                 const routeIDs = properties.routes_id?.split(",") ?? [];
                 const routeNames = properties?.routes_names?.split(",") ?? [];

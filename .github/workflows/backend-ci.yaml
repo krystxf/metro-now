@@ -44,3 +44,8 @@ jobs:
               run: |
                   cd backend-nest
                   pnpm lint
+
+            - name: Types check
+              run: |
+                  cd backend-nest
+                  pnpm types:check

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/database/prisma.service";
-import { platformSelect } from "../platform/platform.service";
+import { platformSelect } from "src/modules/platform/platform.service";
 
 export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
     return {
@@ -11,9 +11,7 @@ export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
         avgLongitude: true,
         platforms: {
             select: platformSelect,
-            where: {
-                isMetro: metroOnly ? true : undefined,
-            },
+            where: metroOnly ? { isMetro: true } : {},
         },
     } satisfies Prisma.StopSelect;
 };
