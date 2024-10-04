@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 
-import { StopController } from "./stop.controller";
-import { StopService } from "./stop.service";
+import { StopController } from "src/modules/stop/stop.controller";
+import { StopService } from "src/modules/stop/stop.service";
 
 @Module({
     controllers: [StopController],

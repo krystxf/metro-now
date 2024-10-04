@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { GOLEMIO_API } from "src/constants";
-import type { DepartureSchema } from "./schema/departure.schema";
-import { departureBoardsSchema } from "./schema/departure-boards.schema";
+import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
+import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import { getDelayInSeconds } from "src/utils/delay";
 import { PrismaService } from "src/database/prisma.service";
 

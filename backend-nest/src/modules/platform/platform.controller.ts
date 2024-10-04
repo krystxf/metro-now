@@ -6,14 +6,17 @@ import {
     Query,
 } from "@nestjs/common";
 import { CacheTTL } from "@nestjs/cache-manager";
-import { PlatformService } from "./platform.service";
-import { platformSchema, type PlatformSchema } from "./schema/platform.schema";
-import { boundingBoxSchema } from "../../schema/bounding-box.schema";
+import { PlatformService } from "src/modules/platform/platform.service";
+import {
+    platformSchema,
+    type PlatformSchema,
+} from "src/modules/platform/schema/platform.schema";
+import { boundingBoxSchema } from "src/schema/bounding-box.schema";
 import { z } from "zod";
 import {
     platformWithDistanceSchema,
     PlatformWithDistanceSchema,
-} from "./schema/platform-with-distance.schema";
+} from "src/modules/platform/schema/platform-with-distance.schema";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import {
     boundingBoxQuery,
@@ -35,14 +38,21 @@ export class PlatformController {
         summary: "List of all platforms",
     })
     @ApiQuery(metroOnlyQuery)
-    async getAllPlatforms(
-        @Query("metroOnly")
-        metroOnlyQuery: unknown,
-    ): Promise<PlatformSchema[]> {
-        const metroOnly: boolean = metroOnlyQuery === "true";
-        const platforms = await this.platformService.getAllPlatforms({
-            metroOnly,
+    async getAllPlatforms(@Query() query): Promise<PlatformSchema[]> {
+        const schema = z.object({
+            metroOnly: metroOnlySchema,
         });
+        const parsed = schema.safeParse(query);
+        if (!parsed.success) {
+            throw new HttpException(
+                parsed.error.format(),
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        const platforms = await this.platformService.getAllPlatforms(
+            parsed.data,
+        );
 
         return platformSchema.array().parse(platforms);
     }
@@ -83,7 +93,7 @@ Sort platforms by distance to a given location. Location may be saved in logs.
 
         if (!parsed.success) {
             throw new HttpException(
-                "Invalid query params",
+                parsed.error.format(),
                 HttpStatus.BAD_REQUEST,
             );
         }

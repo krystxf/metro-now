@@ -1,4 +1,4 @@
-import { min, max, minMax } from "./math";
+import { min, max, minMax } from "src/utils/math";
 
 describe("min", () => {
     it("should support single value", () => {

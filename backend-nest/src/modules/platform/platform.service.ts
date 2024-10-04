@@ -2,11 +2,11 @@ import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma.service";
 
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { PlatformSchema } from "./schema/platform.schema";
-import type { BoundingBox } from "../../schema/bounding-box.schema";
+import { PlatformSchema } from "src/modules/platform/schema/platform.schema";
+import type { BoundingBox } from "src/schema/bounding-box.schema";
 import { minMax } from "src/utils/math";
 import { Prisma } from "@prisma/client";
-import { PlatformWithDistanceSchema } from "./schema/platform-with-distance.schema";
+import { PlatformWithDistanceSchema } from "src/modules/platform/schema/platform-with-distance.schema";
 
 export const platformSelect = {
     id: true,

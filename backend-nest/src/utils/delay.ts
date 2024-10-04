@@ -1,4 +1,4 @@
-import { delaySchema, type DelaySchema } from "../schema/delay.schema";
+import { delaySchema, type DelaySchema } from "src/schema/delay.schema";
 
 export const getDelayInSeconds = (delay: DelaySchema): number => {
     const parsed = delaySchema.safeParse(delay);

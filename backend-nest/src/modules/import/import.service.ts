@@ -6,8 +6,11 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import {
     pidPlatformsSchema,
     type PidPlatformsSchema,
-} from "./schema/pid-platforms.schema";
-import { pidStopsSchema, type PidStopsSchema } from "./schema/pid-stops.schema";
+} from "src/modules/import/schema/pid-platforms.schema";
+import {
+    pidStopsSchema,
+    type PidStopsSchema,
+} from "src/modules/import/schema/pid-stops.schema";
 import { metroLine } from "src/enums/metro.enum";
 
 @Injectable()

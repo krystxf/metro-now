@@ -1,6 +1,6 @@
 import { Controller, OnModuleInit } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { ImportService } from "./import.service";
+import { ImportService } from "src/modules/import/import.service";
 
 @Controller("import")
 export class ImportController implements OnModuleInit {
