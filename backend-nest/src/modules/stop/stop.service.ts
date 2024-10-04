@@ -11,9 +11,7 @@ export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
         avgLongitude: true,
         platforms: {
             select: platformSelect,
-            where: {
-                isMetro: metroOnly ? true : undefined,
-            },
+            where: metroOnly ? { isMetro: true } : {},
         },
     } satisfies Prisma.StopSelect;
 };

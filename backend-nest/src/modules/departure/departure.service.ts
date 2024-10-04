@@ -1,17 +1,13 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { GOLEMIO_API } from "src/constants";
 import type { DepartureSchema } from "./schema/departure.schema";
 import { departureBoardsSchema } from "./schema/departure-boards.schema";
 import { getDelayInSeconds } from "src/utils/delay";
 import { PrismaService } from "src/database/prisma.service";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 @Injectable()
 export class DepartureService {
-    constructor(
-        private prisma: PrismaService,
-        @Inject(CACHE_MANAGER) private cacheManager,
-    ) {}
+    constructor(private prisma: PrismaService) {}
 
     async getDeparturesByPlatform(
         requestedIds: string[],
@@ -56,7 +52,7 @@ export class DepartureService {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "X-Access-Token": process.env.GOLEMIO_API_KEY,
+                "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
             },
         });
         if (!res.ok) {

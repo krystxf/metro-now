@@ -108,7 +108,7 @@ export class PlatformService {
                     gte: longitude.min,
                     lte: longitude.max,
                 },
-                isMetro: metroOnly ? true : undefined,
+                ...(metroOnly ? { isMetro: true } : {}),
             },
         });
 
@@ -125,7 +125,7 @@ export class PlatformService {
     }): Promise<StopSchema[]> {
         const platforms = await this.prisma.platform.findMany({
             select: platformSelect,
-            where: { isMetro: metroOnly ? true : undefined },
+            where: metroOnly ? { isMetro: true } : {},
         });
 
         return platforms.map((platform) => ({
