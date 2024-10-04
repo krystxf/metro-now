@@ -1,7 +1,5 @@
 import { Module } from "@nestjs/common";
 import { CacheInterceptor, CacheModule } from "@nestjs/cache-manager";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { ConfigModule } from "@nestjs/config";
 import { TTL_DEFAULT } from "./constants/constants";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -26,14 +24,12 @@ import { ImportService } from "./modules/import/import.service";
         }),
     ],
     controllers: [
-        AppController,
         PlatformController,
         DepartureController,
         StopController,
         ImportController,
     ],
     providers: [
-        AppService,
         PrismaService,
         PlatformService,
         DepartureService,
