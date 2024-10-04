@@ -149,7 +149,7 @@ export class ImportService {
         const platforms = platformsData.features
             .map((stop) => {
                 const properties = stop.properties;
-                const [longitude, latitude] = stop.geometry.coordinates;
+                const [latitude, longitude] = stop.geometry.coordinates;
 
                 const routeIDs = properties.routes_id?.split(",") ?? [];
                 const routeNames = properties?.routes_names?.split(",") ?? [];
