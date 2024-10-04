@@ -2,11 +2,11 @@ import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma.service";
 
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { StopSchema } from "./schema/stop.schema";
+import { PlatformSchema } from "./schema/platform.schema";
 import type { BoundingBox } from "../../schema/bounding-box.schema";
 import { minMax } from "src/utils/math";
 import { Prisma } from "@prisma/client";
-import { StopWithDistanceSchema } from "./schema/stop-with-distance.schema";
+import { PlatformWithDistanceSchema } from "./schema/platform-with-distance.schema";
 
 export const platformSelect = {
     id: true,
@@ -33,7 +33,7 @@ export class PlatformService {
         @Inject(CACHE_MANAGER) private cacheManager,
     ) {}
 
-    async getClosestStops({
+    async getPlatformsByDistance({
         latitude,
         longitude,
         count,
@@ -43,7 +43,7 @@ export class PlatformService {
         longitude: number;
         count: number;
         metroOnly: boolean;
-    }): Promise<StopWithDistanceSchema[]> {
+    }): Promise<PlatformWithDistanceSchema[]> {
         const res = await this.prisma.$transaction(async (transaction) => {
             const platformsWithDistance = await this.prisma.$queryRaw<
                 { id: string; distance: number }[]
@@ -57,10 +57,10 @@ export class PlatformService {
                 FROM "Platform"
                 ${metroOnly ? Prisma.sql`WHERE "Platform"."isMetro" = true` : Prisma.empty}
                 ORDER BY "distance"
-                LIMIT ${count}
+                ${count ? Prisma.sql`LIMIT ${count}` : Prisma.empty}
             `;
 
-            const distanceByStopID = Object.fromEntries(
+            const distanceByPlatformID = Object.fromEntries(
                 platformsWithDistance.map(({ id, distance }) => [id, distance]),
             );
 
@@ -68,15 +68,17 @@ export class PlatformService {
                 select: platformSelect,
                 where: {
                     id: {
-                        in: platformsWithDistance.map((stop) => stop.id),
+                        in: platformsWithDistance.map(
+                            (platform) => platform.id,
+                        ),
                     },
                 },
             });
 
             return platforms
-                .map((stop) => ({
-                    ...stop,
-                    distance: distanceByStopID[stop.id],
+                .map((platform) => ({
+                    ...platform,
+                    distance: distanceByPlatformID[platform.id],
                 }))
                 .sort((a, b) => a.distance - b.distance);
         });
@@ -93,7 +95,7 @@ export class PlatformService {
     }: {
         boundingBox: BoundingBox;
         metroOnly: boolean;
-    }): Promise<StopSchema[]> {
+    }): Promise<PlatformSchema[]> {
         const latitude = minMax(boundingBox.latitude);
         const longitude = minMax(boundingBox.longitude);
 
@@ -122,7 +124,7 @@ export class PlatformService {
         metroOnly,
     }: {
         metroOnly: boolean;
-    }): Promise<StopSchema[]> {
+    }): Promise<PlatformSchema[]> {
         const platforms = await this.prisma.platform.findMany({
             select: platformSelect,
             where: metroOnly ? { isMetro: true } : {},

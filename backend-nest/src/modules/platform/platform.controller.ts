@@ -7,53 +7,79 @@ import {
 } from "@nestjs/common";
 import { CacheTTL } from "@nestjs/cache-manager";
 import { PlatformService } from "./platform.service";
-import { stopSchema, type StopSchema } from "./schema/stop.schema";
+import { platformSchema, type PlatformSchema } from "./schema/platform.schema";
 import { boundingBoxSchema } from "../../schema/bounding-box.schema";
 import { z } from "zod";
 import {
-    stopWithDistanceSchema,
-    StopWithDistanceSchema,
-} from "./schema/stop-with-distance.schema";
+    platformWithDistanceSchema,
+    PlatformWithDistanceSchema,
+} from "./schema/platform-with-distance.schema";
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import {
+    boundingBoxQuery,
+    latitudeQuery,
+    longitudeQuery,
+    metroOnlyQuery,
+} from "src/swagger/query.swagger";
+import { ApiDescription, ApiQueries } from "src/swagger/decorators.swagger";
+import { metroOnlySchema } from "src/schema/metro-only.schema";
 
 @CacheTTL(0)
+@ApiTags("platform")
 @Controller("platform")
 export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 
     @Get("/all")
-    async getAllStops(
+    @ApiDescription({
+        summary: "List of all platforms",
+    })
+    @ApiQuery(metroOnlyQuery)
+    async getAllPlatforms(
         @Query("metroOnly")
         metroOnlyQuery: unknown,
-    ): Promise<StopSchema[]> {
+    ): Promise<PlatformSchema[]> {
         const metroOnly: boolean = metroOnlyQuery === "true";
-        const stops = await this.platformService.getAllPlatforms({ metroOnly });
+        const platforms = await this.platformService.getAllPlatforms({
+            metroOnly,
+        });
 
-        return stopSchema.array().parse(stops);
+        return platformSchema.array().parse(platforms);
     }
 
     @Get("/closest")
-    async getClosestStops(
-        @Query("latitude")
-        latitudeQuery: unknown,
-        @Query("longitude")
-        longitudeQuery: unknown,
-        @Query("count")
-        countQuery: unknown,
-        @Query("metroOnly")
-        metroOnlyQuery: unknown,
-    ): Promise<StopWithDistanceSchema[]> {
-        const metroOnly: boolean = metroOnlyQuery === "true";
+    @ApiDescription({
+        description: `
+⚠️ _For better privacy consider using \`/in-box\`_
+
+
+Sort platforms by distance to a given location. Location may be saved in logs. 
+`,
+        summary: "List of platforms sorted by distance to a given location",
+    })
+    @ApiQueries([
+        metroOnlyQuery,
+        latitudeQuery,
+        longitudeQuery,
+        {
+            name: "count",
+            type: Number,
+            required: false,
+            example: 100,
+            description: "number of platforms to return, default is `0` (all)",
+        },
+    ])
+    async getPlatformsByDistance(
+        @Query() query,
+    ): Promise<PlatformWithDistanceSchema[]> {
         const schema = z.object({
             latitude: z.coerce.number(),
             longitude: z.coerce.number(),
-            count: z.coerce.number().int().positive().min(1).default(20),
+            count: z.coerce.number().int().nonnegative().default(0),
+            metroOnly: metroOnlySchema,
         });
 
-        const parsed = schema.safeParse({
-            latitude: latitudeQuery,
-            longitude: longitudeQuery,
-            count: countQuery,
-        });
+        const parsed = schema.safeParse(query);
 
         if (!parsed.success) {
             throw new HttpException(
@@ -62,31 +88,29 @@ export class PlatformController {
             );
         }
 
-        const { latitude, longitude, count } = parsed.data;
-        const stops = await this.platformService.getClosestStops({
-            latitude,
-            longitude,
-            count,
-            metroOnly,
-        });
+        const platforms = await this.platformService.getPlatformsByDistance(
+            parsed.data,
+        );
 
-        return stopWithDistanceSchema.array().parse(stops);
+        return platformWithDistanceSchema.array().parse(platforms);
     }
 
     @Get("/in-box")
-    async getStops(
-        @Query("latitude")
-        latitude: unknown,
-        @Query("longitude")
-        longitude: unknown,
-        @Query("metroOnly")
-        metroOnlyQuery: unknown,
-    ): Promise<StopSchema[]> {
-        const metroOnly: boolean = metroOnlyQuery === "true";
-
-        const parsed = boundingBoxSchema.safeParse({
-            latitude,
-            longitude,
+    @ApiDescription({
+        summary: "List of platforms within a given bounding box",
+    })
+    @ApiQueries([metroOnlyQuery, ...boundingBoxQuery])
+    async getPlatformsInBoundingBox(@Query() query): Promise<PlatformSchema[]> {
+        const schema = z.object({
+            boundingBox: boundingBoxSchema,
+            metroOnly: metroOnlySchema,
+        });
+        const parsed = schema.safeParse({
+            boundingBox: {
+                latitude: query?.latitude,
+                longitude: query?.longitude,
+            },
+            metroOnly: query?.metroOnly,
         });
 
         if (!parsed.success) {
@@ -96,11 +120,10 @@ export class PlatformController {
             );
         }
 
-        const stops = await this.platformService.getPlatformsInBoundingBox({
-            boundingBox: parsed.data,
-            metroOnly,
-        });
+        const platforms = await this.platformService.getPlatformsInBoundingBox(
+            parsed.data,
+        );
 
-        return stopSchema.array().parse(stops);
+        return platformSchema.array().parse(platforms);
     }
 }

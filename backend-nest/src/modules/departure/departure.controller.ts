@@ -14,8 +14,10 @@ import {
 } from "./schema/departure.schema";
 import { CacheTTL } from "@nestjs/cache-manager";
 import { QUERY_IDS_COUNT_MAX } from "src/constants/constants";
+import { ApiTags } from "@nestjs/swagger";
 
 @CacheTTL(5)
+@ApiTags("departure")
 @Controller("departure")
 export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
