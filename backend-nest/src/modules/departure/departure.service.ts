@@ -3,7 +3,7 @@ import { GOLEMIO_API } from "src/constants";
 import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import { getDelayInSeconds } from "src/utils/delay";
-import { PrismaService } from "src/database/prisma.service";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class DepartureService {

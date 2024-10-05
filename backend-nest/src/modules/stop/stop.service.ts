@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { PrismaService } from "src/database/prisma.service";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 import { platformSelect } from "src/modules/platform/platform.service";
 
 export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {

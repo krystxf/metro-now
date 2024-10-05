@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { unique } from "radash";
-import { PrismaService } from "src/database/prisma.service";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import {
