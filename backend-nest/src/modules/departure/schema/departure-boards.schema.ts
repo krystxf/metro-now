@@ -1,7 +1,8 @@
 import { z } from "zod";
+
 import { infoTextSchema } from "src/modules/departure/schema/info-text.schema";
-import { timestampSchema } from "src/schema/timestamp.schema";
 import { delaySchema } from "src/schema/delay.schema";
+import { timestampSchema } from "src/schema/timestamp.schema";
 
 export const departureBoardsSchema = z.object({
     stops: z

@@ -1,8 +1,8 @@
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { unique } from "radash";
-import { PrismaService } from "src/modules/prisma/prisma.service";
 
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { metroLine } from "src/enums/metro.enum";
 import {
     pidPlatformsSchema,
     type PidPlatformsSchema,
@@ -11,7 +11,7 @@ import {
     pidStopsSchema,
     type PidStopsSchema,
 } from "src/modules/import/schema/pid-stops.schema";
-import { metroLine } from "src/enums/metro.enum";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class ImportService {

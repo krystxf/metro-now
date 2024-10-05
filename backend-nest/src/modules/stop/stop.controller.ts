@@ -1,7 +1,8 @@
 import { CacheTTL } from "@nestjs/cache-manager";
 import { Controller, Get, Query } from "@nestjs/common";
-import { StopService } from "src/modules/stop/stop.service";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
+
+import { StopService } from "src/modules/stop/stop.service";
 import { metroOnlyQuery } from "src/swagger/query.swagger";
 
 @CacheTTL(0)
