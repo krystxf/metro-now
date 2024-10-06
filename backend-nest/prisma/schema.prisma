@@ -70,6 +70,23 @@ model PlatformsOnRoutes {
   @@unique([platformId, routeId])
 }
 
+model Log {
+  id          BigInt   @id @default(autoincrement())
+  type        LogType
+  message     String
+  description String?
+  host        String?
+  path        String?
+  statusCode  Int?
+  duration    Int?
+  createdAt   DateTime @default(now())
+}
+
+enum LogType {
+  INFO
+  ERROR
+}
+
 enum VehicleType {
   METRO
   BUS
