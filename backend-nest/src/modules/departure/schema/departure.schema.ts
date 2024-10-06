@@ -1,5 +1,6 @@
-import { timestampSchema } from "src/schema/timestamp.schema";
 import { z } from "zod";
+
+import { timestampSchema } from "src/schema/timestamp.schema";
 
 export const departureSchema = z.object({
     departure: timestampSchema,

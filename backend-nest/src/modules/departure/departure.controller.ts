@@ -5,18 +5,17 @@ import {
     HttpStatus,
     Query,
 } from "@nestjs/common";
-import { DepartureService } from "src/modules/departure/departure.service";
-import { toArray } from "src/utils/array.utils";
+import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
+
+import { QUERY_IDS_COUNT_MAX } from "src/constants/constants";
+import { DepartureService } from "src/modules/departure/departure.service";
 import {
     departureSchema,
     type DepartureSchema,
 } from "src/modules/departure/schema/departure.schema";
-import { CacheTTL } from "@nestjs/cache-manager";
-import { QUERY_IDS_COUNT_MAX } from "src/constants/constants";
-import { ApiTags } from "@nestjs/swagger";
+import { toArray } from "src/utils/array.utils";
 
-@CacheTTL(5)
 @ApiTags("departure")
 @Controller("departure")
 export class DepartureController {

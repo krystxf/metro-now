@@ -1,8 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { unique } from "radash";
-import { PrismaService } from "src/database/prisma.service";
 
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { metroLine } from "src/enums/metro.enum";
 import {
     pidPlatformsSchema,
     type PidPlatformsSchema,
@@ -11,14 +10,11 @@ import {
     pidStopsSchema,
     type PidStopsSchema,
 } from "src/modules/import/schema/pid-stops.schema";
-import { metroLine } from "src/enums/metro.enum";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class ImportService {
-    constructor(
-        private prisma: PrismaService,
-        @Inject(CACHE_MANAGER) private cacheManager,
-    ) {}
+    constructor(private prisma: PrismaService) {}
 
     async getPlatforms(): Promise<PidPlatformsSchema> {
         const url = new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json");
@@ -198,56 +194,6 @@ export class ImportService {
                 routes: platform.routes,
             })),
         });
-
-        // await this.prisma.$transaction(async (transaction) => {
-        //     const stopIds = stopsData.stopGroups.map((stop) => `U${stop.node}`);
-
-        //     // Create stops
-        //     // await transaction.stop.createMany({
-        //     //     data: stopsData.stopGroups.map((stop) => ({
-        //     //         id: `U${stop.node}`,
-        //     //         name: stop.name,
-        //     //         avgLatitude: stop.avgLat,
-        //     //         avgLongitude: stop.avgLon,
-        //     //     })),
-        //     //     skipDuplicates: true,
-        //     // });
-
-        //     // Create routes
-        //     await transaction.route.createMany({
-        //         data: routes.map((route) => ({
-        //             id: route.id,
-        //             name: route.name,
-        //         })),
-        //     });
-
-        //     // Create platforms
-        //     await transaction.platform.createMany({
-        //         data: platforms.map((platform) => {
-        //             const stopId = platform.id.split("Z")[0];
-        //             return {
-        //                 id: platform.id,
-        //                 name: platform.name,
-        //                 isMetro: platform.isMetro,
-        //                 latitude: platform.latitude,
-        //                 longitude: platform.longitude,
-        //                 stopId: stopIds.includes(stopId) ? stopId : null,
-        //             };
-        //         }),
-        //     });
-
-        //     // Create relations
-        //     await transaction.platformsOnRoutes.createMany({
-        //         data: platforms.flatMap((platform) =>
-        //             platform.routes.map((route) => ({
-        //                 platformId: platform.id,
-        //                 routeId: route.id,
-        //             })),
-        //         ),
-        //     });
-        // });
-
-        await this.cacheManager.reset();
 
         console.log(`Import finished`);
     }

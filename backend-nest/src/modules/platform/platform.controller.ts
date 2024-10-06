@@ -1,35 +1,37 @@
+import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
     HttpException,
     HttpStatus,
     Query,
+    UseInterceptors,
 } from "@nestjs/common";
-import { CacheTTL } from "@nestjs/cache-manager";
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { z } from "zod";
+
+import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
 import { PlatformService } from "src/modules/platform/platform.service";
+import {
+    platformWithDistanceSchema,
+    PlatformWithDistanceSchema,
+} from "src/modules/platform/schema/platform-with-distance.schema";
 import {
     platformSchema,
     type PlatformSchema,
 } from "src/modules/platform/schema/platform.schema";
 import { boundingBoxSchema } from "src/schema/bounding-box.schema";
-import { z } from "zod";
-import {
-    platformWithDistanceSchema,
-    PlatformWithDistanceSchema,
-} from "src/modules/platform/schema/platform-with-distance.schema";
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { metroOnlySchema } from "src/schema/metro-only.schema";
 import {
     boundingBoxQuery,
     latitudeQuery,
     longitudeQuery,
     metroOnlyQuery,
 } from "src/swagger/query.swagger";
-import { ApiDescription, ApiQueries } from "src/swagger/decorators.swagger";
-import { metroOnlySchema } from "src/schema/metro-only.schema";
 
-@CacheTTL(0)
 @ApiTags("platform")
 @Controller("platform")
+@UseInterceptors(CacheInterceptor)
 export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 

@@ -1,5 +1,5 @@
-import { getDelayInSeconds } from "src/utils/delay";
 import type { DelaySchema } from "src/schema/delay.schema";
+import { getDelayInSeconds } from "src/utils/delay";
 
 describe("getDelayInSeconds", () => {
     it("should return 0 for invalid delay", () => {
