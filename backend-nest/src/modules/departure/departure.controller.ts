@@ -1,4 +1,3 @@
-import { CacheTTL } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
@@ -17,7 +16,6 @@ import {
 } from "src/modules/departure/schema/departure.schema";
 import { toArray } from "src/utils/array.utils";
 
-@CacheTTL(5)
 @ApiTags("departure")
 @Controller("departure")
 export class DepartureController {

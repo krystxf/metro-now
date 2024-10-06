@@ -1,4 +1,3 @@
-import { CacheTTL } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
@@ -20,7 +19,6 @@ import {
 } from "src/modules/platform/schema/platform.schema";
 import { boundingBoxSchema } from "src/schema/bounding-box.schema";
 import { metroOnlySchema } from "src/schema/metro-only.schema";
-import { ApiDescription, ApiQueries } from "src/swagger/decorators.swagger";
 import {
     boundingBoxQuery,
     latitudeQuery,
@@ -28,7 +26,6 @@ import {
     metroOnlyQuery,
 } from "src/swagger/query.swagger";
 
-@CacheTTL(0)
 @ApiTags("platform")
 @Controller("platform")
 export class PlatformController {

@@ -1,5 +1,4 @@
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { PlatformWithDistanceSchema } from "src/modules/platform/schema/platform-with-distance.schema";
@@ -28,10 +27,7 @@ export const platformSelect = {
 
 @Injectable()
 export class PlatformService {
-    constructor(
-        private prisma: PrismaService,
-        @Inject(CACHE_MANAGER) private cacheManager,
-    ) {}
+    constructor(private prisma: PrismaService) {}
 
     async getPlatformsByDistance({
         latitude,
