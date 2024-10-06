@@ -7,7 +7,7 @@
     "api": {
         "title": "API",
         "type": "page",
-        "href": "/docs/rest-api"
+        "href": "/docs/api"
     },
     "legal": {
         "title": "Legal",

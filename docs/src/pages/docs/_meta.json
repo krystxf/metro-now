@@ -3,7 +3,7 @@
     "---": {
         "type": "separator"
     },
-    "rest-api": "REST API",
+    "api": "API",
     "backend": "Backend",
     "-- Legal": {
         "type": "separator",

@@ -1,10 +1,11 @@
+import { GITHUB } from "@/const";
 import React from "react";
 
 const themeConfig = {
     logo: <strong>🚇 metro-now</strong>,
-    docsRepositoryBase: "https://github.com/krystxf/metro-now/tree/main/docs",
+    docsRepositoryBase: `${GITHUB}/tree/main/docs`,
     project: {
-        link: "https://github.com/krystxf/metro-now",
+        link: GITHUB,
     },
     editLink: {
         text: "Edit this page on GitHub →",

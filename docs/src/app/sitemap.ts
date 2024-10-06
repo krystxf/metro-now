@@ -1,4 +1,4 @@
-import { HOMEPAGE } from "@/utils/const";
+import { HOMEPAGE } from "@/const";
 import type { MetadataRoute } from "next";
 
 const pages = [
