@@ -251,7 +251,9 @@
 		2D5BA5EA2C382FC30055F12A /* MapAnnotation */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D5BA5EB2C382FEA0055F12A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MapAnnotation; sourceTree = "<group>"; };
 		2D6C8CDD2C514882003E09A8 /* Countdown */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D6C8CE02C51488E003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Countdown; sourceTree = "<group>"; };
 		2D6C8CE12C5157FC003E09A8 /* StationDetailView */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2D6C8CE22C515802003E09A8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StationDetailView; sourceTree = "<group>"; };
+		2D82A7902CA34D8E00AF13A8 /* pages */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = pages; sourceTree = "<group>"; };
 		2DD2EBBD2C5302B700E3ACF4 /* Vehicle */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2DD2EBC42C5302D400E3ACF4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2DD2EBC52C5302D400E3ACF4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2DD2EBC62C5302D400E3ACF4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Vehicle; sourceTree = "<group>"; };
+		2DFBA9E82CA9CCFD00257C44 /* model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = model; sourceTree = "<group>"; };
 		2DFD2F272C4DC296009C81CC /* API */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2DFD2F2B2C4DC2EC009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2DFD2F432C4DCC37009C81CC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = API; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -354,6 +356,8 @@
 		2D4486842BFAA10A005C59CE /* metro-now-watch Watch App */ = {
 			isa = PBXGroup;
 			children = (
+				2DFBA9E82CA9CCFD00257C44 /* model */,
+				2D82A7902CA34D8E00AF13A8 /* pages */,
 				2D4486852BFAA10A005C59CE /* metro_now_watchApp.swift */,
 				2D4486872BFAA10A005C59CE /* ContentView.swift */,
 				2D4486892BFAA10B005C59CE /* Assets.xcassets */,
@@ -532,6 +536,10 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2D82A7902CA34D8E00AF13A8 /* pages */,
+				2DFBA9E82CA9CCFD00257C44 /* model */,
 			);
 			name = "metro-now-watch Watch App";
 			productName = "metro-now-watch Watch App";
@@ -783,6 +791,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-watch";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Find the nearest metro station";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.krystof.metro-now";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -813,6 +822,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now-watch";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Find the nearest metro station";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.krystof.metro-now";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1078,12 +1088,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.metro-now-widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator watchos watchsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,4";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
@@ -1110,12 +1120,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.metro-now-widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator watchos watchsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,4";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
