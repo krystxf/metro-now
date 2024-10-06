@@ -140,8 +140,6 @@ export class ImportService {
     }
 
     async syncStops(): Promise<void> {
-        console.log("Syncing stops and routes");
-
         const platformsData = await this.getPlatforms();
         const stopsData = await this.getStops();
 
@@ -156,7 +154,6 @@ export class ImportService {
                 const isMetro = routeNames.some(
                     (routeName) => metroLine.safeParse(routeName).success,
                 );
-
                 return {
                     latitude,
                     longitude,
@@ -194,7 +191,5 @@ export class ImportService {
                 routes: platform.routes,
             })),
         });
-
-        console.log(`Import finished`);
     }
 }
