@@ -86,57 +86,63 @@ export class ImportService {
             (route) => route.id,
         );
 
-        await this.prisma.$transaction(async (transaction) => {
-            await transaction.platformsOnRoutes.deleteMany();
-            await transaction.platform.deleteMany();
-            await transaction.route.deleteMany();
-            await transaction.stop.deleteMany();
+        await this.prisma.$transaction(
+            async (transaction) => {
+                await transaction.platformsOnRoutes.deleteMany();
+                await transaction.platform.deleteMany();
+                await transaction.route.deleteMany();
+                await transaction.stop.deleteMany();
 
-            // Create stops
-            await transaction.stop.createMany({
-                data: uniqueStops.map((stop) => ({
-                    id: stop.id,
-                    name: stop.name,
-                    avgLatitude: stop.avgLatitude,
-                    avgLongitude: stop.avgLongitude,
-                })),
-            });
-
-            await transaction.platform.createMany({
-                data: platforms.map((platform) => {
-                    const stopIdExists =
-                        platform.stopId !== null &&
-                        stops.some((stop) => stop.id === platform.stopId);
-
-                    return {
-                        id: platform.id,
-                        name: platform.name,
-                        isMetro: platform.isMetro,
-                        latitude: platform.latitude,
-                        longitude: platform.longitude,
-                        stopId: stopIdExists ? platform.stopId : null,
-                    };
-                }),
-            });
-
-            // Create routes
-            await transaction.route.createMany({
-                data: uniqueRoutes.map((route) => ({
-                    id: route.id,
-                    name: route.name,
-                })),
-            });
-
-            // Create relations
-            await transaction.platformsOnRoutes.createMany({
-                data: platforms.flatMap((platform) =>
-                    platform.routes.map((route) => ({
-                        platformId: platform.id,
-                        routeId: route.id,
+                // Create stops
+                await transaction.stop.createMany({
+                    data: uniqueStops.map((stop) => ({
+                        id: stop.id,
+                        name: stop.name,
+                        avgLatitude: stop.avgLatitude,
+                        avgLongitude: stop.avgLongitude,
                     })),
-                ),
-            });
-        });
+                });
+
+                await transaction.platform.createMany({
+                    data: platforms.map((platform) => {
+                        const stopIdExists =
+                            platform.stopId !== null &&
+                            stops.some((stop) => stop.id === platform.stopId);
+
+                        return {
+                            id: platform.id,
+                            name: platform.name,
+                            isMetro: platform.isMetro,
+                            latitude: platform.latitude,
+                            longitude: platform.longitude,
+                            stopId: stopIdExists ? platform.stopId : null,
+                        };
+                    }),
+                });
+
+                // Create routes
+                await transaction.route.createMany({
+                    data: uniqueRoutes.map((route) => ({
+                        id: route.id,
+                        name: route.name,
+                    })),
+                });
+
+                // Create relations
+                await transaction.platformsOnRoutes.createMany({
+                    data: platforms.flatMap((platform) =>
+                        platform.routes.map((route) => ({
+                            platformId: platform.id,
+                            routeId: route.id,
+                        })),
+                    ),
+                });
+            },
+            {
+                maxWait: 10 * 1_000,
+                timeout: 20 * 60 * 1_000,
+            },
+        );
     }
 
     async syncStops(): Promise<void> {
