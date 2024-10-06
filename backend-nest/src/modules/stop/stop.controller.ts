@@ -17,7 +17,6 @@ export class StopController {
         @Query("metroOnly")
         metroOnlyQuery: unknown,
     ) {
-        console.log("Fetching all stops");
         const metroOnly: boolean = metroOnlyQuery === "true";
         const stops = await this.stopService.getAll({ metroOnly });
 

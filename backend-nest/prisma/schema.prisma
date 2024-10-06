@@ -78,7 +78,7 @@ model Log {
   host        String?
   path        String?
   statusCode  Int?
-  duration    Int?
+  duration    Int? // in milliseconds
   createdAt   DateTime @default(now())
 }
 
