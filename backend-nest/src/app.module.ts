@@ -1,4 +1,5 @@
 import { ApolloDriver, type ApolloDriverConfig } from "@nestjs/apollo";
+import { CacheModule } from "@nestjs/cache-manager";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { GraphQLModule } from "@nestjs/graphql";
@@ -13,13 +14,17 @@ import { StopModule } from "src/modules/stop/stop.module";
 
 @Module({
     imports: [
-        PrismaModule,
         PlatformModule,
         DepartureModule,
         ImportModule,
         StopModule,
+
+        PrismaModule,
         ConfigModule.forRoot(),
         ScheduleModule.forRoot(),
+        CacheModule.register({
+            isGlobal: true,
+        }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,

@@ -1,9 +1,11 @@
+import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
     HttpException,
     HttpStatus,
     Query,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
@@ -29,6 +31,7 @@ import {
 
 @ApiTags("platform")
 @Controller("platform")
+@UseInterceptors(CacheInterceptor)
 export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 

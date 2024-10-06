@@ -1,7 +1,7 @@
 import { GRAPHQL_API_ROOT } from "src/constants/graphql.const";
 
 export const SWAGGER_API_ROOT = "/";
-export const SWAGGER_JSON_URL = "swagger-json";
+export const SWAGGER_JSON_URL = "/swagger-json";
 
 export const SWAGGER_TITLE = "Metro Now API";
 export const SWAGGER_VERSION = "1.0";
