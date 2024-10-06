@@ -8,7 +8,7 @@ import {
     SWAGGER_JSON_URL,
     SWAGGER_TITLE,
     SWAGGER_VERSION,
-} from "src/swagger/swagger.const";
+} from "src/constants/swagger.const";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
