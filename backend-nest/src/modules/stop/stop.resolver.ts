@@ -6,7 +6,7 @@ import { metroOnlyQuery } from "src/swagger/query.swagger";
 
 @Resolver(() => Stop)
 export class StopResolver {
-    constructor(private readonly stopSerice: StopService) {}
+    constructor(private readonly stopService: StopService) {}
 
     @Query(() => [Stop], {
         description: "Get all stops",
@@ -20,6 +20,6 @@ export class StopResolver {
         })
         metroOnly,
     ): Promise<Stop[]> {
-        return await this.stopSerice.getAll({ metroOnly });
+        return this.stopService.getAll({ metroOnly });
     }
 }
