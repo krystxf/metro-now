@@ -34,11 +34,15 @@ describe("Platform Module (e2e)", () => {
         "/platform/all?metroOnly",
         "/platform/all?metroOnly=false",
         "/platform/all?metroOnly=true",
-    ])("[GET] %s", (url) => {
-        return request(app.getHttpServer())
+    ])("[GET] %s", async (url) => {
+        const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)
             .accept("application/json");
+
+        expect(response.body).toBeDefined();
+        expect(response.body).toBeInstanceOf(Array);
+        expect(response.body.length).toBeGreaterThan(0);
     });
 
     const latitude = 14.415868050223628;
@@ -50,7 +54,14 @@ describe("Platform Module (e2e)", () => {
         "&metroOnly=false",
         "&metroOnly=true",
     ];
-    const allCountParams = ["", "&count=1", "&count=2", "&count=3"];
+    const allCountParams = [
+        "",
+        "&count=1",
+        "&count=2",
+        "&count=3",
+        "&count=400",
+        "&count=2000",
+    ];
     const allLatLongParams = generatePermutations([
         `&latitude=${latitude}`,
         `&longitude=${longitude}`,
@@ -62,10 +73,14 @@ describe("Platform Module (e2e)", () => {
         allCountParams,
     ]).map((value) => `/platform/closest?${value.join("")}`);
 
-    it.each(urls)("[GET] %s", (params) => {
-        return request(app.getHttpServer())
+    it.each(urls)("[GET] %s", async (params) => {
+        const response = await request(app.getHttpServer())
             .get(`${params}`)
             .expect(200)
             .accept("application/json");
+
+        expect(response.body).toBeDefined();
+        expect(response.body).toBeInstanceOf(Array);
+        expect(response.body.length).toBeGreaterThan(0);
     });
 });

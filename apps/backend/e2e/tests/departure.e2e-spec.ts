@@ -27,11 +27,15 @@ describe("Departure Module (e2e)", () => {
 
     it.each([`U1000Z1`, `U1000Z10`])(
         "[GET] /departure/platform?id=%s",
-        (platform) => {
-            return request(app.getHttpServer())
+        async (platform) => {
+            const response = await request(app.getHttpServer())
                 .get(`/departure/platform?id=${platform}`)
                 .expect(200)
                 .accept("application/json");
+
+            expect(response.body).toBeDefined();
+            expect(response.body).toBeInstanceOf(Array);
+            expect(response.body.length).toBeGreaterThan(0);
         },
     );
 });
