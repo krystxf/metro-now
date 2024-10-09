@@ -1,6 +1,7 @@
 {
     "name": "@metro-now/web",
     "homepage": "https://metro-now.vercel.app/",
+    "packageManager": "pnpm@9.1.0",
     "license": "MPL-2.0",
     "scripts": {
         "dev": "next dev",
@@ -15,9 +16,11 @@
         "nextra": "^2.13.4",
         "nextra-theme-docs": "^2.13.4",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "react-dom": "^18.2.0",
+        "sharp": "^0.33.5"
     },
     "devDependencies": {
+        "@napi-rs/simple-git-linux-arm64-gnu": "^0.1.19",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
