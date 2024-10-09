@@ -30,10 +30,14 @@ describe("Stop Module (e2e)", () => {
         "/stop/all?metroOnly",
         "/stop/all?metroOnly=false",
         "/stop/all?metroOnly=true",
-    ])("[GET] %s", (url) => {
-        return request(app.getHttpServer())
+    ])("[GET] %s", async (url) => {
+        const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)
             .accept("application/json");
+
+        expect(response.body).toBeDefined();
+        expect(response.body).toBeInstanceOf(Array);
+        expect(response.body.length).toBeGreaterThan(0);
     });
 });
