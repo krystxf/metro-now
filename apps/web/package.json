@@ -1,5 +1,5 @@
 {
-    "name": "@metro-now/docs",
+    "name": "@metro-now/web",
     "homepage": "https://metro-now.vercel.app/",
     "license": "MPL-2.0",
     "scripts": {
