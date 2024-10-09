@@ -12,53 +12,7 @@ importers:
         specifier: ^3.2.5
         version: 3.2.5
 
-  apps/web:
-    dependencies:
-      '@next/mdx':
-        specifier: ^14.2.2
-        version: 14.2.11(@mdx-js/react@2.3.0(react@18.3.1))
-      next:
-        specifier: 14.2.10
-        version: 14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      nextra:
-        specifier: ^2.13.4
-        version: 2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      nextra-theme-docs:
-        specifier: ^2.13.4
-        version: 2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nextra@2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react:
-        specifier: ^18.2.0
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.3.1(react@18.3.1)
-    devDependencies:
-      '@types/node':
-        specifier: ^20
-        version: 20.16.10
-      '@types/react':
-        specifier: ^18
-        version: 18.3.5
-      '@types/react-dom':
-        specifier: ^18
-        version: 18.3.0
-      eslint:
-        specifier: ^8
-        version: 8.57.1
-      eslint-config-next:
-        specifier: 14.2.2
-        version: 14.2.2(eslint@8.57.1)(typescript@5.6.2)
-      postcss:
-        specifier: ^8
-        version: 8.4.47
-      tailwindcss:
-        specifier: ^3.4.1
-        version: 3.4.11(ts-node@10.9.2(@types/node@20.16.10)(typescript@5.6.2))
-      typescript:
-        specifier: ^5
-        version: 5.6.2
-
-  backend-nest:
+  apps/backend:
     dependencies:
       '@apollo/server':
         specifier: ^4.11.0
@@ -183,6 +137,52 @@ importers:
         version: 4.2.0
       typescript:
         specifier: ^5.6.2
+        version: 5.6.2
+
+  apps/web:
+    dependencies:
+      '@next/mdx':
+        specifier: ^14.2.2
+        version: 14.2.11(@mdx-js/react@2.3.0(react@18.3.1))
+      next:
+        specifier: 14.2.10
+        version: 14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      nextra:
+        specifier: ^2.13.4
+        version: 2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      nextra-theme-docs:
+        specifier: ^2.13.4
+        version: 2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nextra@2.13.4(next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.16.10
+      '@types/react':
+        specifier: ^18
+        version: 18.3.5
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.0
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: 14.2.2
+        version: 14.2.2(eslint@8.57.1)(typescript@5.6.2)
+      postcss:
+        specifier: ^8
+        version: 8.4.47
+      tailwindcss:
+        specifier: ^3.4.1
+        version: 3.4.11(ts-node@10.9.2(@types/node@20.16.10)(typescript@5.6.2))
+      typescript:
+        specifier: ^5
         version: 5.6.2
 
 packages:
@@ -5595,14 +5595,14 @@ snapshots:
     dependencies:
       '@graphql-tools/utils': 10.2.3(graphql@16.9.0)
       graphql: 16.9.0
-      tslib: 2.6.3
+      tslib: 2.7.0
 
   '@graphql-tools/schema@10.0.4(graphql@16.9.0)':
     dependencies:
       '@graphql-tools/merge': 9.0.4(graphql@16.9.0)
       '@graphql-tools/utils': 10.2.3(graphql@16.9.0)
       graphql: 16.9.0
-      tslib: 2.6.3
+      tslib: 2.7.0
       value-or-promise: 1.0.12
 
   '@graphql-tools/schema@9.0.19(graphql@16.9.0)':
@@ -5619,7 +5619,7 @@ snapshots:
       cross-inspect: 1.0.0
       dset: 3.1.4
       graphql: 16.9.0
-      tslib: 2.6.3
+      tslib: 2.7.0
 
   '@graphql-tools/utils@9.2.1(graphql@16.9.0)':
     dependencies:
@@ -7182,7 +7182,7 @@ snapshots:
 
   cross-inspect@1.0.0:
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.7.0
 
   cross-spawn@5.1.0:
     dependencies:
@@ -8306,7 +8306,7 @@ snapshots:
   graphql-tag@2.12.6(graphql@16.9.0):
     dependencies:
       graphql: 16.9.0
-      tslib: 2.6.3
+      tslib: 2.7.0
 
   graphql-ws@5.16.0(graphql@16.9.0):
     dependencies:

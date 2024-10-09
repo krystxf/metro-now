@@ -1,8 +1,8 @@
 {
-    "name": "@metro-now/backend-nest",
+    "name": "@metro-now/backend",
     "version": "0.0.1",
     "scripts": {
-        "prebuild": "rimraf dist && pnpm prisma:generate",
+        "prebuild": "pnpm dlx rimraf dist && pnpm prisma:generate",
         "build": "nest build",
         "start": "pnpm dlx dotenv-cli -e .env.local -- nest start",
         "dev": "pnpm dlx dotenv-cli -e .env.local -- nest start --watch",

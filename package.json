@@ -4,8 +4,8 @@
     "scripts": {
         "build": "pnpm --recursive --parallel run build",
         "dev": "pnpm --recursive --parallel run dev",
-        "backend:build": "pnpm run -r --filter @metro-now/backend-nest build",
-        "backend:dev": "pnpm run -r --filter @metro-now/backend-nest dev",
+        "backend:build": "pnpm run -r --filter @metro-now/backend build",
+        "backend:dev": "pnpm run -r --filter @metro-now/backend dev",
         "precommit": "pnpm format",
         "format": "pnpm format:swift && pnpm format:prettier",
         "format:check": "pnpm format:swift:check && pnpm format:prettier:check",

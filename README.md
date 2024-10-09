@@ -12,13 +12,13 @@
 ## Backend
 
 ```shell
-cd backend-nest
+pnpm i
+pnpm dev
+
+cd apps/backend
 
 cp .env.example .env
 vim .env # update your .envs
-
-pnpm i
-pnpm dev
 ```
 
 ## Docs
