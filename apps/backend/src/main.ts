@@ -13,10 +13,6 @@ import {
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    if (process.env.GOLEMIO_API_KEY === undefined) {
-        throw new Error("GOLEMIO_API_KEY is not set");
-    }
-
     const config = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
         .setDescription(SWAGGER_DESCRIPTION)
@@ -28,6 +24,6 @@ async function bootstrap() {
         customSiteTitle: SWAGGER_TITLE,
     });
 
-    await app.listen(3001);
+    await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

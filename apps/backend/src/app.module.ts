@@ -11,22 +11,27 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ScheduleModule } from "@nestjs/schedule";
 
 import { GRAPHQL_API_ROOT } from "src/constants/graphql.const";
+import { Environment } from "src/enums/environment.enum";
 import { LoggerMiddleware } from "src/middleware/logger.middleware";
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { ImportModule } from "src/modules/import/import.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { StopModule } from "src/modules/stop/stop.module";
+import { envSchema } from "src/schema/env.schema";
 
 @Module({
     imports: [
         PlatformModule,
         DepartureModule,
-        ImportModule,
+        ...(process.env.NODE_ENV === Environment.TEST ? [] : [ImportModule]),
         StopModule,
 
         PrismaModule,
-        ConfigModule.forRoot(),
+        ConfigModule.forRoot({
+            envFilePath: ".env.local",
+            validate: envSchema.parse,
+        }),
         ScheduleModule.forRoot(),
         CacheModule.register({
             isGlobal: true,
