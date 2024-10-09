@@ -22,7 +22,7 @@ module.exports = {
         "import/resolver": {
             typescript: {
                 alwaysTryTypes: true,
-                project: "backend-nest/tsconfig.json",
+                project: "backend/tsconfig.json",
             },
             node: { moduleDirectory: ["node_modules", "src/"] },
         },

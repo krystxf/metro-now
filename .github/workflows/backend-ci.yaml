@@ -31,21 +31,21 @@ jobs:
 
             - name: Build
               run: |
-                  cd backend-nest
+                  cd apps/backend
                   pnpm prisma:generate
                   pnpm build
 
             - name: Test
               run: |
-                  cd backend-nest
+                  cd apps/backend
                   pnpm test
 
             - name: Lint
               run: |
-                  cd backend-nest
+                  cd apps/backend
                   pnpm lint
 
             - name: Types check
               run: |
-                  cd backend-nest
+                  cd apps/backend
                   pnpm types:check
