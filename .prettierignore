@@ -1,5 +1,5 @@
 # app is formatted with swiftformat
-./app 
+./apps/mobile 
 
 node_modules
 .next
