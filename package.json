@@ -1,18 +1,17 @@
 {
     "name": "metro-now",
     "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
+    "packageManager": "pnpm@9.1.0",
     "scripts": {
         "build": "pnpm --recursive --parallel run build",
         "dev": "pnpm --recursive --parallel run dev",
         "backend:build": "pnpm run -r --filter @metro-now/backend build",
         "backend:dev": "pnpm run -r --filter @metro-now/backend dev",
+        "web:dev": "pnpm run -r --filter @metro-now/web dev",
         "precommit": "pnpm format",
-        "format": "pnpm format:swift && pnpm format:prettier",
-        "format:check": "pnpm format:swift:check && pnpm format:prettier:check",
-        "format:swift": "swiftformat .",
-        "format:prettier": "pnpm exec prettier . --write",
-        "format:swift:check": "swiftformat . --lint",
-        "format:prettier:check": "pnpm exec prettier . --check"
+        "format": "pnpm -r format && pnpm exec prettier . --write",
+        "format:check": "pnpm -r format:check && pnpm exec prettier . --check",
+        "db:start": "docker compose up postgres "
     },
     "devDependencies": {
         "prettier": "^3.2.5"

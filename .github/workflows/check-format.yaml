@@ -3,8 +3,8 @@ name: Check format
 on: push
 
 jobs:
-    swift-format-check:
-        name: Swift format check 💅
+    format-check:
+        name: Format check 💅
         runs-on: macos-latest
 
         steps:
@@ -19,31 +19,8 @@ jobs:
                   node-version: 20
 
             - uses: pnpm/action-setup@v3
-              with:
-                  version: 8
 
             - name: Check JS format
               run: |
                   pnpm install
-                  pnpm format:swift:check
-
-    js-format-check:
-        name: JS format check 💅
-        runs-on: ubuntu-latest
-
-        steps:
-            - uses: actions/checkout@v2
-
-            - name: Install Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-
-            - uses: pnpm/action-setup@v3
-              with:
-                  version: 8
-
-            - name: Check JS format
-              run: |
-                  pnpm install
-                  pnpm format:prettier:check
+                  pnpm format:check
