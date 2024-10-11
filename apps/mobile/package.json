@@ -1,0 +1,8 @@
+{
+    "name": "@metro-now/mobile",
+    "packageManager": "pnpm@9.1.0",
+    "scripts": {
+        "format": "swiftformat .",
+        "format:check": "swiftformat . --lint"
+    }
+}
