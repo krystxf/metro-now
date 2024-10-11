@@ -1,4 +1,8 @@
-dist
-logs
 node_modules
-test
+dist
+
+.dockerignore
+.eslintrc.js
+.gitignore
+README.md
+.env*
