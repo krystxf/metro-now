@@ -1,0 +1,10 @@
+{
+    "name": "metro-now",
+    "build": {
+        "dockerfile": "Dockerfile",
+
+        "context": ".."
+    },
+
+    "postCreateCommand": "pnpm install --offline"
+}
