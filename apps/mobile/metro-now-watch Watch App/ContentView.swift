@@ -1,51 +1,24 @@
-//
-//  metro-now-watch
-//
-//  Created by Kryštof Krátký on 19.05.2024.
-//
-
-import MapKit
+import CoreLocation
 import SwiftUI
+import os
 
 struct ContentView: View {
     @StateObject private var locationModel = LocationModel()
-    @State var closestStation: MetroStationsGeoJSONFeature?
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    var stopManager = StopManager()
 
     var body: some View {
-        NavigationView {
-            if let closestStation {
-                ScrollView { LazyVStack {
-                    ForEach(closestStation.properties.platforms, id: \.self) { platform in
+        StationDeparturesView(label: stopManager.closestStop?.name ?? "Loading...")
 
-                        Label(
-                            title: { Text(platform.direction) },
-                            icon: { Image(systemName: getMetroLineIcon(platform.name)) }
-                        )
-                    }
-                }}
+            .task {
+                let stops = await getAllMetroStops()
+                print("Helloooooo")
+                stopManager.stops = stops
+                stopManager.closestStop = stops.first
+                //                print(stops)
 
-                .navigationTitle(
-                    closestStation.properties.name
-                )
+                //                print(locationModel.location)
             }
-        }
-
-        .onReceive(locationModel.$location) { location in
-
-            guard let location else {
-                print("Unknown location")
-                return
-            }
-            print("User's location: \(location)")
-
-            let res = getClosestStationFromGeoJSON(location: location)
-
-            closestStation = res
-        }
-        .onAppear {
-            locationModel.checkLocationServicesEnabled()
-        }
+            .environmentObject(stopManager)
     }
 }
 
