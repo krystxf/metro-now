@@ -10,6 +10,8 @@ import { ConfigModule } from "@nestjs/config";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ScheduleModule } from "@nestjs/schedule";
 
+import { cacheModuleConfig } from "src/config/cache-module.config";
+import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_API_ROOT } from "src/constants/graphql.const";
 import { LoggerMiddleware } from "src/middleware/logger.middleware";
 import { DepartureModule } from "src/modules/departure/departure.module";
@@ -24,13 +26,10 @@ import { StopModule } from "src/modules/stop/stop.module";
         DepartureModule,
         ImportModule,
         StopModule,
-
         PrismaModule,
-        ConfigModule.forRoot(),
+        ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
-        CacheModule.register({
-            isGlobal: true,
-        }),
+        CacheModule.register(cacheModuleConfig),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,
