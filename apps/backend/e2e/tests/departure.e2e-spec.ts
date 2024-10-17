@@ -25,6 +25,10 @@ describe("Departure Module (e2e)", () => {
         await app.init();
     });
 
+    afterEach(async () => {
+        await app.close();
+    });
+
     it.each([`U1000Z1`, `U1000Z10`])(
         "[GET] /departure/platform?id=%s",
         async (platform) => {

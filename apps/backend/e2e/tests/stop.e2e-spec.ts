@@ -25,6 +25,10 @@ describe("Stop Module (e2e)", () => {
         await app.init();
     });
 
+    afterEach(async () => {
+        await app.close();
+    });
+
     it.each([
         "/stop/all",
         "/stop/all?metroOnly",

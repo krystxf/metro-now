@@ -29,6 +29,10 @@ describe("Platform Module (e2e)", () => {
         await app.init();
     });
 
+    afterEach(async () => {
+        await app.close();
+    });
+
     it.each([
         "/platform/all",
         "/platform/all?metroOnly",
