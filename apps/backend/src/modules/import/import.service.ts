@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, LoggerService } from "@nestjs/common";
 import { unique } from "radash";
 
+import { StopSyncTrigger } from "src/enums/log.enum";
 import { metroLine } from "src/enums/metro.enum";
 import {
     pidPlatformsSchema,
@@ -14,7 +15,10 @@ import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class ImportService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly logger: LoggerService,
+    ) {}
 
     async getPlatforms(): Promise<PidPlatformsSchema> {
         const url = new URL("https://data.pid.cz/geodata/Zastavky_WGS84.json");
@@ -145,57 +149,66 @@ export class ImportService {
         );
     }
 
-    async syncStops(): Promise<void> {
-        const platformsData = await this.getPlatforms();
-        const stopsData = await this.getStops();
+    async syncStops(trigger: StopSyncTrigger): Promise<void> {
+        console.log(trigger);
+        // const start = Date.now();
 
-        const platforms = platformsData.features
-            .map((stop) => {
-                const properties = stop.properties;
-                const [latitude, longitude] = stop.geometry.coordinates;
+        try {
+            const platformsData = await this.getPlatforms();
+            const stopsData = await this.getStops();
 
-                const routeIDs = properties.routes_id?.split(",") ?? [];
-                const routeNames = properties?.routes_names?.split(",") ?? [];
+            const platforms = platformsData.features
+                .map((stop) => {
+                    const properties = stop.properties;
+                    const [latitude, longitude] = stop.geometry.coordinates;
 
-                const isMetro = routeNames.some(
-                    (routeName) => metroLine.safeParse(routeName).success,
+                    const routeIDs = properties.routes_id?.split(",") ?? [];
+                    const routeNames =
+                        properties?.routes_names?.split(",") ?? [];
+
+                    const isMetro = routeNames.some(
+                        (routeName) => metroLine.safeParse(routeName).success,
+                    );
+                    return {
+                        latitude,
+                        longitude,
+                        id: properties.stop_id,
+                        name: properties.stop_name,
+                        isMetro,
+                        routes: routeIDs.map((id, index) => ({
+                            id,
+                            name: routeNames[index],
+                        })),
+                    };
+                })
+                .filter(
+                    (stop) =>
+                        !!stop.latitude &&
+                        !!stop.longitude &&
+                        !!stop.id &&
+                        !!stop.name,
                 );
-                return {
-                    latitude,
-                    longitude,
-                    id: properties.stop_id,
-                    name: properties.stop_name,
-                    isMetro,
-                    routes: routeIDs.map((id, index) => ({
-                        id,
-                        name: routeNames[index],
-                    })),
-                };
-            })
-            .filter(
-                (stop) =>
-                    !!stop.latitude &&
-                    !!stop.longitude &&
-                    !!stop.id &&
-                    !!stop.name,
-            );
 
-        await this.updateDB({
-            stops: stopsData.stopGroups.map((stop) => ({
-                id: `U${stop.node}`,
-                name: stop.name,
-                avgLatitude: stop.avgLat,
-                avgLongitude: stop.avgLon,
-            })),
-            platforms: platforms.map((platform) => ({
-                id: platform.id,
-                name: platform.name,
-                isMetro: platform.isMetro,
-                latitude: platform.latitude,
-                longitude: platform.longitude,
-                stopId: platform.id.split("Z")[0],
-                routes: platform.routes,
-            })),
-        });
+            await this.updateDB({
+                stops: stopsData.stopGroups.map((stop) => ({
+                    id: `U${stop.node}`,
+                    name: stop.name,
+                    avgLatitude: stop.avgLat,
+                    avgLongitude: stop.avgLon,
+                })),
+                platforms: platforms.map((platform) => ({
+                    id: platform.id,
+                    name: platform.name,
+                    isMetro: platform.isMetro,
+                    latitude: platform.latitude,
+                    longitude: platform.longitude,
+                    stopId: platform.id.split("Z")[0],
+                    routes: platform.routes,
+                })),
+            });
+        } catch (error) {
+        } finally {
+            console.log("Finished stop sync");
+        }
     }
 }
