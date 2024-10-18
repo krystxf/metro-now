@@ -6,6 +6,7 @@
 
 -   [Swagger](https://api.metronow.dev/)
 -   [GraphQL](https://api.metronow.dev/graphql)
+-   [Status](https://status.uptime-monitor.io/6712f0b0063af5950476d77c)
 
 # Setup
 
