@@ -11,6 +11,7 @@ import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
+import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
     platformWithDistanceSchema,
@@ -31,7 +32,7 @@ import {
 
 @ApiTags("platform")
 @Controller("platform")
-@UseInterceptors(CacheInterceptor)
+@UseInterceptors(CacheInterceptor, LogInterceptor)
 export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 

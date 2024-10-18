@@ -16,11 +16,7 @@ CREATE TABLE "Log" (
     "id" BIGSERIAL NOT NULL,
     "type" "LogType" NOT NULL,
     "message" TEXT NOT NULL,
-    "description" TEXT,
-    "host" TEXT,
-    "path" TEXT,
-    "statusCode" INTEGER,
-    "duration" INTEGER,
+    "trace" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Log_pkey" PRIMARY KEY ("id")

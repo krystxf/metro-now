@@ -4,6 +4,7 @@ import {
     HttpException,
     HttpStatus,
     Query,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
@@ -14,10 +15,12 @@ import {
     departureSchema,
     type DepartureSchema,
 } from "src/modules/departure/schema/departure.schema";
+import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { toArray } from "src/utils/array.utils";
 
 @ApiTags("departure")
 @Controller("departure")
+@UseInterceptors(LogInterceptor)
 export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
 
@@ -37,7 +40,7 @@ export class DepartureController {
             );
         }
 
-        const departures = await this.departureService.getDeparturesByPlatform(
+        const departures = this.departureService.getDeparturesByPlatform(
             parsed.data,
         );
 

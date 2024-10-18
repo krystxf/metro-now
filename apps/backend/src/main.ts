@@ -9,20 +9,30 @@ import {
     SWAGGER_TITLE,
     SWAGGER_VERSION,
 } from "src/constants/swagger.const";
+import { LoggerService } from "src/modules/logger/logger.service";
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        bufferLogs: true,
+    });
 
-    const config = new DocumentBuilder()
+    app.useLogger(new LoggerService());
+
+    const swaggerDocumentBuilder = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
         .setDescription(SWAGGER_DESCRIPTION)
         .setVersion(SWAGGER_VERSION)
         .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup(SWAGGER_API_ROOT, app, document, {
-        jsonDocumentUrl: SWAGGER_JSON_URL,
-        customSiteTitle: SWAGGER_TITLE,
-    });
+
+    SwaggerModule.setup(
+        SWAGGER_API_ROOT,
+        app,
+        SwaggerModule.createDocument(app, swaggerDocumentBuilder),
+        {
+            jsonDocumentUrl: SWAGGER_JSON_URL,
+            customSiteTitle: SWAGGER_TITLE,
+        },
+    );
 
     await app.listen(process.env.PORT ?? 3001);
 }

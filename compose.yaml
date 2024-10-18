@@ -41,7 +41,7 @@ services:
             - /bin/bash
             - -c
             - |
-                pnpm prisma:push
+                pnpm prisma:migrate:deploy
                 pnpm start:prod
         depends_on:
             - postgres
