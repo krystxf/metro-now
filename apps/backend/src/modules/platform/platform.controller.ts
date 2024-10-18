@@ -11,6 +11,7 @@ import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
+import { LoggerService } from "src/modules/logger/logger.service";
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
     platformWithDistanceSchema,
@@ -28,12 +29,16 @@ import {
     longitudeQuery,
     metroOnlyQuery,
 } from "src/swagger/query.swagger";
+import { measureDuration } from "src/utils/measure-duration";
 
 @ApiTags("platform")
 @Controller("platform")
 @UseInterceptors(CacheInterceptor)
 export class PlatformController {
-    constructor(private readonly platformService: PlatformService) {}
+    constructor(
+        private readonly platformService: PlatformService,
+        private readonly logger: LoggerService,
+    ) {}
 
     @Get("/all")
     @ApiDescription({
@@ -46,15 +51,19 @@ export class PlatformController {
         });
         const parsed = schema.safeParse(query);
         if (!parsed.success) {
+            await this.logger.createRestErrorLog("/platform/all", query);
+
             throw new HttpException(
                 parsed.error.format(),
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const platforms = await this.platformService.getAllPlatforms(
-            parsed.data,
+        const [platforms, duration] = await measureDuration(
+            this.platformService.getAllPlatforms(parsed.data),
         );
+
+        await this.logger.createRestLog("/platform/all", duration, query);
 
         return platformSchema.array().parse(platforms);
     }
@@ -94,15 +103,19 @@ Sort platforms by distance to a given location. Location may be saved in logs.
         const parsed = schema.safeParse(query);
 
         if (!parsed.success) {
+            await this.logger.createRestErrorLog("/platform/closest", query);
+
             throw new HttpException(
                 parsed.error.format(),
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const platforms = await this.platformService.getPlatformsByDistance(
-            parsed.data,
+        const [platforms, duration] = await measureDuration(
+            this.platformService.getPlatformsByDistance(parsed.data),
         );
+
+        await this.logger.createRestLog("/platform/closest", duration, query);
 
         return platformWithDistanceSchema.array().parse(platforms);
     }
@@ -126,15 +139,19 @@ Sort platforms by distance to a given location. Location may be saved in logs.
         });
 
         if (!parsed.success) {
+            await this.logger.createRestErrorLog("/platform/in-box", query);
+
             throw new HttpException(
                 "Invalid query params",
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const platforms = await this.platformService.getPlatformsInBoundingBox(
-            parsed.data,
+        const [platforms, duration] = await measureDuration(
+            this.platformService.getPlatformsInBoundingBox(parsed.data),
         );
+
+        await this.logger.createRestLog("/platform/in-box", duration, query);
 
         return platformSchema.array().parse(platforms);
     }

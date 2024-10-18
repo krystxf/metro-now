@@ -1,7 +1,7 @@
-import { Injectable, LoggerService } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { unique } from "radash";
 
-import { StopSyncTrigger } from "src/enums/log.enum";
+import { LogMessage, LogType, StopSyncTrigger } from "src/enums/log.enum";
 import { metroLine } from "src/enums/metro.enum";
 import {
     pidPlatformsSchema,
@@ -11,6 +11,7 @@ import {
     pidStopsSchema,
     type PidStopsSchema,
 } from "src/modules/import/schema/pid-stops.schema";
+import { LoggerService } from "src/modules/logger/logger.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
@@ -150,8 +151,7 @@ export class ImportService {
     }
 
     async syncStops(trigger: StopSyncTrigger): Promise<void> {
-        console.log(trigger);
-        // const start = Date.now();
+        const start = Date.now();
 
         try {
             const platformsData = await this.getPlatforms();
@@ -206,7 +206,23 @@ export class ImportService {
                     routes: platform.routes,
                 })),
             });
+
+            await this.logger.createLog(LogType.INFO, LogMessage.IMPORT_STOPS, {
+                trigger,
+                duration: Date.now() - start,
+                stops: stopsData.stopGroups.length,
+                platforms: platforms.length,
+            });
         } catch (error) {
+            await this.logger.createLog(
+                LogType.ERROR,
+                LogMessage.IMPORT_STOPS,
+                {
+                    trigger,
+                    duration: Date.now() - start,
+                    error: JSON.stringify(error),
+                },
+            );
         } finally {
             console.log("Finished stop sync");
         }
