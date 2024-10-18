@@ -4,6 +4,7 @@ import {
     HttpException,
     HttpStatus,
     Query,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
@@ -14,17 +15,14 @@ import {
     departureSchema,
     type DepartureSchema,
 } from "src/modules/departure/schema/departure.schema";
-import { LoggerService } from "src/modules/logger/logger.service";
+import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { toArray } from "src/utils/array.utils";
-import { measureDuration } from "src/utils/measure-duration";
 
 @ApiTags("departure")
 @Controller("departure")
+@UseInterceptors(LogInterceptor)
 export class DepartureController {
-    constructor(
-        private readonly departureService: DepartureService,
-        private readonly logger: LoggerService,
-    ) {}
+    constructor(private readonly departureService: DepartureService) {}
 
     @Get("/platform")
     async getDeparturesByPlatform(@Query("id") id): Promise<DepartureSchema[]> {
@@ -36,17 +34,15 @@ export class DepartureController {
         const parsed = platformSchema.safeParse(toArray(id));
 
         if (!parsed.success) {
-            await this.logger.createRestErrorLog("/departure/platform", { id });
             throw new HttpException(
                 "Invalid query params",
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const [departures, duration] = await measureDuration(
-            this.departureService.getDeparturesByPlatform(parsed.data),
+        const departures = this.departureService.getDeparturesByPlatform(
+            parsed.data,
         );
-        await this.logger.createRestLog("/departure/platform", duration);
 
         return departureSchema.array().parse(departures);
     }
