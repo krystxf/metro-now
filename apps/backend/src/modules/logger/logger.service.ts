@@ -1,6 +1,7 @@
 import { ConsoleLogger, Injectable, Scope } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
+import { Environment } from "src/enums/environment.enum";
 import { LogMessage, LogType, RestLogStatus } from "src/enums/log.enum";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
@@ -9,6 +10,8 @@ export class LoggerService extends ConsoleLogger {
     private readonly prisma = new PrismaService();
 
     async error(message: string, trace: string): Promise<void> {
+        if (process.env.NODE_ENV === Environment.TEST) return;
+
         try {
             await this.prisma.log.create({
                 data: {
@@ -31,6 +34,8 @@ export class LoggerService extends ConsoleLogger {
             | Prisma.NullableJsonNullValueInput
             | Prisma.InputJsonValue = Prisma.JsonNull,
     ): Promise<void> {
+        if (process.env.NODE_ENV === Environment.TEST) return;
+
         try {
             await this.prisma.log.create({
                 data: {
@@ -49,6 +54,8 @@ export class LoggerService extends ConsoleLogger {
         duration: number,
         querySearch: Record<string, string | string[]> | null = null,
     ): Promise<void> {
+        if (process.env.NODE_ENV === Environment.TEST) return;
+
         await this.createLog(LogType.INFO, LogMessage.REST, {
             endpoint,
             duration,
