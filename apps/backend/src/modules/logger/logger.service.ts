@@ -2,7 +2,7 @@ import { ConsoleLogger, Injectable, Scope } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { Environment } from "src/enums/environment.enum";
-import { LogMessage, LogType, RestLogStatus } from "src/enums/log.enum";
+import { LogLevel, LogMessage, RestLogStatus } from "src/enums/log.enum";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable({ scope: Scope.TRANSIENT })
@@ -10,43 +10,19 @@ export class LoggerService extends ConsoleLogger {
     private readonly prisma = new PrismaService();
 
     async error(message: string, trace: string): Promise<void> {
-        if (process.env.NODE_ENV === Environment.TEST) return;
-
-        try {
-            await this.prisma.log.create({
-                data: {
-                    type: LogType.ERROR,
-                    message,
-                    trace,
-                },
-            });
-        } catch (error) {
-            super.error("Failed to log error", error);
-        }
+        await this.createLogHandler(LogLevel.error, message, trace);
 
         super.error(message, trace);
     }
 
     async createLog(
-        type: LogType,
+        type: LogLevel,
         message: LogMessage,
         trace:
             | Prisma.NullableJsonNullValueInput
             | Prisma.InputJsonValue = Prisma.JsonNull,
     ): Promise<void> {
-        if (process.env.NODE_ENV === Environment.TEST) return;
-
-        try {
-            await this.prisma.log.create({
-                data: {
-                    type,
-                    message,
-                    trace,
-                },
-            });
-        } catch (error) {
-            super.error("Failed to log error", error);
-        }
+        return this.createLogHandler(type, message, trace);
     }
 
     async createRestLog(
@@ -54,23 +30,53 @@ export class LoggerService extends ConsoleLogger {
         duration: number,
         querySearch: Record<string, string | string[]> | null = null,
     ): Promise<void> {
-        if (process.env.NODE_ENV === Environment.TEST) return;
-
-        await this.createLog(LogType.INFO, LogMessage.REST, {
-            endpoint,
-            duration,
-            status: RestLogStatus.SUCCESS,
-            querySearch,
-        });
+        return this.createRestLogHandler(endpoint, true, duration, querySearch);
     }
 
     async createRestErrorLog(
         endpoint,
         querySearch: Record<string, string | string[]> | null = null,
     ): Promise<void> {
-        await this.createLog(LogType.INFO, LogMessage.REST, {
+        return this.createRestLogHandler(endpoint, false, null, querySearch);
+    }
+
+    private async createLogHandler(
+        level: LogLevel,
+        message: string,
+        trace:
+            | Prisma.NullableJsonNullValueInput
+            | Prisma.InputJsonValue = Prisma.JsonNull,
+    ) {
+        if (process.env.NODE_ENV === Environment.TEST) return;
+
+        await this.prisma.log
+            .create({
+                data: {
+                    level,
+                    message,
+                    trace,
+                },
+            })
+            .catch((error) => {
+                super.error("Failed to log error", error);
+            });
+    }
+
+    private async createRestLogHandler(
+        endpoint: string,
+        success: boolean,
+        duration: number | null,
+        querySearch: Record<string, string | string[]> | null = null,
+    ): Promise<void> {
+        const status = success
+            ? RestLogStatus.SUCCESS
+            : RestLogStatus.INVALID_REQUEST;
+        const durationObject = duration ? { duration } : {};
+
+        return this.createLog(LogLevel.log, LogMessage.REST, {
             endpoint,
-            status: RestLogStatus.INVALID_REQUEST,
+            status,
+            ...durationObject,
             querySearch,
         });
     }

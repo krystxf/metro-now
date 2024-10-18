@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { unique } from "radash";
 
-import { LogMessage, LogType, StopSyncTrigger } from "src/enums/log.enum";
+import { LogLevel, LogMessage, StopSyncTrigger } from "src/enums/log.enum";
 import { metroLine } from "src/enums/metro.enum";
 import {
     pidPlatformsSchema,
@@ -207,7 +207,7 @@ export class ImportService {
                 })),
             });
 
-            await this.logger.createLog(LogType.INFO, LogMessage.IMPORT_STOPS, {
+            await this.logger.createLog(LogLevel.log, LogMessage.IMPORT_STOPS, {
                 trigger,
                 duration: Date.now() - start,
                 stops: stopsData.stopGroups.length,
@@ -215,7 +215,7 @@ export class ImportService {
             });
         } catch (error) {
             await this.logger.createLog(
-                LogType.ERROR,
+                LogLevel.error,
                 LogMessage.IMPORT_STOPS,
                 {
                     trigger,

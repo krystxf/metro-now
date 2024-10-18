@@ -1,4 +1,4 @@
-export { LogType } from "@prisma/client";
+export { LogLevel } from "@prisma/client";
 
 export enum StopSyncTrigger {
     CRON = "CRON",
