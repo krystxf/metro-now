@@ -10,6 +10,7 @@ import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_API_ROOT } from "src/constants/graphql.const";
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { ImportModule } from "src/modules/import/import.module";
+import { LoggerModule } from "src/modules/logger/logger.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { StopModule } from "src/modules/stop/stop.module";
@@ -21,6 +22,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         ImportModule,
         StopModule,
         PrismaModule,
+        LoggerModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
         CacheModule.register(cacheModuleConfig),
