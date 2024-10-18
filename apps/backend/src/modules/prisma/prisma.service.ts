@@ -9,6 +9,7 @@ export class PrismaService
     constructor() {
         super({
             datasourceUrl: `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.POSTGRES_DB}?schema=${process.env.DB_SCHEMA}`,
+            log: ["info", "warn", "error"],
         });
     }
     async onModuleInit() {
