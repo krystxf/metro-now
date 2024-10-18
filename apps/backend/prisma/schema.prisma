@@ -71,15 +71,11 @@ model PlatformsOnRoutes {
 }
 
 model Log {
-  id          BigInt   @id @default(autoincrement())
-  type        LogType
-  message     String
-  description String?
-  host        String?
-  path        String?
-  statusCode  Int?
-  duration    Int? // in milliseconds
-  createdAt   DateTime @default(now())
+  id        BigInt   @id @default(autoincrement())
+  type      LogType
+  message   String
+  trace     Json?
+  createdAt DateTime @default(now())
 }
 
 enum LogType {
