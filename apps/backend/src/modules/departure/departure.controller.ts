@@ -40,7 +40,7 @@ export class DepartureController {
             );
         }
 
-        const departures = this.departureService.getDeparturesByPlatform(
+        const departures = await this.departureService.getDeparturesByPlatform(
             parsed.data,
         );
 
