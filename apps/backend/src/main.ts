@@ -17,6 +17,7 @@ async function bootstrap() {
     });
 
     app.useLogger(new LoggerService());
+    app.enableCors();
 
     const swaggerDocumentBuilder = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
