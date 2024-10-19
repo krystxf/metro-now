@@ -8,5 +8,9 @@ export const envSchema = z.object({
     DB_HOST: z.string(),
     DB_PORT: z.coerce.number().int().positive(),
     DB_SCHEMA: z.string(),
+    REDIS_PORT: z.coerce.number().int().positive().optional(),
+    REDIS_HOST: z.string().optional(),
     PORT: z.coerce.number().int().positive().optional(),
 });
+
+export type EnvSchema = z.infer<typeof envSchema>;

@@ -11,7 +11,7 @@
         "precommit": "pnpm format",
         "format": "pnpm -r format && pnpm exec prettier . --write",
         "format:check": "pnpm -r format:check && pnpm exec prettier . --check",
-        "docker:db:up": "docker compose up postgres",
+        "docker:up:dev": "docker compose up postgres redis-stack",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down --remove-orphans --volumes"
     },

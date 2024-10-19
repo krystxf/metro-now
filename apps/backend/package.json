@@ -35,6 +35,7 @@
         "@nestjs/swagger": "^7.4.2",
         "@prisma/client": "5.20.0",
         "cache-manager": "^5.7.6",
+        "cache-manager-redis-yet": "^5.1.5",
         "graphql": "^16.9.0",
         "radash": "^12.1.0",
         "reflect-metadata": "^0.2.2",

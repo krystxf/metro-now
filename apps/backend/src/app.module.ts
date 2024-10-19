@@ -25,7 +25,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         LoggerModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
-        CacheModule.register(cacheModuleConfig),
+        CacheModule.registerAsync(cacheModuleConfig),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,
