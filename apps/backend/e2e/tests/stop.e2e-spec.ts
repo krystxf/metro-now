@@ -12,7 +12,7 @@ import { StopModule } from "src/modules/stop/stop.module";
 
 describe("Stop Module (e2e)", () => {
     let app: INestApplication;
-    beforeEach(async () => {
+    beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
                 CacheModule.register(cacheModuleConfig),
@@ -27,7 +27,7 @@ describe("Stop Module (e2e)", () => {
         await app.init();
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await app.close();
     });
 
