@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend
 
 on: push
 
@@ -27,10 +27,14 @@ jobs:
               run: |
                   pnpm install
 
-            - name: Build
+            - name: Prisma generate
               run: |
                   cd apps/backend
                   pnpm prisma:generate
+
+            - name: Build
+              run: |
+                  cd apps/backend 
                   pnpm build
 
             - name: Test
@@ -47,3 +51,80 @@ jobs:
               run: |
                   cd apps/backend
                   pnpm types:check
+
+    e2e:
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres
+                env:
+                    POSTGRES_USER: postgres_user
+                    POSTGRES_PASSWORD: postgres_password
+                    POSTGRES_DB: metro-now
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+            redis:
+                image: redis
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 6379:6379
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: |
+                  pnpm install
+
+            - name: Setup environment
+              run: |
+                  cd apps/backend
+                  tail -n +3 ".env.local.example" > ".env.local"
+                  echo "\n" >> ".env.local"
+                  echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_API_KEY }}" >> ".env.local"
+
+                  echo "----- .env.local -----"
+                  cat ".env.local"
+                  echo "----------------------"
+
+            - name: Prisma generate
+              run: |
+                  cd apps/backend
+                  pnpm prisma:generate
+
+            - name: Run migrations
+              run: |
+                  cd apps/backend 
+                  pnpm prisma:migrate:deploy
+
+            - name: Run seeds
+              run: |
+                  cd apps/backend  
+                  pnpm prisma:seed
+
+            - name: Test e2e
+              run: |
+                  cd apps/backend 
+                  pnpm test:e2e
