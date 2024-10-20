@@ -20,7 +20,8 @@
         "prisma:generate": "prisma generate",
         "prisma:migrate:create": "dotenv -e .env.local -- prisma migrate dev",
         "prisma:migrate:deploy": "dotenv -e .env.local -- prisma migrate deploy",
-        "prisma:push": "dotenv -e .env.local -- prisma db push"
+        "prisma:push": "dotenv -e .env.local -- prisma db push",
+        "prisma:seed": "prisma db seed"
     },
     "dependencies": {
         "@apollo/server": "^4.11.0",
@@ -91,5 +92,8 @@
         ],
         "coverageDirectory": "../coverage",
         "testEnvironment": "node"
+    },
+    "prisma": {
+        "seed": "dotenv -e .env.local -- ts-node prisma/seed.ts"
     }
 }
