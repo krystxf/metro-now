@@ -13,6 +13,7 @@ import { ImportModule } from "src/modules/import/import.module";
 import { LoggerModule } from "src/modules/logger/logger.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
+import { StatusModule } from "src/modules/status/status.module";
 import { StopModule } from "src/modules/stop/stop.module";
 
 @Module({
@@ -23,6 +24,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         StopModule,
         PrismaModule,
         LoggerModule,
+        StatusModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
         CacheModule.registerAsync(cacheModuleConfig),
