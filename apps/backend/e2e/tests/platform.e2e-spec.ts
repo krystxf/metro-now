@@ -37,7 +37,7 @@ describe("Platform Module (e2e)", () => {
         await app.close();
     });
 
-    it.each(
+    test.each(
         generateTestUrls("/platform/all", [
             generateParamsArray("metroOnly"),
 
@@ -61,7 +61,7 @@ describe("Platform Module (e2e)", () => {
         ...generateParamsArray("longitude", 50.08187897724985),
     ];
 
-    it.each(
+    test.each(
         generateTestUrls("/platform/closest", [
             [...latLonSearchParams],
 

@@ -33,7 +33,7 @@ describe("Status Module (e2e)", () => {
         await app.close();
     });
 
-    it.each(["/status"])(getRequestTestLabel, async (url) => {
+    test.each(["/status"])(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)
@@ -44,7 +44,7 @@ describe("Status Module (e2e)", () => {
         expect(response.body.length).toEqual(3);
     });
 
-    it.each(["/status/geo-functions"])(getRequestTestLabel, async (url) => {
+    test.each(["/status/geo-functions"])(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)

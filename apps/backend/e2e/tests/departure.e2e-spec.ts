@@ -102,7 +102,7 @@ describe("Departure Module (e2e)", () => {
         ],
     ]);
 
-    it.each(testUrls)(getRequestTestLabel, async (url) => {
+    test.each(testUrls)(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)

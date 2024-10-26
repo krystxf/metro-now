@@ -36,7 +36,7 @@ describe("Stop Module (e2e)", () => {
         await app.close();
     });
 
-    it.each(
+    test.each(
         generateTestUrls("/stop/all", [
             [],
 
