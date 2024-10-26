@@ -4,18 +4,20 @@ import { ConfigModule } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import * as request from "supertest";
 
+import { getRequestTestLabel } from "e2e/constant/test-label";
+import {
+    generateParamsArray,
+    generateTestUrls,
+} from "e2e/utils/generate-test-urls";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { LoggerModule } from "src/modules/logger/logger.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
-import {
-    generateCombinations,
-    generatePermutations,
-} from "src/utils/combination.utils";
 
 describe("Platform Module (e2e)", () => {
     let app: INestApplication;
+
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
@@ -35,12 +37,15 @@ describe("Platform Module (e2e)", () => {
         await app.close();
     });
 
-    it.each([
-        "/platform/all",
-        "/platform/all?metroOnly",
-        "/platform/all?metroOnly=false",
-        "/platform/all?metroOnly=true",
-    ])("[GET] %s", async (url) => {
+    it.each(
+        generateTestUrls("/platform/all", [
+            generateParamsArray("metroOnly"),
+
+            generateParamsArray("metroOnly", true),
+
+            generateParamsArray("metroOnly", false),
+        ]),
+    )(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)
@@ -51,37 +56,48 @@ describe("Platform Module (e2e)", () => {
         expect(response.body.length).toBeGreaterThan(0);
     });
 
-    const latitude = 14.415868050223628;
-    const longitude = 50.08187897724985;
-
-    const allMetroOlyParams = [
-        "",
-        "&metroOnly",
-        "&metroOnly=false",
-        "&metroOnly=true",
+    const latLonSearchParams = [
+        ...generateParamsArray("latitude", 14.415868050223628),
+        ...generateParamsArray("longitude", 50.08187897724985),
     ];
-    const allCountParams = [
-        "",
-        "&count=1",
-        "&count=2",
-        "&count=3",
-        "&count=400",
-        "&count=2000",
-    ];
-    const allLatLongParams = generatePermutations([
-        `&latitude=${latitude}`,
-        `&longitude=${longitude}`,
-    ]).map((value) => value.join(""));
 
-    const urls: string[] = generateCombinations([
-        allLatLongParams,
-        allMetroOlyParams,
-        allCountParams,
-    ]).map((value) => `/platform/closest?${value.join("")}`);
+    it.each(
+        generateTestUrls("/platform/closest", [
+            [...latLonSearchParams],
 
-    it.each(urls)("[GET] %s", async (params) => {
+            [...latLonSearchParams, ...generateParamsArray("metroOnly")],
+
+            [...latLonSearchParams, ...generateParamsArray("metroOnly", true)],
+
+            [...latLonSearchParams, ...generateParamsArray("metroOnly", false)],
+
+            [
+                ...latLonSearchParams,
+                ...generateParamsArray("metroOnly"),
+                ...generateParamsArray("count", 10),
+            ],
+
+            [
+                ...latLonSearchParams,
+                ...generateParamsArray("metroOnly", "true"),
+                ...generateParamsArray("count", 10),
+            ],
+
+            [
+                ...latLonSearchParams,
+                ...generateParamsArray("metroOnly", "false"),
+                ...generateParamsArray("count", 10),
+            ],
+
+            [
+                ...latLonSearchParams,
+                ...generateParamsArray("metroOnly", "true"),
+                ...generateParamsArray("count", 200),
+            ],
+        ]),
+    )(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
-            .get(`${params}`)
+            .get(url)
             .expect(200)
             .accept("application/json");
 
