@@ -19,4 +19,19 @@ export class PrismaService
     async onModuleDestroy() {
         await this.$disconnect();
     }
+
+    async getExtensions(): Promise<
+        {
+            oid: string | number;
+            extname: string;
+        }[]
+    > {
+        return await this.$queryRaw`SELECT * FROM pg_extension`;
+    }
+
+    async getExtensionNames(): Promise<string[]> {
+        const extensions = await this.getExtensions();
+
+        return extensions.map((ext) => ext.extname);
+    }
 }

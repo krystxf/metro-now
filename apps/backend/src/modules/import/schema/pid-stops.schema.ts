@@ -10,9 +10,18 @@ export const pidStopsSchema = z.object({
             avgLon: z.number(),
             stops: z
                 .object({
-                    id: z.string(),
                     lat: z.number(),
                     lon: z.number(),
+                    gtfsIds: z.string().array(),
+                    altIdosName: z.string(),
+                    isMetro: z.boolean().optional(),
+                    lines: z
+                        .object({
+                            id: z.coerce.string(),
+                            name: z.string(),
+                            type: z.string(),
+                        })
+                        .array(),
                 })
                 .array(),
         })

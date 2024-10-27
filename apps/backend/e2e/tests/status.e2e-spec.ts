@@ -5,18 +5,15 @@ import { Test, TestingModule } from "@nestjs/testing";
 import * as request from "supertest";
 
 import { getRequestTestLabel } from "e2e/constant/test-label";
-import {
-    generateParamsArray,
-    generateTestUrls,
-} from "e2e/utils/generate-test-urls";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { LoggerModule } from "src/modules/logger/logger.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
-import { StopModule } from "src/modules/stop/stop.module";
+import { StatusModule } from "src/modules/status/status.module";
 
-describe("Stop Module (e2e)", () => {
+describe("Status Module (e2e)", () => {
     let app: INestApplication;
+
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
@@ -24,7 +21,7 @@ describe("Stop Module (e2e)", () => {
                 ConfigModule.forRoot(configModuleConfig),
                 PrismaModule,
                 LoggerModule,
-                StopModule,
+                StatusModule,
             ],
         }).compile();
 
@@ -36,17 +33,7 @@ describe("Stop Module (e2e)", () => {
         await app.close();
     });
 
-    test.each(
-        generateTestUrls("/stop/all", [
-            [],
-
-            [...generateParamsArray("metroOnly")],
-
-            [...generateParamsArray("metroOnly", true)],
-
-            [...generateParamsArray("metroOnly", false)],
-        ]),
-    )(getRequestTestLabel, async (url) => {
+    test.each(["/status"])(getRequestTestLabel, async (url) => {
         const response = await request(app.getHttpServer())
             .get(url)
             .expect(200)
@@ -54,6 +41,18 @@ describe("Stop Module (e2e)", () => {
 
         expect(response.body).toBeDefined();
         expect(response.body).toBeInstanceOf(Array);
-        expect(response.body.length).toBeGreaterThan(0);
+        expect(response.body.length).toEqual(3);
+    });
+
+    test.each(["/status/geo-functions"])(getRequestTestLabel, async (url) => {
+        const response = await request(app.getHttpServer())
+            .get(url)
+            .expect(200)
+            .accept("application/json");
+
+        expect(response.body).toBeDefined();
+        expect(response.body).toBeInstanceOf(Object);
+        expect(response.body.service).toEqual("geo-functions");
+        expect(response.body.status).toEqual("ok");
     });
 });
