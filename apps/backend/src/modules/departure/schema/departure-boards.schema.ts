@@ -27,7 +27,7 @@ export const departureBoardsSchema = z.object({
             }),
             stop: z.object({
                 id: z.string(),
-                platform_code: z.string(),
+                platform_code: z.string().nullable(),
             }),
         }),
     ),

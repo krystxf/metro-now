@@ -3,7 +3,7 @@
     "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
     "packageManager": "pnpm@9.1.0",
     "scripts": {
-        "xcode": "xed ./apps/mobile",
+        "xcode": "xed ./apps/mobile/metro-now",
         "build": "pnpm --recursive --parallel run build",
         "dev": "pnpm --recursive --parallel run dev",
         "backend:build": "pnpm run -r --filter @metro-now/backend build",

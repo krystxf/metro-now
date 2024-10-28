@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const timestampSchema = z.object({
-    predicted: z.coerce.date(),
-    scheduled: z.coerce.date(),
+    predicted: z.coerce.string(),
+    scheduled: z.coerce.string(),
 });
 
 export type TimestampSchema = z.infer<typeof timestampSchema>;

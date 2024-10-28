@@ -7,7 +7,7 @@ export const departureSchema = z.object({
     delay: z.number(),
     headsign: z.string(),
     route: z.string(),
-    platformCode: z.string(),
+    platformCode: z.string().nullable(),
     platformId: z.string(),
 });
 

@@ -68,8 +68,8 @@
     {
         "id": "U4",
         "name": "Arbesovo náměstí",
-        "avgLatitude": 50.0759773,
-        "avgLongitude": 14.4047737
+        "avgLatitude": 50.0762749,
+        "avgLongitude": 14.4048328
     },
     {
         "id": "U348",
@@ -576,12 +576,6 @@
         "avgLongitude": 14.8634243
     },
     {
-        "id": "U5968",
-        "name": "Bělá p.Bezd.,Táborová",
-        "avgLatitude": 50.5059662,
-        "avgLongitude": 14.8020439
-    },
-    {
         "id": "U6164",
         "name": "Bělá p.Bezd.,u kapličky",
         "avgLatitude": 50.5052643,
@@ -590,8 +584,8 @@
     {
         "id": "U6162",
         "name": "Bělá p.Bezd.,u koníčka",
-        "avgLatitude": 50.5004,
-        "avgLongitude": 14.8110971
+        "avgLatitude": 50.5004044,
+        "avgLongitude": 14.8110476
     },
     {
         "id": "U6161",
@@ -620,8 +614,8 @@
     {
         "id": "U19",
         "name": "Belárie",
-        "avgLatitude": 50.0132332,
-        "avgLongitude": 14.4004011
+        "avgLatitude": 50.0136032,
+        "avgLongitude": 14.4010839
     },
     {
         "id": "U9512",
@@ -680,8 +674,8 @@
     {
         "id": "U32133",
         "name": "Běleč",
-        "avgLatitude": 49.54342,
-        "avgLongitude": 14.8370628
+        "avgLatitude": 49.5433578,
+        "avgLongitude": 14.8362484
     },
     {
         "id": "U32134",
@@ -1490,8 +1484,8 @@
     {
         "id": "U6726",
         "name": "Běrunice",
-        "avgLatitude": 50.1857224,
-        "avgLongitude": 15.33334
+        "avgLatitude": 50.1857147,
+        "avgLongitude": 15.3335438
     },
     {
         "id": "U4866",
@@ -1730,8 +1724,8 @@
     {
         "id": "U31039",
         "name": "Blatce,Tubož",
-        "avgLatitude": 50.4893951,
-        "avgLongitude": 14.5997629
+        "avgLatitude": 50.48941,
+        "avgLongitude": 14.59984
     },
     {
         "id": "U31040",
@@ -1850,8 +1844,8 @@
     {
         "id": "U9555",
         "name": "Bobnice",
-        "avgLatitude": 50.2187424,
-        "avgLongitude": 15.0557852
+        "avgLatitude": 50.21897,
+        "avgLongitude": 15.055788
     },
     {
         "id": "U9553",
@@ -2538,6 +2532,18 @@
         "avgLongitude": 14.6481485
     },
     {
+        "id": "U9817",
+        "name": "Březová,Pod hrází",
+        "avgLatitude": 49.8972244,
+        "avgLongitude": 13.8891926
+    },
+    {
+        "id": "U2365",
+        "name": "Brandýs n.L.-St.Bol.,Zahradní Město",
+        "avgLatitude": 50.1744232,
+        "avgLongitude": 14.6488314
+    },
+    {
         "id": "U1832",
         "name": "Brandýs n.L.-St.Bol.,Žel.st.",
         "avgLatitude": 50.209568,
@@ -3094,12 +3100,6 @@
         "name": "Březová,háj.",
         "avgLatitude": 49.91076,
         "avgLongitude": 13.8761559
-    },
-    {
-        "id": "U9817",
-        "name": "Březová,Pod hrází",
-        "avgLatitude": 49.8972244,
-        "avgLongitude": 13.8891926
     },
     {
         "id": "U1515",
@@ -4220,8 +4220,8 @@
     {
         "id": "U67",
         "name": "Čechovo náměstí",
-        "avgLatitude": 50.0680351,
-        "avgLongitude": 14.4589148
+        "avgLatitude": 50.0679855,
+        "avgLongitude": 14.4587612
     },
     {
         "id": "U7419",
@@ -5870,8 +5870,8 @@
     {
         "id": "U88",
         "name": "Dobeška",
-        "avgLatitude": 50.0419,
-        "avgLongitude": 14.4165449
+        "avgLatitude": 50.04183,
+        "avgLongitude": 14.416
     },
     {
         "id": "U89",
@@ -6150,16 +6150,34 @@
         "avgLongitude": 14.16678
     },
     {
+        "id": "U7178",
+        "name": "Dobříš,Na Hradci",
+        "avgLatitude": 49.8114624,
+        "avgLongitude": 14.101016
+    },
+    {
         "id": "U1851",
         "name": "Dobříš,nám.",
         "avgLatitude": 49.7814865,
         "avgLongitude": 14.1703978
     },
     {
+        "id": "U7177",
+        "name": "Dobříš,Pod Hradcem",
+        "avgLatitude": 49.80106,
+        "avgLongitude": 14.1235523
+    },
+    {
         "id": "U1843",
         "name": "Dobříš,Průmyslová zóna",
         "avgLatitude": 49.7950363,
         "avgLongitude": 14.19073
+    },
+    {
+        "id": "U7175",
+        "name": "Dobříš,Sanatorium",
+        "avgLatitude": 49.7878456,
+        "avgLongitude": 14.1515646
     },
     {
         "id": "U9622",
@@ -6174,16 +6192,22 @@
         "avgLongitude": 14.1412487
     },
     {
+        "id": "U7176",
+        "name": "Dobříš,Trnová,Dvůr",
+        "avgLatitude": 49.7940369,
+        "avgLongitude": 14.1347694
+    },
+    {
         "id": "U6918",
         "name": "Dobříš,U Pivovaru",
         "avgLatitude": 49.78794,
         "avgLongitude": 14.17894
     },
     {
-        "id": "U2860",
-        "name": "Dobříš,Větrník",
-        "avgLatitude": 49.7895737,
-        "avgLongitude": 14.177494
+        "id": "U7174",
+        "name": "Dobříš,U Slovanky",
+        "avgLatitude": 49.78639,
+        "avgLongitude": 14.165761
     },
     {
         "id": "U31953",
@@ -6272,8 +6296,8 @@
     {
         "id": "U6147",
         "name": "Doksy",
-        "avgLatitude": 50.1186867,
-        "avgLongitude": 14.0483551
+        "avgLatitude": 50.11866,
+        "avgLongitude": 14.0479927
     },
     {
         "id": "U31041",
@@ -6304,6 +6328,12 @@
         "name": "Doksy,Mimoňská",
         "avgLatitude": 50.56558,
         "avgLongitude": 14.6658888
+    },
+    {
+        "id": "U4109",
+        "name": "Doksy,most",
+        "avgLatitude": 50.1166077,
+        "avgLongitude": 14.0400734
     },
     {
         "id": "U3370",
@@ -6900,6 +6930,12 @@
         "avgLongitude": 14.7834282
     },
     {
+        "id": "U4570",
+        "name": "Doubravčice,Rozc.Vrátkov",
+        "avgLatitude": 50.02869,
+        "avgLongitude": 14.8081636
+    },
+    {
         "id": "U9609",
         "name": "Doubravčice,V Edenu",
         "avgLatitude": 50.0151367,
@@ -7466,8 +7502,8 @@
     {
         "id": "U110",
         "name": "Dvorce",
-        "avgLatitude": 50.04695,
-        "avgLongitude": 14.4143572
+        "avgLatitude": 50.04681,
+        "avgLongitude": 14.4141808
     },
     {
         "id": "U2753",
@@ -7520,8 +7556,8 @@
     {
         "id": "U6746",
         "name": "Dymokury,Svídnice",
-        "avgLatitude": 50.2638245,
-        "avgLongitude": 15.1815462
+        "avgLatitude": 50.2643166,
+        "avgLongitude": 15.1814156
     },
     {
         "id": "U9932",
@@ -7586,8 +7622,8 @@
     {
         "id": "U118",
         "name": "Flora",
-        "avgLatitude": 50.0781479,
-        "avgLongitude": 14.46181
+        "avgLatitude": 50.07817,
+        "avgLongitude": 14.4617786
     },
     {
         "id": "U689",
@@ -8030,8 +8066,8 @@
     {
         "id": "U142",
         "name": "Hlavní nádraží",
-        "avgLatitude": 50.0840073,
-        "avgLongitude": 14.4347992
+        "avgLatitude": 50.0845032,
+        "avgLongitude": 14.4344873
     },
     {
         "id": "U4350",
@@ -8738,8 +8774,8 @@
     {
         "id": "U31603",
         "name": "Hořice,rozc.",
-        "avgLatitude": 49.6016579,
-        "avgLongitude": 15.1901541
+        "avgLatitude": 49.6016655,
+        "avgLongitude": 15.1901817
     },
     {
         "id": "U4382",
@@ -8822,8 +8858,8 @@
     {
         "id": "U9615",
         "name": "Hořovice,Sklenářka",
-        "avgLatitude": 49.8435631,
-        "avgLongitude": 13.8893728
+        "avgLatitude": 49.8437,
+        "avgLongitude": 13.8895569
     },
     {
         "id": "U9785",
@@ -8914,6 +8950,12 @@
         "name": "Hostavice",
         "avgLatitude": 50.09012,
         "avgLongitude": 14.56333
+    },
+    {
+        "id": "U9173",
+        "name": "Hostín",
+        "avgLatitude": 50.33882,
+        "avgLongitude": 14.5885916
     },
     {
         "id": "U1779",
@@ -9594,16 +9636,16 @@
         "avgLongitude": 13.72522
     },
     {
-        "id": "U9510",
-        "name": "Hudčice",
-        "avgLatitude": 49.527668,
-        "avgLongitude": 13.9285374
-    },
-    {
         "id": "U7510",
         "name": "Hudčice",
         "avgLatitude": 49.532093,
         "avgLongitude": 13.924181
+    },
+    {
+        "id": "U9510",
+        "name": "Hudčice",
+        "avgLatitude": 49.527668,
+        "avgLongitude": 13.9285374
     },
     {
         "id": "U7511",
@@ -9918,16 +9960,16 @@
         "avgLongitude": 14.0348921
     },
     {
-        "id": "U9408",
-        "name": "Chabeřice",
-        "avgLatitude": 49.74967,
-        "avgLongitude": 15.0623636
-    },
-    {
         "id": "U7522",
         "name": "Chabeřice",
         "avgLatitude": 49.75012,
         "avgLongitude": 15.0720634
+    },
+    {
+        "id": "U9408",
+        "name": "Chabeřice",
+        "avgLatitude": 49.74967,
+        "avgLongitude": 15.0623636
     },
     {
         "id": "U7188",
@@ -10586,8 +10628,8 @@
     {
         "id": "U2984",
         "name": "Chotětov",
-        "avgLatitude": 50.3396645,
-        "avgLongitude": 14.8102112
+        "avgLatitude": 50.33745,
+        "avgLongitude": 14.8012714
     },
     {
         "id": "U6109",
@@ -10674,16 +10716,16 @@
         "avgLongitude": 15.1210794
     },
     {
-        "id": "U6652",
-        "name": "Choťovice",
-        "avgLatitude": 50.14135,
-        "avgLongitude": 15.3204231
-    },
-    {
         "id": "U4864",
         "name": "Choťovice",
         "avgLatitude": 50.14602,
         "avgLongitude": 15.3290758
+    },
+    {
+        "id": "U6652",
+        "name": "Choťovice",
+        "avgLatitude": 50.14135,
+        "avgLongitude": 15.3204231
     },
     {
         "id": "U31358",
@@ -11198,8 +11240,14 @@
     {
         "id": "U190",
         "name": "I. P. Pavlova",
-        "avgLatitude": 50.07511,
-        "avgLongitude": 14.4304152
+        "avgLatitude": 50.07514,
+        "avgLongitude": 14.4305983
+    },
+    {
+        "id": "U1273",
+        "name": "IKEA Černý Most",
+        "avgLatitude": 50.10453,
+        "avgLongitude": 14.5885038
     },
     {
         "id": "U908",
@@ -11544,16 +11592,16 @@
         "avgLongitude": 15.0977659
     },
     {
-        "id": "U9546",
-        "name": "Jesenice",
-        "avgLatitude": 50.09322,
-        "avgLongitude": 13.4719448
-    },
-    {
         "id": "U7623",
         "name": "Jesenice",
         "avgLatitude": 49.6066971,
         "avgLongitude": 14.47618
+    },
+    {
+        "id": "U9546",
+        "name": "Jesenice",
+        "avgLatitude": 50.09322,
+        "avgLongitude": 13.4719448
     },
     {
         "id": "U1330",
@@ -12332,8 +12380,8 @@
     {
         "id": "U104",
         "name": "Jiviny",
-        "avgLatitude": 50.0772934,
-        "avgLongitude": 14.3037071
+        "avgLatitude": 50.077343,
+        "avgLongitude": 14.3038139
     },
     {
         "id": "U1917",
@@ -12458,8 +12506,8 @@
     {
         "id": "U1393",
         "name": "K Letňanům",
-        "avgLatitude": 50.14351,
-        "avgLongitude": 14.484067
+        "avgLatitude": 50.1438751,
+        "avgLongitude": 14.48425
     },
     {
         "id": "U22",
@@ -12502,6 +12550,12 @@
         "name": "K Teplárně",
         "avgLatitude": 50.1688,
         "avgLongitude": 14.5211849
+    },
+    {
+        "id": "U3023",
+        "name": "K Trninám",
+        "avgLatitude": 50.06862,
+        "avgLongitude": 14.3110828
     },
     {
         "id": "U505",
@@ -13038,6 +13092,12 @@
         "avgLongitude": 12.875968
     },
     {
+        "id": "U3091",
+        "name": "Kladno,učiliště",
+        "avgLatitude": 50.16346,
+        "avgLongitude": 14.1502466
+    },
+    {
         "id": "U32164",
         "name": "Karlovy Vary,Olšová Vrata,rozc.",
         "avgLatitude": 50.21234,
@@ -13116,16 +13176,16 @@
         "avgLongitude": 14.4280748
     },
     {
-        "id": "U6139",
-        "name": "Katusice",
-        "avgLatitude": 50.4460258,
-        "avgLongitude": 14.7776585
-    },
-    {
         "id": "U9356",
         "name": "Katusice",
         "avgLatitude": 50.44303,
         "avgLongitude": 14.7772331
+    },
+    {
+        "id": "U6139",
+        "name": "Katusice",
+        "avgLatitude": 50.4460258,
+        "avgLongitude": 14.7776585
     },
     {
         "id": "U6142",
@@ -13614,12 +13674,6 @@
         "avgLongitude": 14.1250782
     },
     {
-        "id": "U3091",
-        "name": "Kladno,učiliště",
-        "avgLatitude": 50.16346,
-        "avgLongitude": 14.1502466
-    },
-    {
         "id": "U3185",
         "name": "Kladno,Újezd",
         "avgLatitude": 50.1524658,
@@ -14094,16 +14148,16 @@
         "avgLongitude": 14.5210094
     },
     {
-        "id": "U4880",
-        "name": "Kmetiněves",
-        "avgLatitude": 50.30543,
-        "avgLongitude": 14.1612778
-    },
-    {
         "id": "U9128",
         "name": "Kmetiněves",
         "avgLatitude": 50.3086929,
         "avgLongitude": 14.15637
+    },
+    {
+        "id": "U4880",
+        "name": "Kmetiněves",
+        "avgLatitude": 50.30543,
+        "avgLongitude": 14.1612778
     },
     {
         "id": "U9129",
@@ -14366,8 +14420,8 @@
     {
         "id": "U675",
         "name": "Kobylisy",
-        "avgLatitude": 50.1243629,
-        "avgLongitude": 14.4546432
+        "avgLatitude": 50.12433,
+        "avgLongitude": 14.4544983
     },
     {
         "id": "U6657",
@@ -14402,8 +14456,8 @@
     {
         "id": "U269",
         "name": "Koh-i-noor",
-        "avgLatitude": 50.06737,
-        "avgLongitude": 14.4614706
+        "avgLatitude": 50.0674362,
+        "avgLongitude": 14.4614792
     },
     {
         "id": "U6112",
@@ -14492,14 +14546,14 @@
     {
         "id": "U6096",
         "name": "Kokořín,Kokořínský Důl,Pokličky",
-        "avgLatitude": 50.45462,
-        "avgLongitude": 14.5864258
+        "avgLatitude": 50.453476,
+        "avgLongitude": 14.5856943
     },
     {
         "id": "U6094",
         "name": "Kokořín,Kokořínský Důl,Rapín",
-        "avgLatitude": 50.432518,
-        "avgLongitude": 14.58263
+        "avgLatitude": 50.43251,
+        "avgLongitude": 14.582592
     },
     {
         "id": "U6093",
@@ -14534,8 +14588,8 @@
     {
         "id": "U75",
         "name": "Kolbenova",
-        "avgLatitude": 50.110527,
-        "avgLongitude": 14.5155478
+        "avgLatitude": 50.11053,
+        "avgLongitude": 14.5155563
     },
     {
         "id": "U2843",
@@ -14582,8 +14636,8 @@
     {
         "id": "U6818",
         "name": "Kolešovice",
-        "avgLatitude": 50.1356239,
-        "avgLongitude": 13.6039915
+        "avgLatitude": 50.14019,
+        "avgLongitude": 13.6099977
     },
     {
         "id": "U6820",
@@ -14792,8 +14846,8 @@
     {
         "id": "U274",
         "name": "Koloděje",
-        "avgLatitude": 50.0601425,
-        "avgLongitude": 14.6407013
+        "avgLatitude": 50.0601578,
+        "avgLongitude": 14.6407623
     },
     {
         "id": "U275",
@@ -14804,8 +14858,8 @@
     {
         "id": "U9455",
         "name": "Kolomuty",
-        "avgLatitude": 50.4066048,
-        "avgLongitude": 14.9775
+        "avgLatitude": 50.4018669,
+        "avgLongitude": 14.9783974
     },
     {
         "id": "U276",
@@ -14958,16 +15012,16 @@
         "avgLongitude": 14.0707932
     },
     {
-        "id": "U9527",
-        "name": "Konětopy",
-        "avgLatitude": 50.26822,
-        "avgLongitude": 13.726594
-    },
-    {
         "id": "U1467",
         "name": "Konětopy",
         "avgLatitude": 50.27498,
         "avgLongitude": 14.6552219
+    },
+    {
+        "id": "U9527",
+        "name": "Konětopy",
+        "avgLatitude": 50.26822,
+        "avgLongitude": 13.726594
     },
     {
         "id": "U1988",
@@ -15174,16 +15228,16 @@
         "avgLongitude": 14.9686508
     },
     {
-        "id": "U9381",
-        "name": "Kosova Hora",
-        "avgLatitude": 49.65945,
-        "avgLongitude": 14.4799328
-    },
-    {
         "id": "U7651",
         "name": "Kosova Hora",
         "avgLatitude": 49.6540565,
         "avgLongitude": 14.4713116
+    },
+    {
+        "id": "U9381",
+        "name": "Kosova Hora",
+        "avgLatitude": 49.65945,
+        "avgLongitude": 14.4799328
     },
     {
         "id": "U7653",
@@ -15492,6 +15546,12 @@
         "avgLongitude": 14.3370047
     },
     {
+        "id": "U288",
+        "name": "Kostrounek",
+        "avgLatitude": 49.9694061,
+        "avgLongitude": 14.3821907
+    },
+    {
         "id": "U2977",
         "name": "Košátky",
         "avgLatitude": 50.31526,
@@ -15530,8 +15590,8 @@
     {
         "id": "U9890",
         "name": "Košík,Doubravany",
-        "avgLatitude": 50.30635,
-        "avgLongitude": 15.1291733
+        "avgLatitude": 50.3063278,
+        "avgLongitude": 15.129158
     },
     {
         "id": "U9888",
@@ -15784,12 +15844,6 @@
         "name": "Kozárovice",
         "avgLatitude": 49.5585556,
         "avgLongitude": 14.1088486
-    },
-    {
-        "id": "U7665",
-        "name": "Kozárovice,Holušice",
-        "avgLatitude": 49.56591,
-        "avgLongitude": 14.1133394
     },
     {
         "id": "U7662",
@@ -16174,6 +16228,12 @@
         "name": "Kralupy n.Vlt.,Městský úřad",
         "avgLatitude": 50.241375,
         "avgLongitude": 14.31188
+    },
+    {
+        "id": "U4219",
+        "name": "Kralupy n.Vlt.,Mikovice",
+        "avgLatitude": 50.2306938,
+        "avgLongitude": 14.2901592
     },
     {
         "id": "U2888",
@@ -17228,8 +17288,8 @@
     {
         "id": "U302",
         "name": "Křížová",
-        "avgLatitude": 50.063,
-        "avgLongitude": 14.4050446
+        "avgLatitude": 50.0632172,
+        "avgLongitude": 14.4048615
     },
     {
         "id": "U2312",
@@ -17240,8 +17300,8 @@
     {
         "id": "U473",
         "name": "Kubánské náměstí",
-        "avgLatitude": 50.0707,
-        "avgLongitude": 14.4774475
+        "avgLatitude": 50.070755,
+        "avgLongitude": 14.477787
     },
     {
         "id": "U303",
@@ -17366,8 +17426,8 @@
     {
         "id": "U2565",
         "name": "Kunice,Všešímy,Pardálov",
-        "avgLatitude": 49.9273224,
-        "avgLongitude": 14.6832285
+        "avgLatitude": 49.9273529,
+        "avgLongitude": 14.6844959
     },
     {
         "id": "U4339",
@@ -17672,8 +17732,8 @@
     {
         "id": "U311",
         "name": "Kvasinská",
-        "avgLatitude": 50.062767,
-        "avgLongitude": 14.642705
+        "avgLatitude": 50.0627327,
+        "avgLongitude": 14.642561
     },
     {
         "id": "U3235",
@@ -17732,8 +17792,8 @@
     {
         "id": "U314",
         "name": "Kyselova",
-        "avgLatitude": 50.1261024,
-        "avgLongitude": 14.46358
+        "avgLatitude": 50.12616,
+        "avgLongitude": 14.4634714
     },
     {
         "id": "U4893",
@@ -18188,8 +18248,8 @@
     {
         "id": "U31702",
         "name": "Lety,rozc.1.3 sil.č.4",
-        "avgLatitude": 49.52044,
-        "avgLongitude": 14.0748024
+        "avgLatitude": 49.519455,
+        "avgLongitude": 14.07437
     },
     {
         "id": "U945",
@@ -18726,6 +18786,12 @@
         "avgLongitude": 14.2393188
     },
     {
+        "id": "U4821",
+        "name": "Libochovičky,U č.3",
+        "avgLatitude": 50.1728973,
+        "avgLongitude": 14.2370434
+    },
+    {
         "id": "U3283",
         "name": "Libomyšl",
         "avgLatitude": 49.875576,
@@ -18824,8 +18890,8 @@
     {
         "id": "U9259",
         "name": "Libovice,rozc.",
-        "avgLatitude": 50.2357,
-        "avgLongitude": 14.0219765
+        "avgLatitude": 50.23559,
+        "avgLongitude": 14.0220423
     },
     {
         "id": "U533",
@@ -18914,8 +18980,8 @@
     {
         "id": "U1673",
         "name": "Lichoceves,Noutonice",
-        "avgLatitude": 50.1654243,
-        "avgLongitude": 14.2801943
+        "avgLatitude": 50.1655464,
+        "avgLongitude": 14.2804508
     },
     {
         "id": "U2833",
@@ -19076,8 +19142,14 @@
     {
         "id": "U9023",
         "name": "Liteň,nám.",
-        "avgLatitude": 49.903923,
-        "avgLongitude": 14.1472816
+        "avgLatitude": 49.90406,
+        "avgLongitude": 14.1474886
+    },
+    {
+        "id": "U9024",
+        "name": "Liteň,Vetas",
+        "avgLatitude": 49.8954544,
+        "avgLongitude": 14.1603184
     },
     {
         "id": "U344",
@@ -19602,16 +19674,16 @@
         "avgLongitude": 13.3159781
     },
     {
-        "id": "U9532",
-        "name": "Lubná",
-        "avgLatitude": 50.07856,
-        "avgLongitude": 13.6960554
-    },
-    {
         "id": "U6153",
         "name": "Lubná",
         "avgLatitude": 50.0755157,
         "avgLongitude": 13.6997013
+    },
+    {
+        "id": "U9532",
+        "name": "Lubná",
+        "avgLatitude": 50.07856,
+        "avgLongitude": 13.6960554
     },
     {
         "id": "U6889",
@@ -20034,16 +20106,16 @@
         "avgLongitude": 14.4962025
     },
     {
-        "id": "U4162",
-        "name": "Malešov",
-        "avgLatitude": 49.9108276,
-        "avgLongitude": 15.2260742
-    },
-    {
         "id": "U9428",
         "name": "Malešov",
         "avgLatitude": 49.9069672,
         "avgLongitude": 15.2309027
+    },
+    {
+        "id": "U4162",
+        "name": "Malešov",
+        "avgLatitude": 49.9108276,
+        "avgLongitude": 15.2260742
     },
     {
         "id": "U7166",
@@ -20700,12 +20772,6 @@
         "avgLongitude": 14.49136
     },
     {
-        "id": "U3334",
-        "name": "Mělník,Sídliště",
-        "avgLatitude": 50.34596,
-        "avgLongitude": 14.4866
-    },
-    {
         "id": "U3342",
         "name": "Mělník,silo",
         "avgLatitude": 50.35346,
@@ -20894,14 +20960,14 @@
     {
         "id": "U373",
         "name": "Mezi Hřbitovy",
-        "avgLatitude": 50.082428,
-        "avgLongitude": 14.4713907
+        "avgLatitude": 50.0816574,
+        "avgLongitude": 14.4717417
     },
     {
         "id": "U6441",
         "name": "Mezno",
-        "avgLatitude": 49.5366936,
-        "avgLongitude": 14.6542568
+        "avgLatitude": 49.5346756,
+        "avgLongitude": 14.6442432
     },
     {
         "id": "U6442",
@@ -21154,6 +21220,12 @@
         "name": "Milín,Nádražní",
         "avgLatitude": 49.6337128,
         "avgLongitude": 14.0317678
+    },
+    {
+        "id": "U7720",
+        "name": "Milín,Rtišovice,rozc.",
+        "avgLatitude": 49.62098,
+        "avgLongitude": 14.0528984
     },
     {
         "id": "U7721",
@@ -21548,8 +21620,8 @@
     {
         "id": "U3385",
         "name": "Mladá Boleslav,Bezděčín",
-        "avgLatitude": 50.38651,
-        "avgLongitude": 14.8975849
+        "avgLatitude": 50.3862267,
+        "avgLongitude": 14.898056
     },
     {
         "id": "U3392",
@@ -21644,8 +21716,8 @@
     {
         "id": "U6175",
         "name": "Mladá Boleslav,Pod Skalou",
-        "avgLatitude": 50.4228363,
-        "avgLongitude": 14.8998528
+        "avgLatitude": 50.42392,
+        "avgLongitude": 14.8991365
     },
     {
         "id": "U3387",
@@ -22084,12 +22156,6 @@
         "name": "Mníšek p.Brdy,Čisovická",
         "avgLatitude": 49.8677559,
         "avgLongitude": 14.2701454
-    },
-    {
-        "id": "U3301",
-        "name": "Mníšek p.Brdy,Hladový Vrch",
-        "avgLatitude": 49.8651428,
-        "avgLongitude": 14.2748852
     },
     {
         "id": "U1712",
@@ -22598,13 +22664,13 @@
     {
         "id": "U6100",
         "name": "Mšeno,Romanov",
-        "avgLatitude": 50.4492455,
-        "avgLongitude": 14.6267548
+        "avgLatitude": 50.4491043,
+        "avgLongitude": 14.6269817
     },
     {
         "id": "U6099",
         "name": "Mšeno,Romanov,Na Rovinách",
-        "avgLatitude": 50.4519844,
+        "avgLatitude": 50.45195,
         "avgLongitude": 14.6224241
     },
     {
@@ -22628,8 +22694,8 @@
     {
         "id": "U6097",
         "name": "Mšeno,Vojtěchov",
-        "avgLatitude": 50.46251,
-        "avgLongitude": 14.601757
+        "avgLatitude": 50.4624977,
+        "avgLongitude": 14.6017666
     },
     {
         "id": "U6336",
@@ -22692,16 +22758,16 @@
         "avgLongitude": 14.4239731
     },
     {
-        "id": "U9524",
-        "name": "Mutějovice",
-        "avgLatitude": 50.21714,
-        "avgLongitude": 13.7043953
-    },
-    {
         "id": "U3372",
         "name": "Mutějovice",
         "avgLatitude": 50.19396,
         "avgLongitude": 13.708065
+    },
+    {
+        "id": "U9524",
+        "name": "Mutějovice",
+        "avgLatitude": 50.21714,
+        "avgLongitude": 13.7043953
     },
     {
         "id": "U9517",
@@ -22988,8 +23054,8 @@
     {
         "id": "U421",
         "name": "Na Plácku",
-        "avgLatitude": 49.9662933,
-        "avgLongitude": 14.3967333
+        "avgLatitude": 49.9660645,
+        "avgLongitude": 14.3944407
     },
     {
         "id": "U796",
@@ -23324,8 +23390,8 @@
     {
         "id": "U447",
         "name": "Nad Trojou",
-        "avgLatitude": 50.1203423,
-        "avgLongitude": 14.4396086
+        "avgLatitude": 50.1203537,
+        "avgLongitude": 14.4393368
     },
     {
         "id": "U211",
@@ -23564,8 +23630,8 @@
     {
         "id": "U469",
         "name": "Nákladové nádraží Žižkov",
-        "avgLatitude": 50.08494,
-        "avgLongitude": 14.4700365
+        "avgLatitude": 50.0847321,
+        "avgLongitude": 14.4698992
     },
     {
         "id": "U4752",
@@ -23750,8 +23816,8 @@
     {
         "id": "U6117",
         "name": "Nebužely,u hřbitova",
-        "avgLatitude": 50.3914261,
-        "avgLongitude": 14.5993509
+        "avgLatitude": 50.39149,
+        "avgLongitude": 14.5999193
     },
     {
         "id": "U7755",
@@ -24498,16 +24564,16 @@
         "avgLongitude": 14.2146368
     },
     {
-        "id": "U2916",
-        "name": "Neumětely",
-        "avgLatitude": 49.85014,
-        "avgLongitude": 14.0120049
-    },
-    {
         "id": "U9849",
         "name": "Neumětely",
         "avgLatitude": 49.85246,
         "avgLongitude": 14.0359077
+    },
+    {
+        "id": "U2916",
+        "name": "Neumětely",
+        "avgLatitude": 49.85014,
+        "avgLongitude": 14.0120049
     },
     {
         "id": "U6577",
@@ -25506,12 +25572,6 @@
         "avgLongitude": 15.044054
     },
     {
-        "id": "U3075",
-        "name": "Nymburk,Dopravní",
-        "avgLatitude": 50.1761551,
-        "avgLongitude": 15.0453243
-    },
-    {
         "id": "U3149",
         "name": "Nymburk,Drahelice,Mlýn Bašta",
         "avgLatitude": 50.1738319,
@@ -25690,6 +25750,12 @@
         "name": "Nymburk,Zálabí PVT",
         "avgLatitude": 50.1806641,
         "avgLongitude": 15.0446472
+    },
+    {
+        "id": "U3145",
+        "name": "Nymburk,Zimní stadion",
+        "avgLatitude": 50.1834946,
+        "avgLongitude": 15.0348167
     },
     {
         "id": "U1120",
@@ -25950,12 +26016,6 @@
         "avgLongitude": 14.4216537
     },
     {
-        "id": "U2221",
-        "name": "Odolena Voda,Dolínek,Vodolská",
-        "avgLatitude": 50.22782,
-        "avgLongitude": 14.4211378
-    },
-    {
         "id": "U2222",
         "name": "Odolena Voda,Dolní náměstí",
         "avgLatitude": 50.2331924,
@@ -25970,8 +26030,8 @@
     {
         "id": "U2220",
         "name": "Odolena Voda,Komenského",
-        "avgLatitude": 50.22862,
-        "avgLongitude": 14.4131718
+        "avgLatitude": 50.2280426,
+        "avgLongitude": 14.4107637
     },
     {
         "id": "U7584",
@@ -26210,8 +26270,8 @@
     {
         "id": "U1980",
         "name": "Oleška",
-        "avgLatitude": 49.97271,
-        "avgLongitude": 14.9135265
+        "avgLatitude": 49.97278,
+        "avgLongitude": 14.9136677
     },
     {
         "id": "U2146",
@@ -26230,6 +26290,12 @@
         "name": "Oleška,Bulánka",
         "avgLatitude": 49.9900932,
         "avgLongitude": 14.9352837
+    },
+    {
+        "id": "U2147",
+        "name": "Oleška,Králka",
+        "avgLatitude": 49.98725,
+        "avgLongitude": 14.9295292
     },
     {
         "id": "U1981",
@@ -26312,14 +26378,14 @@
     {
         "id": "U515",
         "name": "Olšanské hřbitovy",
-        "avgLatitude": 50.0779953,
-        "avgLongitude": 14.4669123
+        "avgLatitude": 50.0779648,
+        "avgLongitude": 14.4670038
     },
     {
         "id": "U516",
         "name": "Olšanské náměstí",
-        "avgLatitude": 50.08257,
-        "avgLongitude": 14.45814
+        "avgLatitude": 50.0825958,
+        "avgLongitude": 14.45828
     },
     {
         "id": "U9619",
@@ -26526,16 +26592,16 @@
         "avgLongitude": 15.2164173
     },
     {
-        "id": "U6869",
-        "name": "Oráčov",
-        "avgLatitude": 50.11184,
-        "avgLongitude": 13.5483742
-    },
-    {
         "id": "U9544",
         "name": "Oráčov",
         "avgLatitude": 50.1071968,
         "avgLongitude": 13.5442343
+    },
+    {
+        "id": "U6869",
+        "name": "Oráčov",
+        "avgLatitude": 50.11184,
+        "avgLongitude": 13.5483742
     },
     {
         "id": "U3299",
@@ -26840,8 +26906,8 @@
     {
         "id": "U2887",
         "name": "Otvovice",
-        "avgLatitude": 50.2114754,
-        "avgLongitude": 14.27298
+        "avgLatitude": 50.21032,
+        "avgLongitude": 14.27024
     },
     {
         "id": "U3226",
@@ -26996,8 +27062,8 @@
     {
         "id": "U385",
         "name": "Pankrác",
-        "avgLatitude": 50.0510979,
-        "avgLongitude": 14.4393005
+        "avgLatitude": 50.0508766,
+        "avgLongitude": 14.439538
     },
     {
         "id": "U6910",
@@ -27212,8 +27278,8 @@
     {
         "id": "U431",
         "name": "Pekárenská",
-        "avgLatitude": 50.0490723,
-        "avgLongitude": 14.4633551
+        "avgLatitude": 50.04945,
+        "avgLongitude": 14.46395
     },
     {
         "id": "U536",
@@ -27315,7 +27381,7 @@
         "id": "U540",
         "name": "Perunova",
         "avgLatitude": 50.0753632,
-        "avgLongitude": 14.4543734
+        "avgLongitude": 14.4543009
     },
     {
         "id": "U1555",
@@ -27442,6 +27508,24 @@
         "name": "Petrovice I,rozc.",
         "avgLatitude": 49.8136826,
         "avgLongitude": 15.2969437
+    },
+    {
+        "id": "U7268",
+        "name": "Petrovice I,Senetín",
+        "avgLatitude": 49.81889,
+        "avgLongitude": 15.3150959
+    },
+    {
+        "id": "U7269",
+        "name": "Petrovice I,Senetín,náves",
+        "avgLatitude": 49.8201752,
+        "avgLongitude": 15.3186321
+    },
+    {
+        "id": "U7267",
+        "name": "Petrovice I,Senetín,V Kouřílnách",
+        "avgLatitude": 49.82308,
+        "avgLongitude": 15.3114548
     },
     {
         "id": "U7266",
@@ -27768,12 +27852,6 @@
         "avgLongitude": 14.4685125
     },
     {
-        "id": "U2595",
-        "name": "Písty",
-        "avgLatitude": 50.16409,
-        "avgLongitude": 15.0030174
-    },
-    {
         "id": "U2594",
         "name": "Písty,Temac",
         "avgLatitude": 50.1591835,
@@ -27938,8 +28016,8 @@
     {
         "id": "U31800",
         "name": "Plzeň,Rozcestí Černice",
-        "avgLatitude": 49.69825,
-        "avgLongitude": 13.42627
+        "avgLatitude": 49.698143,
+        "avgLongitude": 13.4265537
     },
     {
         "id": "U31924",
@@ -30140,8 +30218,8 @@
     {
         "id": "U614",
         "name": "Přístaviště",
-        "avgLatitude": 50.0398064,
-        "avgLongitude": 14.4096842
+        "avgLatitude": 50.0399475,
+        "avgLongitude": 14.4096889
     },
     {
         "id": "U2293",
@@ -31014,16 +31092,16 @@
         "avgLongitude": 14.965909
     },
     {
-        "id": "U9986",
-        "name": "Ratboř",
-        "avgLatitude": 49.9779663,
-        "avgLongitude": 15.1594419
-    },
-    {
         "id": "U9414",
         "name": "Ratboř",
         "avgLatitude": 49.98161,
         "avgLongitude": 15.1604052
+    },
+    {
+        "id": "U9986",
+        "name": "Ratboř",
+        "avgLatitude": 49.9779663,
+        "avgLongitude": 15.1594419
     },
     {
         "id": "U2179",
@@ -31172,8 +31250,8 @@
     {
         "id": "U9459",
         "name": "Rohatsko",
-        "avgLatitude": 50.44011,
-        "avgLongitude": 15.105175
+        "avgLatitude": 50.43708,
+        "avgLongitude": 15.1072626
     },
     {
         "id": "U7203",
@@ -32022,16 +32100,16 @@
         "avgLongitude": 14.5140343
     },
     {
-        "id": "U4299",
-        "name": "Rynholec",
-        "avgLatitude": 50.1389275,
-        "avgLongitude": 13.92177
-    },
-    {
         "id": "U2928",
         "name": "Rynholec",
         "avgLatitude": 50.1386261,
         "avgLongitude": 13.92605
+    },
+    {
+        "id": "U4299",
+        "name": "Rynholec",
+        "avgLatitude": 50.1389275,
+        "avgLongitude": 13.92177
     },
     {
         "id": "U9309",
@@ -32114,8 +32192,8 @@
     {
         "id": "U6120",
         "name": "Řepín",
-        "avgLatitude": 50.3672447,
-        "avgLongitude": 14.6320372
+        "avgLatitude": 50.3671646,
+        "avgLongitude": 14.6321087
     },
     {
         "id": "U6407",
@@ -32126,8 +32204,8 @@
     {
         "id": "U6119",
         "name": "Řepín,u dvora",
-        "avgLatitude": 50.37228,
-        "avgLongitude": 14.6319323
+        "avgLatitude": 50.37226,
+        "avgLongitude": 14.6319065
     },
     {
         "id": "U6118",
@@ -32612,8 +32690,8 @@
     {
         "id": "U6277",
         "name": "Řitonice,Domousnická",
-        "avgLatitude": 50.4076233,
-        "avgLongitude": 15.109026
+        "avgLatitude": 50.4078,
+        "avgLongitude": 15.1089554
     },
     {
         "id": "U9676",
@@ -32712,16 +32790,16 @@
         "avgLongitude": 14.3991375
     },
     {
-        "id": "U4862",
-        "name": "Sány",
-        "avgLatitude": 50.1301155,
-        "avgLongitude": 15.2411089
-    },
-    {
         "id": "U6615",
         "name": "Sány",
         "avgLatitude": 50.12561,
         "avgLongitude": 15.24734
+    },
+    {
+        "id": "U4862",
+        "name": "Sány",
+        "avgLatitude": 50.1301155,
+        "avgLongitude": 15.2411089
     },
     {
         "id": "U762",
@@ -33584,8 +33662,8 @@
     {
         "id": "U651",
         "name": "Sídliště Ďáblice",
-        "avgLatitude": 50.13245,
-        "avgLongitude": 14.4791613
+        "avgLatitude": 50.1323624,
+        "avgLongitude": 14.4791307
     },
     {
         "id": "U652",
@@ -34514,20 +34592,20 @@
     {
         "id": "U6484",
         "name": "Smilkov,dvůr",
-        "avgLatitude": 49.6041374,
-        "avgLongitude": 14.6279659
+        "avgLatitude": 49.6041336,
+        "avgLongitude": 14.6279221
     },
     {
         "id": "U6485",
         "name": "Smilkov,Kouty",
-        "avgLatitude": 49.6116142,
-        "avgLongitude": 14.6344929
+        "avgLatitude": 49.6116371,
+        "avgLongitude": 14.6344519
     },
     {
         "id": "U6486",
         "name": "Smilkov,Líštěnec",
-        "avgLatitude": 49.6168861,
-        "avgLongitude": 14.6374474
+        "avgLatitude": 49.616787,
+        "avgLongitude": 14.637207
     },
     {
         "id": "U6487",
@@ -34646,8 +34724,8 @@
     {
         "id": "U9402",
         "name": "Soběšín",
-        "avgLatitude": 49.7898941,
-        "avgLongitude": 14.9571619
+        "avgLatitude": 49.78974,
+        "avgLongitude": 14.9597416
     },
     {
         "id": "U9966",
@@ -34862,8 +34940,8 @@
     {
         "id": "U4371",
         "name": "Spomyšl",
-        "avgLatitude": 50.3341179,
-        "avgLongitude": 14.36055
+        "avgLatitude": 50.33416,
+        "avgLongitude": 14.3604813
     },
     {
         "id": "U4372",
@@ -35144,8 +35222,8 @@
     {
         "id": "U4166",
         "name": "Starý Kolín",
-        "avgLatitude": 50.0096474,
-        "avgLongitude": 15.2935133
+        "avgLatitude": 50.0110741,
+        "avgLongitude": 15.2963591
     },
     {
         "id": "U1151",
@@ -35402,8 +35480,8 @@
     {
         "id": "U6123",
         "name": "Stránka",
-        "avgLatitude": 50.4233856,
-        "avgLongitude": 14.659482
+        "avgLatitude": 50.4234,
+        "avgLongitude": 14.6594391
     },
     {
         "id": "U6127",
@@ -35618,8 +35696,8 @@
     {
         "id": "U717",
         "name": "Strossmayerovo náměstí",
-        "avgLatitude": 50.098896,
-        "avgLongitude": 14.4332638
+        "avgLatitude": 50.09891,
+        "avgLongitude": 14.4332647
     },
     {
         "id": "U9384",
@@ -35828,8 +35906,8 @@
     {
         "id": "U6089",
         "name": "Střemy,Štampach",
-        "avgLatitude": 50.39689,
-        "avgLongitude": 14.5568666
+        "avgLatitude": 50.39692,
+        "avgLongitude": 14.5569153
     },
     {
         "id": "U5084",
@@ -36038,8 +36116,8 @@
     {
         "id": "U9941",
         "name": "Suchdol,Dobřeň",
-        "avgLatitude": 49.9397545,
-        "avgLongitude": 15.14894
+        "avgLatitude": 49.9395,
+        "avgLongitude": 15.1485033
     },
     {
         "id": "U9942",
@@ -36510,16 +36588,16 @@
         "avgLongitude": 14.7330952
     },
     {
-        "id": "U6322",
-        "name": "Svojetín",
-        "avgLatitude": 50.19148,
-        "avgLongitude": 13.629921
-    },
-    {
         "id": "U9522",
         "name": "Svojetín",
         "avgLatitude": 50.1982956,
         "avgLongitude": 13.6323185
+    },
+    {
+        "id": "U6322",
+        "name": "Svojetín",
+        "avgLatitude": 50.19148,
+        "avgLongitude": 13.629921
     },
     {
         "id": "U6111",
@@ -36608,8 +36686,8 @@
     {
         "id": "U1670",
         "name": "Svrkyně",
-        "avgLatitude": 50.1718445,
-        "avgLongitude": 14.2978764
+        "avgLatitude": 50.17179,
+        "avgLongitude": 14.297658
     },
     {
         "id": "U1743",
@@ -36700,6 +36778,12 @@
         "name": "Šebířov,Skrýšov",
         "avgLatitude": 49.57726,
         "avgLongitude": 14.8302631
+    },
+    {
+        "id": "U3022",
+        "name": "Šedivého",
+        "avgLatitude": 50.07093,
+        "avgLongitude": 14.3146992
     },
     {
         "id": "U1613",
@@ -36930,6 +37014,12 @@
         "avgLongitude": 14.5108671
     },
     {
+        "id": "U736",
+        "name": "Špitálka",
+        "avgLatitude": 50.11057,
+        "avgLongitude": 14.3780508
+    },
+    {
         "id": "U1052",
         "name": "Špitálská",
         "avgLatitude": 50.1109924,
@@ -37092,16 +37182,16 @@
         "avgLongitude": 13.3030949
     },
     {
-        "id": "U7064",
-        "name": "Štipoklasy",
-        "avgLatitude": 49.82453,
-        "avgLongitude": 15.2132711
-    },
-    {
         "id": "U9435",
         "name": "Štipoklasy",
         "avgLatitude": 49.828064,
         "avgLongitude": 15.207983
+    },
+    {
+        "id": "U7064",
+        "name": "Štipoklasy",
+        "avgLatitude": 49.82453,
+        "avgLongitude": 15.2132711
     },
     {
         "id": "U5210",
@@ -37136,8 +37226,8 @@
     {
         "id": "U481",
         "name": "Švandovo divadlo",
-        "avgLatitude": 50.07844,
-        "avgLongitude": 14.4047823
+        "avgLatitude": 50.078434,
+        "avgLongitude": 14.4043493
     },
     {
         "id": "U9543",
@@ -37406,8 +37496,8 @@
     {
         "id": "U5724",
         "name": "Těchařovice,Na Čmíně",
-        "avgLatitude": 49.6025162,
-        "avgLongitude": 14.0619907
+        "avgLatitude": 49.603714,
+        "avgLongitude": 14.06196
     },
     {
         "id": "U5859",
@@ -37970,8 +38060,8 @@
     {
         "id": "U765",
         "name": "Trojská",
-        "avgLatitude": 50.1168175,
-        "avgLongitude": 14.4327316
+        "avgLatitude": 50.1167831,
+        "avgLongitude": 14.43254
     },
     {
         "id": "U9091",
@@ -38138,8 +38228,8 @@
     {
         "id": "U768",
         "name": "Třebonice",
-        "avgLatitude": 50.0451279,
-        "avgLongitude": 14.2805433
+        "avgLatitude": 50.04515,
+        "avgLongitude": 14.2804432
     },
     {
         "id": "U7303",
@@ -38558,8 +38648,8 @@
     {
         "id": "U9253",
         "name": "Tuřany,Byseň",
-        "avgLatitude": 50.2365265,
-        "avgLongitude": 14.0352831
+        "avgLatitude": 50.2364731,
+        "avgLongitude": 14.0352983
     },
     {
         "id": "U9254",
@@ -38648,8 +38738,8 @@
     {
         "id": "U4511",
         "name": "Týnec n.Sáz.,Brodce",
-        "avgLatitude": 49.8344574,
-        "avgLongitude": 14.5982723
+        "avgLatitude": 49.8345375,
+        "avgLongitude": 14.5978756
     },
     {
         "id": "U1588",
@@ -38694,22 +38784,10 @@
         "avgLongitude": 14.5899124
     },
     {
-        "id": "U4509",
-        "name": "Týnec n.Sáz.,Pecerady,Hřiště",
-        "avgLatitude": 49.8372726,
-        "avgLongitude": 14.60928
-    },
-    {
         "id": "U4508",
         "name": "Týnec n.Sáz.,Pecerady,Jednota",
         "avgLatitude": 49.8401146,
         "avgLongitude": 14.6148739
-    },
-    {
-        "id": "U4510",
-        "name": "Týnec n.Sáz.,Pecerady,Podhajský ryb.",
-        "avgLatitude": 49.8347168,
-        "avgLongitude": 14.6061592
     },
     {
         "id": "U4514",
@@ -38816,8 +38894,8 @@
     {
         "id": "U776",
         "name": "U Hangáru",
-        "avgLatitude": 50.10818,
-        "avgLongitude": 14.2762156
+        "avgLatitude": 50.1083,
+        "avgLongitude": 14.2774191
     },
     {
         "id": "U4887",
@@ -39296,8 +39374,8 @@
     {
         "id": "U809",
         "name": "Újezd",
-        "avgLatitude": 50.08115,
-        "avgLongitude": 14.40481
+        "avgLatitude": 50.0811539,
+        "avgLongitude": 14.4047585
     },
     {
         "id": "U3276",
@@ -39308,8 +39386,8 @@
     {
         "id": "U811",
         "name": "Újezd nad Lesy",
-        "avgLatitude": 50.07612,
-        "avgLongitude": 14.6584444
+        "avgLatitude": 50.0759659,
+        "avgLongitude": 14.6583719
     },
     {
         "id": "U810",
@@ -40082,8 +40160,8 @@
     {
         "id": "U841",
         "name": "Veletržní palác",
-        "avgLatitude": 50.1019745,
-        "avgLongitude": 14.4329453
+        "avgLatitude": 50.1018639,
+        "avgLongitude": 14.4329977
     },
     {
         "id": "U2266",
@@ -40656,16 +40734,28 @@
         "avgLongitude": 15.1730824
     },
     {
-        "id": "U7169",
-        "name": "Vidice,Roztěž",
-        "avgLatitude": 49.9089737,
-        "avgLongitude": 15.19445
+        "id": "U5772",
+        "name": "Vidice,Karlov,rozc.",
+        "avgLatitude": 49.9281158,
+        "avgLongitude": 15.1787767
+    },
+    {
+        "id": "U7171",
+        "name": "Vidice,Nová Lhota",
+        "avgLatitude": 49.91877,
+        "avgLongitude": 15.20169
     },
     {
         "id": "U7170",
         "name": "Vidice,Roztěž,Golf",
         "avgLatitude": 49.9106941,
         "avgLongitude": 15.1957741
+    },
+    {
+        "id": "U7173",
+        "name": "Vidice,Tuchotice",
+        "avgLatitude": 49.92572,
+        "avgLongitude": 15.1853
     },
     {
         "id": "U9960",
@@ -40856,8 +40946,8 @@
     {
         "id": "U1108",
         "name": "Vinice",
-        "avgLatitude": 50.0769348,
-        "avgLongitude": 14.4884729
+        "avgLatitude": 50.07691,
+        "avgLongitude": 14.4884167
     },
     {
         "id": "U1165",
@@ -41048,14 +41138,20 @@
     {
         "id": "U2937",
         "name": "Vižina",
-        "avgLatitude": 49.8546524,
-        "avgLongitude": 14.0999537
+        "avgLatitude": 49.8575478,
+        "avgLongitude": 14.1021843
     },
     {
         "id": "U7196",
         "name": "Vlačice,rozc.",
         "avgLatitude": 49.940094,
         "avgLongitude": 15.4374352
+    },
+    {
+        "id": "U7239",
+        "name": "Vlačice,Výčapy",
+        "avgLatitude": 49.94365,
+        "avgLongitude": 15.4474707
     },
     {
         "id": "U9488",
@@ -41324,8 +41420,8 @@
     {
         "id": "U855",
         "name": "Vlašimská",
-        "avgLatitude": 50.0743942,
-        "avgLongitude": 14.4650421
+        "avgLatitude": 50.07488,
+        "avgLongitude": 14.4655676
     },
     {
         "id": "U2051",
@@ -41376,16 +41472,16 @@
         "avgLongitude": 14.9029732
     },
     {
-        "id": "U7281",
-        "name": "Vlkaneč",
-        "avgLatitude": 49.8089371,
-        "avgLongitude": 15.4043283
-    },
-    {
         "id": "U9480",
         "name": "Vlkaneč",
         "avgLatitude": 49.8041878,
         "avgLongitude": 15.4051218
+    },
+    {
+        "id": "U7281",
+        "name": "Vlkaneč",
+        "avgLatitude": 49.8089371,
+        "avgLongitude": 15.4043283
     },
     {
         "id": "U7282",
@@ -41541,7 +41637,7 @@
         "id": "U1778",
         "name": "Vojkovice",
         "avgLatitude": 50.2968559,
-        "avgLongitude": 14.377327
+        "avgLongitude": 14.3776913
     },
     {
         "id": "U1771",
@@ -41932,6 +42028,12 @@
         "name": "Vrančice,Životice",
         "avgLatitude": 49.6105881,
         "avgLongitude": 14.0501518
+    },
+    {
+        "id": "U5820",
+        "name": "Vrančice,Životice,rozc.",
+        "avgLatitude": 49.6109467,
+        "avgLongitude": 14.0583363
     },
     {
         "id": "U4265",
@@ -42450,10 +42552,22 @@
         "avgLongitude": 14.6626663
     },
     {
+        "id": "U2053",
+        "name": "Všestary",
+        "avgLatitude": 49.95851,
+        "avgLongitude": 14.6855812
+    },
+    {
         "id": "U7583",
         "name": "Všestary,hřbitov",
         "avgLatitude": 49.96083,
         "avgLongitude": 14.6775723
+    },
+    {
+        "id": "U2054",
+        "name": "Všestary,Menčice",
+        "avgLatitude": 49.95404,
+        "avgLongitude": 14.7001648
     },
     {
         "id": "U2065",
@@ -42782,8 +42896,8 @@
     {
         "id": "U1660",
         "name": "Vysoký Újezd,Kozolupy",
-        "avgLatitude": 49.974678,
-        "avgLongitude": 14.1927481
+        "avgLatitude": 49.9746552,
+        "avgLongitude": 14.1927261
     },
     {
         "id": "U1637",
@@ -42800,8 +42914,8 @@
     {
         "id": "U532",
         "name": "Výstaviště",
-        "avgLatitude": 50.10483,
-        "avgLongitude": 14.4324312
+        "avgLatitude": 50.1046181,
+        "avgLongitude": 14.432354
     },
     {
         "id": "U405",
@@ -43422,16 +43536,16 @@
         "avgLongitude": 14.5225315
     },
     {
-        "id": "U9534",
-        "name": "Zavidov",
-        "avgLatitude": 50.0564423,
-        "avgLongitude": 13.6293507
-    },
-    {
         "id": "U6885",
         "name": "Zavidov",
         "avgLatitude": 50.0568352,
         "avgLongitude": 13.6199856
+    },
+    {
+        "id": "U9534",
+        "name": "Zavidov",
+        "avgLatitude": 50.0564423,
+        "avgLongitude": 13.6293507
     },
     {
         "id": "U896",
@@ -43556,8 +43670,8 @@
     {
         "id": "U901",
         "name": "Zborovská",
-        "avgLatitude": 50.0724869,
-        "avgLongitude": 14.4074049
+        "avgLatitude": 50.0724144,
+        "avgLongitude": 14.4076481
     },
     {
         "id": "U2468",
@@ -43686,6 +43800,12 @@
         "avgLongitude": 15.3587093
     },
     {
+        "id": "U7274",
+        "name": "Zbýšov,Damírov",
+        "avgLatitude": 49.8130341,
+        "avgLongitude": 15.3224945
+    },
+    {
         "id": "U6994",
         "name": "Zbýšov,Hrby",
         "avgLatitude": 49.8044853,
@@ -43702,6 +43822,12 @@
         "name": "Zbýšov,Klucké Chvalovice",
         "avgLatitude": 49.8062439,
         "avgLongitude": 15.3775749
+    },
+    {
+        "id": "U7275",
+        "name": "Zbýšov,Krchlebská Lhota",
+        "avgLatitude": 49.8124657,
+        "avgLongitude": 15.3408413
     },
     {
         "id": "U6995",
@@ -44088,16 +44214,16 @@
         "avgLongitude": 14.3592091
     },
     {
-        "id": "U9202",
-        "name": "Zlonice",
-        "avgLatitude": 50.28817,
-        "avgLongitude": 14.09222
-    },
-    {
         "id": "U4330",
         "name": "Zlonice",
         "avgLatitude": 50.2850037,
         "avgLongitude": 14.078166
+    },
+    {
+        "id": "U9202",
+        "name": "Zlonice",
+        "avgLatitude": 50.28817,
+        "avgLongitude": 14.09222
     },
     {
         "id": "U4878",
@@ -44122,6 +44248,12 @@
         "name": "Zlonice,Lisovice",
         "avgLatitude": 50.2871971,
         "avgLongitude": 14.0661259
+    },
+    {
+        "id": "U9205",
+        "name": "Zlonice,Nádražní",
+        "avgLatitude": 50.2841377,
+        "avgLongitude": 14.0919533
     },
     {
         "id": "U9206",
@@ -44496,12 +44628,6 @@
         "avgLongitude": 13.5449219
     },
     {
-        "id": "U32541",
-        "name": "Žatec,Volyň.Čechů SEPAP",
-        "avgLatitude": 50.3226242,
-        "avgLongitude": 13.5433769
-    },
-    {
         "id": "U32302",
         "name": "Žatec,VÚCh",
         "avgLatitude": 50.32411,
@@ -44762,8 +44888,8 @@
     {
         "id": "U921",
         "name": "Želivského",
-        "avgLatitude": 50.0785637,
-        "avgLongitude": 14.4737558
+        "avgLatitude": 50.0785027,
+        "avgLongitude": 14.4739637
     },
     {
         "id": "U6060",
@@ -44798,8 +44924,8 @@
     {
         "id": "U6061",
         "name": "Želízy,u parku",
-        "avgLatitude": 50.4246674,
-        "avgLongitude": 14.4741793
+        "avgLatitude": 50.4246864,
+        "avgLongitude": 14.4742126
     },
     {
         "id": "U922",

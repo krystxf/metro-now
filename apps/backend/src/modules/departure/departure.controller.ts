@@ -1,3 +1,4 @@
+import { CacheInterceptor, CacheTTL } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
@@ -23,7 +24,8 @@ import { toArray } from "src/utils/array.utils";
 
 @ApiTags("departure")
 @Controller("departure")
-@UseInterceptors(LogInterceptor)
+@UseInterceptors(CacheInterceptor, LogInterceptor)
+@CacheTTL(2_000)
 export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
 

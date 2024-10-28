@@ -5,6 +5,7 @@ on: push
 jobs:
     ci:
         strategy:
+            fail-fast: false
             matrix:
                 os: [ubuntu-latest, macos-latest]
         runs-on: ${{ matrix.os }}
@@ -127,4 +128,4 @@ jobs:
             - name: Test e2e
               run: |
                   cd apps/backend 
-                  pnpm test:e2e
+                  pnpm test:e2e --runInBand
