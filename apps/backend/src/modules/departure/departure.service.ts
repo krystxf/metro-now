@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { unique } from "radash";
 
 import { GOLEMIO_API } from "src/constants/golemio.const";
