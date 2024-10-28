@@ -15,7 +15,6 @@
         "test:watch": "jest --watch",
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "pretest:e2e": "jest --config ./e2e/jest-e2e.json -t \"Run import\"",
         "test:e2e": "jest --config ./e2e/jest-e2e.json",
         "prisma:studio": "dotenv -e .env.local -- prisma studio",
         "prisma:generate": "prisma generate",

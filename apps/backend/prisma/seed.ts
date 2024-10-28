@@ -25,11 +25,6 @@ type Platform = {
     stopId: string;
 };
 
-type PlatformOnRoute = {
-    routeId: string;
-    platformId: string;
-};
-
 const parseSeedFile = <T>(path: string): T => {
     const raw = fs.readFileSync(path).toString();
 
@@ -42,9 +37,6 @@ async function main() {
     const routes = parseSeedFile<Route[]>("./prisma/seeds/routes.json");
     const platforms = parseSeedFile<Platform[]>(
         "./prisma/seeds/platforms.json",
-    );
-    const platformsOnRoutes = parseSeedFile<PlatformOnRoute[]>(
-        "./prisma/seeds/platforms-on-routes.json",
     );
 
     await prisma.$transaction(async (transaction) => {
@@ -78,14 +70,6 @@ async function main() {
                 id: platform.id,
                 name: platform.name,
             })),
-        });
-
-        await transaction.platformsOnRoutes.createMany({
-            data: platformsOnRoutes.map((platformOnRoute) => ({
-                platformId: platformOnRoute.platformId,
-                routeId: platformOnRoute.routeId,
-            })),
-            skipDuplicates: true,
         });
     });
 }
