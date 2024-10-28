@@ -1,16 +1,11 @@
-name: App CI
+name: App
 
 on: push
 
 jobs:
     ci:
         runs-on: macos-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                device: [14, 15]
-                iOS: [18]
-        name: App CI 🚀 (iPhone ${{ matrix.device }}, iOS ${{ matrix.iOS }} )
+        name: App CI 🚀
 
         steps:
             - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
@@ -21,14 +16,8 @@ jobs:
             - name: Setup Xcode
               run: |
                   cd ./apps/mobile
-              #   xcodebuild -downloadAllPlatforms
+                  xcodebuild -downloadAllPlatforms
 
             - name: Build
               run: |
-                  cd ./apps/mobile
-              #   xcodebuild build -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
-
-            - name: Test
-              run: |
-                  cd ./apps/mobile
-              #   xcodebuild test -scheme metro-now -project metro-now.xcodeproj -destination 'platform=iOS Simulator,name=iPhone ${{ matrix.device }},OS=${{ matrix.iOS }}' | xcpretty && exit ${PIPESTATUS[0]}
+                  xcodebuild build -scheme metro-now -project ./apps/mobile/metro-now/metro-now.xcodeproj | xcpretty && exit ${PIPESTATUS[0]}
