@@ -13,12 +13,11 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            if
-                let location = locationManager.location,
-                let stops,
-                let closestStop = findClosestStop(to: location, stops: stops)
+            if let location = locationManager.location,
+               let stops,
+               let closestStop = findClosestStop(to: location, stops: stops)
             {
-                MainPage(
+                StopDeparturesView(
                     title: closestStop.name,
                     platforms: closestStop.platforms.map {
                         platform in
@@ -31,7 +30,6 @@ struct ContentView: View {
                         )
                     }
                 )
-
             } else {
                 ProgressView()
             }

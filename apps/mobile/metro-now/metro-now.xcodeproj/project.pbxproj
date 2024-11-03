@@ -45,6 +45,7 @@
 			membershipExceptions = (
 				components/countdown.view.swift,
 				"const/api-const.swift",
+				"const/zero-edge-insets.swift",
 				"managers/location-manager.swift",
 				"managers/network-manager.swift",
 				"types/api-types.swift",
@@ -59,6 +60,7 @@
 			membershipExceptions = (
 				components/countdown.view.swift,
 				"const/api-const.swift",
+				"const/zero-edge-insets.swift",
 				"managers/location-manager.swift",
 				"managers/network-manager.swift",
 				"types/api-types.swift",
@@ -401,7 +403,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9;
+				WATCHOS_DEPLOYMENT_TARGET = 10;
 			};
 			name = Debug;
 		};
@@ -433,7 +435,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 9;
+				WATCHOS_DEPLOYMENT_TARGET = 10;
 			};
 			name = Release;
 		};
