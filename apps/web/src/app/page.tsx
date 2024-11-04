@@ -1,6 +1,8 @@
 import { Card } from "@/components/Card";
-import { GITHUB, GRAPHQL, SWAGGER } from "@/const";
+import { APP_STORE_LINK, GITHUB, GRAPHQL, SWAGGER } from "@/const";
 import Image from "next/image";
+import DownloadOnAppStoreImage from "../../public/download-on-appstore-white.svg";
+import Link from "next/link";
 
 const LandingPage = () => {
     return (
@@ -13,6 +15,14 @@ const LandingPage = () => {
                     Get a real-time overview of metro departures from the
                     nearest stop in Prague
                 </p>
+                <Link href={APP_STORE_LINK}>
+                    <Image
+                        src={DownloadOnAppStoreImage}
+                        className="mt-4"
+                        alt="Download on App Store"
+                        height={50}
+                    />
+                </Link>
             </div>
             <Image
                 src="/metro-now-watch.png"
