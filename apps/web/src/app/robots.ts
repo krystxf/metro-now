@@ -1,4 +1,4 @@
-import { HOMEPAGE } from "@/const";
+import { HOMEPAGE_URL } from "@metro-now/constants";
 import type { MetadataRoute } from "next";
 
 const robots = (): MetadataRoute.Robots => {
@@ -7,7 +7,7 @@ const robots = (): MetadataRoute.Robots => {
             allow: "/",
             userAgent: "*",
         },
-        sitemap: `${HOMEPAGE}/sitemap.xml`,
+        sitemap: `${HOMEPAGE_URL}/sitemap.xml`,
     };
 };
 

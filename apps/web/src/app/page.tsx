@@ -1,8 +1,13 @@
 import { Card } from "@/components/Card";
-import { APP_STORE_LINK, GITHUB, GRAPHQL, SWAGGER } from "@/const";
 import Image from "next/image";
 import DownloadOnAppStoreImage from "../../public/download-on-appstore-white.svg";
 import Link from "next/link";
+import {
+    APPSTORE_URL,
+    GRAPHQL_URL,
+    SOURCE_CODE_URL,
+    SWAGGER_URL,
+} from "@metro-now/constants";
 
 const LandingPage = () => {
     return (
@@ -15,7 +20,7 @@ const LandingPage = () => {
                     Get a real-time overview of metro departures from the
                     nearest stop in Prague
                 </p>
-                <Link href={APP_STORE_LINK}>
+                <Link href={APPSTORE_URL}>
                     <Image
                         src={DownloadOnAppStoreImage}
                         className="mt-4"
@@ -34,7 +39,11 @@ const LandingPage = () => {
 
             <div className="mb-32 gap-4 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-3 lg:text-left">
                 <Card className="group">
-                    <a href={GITHUB} className="h-full" target="_blank">
+                    <a
+                        href={SOURCE_CODE_URL}
+                        className="h-full"
+                        target="_blank"
+                    >
                         <Card.Title>
                             Source code
                             <Card.Arrow />
@@ -54,12 +63,12 @@ const LandingPage = () => {
                         </Card.Title>
                     </a>
                     <Card.Content>
-                        <Card.Content.Link href={SWAGGER} target="_blank">
+                        <Card.Content.Link href={SWAGGER_URL} target="_blank">
                             REST API
                             <Card.Arrow />
                         </Card.Content.Link>
 
-                        <Card.Content.Link href={GRAPHQL} target="_blank">
+                        <Card.Content.Link href={GRAPHQL_URL} target="_blank">
                             GrapQL
                             <Card.Arrow />
                         </Card.Content.Link>

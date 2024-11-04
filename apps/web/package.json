@@ -11,6 +11,8 @@
         "typecheck": "tsc --pretty"
     },
     "dependencies": {
+        "@heroicons/react": "^2.1.5",
+        "@metro-now/constants": "workspace:*",
         "@next/mdx": "^14.2.2",
         "next": "14.2.10",
         "nextra": "^2.13.4",

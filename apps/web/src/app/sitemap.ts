@@ -1,4 +1,4 @@
-import { HOMEPAGE } from "@/const";
+import { HOMEPAGE_URL } from "@metro-now/constants";
 import type { MetadataRoute } from "next";
 
 const pages = [
@@ -20,7 +20,7 @@ const priorityByPage: PriorityByPage = {
 
 const sitemap = (): MetadataRoute.Sitemap => {
     return pages.map((url) => ({
-        url: `${HOMEPAGE}${url}`,
+        url: `${HOMEPAGE_URL}${url}`,
         lastModified: new Date(),
         priority: priorityByPage[url] ?? 0.5,
     }));
