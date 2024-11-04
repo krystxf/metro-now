@@ -1,11 +1,10 @@
+import { SWAGGER_JSON_PATH, SWAGGER_PATH } from "@metro-now/constants";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { AppModule } from "src/app.module";
 import {
-    SWAGGER_API_ROOT,
     SWAGGER_DESCRIPTION,
-    SWAGGER_JSON_URL,
     SWAGGER_TITLE,
     SWAGGER_VERSION,
 } from "src/constants/swagger.const";
@@ -26,11 +25,11 @@ async function bootstrap() {
         .build();
 
     SwaggerModule.setup(
-        SWAGGER_API_ROOT,
+        SWAGGER_PATH,
         app,
         SwaggerModule.createDocument(app, swaggerDocumentBuilder),
         {
-            jsonDocumentUrl: SWAGGER_JSON_URL,
+            jsonDocumentUrl: SWAGGER_JSON_PATH,
             customSiteTitle: SWAGGER_TITLE,
         },
     );

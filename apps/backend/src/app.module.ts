@@ -1,3 +1,4 @@
+import { GRAPHQL_PATH } from "@metro-now/constants";
 import { ApolloDriver, type ApolloDriverConfig } from "@nestjs/apollo";
 import { CacheModule } from "@nestjs/cache-manager";
 import { Module } from "@nestjs/common";
@@ -7,7 +8,6 @@ import { ScheduleModule } from "@nestjs/schedule";
 
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
-import { GRAPHQL_API_ROOT } from "src/constants/graphql.const";
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { ImportModule } from "src/modules/import/import.module";
 import { LoggerModule } from "src/modules/logger/logger.module";
@@ -32,7 +32,7 @@ import { StopModule } from "src/modules/stop/stop.module";
             driver: ApolloDriver,
             playground: true,
             autoSchemaFile: "schema.gql",
-            path: GRAPHQL_API_ROOT,
+            path: GRAPHQL_PATH,
         }),
     ],
     controllers: [],
