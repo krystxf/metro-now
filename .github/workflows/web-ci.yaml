@@ -1,0 +1,44 @@
+name: Web
+
+on: push
+
+jobs:
+    ci:
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: |
+                  pnpm install
+
+            - name: Build
+              run: |
+                  cd apps/web 
+                  pnpm build
+
+            - name: Lint
+              run: |
+                  cd apps/web
+                  pnpm lint
+
+            - name: Types check
+              run: |
+                  cd apps/web
+                  pnpm types:check
