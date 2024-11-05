@@ -1,57 +1,91 @@
 import { Card } from "@/components/Card";
-import { GITHUB, GRAPHQL, SWAGGER } from "@/const";
 import Image from "next/image";
+
+import Link from "next/link";
+import {
+    APPSTORE_URL,
+    GRAPHQL_URL,
+    SOURCE_CODE_URL,
+    SWAGGER_URL,
+} from "@metro-now/constants";
+import {
+    DownloadOnAppStoreLight,
+    MetroNowIcon,
+    MetroNowWatch,
+} from "@/utils/image.utils";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 const LandingPage = () => {
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
             <div className="flex flex-col gap-2 items-center justify-center text-center">
-                <h1 className="text-6xl font-bold text-slate-800">
-                    Metro Now!
+                <h1 className="text-6xl font-bold text-zinc-800 flex gap-2 items-center">
+                    <Image
+                        className="rounded-xl"
+                        alt="Icon"
+                        src={MetroNowIcon}
+                        placeholder="blur"
+                        height={56}
+                        priority
+                    />
+                    Metro&nbsp;Now!
                 </h1>
                 <p className="text-slate-800">
                     Get a real-time overview of metro departures from the
                     nearest stop in Prague
                 </p>
+                <Link href={APPSTORE_URL}>
+                    <Image
+                        src={DownloadOnAppStoreLight}
+                        className="mt-4"
+                        alt="Download on App Store"
+                        height={50}
+                        priority
+                    />
+                </Link>
             </div>
             <Image
-                src="/metro-now-watch.png"
+                src={MetroNowWatch}
                 alt="Apple watch screenshots"
-                width={1200}
                 height={1200}
+                placeholder="blur"
+                quality={90}
                 priority
             />
-
             <div className="mb-32 gap-4 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-3 lg:text-left">
                 <Card className="group">
-                    <a href={GITHUB} className="h-full" target="_blank">
+                    <Link
+                        href={SOURCE_CODE_URL}
+                        className="h-full"
+                        target="_blank"
+                    >
                         <Card.Title>
                             Source code
-                            <Card.Arrow />
+                            <ArrowTopRightOnSquareIcon className="h-5" />
                         </Card.Title>
 
                         <Card.Content className="opacity-50">
                             Every line of code for this project is available on
                             GitHub.
                         </Card.Content>
-                    </a>
+                    </Link>
                 </Card>
 
                 <Card>
-                    <a href="/docs" className="group">
+                    <Link href="/docs" className="group">
                         <Card.Title>
-                            Documentation <Card.Arrow />
+                            Documentation <Card.Arrow className="h-5" />
                         </Card.Title>
-                    </a>
+                    </Link>
                     <Card.Content>
-                        <Card.Content.Link href={SWAGGER} target="_blank">
+                        <Card.Content.Link href={SWAGGER_URL} target="_blank">
                             REST API
-                            <Card.Arrow />
+                            <ArrowTopRightOnSquareIcon className="h-3" />
                         </Card.Content.Link>
 
-                        <Card.Content.Link href={GRAPHQL} target="_blank">
+                        <Card.Content.Link href={GRAPHQL_URL} target="_blank">
                             GrapQL
-                            <Card.Arrow />
+                            <ArrowTopRightOnSquareIcon className="h-3" />
                         </Card.Content.Link>
                     </Card.Content>
                 </Card>

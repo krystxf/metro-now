@@ -1,9 +1,15 @@
-export const CardArrow = () => {
+import { ChevronRightIcon } from "@heroicons/react/24/solid";
+
+type Props = {
+    className?: string;
+};
+
+export const CardArrow = (props: Props) => {
+    const { className } = props;
+
     return (
-        <span className="mb-3 font-semibold">
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-                -&gt;
-            </span>
-        </span>
+        <ChevronRightIcon
+            className={`transition-transform group-hover:translate-x-1 motion-reduce:transform-none h-3 ${className}`}
+        />
     );
 };
