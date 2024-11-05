@@ -212,7 +212,11 @@ importers:
         specifier: ^5
         version: 5.6.2
 
-  packages/constants: {}
+  packages/constants:
+    devDependencies:
+      typescript:
+        specifier: ^5
+        version: 5.6.2
 
 packages:
 

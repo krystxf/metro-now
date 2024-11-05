@@ -28,6 +28,10 @@ jobs:
               run: |
                   pnpm install
 
+            - name: Build dependencies
+              run: |
+                  pnpm prebuild
+
             - name: Build
               run: |
                   cd apps/web 

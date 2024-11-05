@@ -5,11 +5,11 @@ export {
     SWAGGER_JSON_URL,
     SWAGGER_PATH,
     SWAGGER_URL,
-} from "./src/api";
+} from "./api";
 
 export {
     API_URL,
     APPSTORE_URL,
     HOMEPAGE_URL,
     SOURCE_CODE_URL,
-} from "./src/external";
+} from "./external";

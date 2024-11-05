@@ -33,6 +33,10 @@ jobs:
                   cd apps/backend
                   pnpm prisma:generate
 
+            - name: Build dependencies
+              run: |
+                  pnpm prebuild
+
             - name: Build
               run: |
                   cd apps/backend 

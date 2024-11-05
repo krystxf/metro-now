@@ -1,0 +1,18 @@
+{
+    "include": ["src/**/*"],
+    "compilerOptions": {
+        "moduleResolution": "Node",
+        "target": "ES2022",
+        "declaration": true,
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true,
+        "incremental": true,
+        "composite": true,
+
+        "strict": true,
+        "strictPropertyInitialization": false,
+
+        "outDir": "dist",
+        "baseUrl": "."
+    }
+}
