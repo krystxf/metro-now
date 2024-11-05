@@ -3,7 +3,7 @@
 
 import SwiftUI
 
-struct DepartureListItem: View {
+struct StopDepartureListItemView: View {
     let color: Color
 
     let headsign: String
@@ -45,13 +45,20 @@ struct DepartureListItem: View {
                     CountdownView(targetDate: nextDeparture) {
                         nextHeadsign == headsign ? "also in \($0)" : $0
                     }
-
                 }.font(.system(size: 12))
             }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 5)
         .background(color)
-        .clipShape(.rect(cornerRadius: 10))
+        .clipShape(.rect(cornerRadius: 14))
+        .listRowInsets(
+            EdgeInsets(
+                top: 0,
+                leading: 0,
+                bottom: 0,
+                trailing: 0
+            )
+        )
     }
 }
