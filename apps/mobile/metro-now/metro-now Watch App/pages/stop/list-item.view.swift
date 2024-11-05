@@ -12,8 +12,6 @@ struct StopDepartureListItemView: View {
     let nextHeadsign: String?
     let nextDeparture: Date?
 
-    let dateFormat = DateFormatter()
-
     init(
         color: Color?,
         headsign: String,

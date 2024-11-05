@@ -1,46 +1,99 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import SwiftUI
-
 import CoreLocation
-import Foundation
-
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let locationManager = CLLocationManager()
-
-    @Published var location: CLLocation?
-
-    override init() {
-        super.init()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-    }
-
-    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            DispatchQueue.main.async {
-                self.location = location
-            }
-        }
-    }
-}
+import SwiftUI
 
 struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
+    @State var stops: [ApiStop]? = nil
+    @State var departures: [ApiDeparture]? = nil
+    private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        VStack {
-            if let location = locationManager.location {
-                Text("Latitude: \(location.coordinate.latitude)")
-                Text("Longitude: \(location.coordinate.longitude)")
+        NavigationStack {
+            if let location = locationManager.location,
+               let stops,
+               let closestStop = findClosestStop(to: location, stops: stops)
+            {
+                ClosestStopPageView(
+                    closestStop: closestStop,
+                    departures: departures
+                )
+                .navigationTitle(closestStop.name)
             } else {
-                Text("Fetching location...")
+                ProgressView()
             }
         }
-        .padding()
+        .onAppear {
+            getAllMetroStops()
+        }
+        .onReceive(timer) { _ in
+            getStopDepartures()
+        }
+    }
+
+    func findClosestStop(to location: CLLocation, stops: [ApiStop]) -> ApiStop? {
+        var closestStop: ApiStop?
+        var closestDistance: CLLocationDistance?
+
+        for stop in stops {
+            let stopLocation = CLLocation(latitude: stop.avgLatitude, longitude: stop.avgLongitude)
+
+            let distance = location.distance(from: stopLocation)
+
+            guard closestDistance != nil else {
+                closestStop = stop
+                closestDistance = distance
+                continue
+            }
+
+            if distance < closestDistance! {
+                closestStop = stop
+                closestDistance = distance
+            }
+        }
+
+        return closestStop
+    }
+
+    func getAllMetroStops() {
+        NetworkManager.shared.getMetroStops { result in
+            DispatchQueue.main.async {
+                switch result {
+                case let .success(stops):
+
+                    self.stops = stops
+
+                case let .failure(error):
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    func getStopDepartures() {
+        guard
+            let location = locationManager.location,
+            let stops,
+            let closestStop = findClosestStop(to: location, stops: stops)
+        else {
+            return
+        }
+
+        NetworkManager.shared
+            .getDepartures(stopIds: [closestStop.id], platformIds: []) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case let .success(departures):
+
+                        self.departures = departures
+
+                    case let .failure(error):
+                        print(error.localizedDescription)
+                    }
+                }
+            }
     }
 }
 

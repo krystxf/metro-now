@@ -11,3 +11,7 @@ func getMetroLineColor(_ line: MetroLine?) -> Color? {
     default: nil
     }
 }
+
+func getMetroLineColor(_ line: String) -> Color? {
+    getMetroLineColor(MetroLine(rawValue: line.uppercased()))
+}
