@@ -27,9 +27,12 @@ const NotFoundPage = () => {
                     className="font-bold text-zinc-800 text-5xl flex items-center gap-2"
                 >
                     <Image
-                        className="rounded-lg h-12 w-auto"
-                        src={MetroNowIcon}
+                        className="rounded-lg"
                         alt="Icon"
+                        src={MetroNowIcon}
+                        placeholder="blur"
+                        height={48}
+                        priority
                     />
                     Metro&nbsp;Now
                 </Link>

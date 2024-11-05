@@ -21,9 +21,12 @@ const LandingPage = () => {
             <div className="flex flex-col gap-2 items-center justify-center text-center">
                 <h1 className="text-6xl font-bold text-zinc-800 flex gap-2 items-center">
                     <Image
-                        className="rounded-xl h-14 w-auto"
-                        src={MetroNowIcon}
+                        className="rounded-xl"
                         alt="Icon"
+                        src={MetroNowIcon}
+                        placeholder="blur"
+                        height={56}
+                        priority
                     />
                     Metro&nbsp;Now!
                 </h1>
@@ -37,6 +40,7 @@ const LandingPage = () => {
                         className="mt-4"
                         alt="Download on App Store"
                         height={50}
+                        priority
                     />
                 </Link>
             </div>
@@ -44,9 +48,10 @@ const LandingPage = () => {
                 src={MetroNowWatch}
                 alt="Apple watch screenshots"
                 height={1200}
+                placeholder="blur"
+                quality={90}
                 priority
             />
-
             <div className="mb-32 gap-4 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-3 lg:text-left">
                 <Card className="group">
                     <Link
