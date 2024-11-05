@@ -1,8 +1,7 @@
 import { HOMEPAGE_URL } from "@metro-now/constants";
 import type { MetadataRoute } from "next";
 
-const pages = [
-    "/",
+const docsPaths = [
     "/docs",
     "/docs/backend",
     "/docs/privacy-policy",
@@ -10,20 +9,17 @@ const pages = [
     "/docs/terms-and-conditions",
 ] as const satisfies string[];
 
-type PriorityByPage = {
-    [key in (typeof pages)[number]]?: number;
-};
-
-const priorityByPage: PriorityByPage = {
-    "/": 1,
-};
-
-const sitemap = (): MetadataRoute.Sitemap => {
-    return pages.map((url) => ({
-        url: `${HOMEPAGE_URL}${url}`,
+const sitemap = (): MetadataRoute.Sitemap => [
+    {
+        url: `${HOMEPAGE_URL}/`,
         lastModified: new Date(),
-        priority: priorityByPage[url] ?? 0.5,
-    }));
-};
+        priority: 1,
+    },
+    ...docsPaths.map((path) => ({
+        url: `${HOMEPAGE_URL}${path}`,
+        lastModified: new Date(),
+        priority: 0.8,
+    })),
+];
 
 export default sitemap;

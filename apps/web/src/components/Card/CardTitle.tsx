@@ -9,7 +9,10 @@ export const CardTitle = (props: Props) => {
     const { children, className, ...rest } = props;
 
     return (
-        <span className={`mb-3 text-2xl font-semibold ${className}`} {...rest}>
+        <span
+            className={`mb-3 text-2xl font-semibold flex items-center gap-1 ${className}`}
+            {...rest}
+        >
             {children}
         </span>
     );
