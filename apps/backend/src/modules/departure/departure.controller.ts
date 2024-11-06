@@ -25,7 +25,7 @@ import { toArray } from "src/utils/array.utils";
 @ApiTags("departure")
 @Controller("departure")
 @UseInterceptors(CacheInterceptor, LogInterceptor)
-@CacheTTL(2_000)
+@CacheTTL(4 * 1000)
 export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
 

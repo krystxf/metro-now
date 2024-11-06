@@ -10,6 +10,5 @@ export const cacheModuleConfig: CacheModuleAsyncOptions = {
                 port: parseInt(process.env.REDIS_PORT || "6379"),
             },
         }),
-        max: 1_000,
     }),
 };
