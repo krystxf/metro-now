@@ -1,15 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { unique } from "radash";
 
-import { GOLEMIO_API } from "src/constants/golemio.const";
 import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
+import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 import { getDelayInSeconds } from "src/utils/delay";
 
 @Injectable()
 export class DepartureService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private golemioService: GolemioService,
+    ) {}
 
     async getDepartures(args: {
         stopIds: string[];
@@ -57,17 +60,10 @@ export class DepartureService {
                 ]),
         );
 
-        const url = new URL(
-            `${GOLEMIO_API}/v2/pid/departureboards?minutesAfter=600&${searchParams.toString()}`,
+        const res = await this.golemioService.getGolemioData(
+            `/v2/pid/departureboards?minutesAfter=600&${searchParams.toString()}`,
         );
 
-        const res = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
-            },
-        });
         if (!res.ok) {
             throw new Error(
                 `Failed to fetch departure data: ${res.status} ${res.statusText}`,
