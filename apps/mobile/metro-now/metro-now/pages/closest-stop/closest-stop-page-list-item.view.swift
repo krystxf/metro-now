@@ -39,7 +39,7 @@ struct ClosestStopPageListItemView: View {
                         CountdownView(
                             targetDate: nextDeparture
                         ) {
-                            headsign == nextHeadsign ? $0 : "Also in \($0)"
+                            headsign == nextHeadsign ? "Also in \($0)" : $0
                         }
                     }
                     .foregroundStyle(.secondary)

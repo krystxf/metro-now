@@ -50,7 +50,7 @@
 				"managers/network-manager.swift",
 				"types/api-types.swift",
 				"types/metro-line.swift",
-				"utils/metro-line.utils.swift",
+				"utils/get-color-by-route-name.swift",
 				utils/station.utils.swift,
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;

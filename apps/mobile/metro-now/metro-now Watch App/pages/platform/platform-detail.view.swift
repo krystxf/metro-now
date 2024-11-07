@@ -23,9 +23,9 @@ struct PlatformDetailView: View {
     var body: some View {
         TabView {
             if let departures, departures.count > 0 {
-                let backgroundColor = getMetroLineColor(
+                let backgroundColor = getColorByRouteName(
                     metroLine ?? MetroLine(rawValue: departures[0].route)
-                ) ?? .clear
+                )
 
                 PlatformDetailNextDepartureView(
                     headsign: departures[0].headsign,
@@ -77,7 +77,6 @@ struct PlatformDetailView: View {
                     case let .success(departures):
 
                         self.departures = departures
-                        print(departures)
 
                     case let .failure(error):
                         print(error.localizedDescription)

@@ -4,7 +4,8 @@
 import Foundation
 
 final class NetworkManager {
-    static let shared = NetworkManager()
+    static let shared = NetworkManager(
+    )
 
     private init() {}
 
@@ -12,6 +13,48 @@ final class NetworkManager {
         completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
     ) {
         guard let url = URL(string: "\(ENDPOINT)/stop/all?metroOnly=true") else {
+            completed(.failure(.invalidUrl))
+            return
+        }
+
+        let task = URLSession.shared.dataTask(
+            with: URLRequest(url: url)
+        ) {
+            data, response, error in
+
+            if let _ = error {
+                completed(.failure(.general))
+                return
+            }
+
+            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                completed(.failure(.invalidResponse))
+                return
+            }
+
+            guard let data else {
+                completed(.failure(.invalidData))
+                return
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                let decodedResponse = try decoder.decode([ApiStop].self, from: data)
+                completed(.success(decodedResponse))
+                return
+            } catch {
+                completed(.failure(.invalidData))
+                return
+            }
+        }
+
+        task.resume()
+    }
+
+    func getAllStops(
+        completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
+    ) {
+        guard let url = URL(string: "\(ENDPOINT)/stop/all") else {
             completed(.failure(.invalidUrl))
             return
         }
@@ -67,7 +110,7 @@ final class NetworkManager {
 
         let url = baseUrl
             .appending(queryItems: stopsQueryParams + platformsQueryParams + [
-                URLQueryItem(name: "metroOnly", value: "true"),
+                //                URLQueryItem(name: "metroOnly", value: "true"),
             ])
 
         let task = URLSession.shared.dataTask(

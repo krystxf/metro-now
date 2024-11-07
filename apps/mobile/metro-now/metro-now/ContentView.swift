@@ -6,29 +6,37 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
-    @State var stops: [ApiStop]? = nil
+    @State var metroStops: [ApiStop]? = nil
+    @State var allStops: [ApiStop]? = nil
     @State var departures: [ApiDeparture]? = nil
     private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationStack {
-            if let location = locationManager.location,
-               let stops,
-               let closestStop = findClosestStop(to: location, stops: stops)
-            {
-                ClosestStopPageView(
-                    closestStop: closestStop,
-                    departures: departures
-                )
-                .navigationTitle(closestStop.name)
-            } else {
-                ProgressView()
+            List {
+                if let location = locationManager.location,
+                   let metroStops,
+                   let closestMetroStop = findClosestStop(to: location, stops: metroStops)
+                {
+                    Section(header: Text("Metro")) {
+                        ClosestMetroStopSectionView(
+                            closestStop: closestMetroStop,
+                            departures: departures
+                        )
+                        .navigationTitle(closestMetroStop.name)
+                    }
+                } else {
+                    ProgressView()
+                }
             }
         }
         .onAppear {
             getAllMetroStops()
+            getAllStops()
         }
         .onReceive(timer) { _ in
+            getAllMetroStops()
+            getAllStops()
             getStopDepartures()
         }
     }
@@ -63,7 +71,22 @@ struct ContentView: View {
                 switch result {
                 case let .success(stops):
 
-                    self.stops = stops
+                    metroStops = stops
+
+                case let .failure(error):
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    func getAllStops() {
+        NetworkManager.shared.getAllStops { result in
+            DispatchQueue.main.async {
+                switch result {
+                case let .success(stops):
+
+                    allStops = stops
 
                 case let .failure(error):
                     print(error.localizedDescription)
@@ -75,8 +98,8 @@ struct ContentView: View {
     func getStopDepartures() {
         guard
             let location = locationManager.location,
-            let stops,
-            let closestStop = findClosestStop(to: location, stops: stops)
+            let metroStops,
+            let closestStop = findClosestStop(to: location, stops: metroStops)
         else {
             return
         }

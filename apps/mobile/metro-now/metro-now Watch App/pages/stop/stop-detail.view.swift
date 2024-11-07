@@ -23,7 +23,7 @@ struct StopDeparturesView: View {
     var body: some View {
         NavigationSplitView {
             List(platforms, id: \.id, selection: $selectedPlatformId) { platform in
-                let itemColor = getMetroLineColor(platform.metroLine)
+                let itemColor = getColorByRouteName(platform.metroLine)
 
                 if let departures = platform.departures, departures.count > 0 {
                     let hasNextDeparture = departures.count > 1
