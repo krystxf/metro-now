@@ -110,7 +110,7 @@ final class NetworkManager {
 
         let url = baseUrl
             .appending(queryItems: stopsQueryParams + platformsQueryParams + [
-                //                URLQueryItem(name: "metroOnly", value: "true"),
+                URLQueryItem(name: "metroOnly", value: "true"),
             ])
 
         let task = URLSession.shared.dataTask(

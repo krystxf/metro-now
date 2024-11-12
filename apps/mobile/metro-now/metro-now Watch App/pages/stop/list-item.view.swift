@@ -34,6 +34,7 @@ struct StopDepartureListItemView: View {
 
                 CountdownView(targetDate: departure)
             }
+            .fontWeight(.bold)
             if let nextHeadsign, let nextDeparture {
                 HStack {
                     if nextHeadsign != headsign {
@@ -43,6 +44,7 @@ struct StopDepartureListItemView: View {
                     CountdownView(targetDate: nextDeparture) {
                         nextHeadsign == headsign ? "also in \($0)" : $0
                     }
+                    .fontWeight(.semibold)
                 }.font(.system(size: 12))
             }
         }
