@@ -26,12 +26,13 @@ struct PlatformDetailView: View {
                 let backgroundColor = getColorByRouteName(
                     metroLine ?? MetroLine(rawValue: departures[0].route)
                 )
+                let hasNextDeparture = departures.count > 1
 
                 PlatformDetailNextDepartureView(
                     headsign: departures[0].headsign,
                     departure: departures[0].departure.scheduled,
-                    nextHeadsign: departures[1].headsign,
-                    nextDeparture: departures[1].departure.predicted
+                    nextHeadsign: hasNextDeparture ? departures[1].headsign : nil,
+                    nextDeparture: hasNextDeparture ? departures[1].departure.predicted : nil
                 )
                 .containerBackground(backgroundColor.gradient, for: .tabView)
 
@@ -48,14 +49,20 @@ struct PlatformDetailView: View {
                 ToolbarItem(
                     placement: .confirmationAction)
                 {
-                    Text(metroLineName)
-                        .overlay(
-                            Circle()
-                                .size(width: 32, height: 32, anchor: .center)
-                                .stroke(.white.opacity(0.6), lineWidth: 3)
-                        )
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white.opacity(0.6))
+                    if #available(watchOS 11, *) {
+                        Text(metroLineName)
+                            .overlay(
+                                Circle()
+                                    .size(width: 28, height: 28, anchor: .center)
+                                    .stroke(.white.opacity(0.6), lineWidth: 3)
+                            )
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white.opacity(0.6))
+                    } else {
+                        Text(metroLineName)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                    }
                 }
             }
         }
