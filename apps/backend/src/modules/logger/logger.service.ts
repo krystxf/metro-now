@@ -48,6 +48,7 @@ export class LoggerService extends ConsoleLogger {
             | Prisma.InputJsonValue = Prisma.JsonNull,
     ) {
         if (process.env.NODE_ENV === Environment.TEST) return;
+        if (process.env.LOGS !== "true") return;
 
         await this.prisma.log
             .create({
