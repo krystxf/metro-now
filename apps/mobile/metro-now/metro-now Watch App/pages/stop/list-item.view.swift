@@ -3,7 +3,7 @@
 
 import SwiftUI
 
-struct DepartureListItem: View {
+struct StopDepartureListItemView: View {
     let color: Color
 
     let headsign: String
@@ -11,8 +11,6 @@ struct DepartureListItem: View {
 
     let nextHeadsign: String?
     let nextDeparture: Date?
-
-    let dateFormat = DateFormatter()
 
     init(
         color: Color?,
@@ -36,6 +34,7 @@ struct DepartureListItem: View {
 
                 CountdownView(targetDate: departure)
             }
+            .fontWeight(.bold)
             if let nextHeadsign, let nextDeparture {
                 HStack {
                     if nextHeadsign != headsign {
@@ -45,13 +44,21 @@ struct DepartureListItem: View {
                     CountdownView(targetDate: nextDeparture) {
                         nextHeadsign == headsign ? "also in \($0)" : $0
                     }
-
+                    .fontWeight(.semibold)
                 }.font(.system(size: 12))
             }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 5)
         .background(color)
-        .clipShape(.rect(cornerRadius: 10))
+        .clipShape(.rect(cornerRadius: 14))
+        .listRowInsets(
+            EdgeInsets(
+                top: 0,
+                leading: 0,
+                bottom: 0,
+                trailing: 0
+            )
+        )
     }
 }
