@@ -12,7 +12,7 @@ final class NetworkManager {
     func getMetroStops(
         completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
     ) {
-        guard let url = URL(string: "\(ENDPOINT)/stop/all?metroOnly=true") else {
+        guard let url = URL(string: "\(ENDPOINT)/v1/stop/all?metroOnly=true") else {
             completed(.failure(.invalidUrl))
             return
         }
@@ -54,7 +54,7 @@ final class NetworkManager {
     func getAllStops(
         completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
     ) {
-        guard let url = URL(string: "\(ENDPOINT)/stop/all") else {
+        guard let url = URL(string: "\(ENDPOINT)/v1/stop/all") else {
             completed(.failure(.invalidUrl))
             return
         }
@@ -96,7 +96,7 @@ final class NetworkManager {
     func getDepartures(
         stopIds: [String], platformIds: [String], completed: @escaping (Result<[ApiDeparture], FetchErrorNew>) -> Void
     ) {
-        guard let baseUrl = URL(string: "\(ENDPOINT)/departure") else {
+        guard let baseUrl = URL(string: "\(ENDPOINT)/v1/departure") else {
             completed(.failure(.invalidUrl))
             return
         }
