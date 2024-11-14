@@ -8,11 +8,9 @@ import {
     Query,
     UseInterceptors,
     Version,
-    VERSION_NEUTRAL,
 } from "@nestjs/common";
 import { ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 
-import { ApiDescription } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { StopService } from "src/modules/stop/stop.service";
@@ -23,21 +21,6 @@ import { metroOnlyQuery } from "src/swagger/query.swagger";
 @UseInterceptors(CacheInterceptor, LogInterceptor)
 export class StopController {
     constructor(private readonly stopService: StopService) {}
-
-    @Get("/all")
-    @Version([VERSION_NEUTRAL])
-    @ApiQuery(metroOnlyQuery)
-    @ApiDescription({
-        deprecated: true,
-    })
-    async getAllStops(
-        @Query("metroOnly")
-        metroOnlyQuery: unknown,
-    ) {
-        const metroOnly: boolean = metroOnlyQuery === "true";
-
-        return this.stopService.getAll({ metroOnly });
-    }
 
     @Get("/all")
     @Version([EndpointVersion.v1])
