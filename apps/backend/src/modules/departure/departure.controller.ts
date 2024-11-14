@@ -224,6 +224,8 @@ export class DepartureController {
             metroOnly: parsedQuery.metroOnly,
         });
 
-        return departureSchema.array().parse(departures);
+        departureSchema.array().parse(departures);
+
+        return departures;
     }
 }

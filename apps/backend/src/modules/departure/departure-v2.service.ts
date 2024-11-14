@@ -58,14 +58,15 @@ export class DepartureServiceV2 {
                         skip: "canceled",
                         mode: "departures",
                         order: "real",
-                        minutesBefore: String(5),
+                        minutesBefore: String(5 * 0),
                         minutesAfter: String(10 * 60),
+                        limit: String(1_000),
                     }),
                 ),
         );
 
         const res = await this.golemioService.getGolemioData(
-            `/v2/pid/departureboards&${searchParams.toString()}`,
+            `/v2/pid/departureboards?${searchParams.toString()}`,
         );
 
         if (!res.ok) {
@@ -83,6 +84,7 @@ export class DepartureServiceV2 {
 
         const parsedDepartures = parsed.data.departures.map((departure) => {
             return {
+                id: departure.trip.id,
                 departure: departure.departure_timestamp,
                 delay: getDelayInSeconds(departure.delay),
                 headsign: departure.trip.headsign,
