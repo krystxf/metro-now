@@ -1,4 +1,5 @@
 import { SWAGGER_JSON_PATH, SWAGGER_PATH } from "@metro-now/constants";
+import { VersioningType } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
@@ -17,6 +18,11 @@ async function bootstrap() {
 
     app.useLogger(new LoggerService());
     app.enableCors();
+
+    app.enableVersioning({
+        type: VersioningType.URI,
+        prefix: "v",
+    });
 
     const swaggerDocumentBuilder = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)

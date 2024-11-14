@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Version, VERSION_NEUTRAL } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { ApiDescription } from "src/decorators/swagger.decorator";
@@ -15,6 +15,7 @@ export class StatusController {
     constructor(private readonly statusService: StatusService) {}
 
     @Get()
+    @Version([VERSION_NEUTRAL])
     @ApiDescription({
         summary: "Backend status",
     })
@@ -45,6 +46,7 @@ export class StatusController {
     }
 
     @Get("/geo-functions")
+    @Version([VERSION_NEUTRAL])
     @ApiDescription({ summary: "Geo functions status" })
     @ApiResponse({
         status: 200,
@@ -65,6 +67,7 @@ export class StatusController {
     }
 
     @Get("/db-data")
+    @Version([VERSION_NEUTRAL])
     @ApiDescription({ summary: "DB data status" })
     @ApiResponse({
         status: 200,
