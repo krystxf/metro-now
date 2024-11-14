@@ -8,7 +8,7 @@ import { PrismaService } from "src/modules/prisma/prisma.service";
 import { getDelayInSeconds } from "src/utils/delay";
 
 @Injectable()
-export class DepartureService {
+export class DepartureServiceV2 {
     constructor(
         private prisma: PrismaService,
         private golemioService: GolemioService,
@@ -53,15 +53,19 @@ export class DepartureService {
         const searchParams = new URLSearchParams(
             allPlatformIds
                 .map((id) => ["ids", id])
-                .concat([
-                    ["skip", "canceled"],
-                    ["mode", "departures"],
-                    ["order", "real"],
-                ]),
+                .concat(
+                    Object.entries({
+                        skip: "canceled",
+                        mode: "departures",
+                        order: "real",
+                        minutesBefore: String(5),
+                        minutesAfter: String(10 * 60),
+                    }),
+                ),
         );
 
         const res = await this.golemioService.getGolemioData(
-            `/v2/pid/departureboards?minutesAfter=600&${searchParams.toString()}`,
+            `/v2/pid/departureboards&${searchParams.toString()}`,
         );
 
         if (!res.ok) {
