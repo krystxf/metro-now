@@ -6,11 +6,14 @@ import {
     HttpStatus,
     Query,
     UseInterceptors,
+    Version,
+    VERSION_NEUTRAL,
 } from "@nestjs/common";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
+import { EndpointVersion } from "src/enums/endpoint-version";
 import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
@@ -37,6 +40,7 @@ export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 
     @Get("/all")
+    @Version([VERSION_NEUTRAL, EndpointVersion.v1])
     @ApiDescription({
         summary: "List of all platforms",
     })
@@ -61,6 +65,7 @@ export class PlatformController {
     }
 
     @Get("/closest")
+    @Version([VERSION_NEUTRAL, EndpointVersion.v1])
     @ApiDescription({
         description: `
 ⚠️ _For better privacy consider using \`/in-box\`_
@@ -109,6 +114,7 @@ Sort platforms by distance to a given location. Location may be saved in logs.
     }
 
     @Get("/in-box")
+    @Version([VERSION_NEUTRAL, EndpointVersion.v1])
     @ApiDescription({
         summary: "List of platforms within a given bounding box",
     })

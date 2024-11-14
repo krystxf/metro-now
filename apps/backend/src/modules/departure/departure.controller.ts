@@ -6,12 +6,15 @@ import {
     HttpStatus,
     Query,
     UseInterceptors,
+    Version,
+    VERSION_NEUTRAL,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 
 import { QUERY_IDS_COUNT_MAX } from "src/constants/constants";
 import { ApiQueries } from "src/decorators/swagger.decorator";
+import { EndpointVersion } from "src/enums/endpoint-version";
 import { DepartureService } from "src/modules/departure/departure.service";
 import {
     departureSchema,
@@ -30,6 +33,7 @@ export class DepartureController {
     constructor(private readonly departureService: DepartureService) {}
 
     @Get()
+    @Version([VERSION_NEUTRAL, EndpointVersion.v1])
     @ApiQueries([
         metroOnlyQuery,
         {
@@ -81,6 +85,7 @@ export class DepartureController {
     }
 
     @Get("/platform")
+    @Version([VERSION_NEUTRAL, EndpointVersion.v1])
     async getDeparturesByPlatform(@Query("id") id): Promise<DepartureSchema[]> {
         const platformSchema = z
             .string()
