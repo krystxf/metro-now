@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { unique } from "radash";
+import { group, unique } from "radash";
 
 import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
+import { VehicleTypeSchema } from "src/schema/metro-only.schema";
 import { getDelayInSeconds } from "src/utils/delay";
 
 @Injectable()
@@ -17,14 +18,25 @@ export class DepartureServiceV2 {
     async getDepartures(args: {
         stopIds: string[];
         platformIds: string[];
-        metroOnly: boolean;
+        vehicleType: VehicleTypeSchema;
+        excludeVehicleType: VehicleTypeSchema | null;
+        limit: number | null;
+        totalLimit: number | null;
+        minutesBefore: number;
     }): Promise<DepartureSchema[]> {
+        const vehicleTypeWhere =
+            args.vehicleType === "metro"
+                ? { isMetro: true }
+                : args.excludeVehicleType === "metro"
+                  ? { isMetro: false }
+                  : undefined;
+
         const dbPlatforms = (
             await this.prisma.platform.findMany({
                 select: { id: true },
                 where: {
                     id: { in: args.platformIds },
-                    ...(args.metroOnly ? { isMetro: true } : {}),
+                    ...vehicleTypeWhere,
                 },
             })
         ).map((platform) => platform.id);
@@ -34,7 +46,7 @@ export class DepartureServiceV2 {
                 select: {
                     platforms: {
                         select: { id: true },
-                        where: { ...(args.metroOnly ? { isMetro: true } : {}) },
+                        where: vehicleTypeWhere ?? {},
                     },
                 },
                 where: { id: { in: args.stopIds } },
@@ -58,9 +70,9 @@ export class DepartureServiceV2 {
                         skip: "canceled",
                         mode: "departures",
                         order: "real",
-                        minutesBefore: String(5 * 0),
+                        minutesBefore: String(args.minutesBefore),
                         minutesAfter: String(10 * 60),
-                        limit: String(1_000),
+                        limit: String(args.totalLimit ?? 1_000),
                     }),
                 ),
         );
@@ -94,6 +106,41 @@ export class DepartureServiceV2 {
             };
         });
 
-        return parsedDepartures;
+        const limit = args.limit;
+        const totalLimit = args.totalLimit ?? 1000;
+
+        if (limit === null && totalLimit === null) {
+            return parsedDepartures;
+        }
+
+        const limitedByPlatformAndRoute =
+            limit !== null && limit < totalLimit
+                ? getLimitedRes(parsedDepartures, limit)
+                : parsedDepartures;
+
+        const resss = limitedByPlatformAndRoute
+            .sort(
+                (a, b) =>
+                    +new Date(a.departure.predicted) -
+                    +new Date(b.departure.predicted),
+            )
+            .slice(0, totalLimit ?? limitedByPlatformAndRoute.length);
+
+        return resss;
     }
 }
+
+const getLimitedRes = (
+    departures: DepartureSchema[],
+    limit: number,
+): DepartureSchema[] => {
+    const groupedDepartures = group(
+        departures,
+        (departure) => `${departure.platformCode}-${departure.route}`,
+    );
+    const groupedDeparturesValues = Object.values(groupedDepartures);
+
+    return groupedDeparturesValues.flatMap((departures) =>
+        (departures ?? []).slice(0, limit),
+    );
+};
