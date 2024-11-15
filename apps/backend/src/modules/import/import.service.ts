@@ -54,6 +54,7 @@ export class ImportService {
             latitude: number;
             longitude: number;
             stopId: string | null;
+            code: string | null;
             routes: {
                 id: string;
                 name: string;
@@ -96,6 +97,7 @@ export class ImportService {
                             return {
                                 id: platform.id,
                                 name: platform.name,
+                                code: platform.code,
                                 isMetro: platform.isMetro,
                                 latitude: platform.latitude,
                                 longitude: platform.longitude,
@@ -153,6 +155,7 @@ export class ImportService {
                             id: platform.gtfsIds?.[0],
                             name: platform.altIdosName,
                             isMetro: platform.isMetro === true,
+                            code: platform.platform ?? null,
                             routes: platform.lines.map((line) => ({
                                 id: line.id,
                                 name: line.name,
@@ -179,6 +182,7 @@ export class ImportService {
                 platforms: platforms.map((platform) => ({
                     id: platform.id,
                     name: platform.name,
+                    code: platform.code,
                     isMetro: platform.isMetro,
                     latitude: platform.latitude,
                     longitude: platform.longitude,

@@ -15,6 +15,7 @@ export const pidStopsSchema = z.object({
                     gtfsIds: z.string().array(),
                     altIdosName: z.string(),
                     isMetro: z.boolean().optional(),
+                    platform: z.string().optional().nullable(),
                     lines: z
                         .object({
                             id: z.coerce.string(),
