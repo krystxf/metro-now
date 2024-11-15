@@ -17,10 +17,12 @@ struct ContentView: View {
                let stops,
                let closestStop = findClosestStop(to: location, stops: stops)
             {
+                let platforms = closestStop.platforms.filter { $0.routes.count > 0 }
+
                 StopDeparturesView(
                     title: closestStop.name,
-                    platforms: closestStop.platforms.map {
-                        platform in
+                    platforms: platforms.map { platform in
+
                         MainPagePlatform(
                             id: platform.id,
                             metroLine: MetroLine(rawValue: platform.routes[0].name),
