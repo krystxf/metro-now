@@ -3,68 +3,36 @@
 
 import Foundation
 
+enum VehicleType: String {
+    case METRO = "metro"
+    case ALL = "all"
+}
+
 final class NetworkManager {
-    static let shared = NetworkManager(
-    )
+    static let shared = NetworkManager()
 
     private init() {}
 
-    func getMetroStops(
+    func getStops(
+        metroOnly: Bool,
         completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
     ) {
-        guard let url = URL(string: "\(ENDPOINT)/v1/stop/all?metroOnly=true") else {
+        guard let url = URL(string: "\(ENDPOINT)/v1/stop/all?metroOnly=\(metroOnly)") else {
             completed(.failure(.invalidUrl))
             return
         }
 
-        let task = URLSession.shared.dataTask(
-            with: URLRequest(url: url)
-        ) {
-            data, response, error in
-
-            if let _ = error {
-                completed(.failure(.general))
-                return
-            }
-
-            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                completed(.failure(.invalidResponse))
-                return
-            }
-
-            guard let data else {
-                completed(.failure(.invalidData))
-                return
-            }
-
-            do {
-                let decoder = JSONDecoder()
-                let decodedResponse = try decoder.decode([ApiStop].self, from: data)
-                completed(.success(decodedResponse))
-                return
-            } catch {
-                completed(.failure(.invalidData))
-                return
-            }
-        }
-
-        task.resume()
-    }
-
-    func getAllStops(
-        completed: @escaping (Result<[ApiStop], FetchErrorNew>) -> Void
-    ) {
-        guard let url = URL(string: "\(ENDPOINT)/v1/stop/all") else {
-            completed(.failure(.invalidUrl))
-            return
-        }
+        print("GET")
+        print(url)
 
         let task = URLSession.shared.dataTask(
             with: URLRequest(url: url)
         ) {
-            data, response, error in
+            data,
+                response,
+                error in
 
-            if let _ = error {
+            if error != nil {
                 completed(.failure(.general))
                 return
             }
@@ -94,9 +62,13 @@ final class NetworkManager {
     }
 
     func getDepartures(
-        stopIds: [String], platformIds: [String], completed: @escaping (Result<[ApiDeparture], FetchErrorNew>) -> Void
+        includeVehicle: VehicleType,
+        excludeMetro: Bool,
+        stopIds: [String],
+        platformIds: [String],
+        completed: @escaping (Result<[ApiDeparture], FetchErrorNew>) -> Void
     ) {
-        guard let baseUrl = URL(string: "\(ENDPOINT)/v1/departure") else {
+        guard let baseUrl = URL(string: "\(ENDPOINT)/v2/departure") else {
             completed(.failure(.invalidUrl))
             return
         }
@@ -107,18 +79,24 @@ final class NetworkManager {
         let stopsQueryParams: [URLQueryItem] = stopIds.map {
             URLQueryItem(name: "stop[]", value: $0)
         }
+        let vehicleQueryParams: [URLQueryItem] =
+            [URLQueryItem(name: "vehicleType", value: includeVehicle.rawValue)]
+                + (excludeMetro ? [URLQueryItem(name: "excludeVehicleType", value: "metro")] : [])
 
-        let url = baseUrl
-            .appending(queryItems: stopsQueryParams + platformsQueryParams + [
-                URLQueryItem(name: "metroOnly", value: "true"),
-            ])
+        let url = baseUrl.appending(
+            queryItems: stopsQueryParams + platformsQueryParams + vehicleQueryParams + [
+                URLQueryItem(name: "limit", value: String(4)),
+            ]
+        )
+
+        print("GET")
+        print(url)
 
         let task = URLSession.shared.dataTask(
             with: URLRequest(url: url)
-        ) {
-            data, response, error in
+        ) { data, response, error in
 
-            if let _ = error {
+            if error != nil {
                 completed(.failure(.general))
                 return
             }
@@ -143,6 +121,7 @@ final class NetworkManager {
                 )
 
                 completed(.success(decodedResponse))
+
                 return
             } catch {
                 completed(.failure(.invalidData))

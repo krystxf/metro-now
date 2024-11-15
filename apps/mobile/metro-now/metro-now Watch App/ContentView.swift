@@ -69,7 +69,7 @@ struct ContentView: View {
     }
 
     func getAllMetroStops() {
-        NetworkManager.shared.getMetroStops { result in
+        NetworkManager.shared.getStops(metroOnly: true) { result in
             DispatchQueue.main.async {
                 switch result {
                 case let .success(stops):
@@ -93,7 +93,11 @@ struct ContentView: View {
         }
 
         NetworkManager.shared
-            .getDepartures(stopIds: [closestStop.id], platformIds: []) { result in
+            .getDepartures(
+                includeVehicle: .METRO,
+                excludeMetro: false,
+                stopIds: [closestStop.id], platformIds: []
+            ) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case let .success(departures):
