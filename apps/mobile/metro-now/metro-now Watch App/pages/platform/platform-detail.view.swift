@@ -78,7 +78,11 @@ struct PlatformDetailView: View {
 
     func getDepartures() {
         NetworkManager.shared
-            .getDepartures(stopIds: [], platformIds: [platformId]) { result in
+            .getDepartures(
+                includeVehicle: .METRO,
+                excludeMetro: false,
+                stopIds: [], platformIds: [platformId]
+            ) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case let .success(departures):

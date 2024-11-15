@@ -4,19 +4,48 @@
 import SwiftUI
 
 struct ClosestStopPageListItemPlaceholderView: View {
-    let routeLabel: String
+    let routeLabel: String?
     let routeLabelBackground: Color
 
     var body: some View {
-        ClosestStopPageListItemView(
-            routeLabel: routeLabel,
-            routeLabelBackground: routeLabelBackground,
-            headsign: "Loading...",
-            departure: .now + 10 * 60,
-            nextHeadsign: "Loading..",
-            nextDeparture: .now + 15 * 60
-        )
-        .redacted(reason: .placeholder)
+        HStack(
+            alignment: .top,
+            spacing: 8
+        ) {
+            if let routeLabel {
+                RouteNameIconView(
+                    label: routeLabel,
+                    background: routeLabelBackground
+                )
+            } else {
+                RouteNameIconView(
+                    label: "X",
+                    background: routeLabelBackground
+                )
+                .redacted(reason: .placeholder)
+            }
+
+            VStack(alignment: .trailing, spacing: 4) {
+                HStack {
+                    Text("Loading...")
+                    Spacer()
+                    CountdownView(targetDate: .now + 10 * 60)
+                }
+
+                HStack {
+                    Spacer()
+                    CountdownView(
+                        targetDate: .now + 15 * 60
+                    ) {
+                        "Also in \($0)"
+                    }
+                }
+                .foregroundStyle(.secondary)
+                .font(.footnote)
+            }
+            .fontWeight(.semibold)
+            .redacted(reason: .placeholder)
+        }
     }
 }
 
