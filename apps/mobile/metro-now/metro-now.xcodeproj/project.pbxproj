@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D87C85E2CE8BACA00209DE6 /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +140,7 @@
 			);
 			name = "metro-now";
 			packageProductDependencies = (
+				2D87C85E2CE8BACA00209DE6 /* Alamofire */,
 			);
 			productName = "metro-now";
 			productReference = 2D001BA82CC8099B00C6B4F8 /* metro-now.app */;
@@ -192,6 +195,9 @@
 			);
 			mainGroup = 2D001B9F2CC8099B00C6B4F8;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2D001BA92CC8099B00C6B4F8 /* Products */;
 			projectDirPath = "";
@@ -527,6 +533,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2D87C85E2CE8BACA00209DE6 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2D001BA02CC8099B00C6B4F8 /* Project object */;
 }
