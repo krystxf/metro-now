@@ -184,8 +184,7 @@ export class DepartureController {
         {
             name: "platform[]",
             description: "Platform IDs",
-            type: String,
-            isArray: true,
+            type: [String],
             example: ["U1040Z101P", "U1040Z102P"],
             allowEmptyValue: true,
             required: false,
@@ -193,9 +192,8 @@ export class DepartureController {
         {
             name: "stop[]",
             description: "Stop IDs",
-            type: String,
+            type: [String],
             example: ["U1040"],
-            isArray: true,
             allowEmptyValue: true,
             required: false,
         },
@@ -225,6 +223,13 @@ export class DepartureController {
             description: "Minutes Before",
             type: "integer",
             example: 0,
+            required: false,
+        },
+        {
+            name: "minutesAfter",
+            description: "Minutes After",
+            type: "integer",
+            example: 2 * 60,
             required: false,
         },
         {
@@ -260,6 +265,7 @@ export class DepartureController {
                 .nullable()
                 .default(null), // total limit of results (departures)
             minutesBefore: z.coerce.number().optional().nullable().default(0),
+            minutesAfter: z.coerce.number().optional().nullable().default(null),
         });
         const parsed = schema.safeParse(query);
         if (!parsed.success) {
@@ -285,6 +291,7 @@ export class DepartureController {
             limit: parsedQuery.limit ?? null,
             totalLimit: parsedQuery.totalLimit ?? null,
             minutesBefore: parsedQuery.minutesBefore ?? 0,
+            minutesAfter: parsedQuery.minutesAfter ?? 2 * 60,
         });
 
         departureSchema.array().parse(departures);

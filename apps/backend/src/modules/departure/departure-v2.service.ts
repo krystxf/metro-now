@@ -23,6 +23,7 @@ export class DepartureServiceV2 {
         limit: number | null;
         totalLimit: number | null;
         minutesBefore: number;
+        minutesAfter: number;
     }): Promise<DepartureSchema[]> {
         const vehicleTypeWhere =
             args.vehicleType === "metro"
@@ -71,7 +72,7 @@ export class DepartureServiceV2 {
                         mode: "departures",
                         order: "real",
                         minutesBefore: String(args.minutesBefore),
-                        minutesAfter: String(10 * 60),
+                        minutesAfter: String(args.minutesAfter),
                         limit: String(args.totalLimit ?? 1_000),
                     }),
                 ),
