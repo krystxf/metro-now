@@ -6,9 +6,8 @@ import SwiftUI
 struct PlatformDetailView: View {
     let platformId: String
     let metroLine: MetroLine?
-    @State var departures: [ApiDeparture]? = nil
-    private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
-
+    let departures: [ApiDeparture]?
+    
     init(
         platformId: String,
         metroLine: MetroLine? = nil,
@@ -30,7 +29,7 @@ struct PlatformDetailView: View {
 
                 PlatformDetailNextDepartureView(
                     headsign: departures[0].headsign,
-                    departure: departures[0].departure.scheduled,
+                    departure: departures[0].departure.predicted,
                     nextHeadsign: hasNextDeparture ? departures[1].headsign : nil,
                     nextDeparture: hasNextDeparture ? departures[1].departure.predicted : nil
                 )
@@ -68,32 +67,6 @@ struct PlatformDetailView: View {
         }
 
         .tabViewStyle(.verticalPage(transitionStyle: .identity))
-        .onAppear {
-            getDepartures()
-        }
-        .onReceive(timer) { _ in
-            getDepartures()
-        }
-    }
-
-    func getDepartures() {
-        NetworkManager.shared
-            .getDepartures(
-                includeVehicle: .METRO,
-                excludeMetro: false,
-                stopIds: [], platformIds: [platformId]
-            ) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case let .success(departures):
-
-                        self.departures = departures
-
-                    case let .failure(error):
-                        print(error.localizedDescription)
-                    }
-                }
-            }
     }
 }
 

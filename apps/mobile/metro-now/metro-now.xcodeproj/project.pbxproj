@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D87C85E2CE8BACA00209DE6 /* Alamofire */; };
+		2D8EBE2E2CE93DC9004D5F5B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D8EBE2D2CE93DC9004D5F5B /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,9 +51,9 @@
 				"components/route-label-view/route-name.view.swift",
 				"components/route-label-view/route-type.enum.swift",
 				const/endpoint.const.swift,
-				"deprecated/managers/network-manager.swift",
-				"managers/location-manager.swift",
 				"types/api-types.swift",
+				utils/array.utils.swift,
+				"utils/find-closest-stop.swift",
 				utils/station.utils.swift,
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
@@ -93,6 +94,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D8EBE2E2CE93DC9004D5F5B /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,6 +107,7 @@
 				2D9601C12CC8126F000EF3D5 /* common */,
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
+				2D8EBE2C2CE93DC9004D5F5B /* Frameworks */,
 				2D001BA92CC8099B00C6B4F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -116,6 +119,13 @@
 				2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2D8EBE2C2CE93DC9004D5F5B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -164,6 +174,7 @@
 			);
 			name = "metro-now Watch App";
 			packageProductDependencies = (
+				2D8EBE2D2CE93DC9004D5F5B /* Alamofire */,
 			);
 			productName = "metro-now Watch App";
 			productReference = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */;
@@ -548,6 +559,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		2D87C85E2CE8BACA00209DE6 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		2D8EBE2D2CE93DC9004D5F5B /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
