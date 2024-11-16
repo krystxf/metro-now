@@ -23,16 +23,15 @@ struct CountdownView: View {
     }
 
     var body: some View {
-        Text(
-            customFunction(
-                getRemainingTime(
-                    timeRemaining
-                )
-            )
-        )
-        .onReceive(timer) { _ in
-            updateRemainingTime()
-        }
+        Text(customFunction(getRemainingTime(timeRemaining)))
+        #if os(watchOS)
+            .fontDesign(.default) // is more readable on watch IMO
+        #else
+            .fontDesign(.monospaced) // prevents letter shifts
+        #endif
+            .onReceive(timer) { _ in
+                updateRemainingTime()
+            }
     }
 
     private func updateRemainingTime() {

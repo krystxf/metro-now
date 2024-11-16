@@ -79,19 +79,17 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
             return
         }
 
-        if
-            let metroStops,
-            let nextValue = findClosestStop(to: location, stops: metroStops),
-            nextValue.id != self.closestMetroStop?.id
+        if let metroStops,
+           let nextValue = findClosestStop(to: location, stops: metroStops),
+           nextValue.id != self.closestMetroStop?.id
         {
             closestMetroStop = nextValue
             getDepartures(stopsIds: [nextValue.id], platformsIds: [])
         }
 
-        if
-            let allStops,
-            let nextValue = findClosestStop(to: location, stops: allStops),
-            nextValue.id != self.closestStop?.id
+        if let allStops,
+           let nextValue = findClosestStop(to: location, stops: allStops),
+           nextValue.id != self.closestStop?.id
         {
             closestStop = nextValue
             getDepartures(stopsIds: [nextValue.id], platformsIds: [])
@@ -123,7 +121,8 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     }
                 case let .failure(error):
                     print(
-                        metroOnly ? "Error fetching metroStops: \(error)"
+                        metroOnly
+                            ? "Error fetching metroStops: \(error)"
                             : "Error fetching stops: \(error)"
                     )
                 }
@@ -145,6 +144,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 "platform": platformsIds,
                 "limit": 4,
                 "minutesBefore": 1,
+                "minutesAfter": String(3 * 60),
             ]
         )
 
@@ -155,8 +155,14 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 case let .success(fetchedDepartures):
                     DispatchQueue.main.async {
                         if let oldDepartures = self.departures {
+                            let oldStuff = oldDepartures.filter { oldDeparture in
+                                !fetchedDepartures.contains(where: { fetchedDeparture in
+                                    fetchedDeparture.id == oldDeparture.id
+
+                                })
+                            }
                             self.departures = uniqueBy(
-                                array: oldDepartures + fetchedDepartures,
+                                array: oldStuff + fetchedDepartures,
                                 by: \.id
                             )
                             .filter {
