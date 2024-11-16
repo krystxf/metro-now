@@ -13,6 +13,7 @@ export const platformSelect = {
     longitude: true,
     name: true,
     isMetro: true,
+    code: true,
     routes: {
         select: {
             route: {

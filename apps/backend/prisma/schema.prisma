@@ -29,6 +29,7 @@ model Stop {
 model Platform {
   id      String  @id
   name    String
+  code    String?
   isMetro Boolean
 
   latitude  Float

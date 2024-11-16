@@ -13,6 +13,7 @@ struct ApiPlatform: Codable {
     let id: String
     let latitude, longitude: Double
     let name: String
+    let code: String?
     let isMetro: Bool
     let routes: [ApiRoute]
 }
@@ -27,7 +28,9 @@ struct ApiDepartureDate: Codable {
 }
 
 struct ApiDeparture: Codable {
+    let id: String?
     let platformId: String
+    let platformCode: String?
     let headsign: String
 
     let departure: ApiDepartureDate

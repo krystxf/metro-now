@@ -22,7 +22,10 @@ import {
     type DepartureSchema,
 } from "src/modules/departure/schema/departure.schema";
 import { LogInterceptor } from "src/modules/logger/log.interceptor";
-import { metroOnlySchema } from "src/schema/metro-only.schema";
+import {
+    metroOnlySchema,
+    vehicleTypeSchema,
+} from "src/schema/metro-only.schema";
 import { metroOnlyQuery } from "src/swagger/query.swagger";
 import { toArray } from "src/utils/array.utils";
 
@@ -43,7 +46,7 @@ export class DepartureController {
         {
             name: "platform[]",
             description: "Platform IDs",
-            type: String,
+            type: [String],
             isArray: true,
             allowEmptyValue: true,
             required: false,
@@ -51,7 +54,7 @@ export class DepartureController {
         {
             name: "stop[]",
             description: "Stop IDs",
-            type: String,
+            type: [String],
             isArray: true,
             allowEmptyValue: true,
             required: false,
@@ -178,29 +181,91 @@ export class DepartureController {
     @Get()
     @Version([EndpointVersion.v2])
     @ApiQueries([
-        metroOnlyQuery,
         {
             name: "platform[]",
             description: "Platform IDs",
-            type: String,
-            isArray: true,
+            type: [String],
+            example: ["U1040Z101P", "U1040Z102P"],
             allowEmptyValue: true,
             required: false,
         },
         {
             name: "stop[]",
             description: "Stop IDs",
-            type: String,
-            isArray: true,
+            type: [String],
+            example: ["U1040"],
             allowEmptyValue: true,
+            required: false,
+        },
+        {
+            name: "vehicleType",
+            description: "Vehicle type",
+            enum: vehicleTypeSchema.Enum,
+            example: vehicleTypeSchema.Enum.all,
+            required: false,
+            schema: {
+                default: vehicleTypeSchema.Enum.all,
+            },
+        },
+        {
+            name: "excludeVehicleType",
+            description: "Excluded vehicle type",
+            enum: vehicleTypeSchema.exclude(["all"]).Enum,
+            example: null,
+            required: false,
+            schema: {
+                default: null,
+            },
+            allowEmptyValue: true,
+        },
+        {
+            name: "minutesBefore",
+            description: "Minutes Before",
+            type: "integer",
+            example: 0,
+            required: false,
+        },
+        {
+            name: "minutesAfter",
+            description: "Minutes After",
+            type: "integer",
+            example: 2 * 60,
+            required: false,
+        },
+        {
+            name: "limit",
+            description: "Limit of results per platform and route",
+            type: "integer",
+            example: 10,
+            required: false,
+        },
+        {
+            name: "totalLimit",
+            description: "Limit of total results",
+            type: "integer",
+            example: 500,
             required: false,
         },
     ])
     async getDeparturesV2(@Query() query): Promise<DepartureSchema[]> {
         const schema = z.object({
-            metroOnly: metroOnlySchema,
+            vehicleType: vehicleTypeSchema.default("all"),
+            excludeVehicleType: vehicleTypeSchema
+                .exclude(["all"])
+                .nullable()
+                .optional()
+                .default(null),
             platform: z.string().array().optional().default([]),
             stop: z.string().array().optional().default([]),
+            limit: z.coerce.number().int().optional().nullable().default(null), // limit of results (departures) per platform and route
+            totalLimit: z.coerce
+                .number()
+                .int()
+                .optional()
+                .nullable()
+                .default(null), // total limit of results (departures)
+            minutesBefore: z.coerce.number().optional().nullable().default(0),
+            minutesAfter: z.coerce.number().optional().nullable().default(null),
         });
         const parsed = schema.safeParse(query);
         if (!parsed.success) {
@@ -221,9 +286,16 @@ export class DepartureController {
         const departures = await this.departureServiceV2.getDepartures({
             stopIds: parsedQuery.stop,
             platformIds: parsedQuery.platform,
-            metroOnly: parsedQuery.metroOnly,
+            vehicleType: parsedQuery.vehicleType,
+            excludeVehicleType: parsedQuery.excludeVehicleType,
+            limit: parsedQuery.limit ?? null,
+            totalLimit: parsedQuery.totalLimit ?? null,
+            minutesBefore: parsedQuery.minutesBefore ?? 0,
+            minutesAfter: parsedQuery.minutesAfter ?? 2 * 60,
         });
 
-        return departureSchema.array().parse(departures);
+        departureSchema.array().parse(departures);
+
+        return departures;
     }
 }
