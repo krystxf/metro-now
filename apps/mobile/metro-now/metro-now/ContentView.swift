@@ -1,68 +1,54 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import CoreLocation
 import SwiftUI
 
-
 struct ContentView: View {
-    @State var allStops: [ApiStop]? = nil
-    @State var metroStops: [ApiStop]? = nil
+    @StateObject private var viewModel = DepartureViewModel()
 
     var body: some View {
+        if viewModel.metroStops != nil || viewModel.allStops != nil {
             NavigationStack {
-                if let metroStops {
-                    List {
+                List {
+                    if let closestMetroStop = viewModel.closestMetroStop {
                         Section(header: Text("Metro")) {
-                            MetroDeparturesView(stops: metroStops)
-                        }
-
-                         
-                        if let allStops {
-                            NonMetroDeparturesView(stops: allStops)
+                            ClosestMetroStopSectionView(
+                                closestStop: closestMetroStop,
+                                departures: viewModel.departures
+                            )
                         }
                     }
-//                    .navigationTitle(
-//                        findClosestStop(
-//                            to: location,
-//                            stops: metroStops
-//                        )?.name ??
-//                            "Loading..."
-//                    )
-                } else {
-                    ProgressView()
-                }
-            }
-            .onAppear {
-                getMetroStops()
-                getAllStops()
-            }
-       
-    }
 
-    func getAllStops() {
-        NetworkManager.shared.getStops(metroOnly: false) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case let .success(stops):
-                    allStops = stops
-                case let .failure(error):
-                    print(error.localizedDescription)
-                }
-            }
-        }
-    }
+                    if let closestStop = viewModel.closestStop {
+                        let platforms = closestStop.platforms
+                            .filter { platform in
+                                platform.routes
+                                    .contains(
+                                        where: {
+                                            !["A", "B", "C"].contains(
+                                                $0.name.uppercased()
+                                            )
+                                        }
+                                    )
+                            }
+                            .sorted(by: {
+                                getPlatformLabel($0) < getPlatformLabel($1)
+                            })
 
-    func getMetroStops() {
-        NetworkManager.shared.getStops(metroOnly: true) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case let .success(stops):
-                    metroStops = stops
-                case let .failure(error):
-                    print(error.localizedDescription)
+                        ForEach(platforms, id: \.id) {
+                            platform in
+
+                            PlatformSectionView(
+                                platform: platform,
+                                departures: viewModel.departures
+                            )
+                        }
+                    }
                 }
+                .navigationTitle(viewModel.closestMetroStop?.name ?? "")
             }
+        } else {
+            ProgressView()
         }
     }
 }

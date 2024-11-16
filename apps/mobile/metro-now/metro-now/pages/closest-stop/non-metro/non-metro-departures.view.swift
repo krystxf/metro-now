@@ -1,7 +1,6 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import CoreLocation
 import SwiftUI
 
 struct PlatformSectionListView: View {
@@ -35,7 +34,7 @@ struct PlatformSectionListPlaceholderView: View {
     var body: some View {
         ForEach(routes.prefix(maxItems), id: \.id) { route in
             ClosestStopPageListItemPlaceholderView(
-                routeLabel: route.name,
+                routeLabel: nil,
                 routeLabelBackground: getColorByRouteName(route.name)
             )
         }
@@ -87,70 +86,5 @@ struct PlatformSectionView: View {
         } else {
             EmptyView()
         }
-    }
-}
-
-struct NonMetroDeparturesView: View {
-    @StateObject private var locationManager = LocationManager()
-    let stops: [ApiStop]
-
-    @State var departures: [ApiDeparture]? = nil
-    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
-
-    var body: some View {
-        if let location = locationManager.location, let closestStop = findClosestStop(
-            to: location,
-            stops: stops
-        ) {
-            let platforms = closestStop.platforms.filter { !$0.isMetro }.sorted(
-                by: { getPlatformLabel($0) < getPlatformLabel($1) }
-            )
-
-            ForEach(platforms, id: \.id) { platform in
-                PlatformSectionView(
-                    platform: platform,
-                    departures: departures
-                )
-            }
-
-        } else {
-            ProgressView()
-        }
-
-        EmptyView()
-            .onAppear {
-                getStopDepartures()
-            }
-            .onReceive(timer) { _ in
-                getStopDepartures()
-            }
-    }
-
-    func getStopDepartures() {
-        guard let location = locationManager.location else {
-            return
-        }
-        
-        
-        let closestStop = findClosestStop(to: location, stops: stops)!
-
-        NetworkManager.shared
-            .getDepartures(
-                includeVehicle: .ALL,
-                excludeMetro: true,
-                stopIds: [closestStop.id],
-                platformIds: []
-            ) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case let .success(departures):
-
-                        self.departures = departures
-
-                    case let .failure(error):
-                        print(error.localizedDescription)
-                    }
-                }
-            }
     }
 }

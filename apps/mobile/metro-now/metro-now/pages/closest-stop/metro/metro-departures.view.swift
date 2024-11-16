@@ -1,7 +1,6 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import CoreLocation
 import SwiftUI
 
 struct ClosestMetroStopSectionView: View {
@@ -58,69 +57,5 @@ struct PlatformDeparturesView: View {
                 nextDeparture: nil
             )
         }
-    }
-}
-
-struct MetroDeparturesView: View {
-    @StateObject private var locationManager = LocationManager()
-    let stops: [ApiStop]
-
-    init(stops: [ApiStop]) {
-        self.stops = stops
-    }
-
-    @State var departures: [ApiDeparture]? = nil
-    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
-
-    var body: some View {
-        if let location = locationManager.location {
-            if let closestMetroStop = findClosestStop(to: location, stops: stops) {
-                ClosestMetroStopSectionView(
-                    closestStop: closestMetroStop,
-                    departures: departures
-                )
-                .navigationTitle(closestMetroStop.name)
-            } else {
-                ProgressView()
-            }
-            
-            EmptyView()
-                .onAppear {
-                    getStopDepartures()
-                }
-                .onReceive(timer) { _ in
-                    getStopDepartures()
-                }
-        }
-        else {
-            EmptyView()
-        }
-    }
-
-    func getStopDepartures() {
-        guard let location = locationManager.location else {
-            return
-        }
-        
-        guard let closestStop = findClosestStop(to: location, stops: stops) else {
-            return
-        }
-
-        NetworkManager.shared
-            .getDepartures(
-                includeVehicle: .METRO,
-                excludeMetro: false,
-                stopIds: [closestStop.id],
-                platformIds: []
-            ) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case let .success(departures):
-                        self.departures = departures
-                    case let .failure(error):
-                        print(error.localizedDescription)
-                    }
-                }
-            }
     }
 }
