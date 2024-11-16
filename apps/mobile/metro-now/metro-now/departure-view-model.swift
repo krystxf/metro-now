@@ -145,6 +145,7 @@ class DepartureViewModel: NSObject, ObservableObject, CLLocationManagerDelegate 
                 "platform": platformsIds,
                 "limit": 4,
                 "totalLimit": 200,
+                "minutesBefore": 1,
             ]
         )
 
