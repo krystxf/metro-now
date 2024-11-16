@@ -44,14 +44,15 @@
 		2D9601C92CC812EF000EF3D5 /* Exceptions for "common" folder in "metro-now Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				components/countdown.view.swift,
-				"components/route-name.view.swift",
-				"const/api-const.swift",
+				"components/countdown-view/countdown.swift",
+				"components/countdown-view/countdown.utils.swift",
+				"components/route-label-view/get-color-by-route-name.utils.swift",
+				"components/route-label-view/route-name.view.swift",
+				"components/route-label-view/route-type.enum.swift",
+				const/endpoint.const.swift,
 				"deprecated/managers/network-manager.swift",
 				"managers/location-manager.swift",
 				"types/api-types.swift",
-				"types/metro-line.swift",
-				"utils/get-color-by-route-name.swift",
 				utils/station.utils.swift,
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;

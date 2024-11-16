@@ -23,9 +23,9 @@ struct PlatformDetailView: View {
     var body: some View {
         TabView {
             if let departures, departures.count > 0 {
-                let backgroundColor = getColorByRouteName(
-                    metroLine ?? MetroLine(rawValue: departures[0].route)
-                )
+                let backgroundColor = getRouteType(
+                    metroLine?.rawValue ?? departures.first?.route
+                ).color
                 let hasNextDeparture = departures.count > 1
 
                 PlatformDetailNextDepartureView(

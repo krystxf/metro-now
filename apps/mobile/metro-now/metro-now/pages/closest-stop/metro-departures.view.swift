@@ -3,7 +3,7 @@
 
 import SwiftUI
 
-struct ClosestMetroStopSectionView: View {
+struct MetroDeparturesListView: View {
     let closestStop: ApiStop
     let departures: [ApiDeparture]?
 
@@ -21,7 +21,7 @@ struct ClosestMetroStopSectionView: View {
 
                 ClosestStopPageListItemView(
                     routeLabel: routeLabel,
-                    routeLabelBackground: getColorByRouteName(routeLabel),
+                    routeLabelBackground: getRouteType(routeLabel).color,
                     headsign: platformDepartures[0].headsign,
                     departure: platformDepartures[0].departure.predicted,
                     nextHeadsign: nextDeparture?.headsign,
@@ -32,30 +32,9 @@ struct ClosestMetroStopSectionView: View {
 
                 ClosestStopPageListItemPlaceholderView(
                     routeLabel: routeLabel,
-                    routeLabelBackground: getColorByRouteName(routeLabel)
+                    routeLabelBackground: getRouteType(routeLabel).color
                 )
             }
-        }
-    }
-}
-
-struct PlatformDeparturesView: View {
-    private let departures: [ApiDeparture]
-
-    init(departures: [ApiDeparture]) {
-        self.departures = departures
-    }
-
-    var body: some View {
-        ForEach(departures, id: \.headsign) { departure in
-            ClosestStopPageListItemView(
-                routeLabel: departure.route,
-                routeLabelBackground: getColorByRouteName(departure.route),
-                headsign: departure.headsign,
-                departure: departure.departure.predicted,
-                nextHeadsign: nil,
-                nextDeparture: nil
-            )
         }
     }
 }

@@ -22,85 +22,85 @@ struct RouteNameIconView: View {
     HStack {
         RouteNameIconView(
             label: "a",
-            background: getColorByRouteName("a")
+            background: getRouteType("a").color
         )
 
         RouteNameIconView(
             label: "b",
-            background: getColorByRouteName("b")
+            background: getRouteType("b").color
         )
 
         RouteNameIconView(
             label: "c",
-            background: getColorByRouteName("c")
+            background: getRouteType("c").color
         )
     }
 
     HStack {
         RouteNameIconView(
             label: "2",
-            background: getColorByRouteName("28")
+            background: getRouteType("28").color
         )
         RouteNameIconView(
             label: "23",
-            background: getColorByRouteName("28")
+            background: getRouteType("28").color
         )
         RouteNameIconView(
             label: "28",
-            background: getColorByRouteName("28")
+            background: getRouteType("28").color
         )
         RouteNameIconView(
             label: "99",
-            background: getColorByRouteName("99")
+            background: getRouteType("99").color
         )
     }
 
     HStack {
         RouteNameIconView(
             label: "149",
-            background: getColorByRouteName("149")
+            background: getRouteType("149").color
         )
 
         RouteNameIconView(
             label: "912",
-            background: getColorByRouteName("912")
+            background: getRouteType("912").color
         )
     }
 
     HStack {
         RouteNameIconView(
             label: "P2",
-            background: getColorByRouteName("P2")
+            background: getRouteType("P2").color
         )
         RouteNameIconView(
             label: "P4",
-            background: getColorByRouteName("P2")
+            background: getRouteType("P2").color
         )
         RouteNameIconView(
             label: "P6",
-            background: getColorByRouteName("P2")
+            background: getRouteType("P2").color
         )
     }
 
     HStack {
         RouteNameIconView(
             label: "S9",
-            background: getColorByRouteName("S49")
+            background: getRouteType("S49").color
         )
         RouteNameIconView(
             label: "S88",
-            background: getColorByRouteName("S49")
+            background: getRouteType("S49").color
         )
         RouteNameIconView(
             label: "R19",
-            background: getColorByRouteName("S49")
+            background: getRouteType("S49").color
         )
     }
 
     HStack {
         RouteNameIconView(
             label: "LD",
-            background: getColorByRouteName("LD")
+            background: getRouteType("LD").color
         )
     }
 }

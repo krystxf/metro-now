@@ -8,7 +8,7 @@ import SwiftUI
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
 
-class DepartureViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     @Published var location: CLLocation?
 
@@ -144,7 +144,6 @@ class DepartureViewModel: NSObject, ObservableObject, CLLocationManagerDelegate 
                 "stop": stopsIds,
                 "platform": platformsIds,
                 "limit": 4,
-                "totalLimit": 200,
                 "minutesBefore": 1,
             ]
         )
