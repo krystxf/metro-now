@@ -7,7 +7,7 @@ struct PlatformDetailView: View {
     let platformId: String
     let metroLine: MetroLine?
     let departures: [ApiDeparture]?
-    
+
     init(
         platformId: String,
         metroLine: MetroLine? = nil,
