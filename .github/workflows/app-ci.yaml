@@ -1,0 +1,23 @@
+name: App
+
+on: [push]
+
+jobs:
+    build:
+        name: Tests
+
+        runs-on: "macos-latest"
+        steps:
+            - uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: latest
+
+            - name: Check out code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - name: Run tests
+              run: |
+                  cd apps/mobile/metro-now
+                  xcodebuild test -scheme metro-now
