@@ -21,7 +21,7 @@ func shortenStopName(_ stop: String) -> String {
     if stop.hasPrefix("Náměstí") {
         return stop.replacingOccurrences(of: "Náměstí", with: "Nám.")
     } else if stop.hasSuffix("náměstí") {
-        return stop.replacingOccurrences(of: "náměstí", with: "nám")
+        return stop.replacingOccurrences(of: "náměstí", with: "nám.")
     }
 
     return stop
