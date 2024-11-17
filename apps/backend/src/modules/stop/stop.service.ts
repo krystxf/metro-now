@@ -41,4 +41,25 @@ export class StopService {
             })),
         }));
     }
+
+    async getStopById(id: string) {
+        const stop = await this.prisma.stop.findFirst({
+            select: getStopsSelect({ metroOnly: false }),
+            where: {
+                id,
+            },
+        });
+
+        if (!stop) {
+            return null;
+        }
+
+        return {
+            ...stop,
+            platforms: stop.platforms.map((platform) => ({
+                ...platform,
+                routes: platform.routes.map((route) => route.route),
+            })),
+        };
+    }
 }

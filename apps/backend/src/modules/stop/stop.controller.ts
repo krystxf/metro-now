@@ -2,12 +2,15 @@ import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
+    HttpException,
+    HttpStatus,
+    Param,
     Query,
     UseInterceptors,
     Version,
     VERSION_NEUTRAL,
 } from "@nestjs/common";
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 import { ApiDescription } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
@@ -46,5 +49,28 @@ export class StopController {
         const metroOnly: boolean = metroOnlyQuery === "true";
 
         return this.stopService.getAll({ metroOnly });
+    }
+
+    @Get(":id")
+    @Version([EndpointVersion.v1])
+    @ApiParam({
+        name: "id",
+        description: "Stop ID",
+        required: true,
+        example: "U1040",
+        type: "string",
+    })
+    async getStopByIdV1(@Param("id") id: string) {
+        if (!id) {
+            throw new HttpException("Missing stop ID", HttpStatus.BAD_REQUEST);
+        }
+
+        const res = await this.stopService.getStopById(id);
+
+        if (!res) {
+            throw new HttpException("Stop ID not found", HttpStatus.NOT_FOUND);
+        }
+
+        return res;
     }
 }
