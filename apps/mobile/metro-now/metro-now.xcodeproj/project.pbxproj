@@ -20,6 +20,13 @@
 			remoteGlobalIDString = 2D001BB72CC8099C00C6B4F8;
 			remoteInfo = "metro-now Watch App";
 		};
+		2D7FEC7B2CE96F300073FF5B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2D001BA02CC8099B00C6B4F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D001BA72CC8099B00C6B4F8;
+			remoteInfo = "metro-now";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,9 +46,24 @@
 /* Begin PBXFileReference section */
 		2D001BA82CC8099B00C6B4F8 /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-nowTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2D7FEC812CE96F830073FF5B /* Exceptions for "common" folder in "metro-nowTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"components/countdown-view/countdown.utils.swift",
+				"components/route-label-view/get-color-by-route-name.utils.swift",
+				"components/route-label-view/route-type.enum.swift",
+				const/endpoint.const.swift,
+				"types/api-types.swift",
+				utils/array.utils.swift,
+				"utils/get-platform-label.swift",
+				utils/station.utils.swift,
+			);
+			target = 2D7FEC762CE96F300073FF5B /* metro-nowTests */;
+		};
 		2D9601C92CC812EF000EF3D5 /* Exceptions for "common" folder in "metro-now Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -54,6 +76,7 @@
 				"types/api-types.swift",
 				utils/array.utils.swift,
 				"utils/find-closest-stop.swift",
+				"utils/get-platform-label.swift",
 				utils/station.utils.swift,
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
@@ -71,10 +94,16 @@
 			path = "metro-now Watch App";
 			sourceTree = "<group>";
 		};
+		2D7FEC782CE96F300073FF5B /* metro-nowTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "metro-nowTests";
+			sourceTree = "<group>";
+		};
 		2D9601C12CC8126F000EF3D5 /* common */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				2D9601C92CC812EF000EF3D5 /* Exceptions for "common" folder in "metro-now Watch App" target */,
+				2D7FEC812CE96F830073FF5B /* Exceptions for "common" folder in "metro-nowTests" target */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -98,6 +127,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2D7FEC742CE96F300073FF5B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -107,6 +143,7 @@
 				2D9601C12CC8126F000EF3D5 /* common */,
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
+				2D7FEC782CE96F300073FF5B /* metro-nowTests */,
 				2D8EBE2C2CE93DC9004D5F5B /* Frameworks */,
 				2D001BA92CC8099B00C6B4F8 /* Products */,
 			);
@@ -117,6 +154,7 @@
 			children = (
 				2D001BA82CC8099B00C6B4F8 /* metro-now.app */,
 				2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */,
+				2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -180,6 +218,29 @@
 			productReference = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		2D7FEC762CE96F300073FF5B /* metro-nowTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D7FEC7F2CE96F300073FF5B /* Build configuration list for PBXNativeTarget "metro-nowTests" */;
+			buildPhases = (
+				2D7FEC732CE96F300073FF5B /* Sources */,
+				2D7FEC742CE96F300073FF5B /* Frameworks */,
+				2D7FEC752CE96F300073FF5B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2D7FEC7C2CE96F300073FF5B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2D7FEC782CE96F300073FF5B /* metro-nowTests */,
+			);
+			name = "metro-nowTests";
+			packageProductDependencies = (
+			);
+			productName = "metro-nowTests";
+			productReference = 2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -187,7 +248,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					2D001BA72CC8099B00C6B4F8 = {
@@ -195,6 +256,10 @@
 					};
 					2D001BB72CC8099C00C6B4F8 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					2D7FEC762CE96F300073FF5B = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 2D001BA72CC8099B00C6B4F8;
 					};
 				};
 			};
@@ -217,6 +282,7 @@
 			targets = (
 				2D001BA72CC8099B00C6B4F8 /* metro-now */,
 				2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */,
+				2D7FEC762CE96F300073FF5B /* metro-nowTests */,
 			);
 		};
 /* End PBXProject section */
@@ -230,6 +296,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2D001BB62CC8099C00C6B4F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2D7FEC752CE96F300073FF5B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +326,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2D7FEC732CE96F300073FF5B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -260,6 +340,11 @@
 			isa = PBXTargetDependency;
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
 			targetProxy = 2D001BBA2CC8099C00C6B4F8 /* PBXContainerItemProxy */;
+		};
+		2D7FEC7C2CE96F300073FF5B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D001BA72CC8099B00C6B4F8 /* metro-now */;
+			targetProxy = 2D7FEC7B2CE96F300073FF5B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -514,6 +599,47 @@
 			};
 			name = Release;
 		};
+		2D7FEC7D2CE96F300073FF5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-nowTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/metro-now.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/metro-now";
+			};
+			name = Debug;
+		};
+		2D7FEC7E2CE96F300073FF5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-nowTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/metro-now.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/metro-now";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -540,6 +666,15 @@
 			buildConfigurations = (
 				2D001BCD2CC8099D00C6B4F8 /* Debug */,
 				2D001BCE2CC8099D00C6B4F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2D7FEC7F2CE96F300073FF5B /* Build configuration list for PBXNativeTarget "metro-nowTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D7FEC7D2CE96F300073FF5B /* Debug */,
+				2D7FEC7E2CE96F300073FF5B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

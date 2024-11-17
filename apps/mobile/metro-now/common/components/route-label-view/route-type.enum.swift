@@ -45,4 +45,25 @@ enum RouteType {
         case .train: .gray
         }
     }
+
+    var rawValue: String {
+        switch self {
+        case .fallback:
+            "Fallback"
+        case let .metro(line):
+            line.rawValue
+        case .night:
+            "Night"
+        case .bus:
+            "Bus"
+        case .tram:
+            "Tram"
+        case .ferry:
+            "Ferry"
+        case .funicular:
+            "Funicular"
+        case .train:
+            "Train"
+        }
+    }
 }
