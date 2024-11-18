@@ -1,8 +1,9 @@
 import Link from "next/link";
 import styles from "./not-found.module.css";
 import Image from "next/image";
-import { MetroNowIcon } from "@/utils/image.utils";
+import MetroNowIcon from "../../public/metro-now-icon.png";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
+import clsx from "clsx";
 
 const LINKS = [
     {
@@ -15,15 +16,41 @@ const LINKS = [
     },
 ];
 
+const BackgroundText = () => {
+    return (
+        <>
+            {" "}
+            <div
+                className={clsx(
+                    "block dark:hidden",
+                    styles.status_code,
+                    styles.status_code_light,
+                )}
+            >
+                404
+            </div>
+            <div
+                className={clsx(
+                    "hidden dark:block",
+                    styles.status_code,
+                    styles.status_code_dark,
+                )}
+            >
+                404
+            </div>
+        </>
+    );
+};
+
 const NotFoundPage = () => {
     return (
-        <div className="flex h-screen w-full flex-col items-center justify-center gap-6 px-4">
-            <div className={styles.status_code}>404</div>
+        <div className="flex dark:bg-black h-screen w-full flex-col items-center justify-center gap-6 px-4 dark:text-white overflow-hidden">
+            <BackgroundText />
 
             <div className="space-y-2 text-center">
                 <Link
                     href="/"
-                    className="font-bold text-zinc-800 text-5xl flex items-center gap-2"
+                    className="font-bold text-neutral-800 dark:text-neutral-50 text-5xl flex items-center gap-2"
                 >
                     <Image
                         className="rounded-lg"
@@ -44,7 +71,7 @@ const NotFoundPage = () => {
                         <li key={index}>
                             <Link
                                 href={link.href}
-                                className="flex gap-1 items-center text-zinc-500 hover:text-zinc-950 transition-all"
+                                className="flex gap-1 items-center text-neutral-500 dark:text-neutral-400 dark:hover:text-neutral-100 hover:text-neutral-950 transition-all"
                             >
                                 <ChevronRightIcon className="h-3" />
                                 {link.text}

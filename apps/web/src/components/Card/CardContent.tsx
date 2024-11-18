@@ -9,7 +9,10 @@ export const CardContent = (props: Props) => {
     const { children, className, ...rest } = props;
 
     return (
-        <div className={`m-0 max-w-[30ch] text-sm ${className}`} {...rest}>
+        <div
+            className={`m-0 max-w-[30ch] text-sm text-start ${className}`}
+            {...rest}
+        >
             {children}
         </div>
     );
