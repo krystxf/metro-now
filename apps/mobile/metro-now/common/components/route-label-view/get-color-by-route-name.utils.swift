@@ -3,9 +3,29 @@
 
 import SwiftUI
 
-func getRouteType(_ routeName: String?) -> RouteType {
+func isSubstituteRoute(_ routeName: String?) -> Bool {
     guard let routeName else {
+        return false
+    }
+
+    return routeName.hasPrefix("X")
+}
+
+func getRouteColor(_ routeName: String?) -> Color {
+    if isSubstituteRoute(routeName) {
+        return .orange
+    }
+
+    return getRouteType(routeName).color
+}
+
+func getRouteType(_ routeName: String?) -> RouteType {
+    guard var routeName else {
         return RouteType.fallback
+    }
+
+    if routeName.hasPrefix("X") {
+        routeName.removeFirst()
     }
 
     // metro
@@ -23,6 +43,8 @@ func getRouteType(_ routeName: String?) -> RouteType {
     // funicular
     else if routeName.hasPrefix("LD") {
         return RouteType.funicular
+    } else if routeName.hasPrefix("BB") {
+        return RouteType.bus
     }
     // bus or tram
     else if let routeNumber = Int(routeName) {

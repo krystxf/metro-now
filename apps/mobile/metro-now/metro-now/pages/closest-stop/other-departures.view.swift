@@ -46,7 +46,7 @@ struct PlatformDeparturesListView: View {
                         if let departure {
                             ClosestStopPageListItemView(
                                 routeLabel: departure.route,
-                                routeLabelBackground: getRouteType(departure.route).color,
+                                routeLabelBackground: getRouteColor(departure.route),
                                 headsign: departure.headsign,
                                 departure: departure.departure.predicted,
                                 nextHeadsign: nextDeparture?.headsign,
@@ -60,7 +60,7 @@ struct PlatformDeparturesListView: View {
                     ForEach(platform.routes.prefix(3), id: \.id) { route in
                         ClosestStopPageListItemPlaceholderView(
                             routeLabel: nil,
-                            routeLabelBackground: getRouteType(route.name).color
+                            routeLabelBackground: getRouteColor(route.name)
                         )
                     }
                 }
