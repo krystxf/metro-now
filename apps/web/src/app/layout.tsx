@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { notoSans } from "./fonts";
+import { poppins } from "./fonts";
 
 const WEB_URL = new URL("https://metronow.dev");
 
@@ -46,7 +46,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={notoSans.className}>{children}</body>
+            <body className={poppins.className}>{children}</body>
         </html>
     );
 }
