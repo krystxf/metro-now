@@ -2,9 +2,41 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { notoSans } from "./fonts";
 
+const WEB_URL = new URL("https://metronow.dev");
+
+const appleAppLink = {
+    app_name: "metro-now",
+    app_store_id: "6504659402",
+    url: "https://apps.apple.com/cz/app/metro-now/id6504659402",
+} as const;
+
 export const metadata: Metadata = {
     title: "Metro Now",
-    description: "Real-time metro departures in Prague",
+    description: "Prague public transport app",
+    category: "Public transport",
+    keywords: ["prague", "praha", "public transport", "metro", "tram", "bus"],
+    metadataBase: WEB_URL,
+    openGraph: {
+        url: WEB_URL,
+        type: "website",
+    },
+    appLinks: {
+        ios: {
+            ...appleAppLink,
+            url: `${appleAppLink.url}?platform=iphone`,
+        },
+        iphone: {
+            ...appleAppLink,
+            url: `${appleAppLink.url}?platform=iphone`,
+        },
+        ipad: {
+            ...appleAppLink,
+            url: `${appleAppLink.url}?platform=ipad`,
+        },
+        web: {
+            url: WEB_URL,
+        },
+    },
 };
 
 export default function RootLayout({
@@ -14,7 +46,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={notoSans.className + ""}>{children}</body>
+            <body className={notoSans.className}>{children}</body>
         </html>
     );
 }
