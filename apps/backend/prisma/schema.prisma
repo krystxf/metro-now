@@ -13,8 +13,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Dataset {
+  name      String   @id @unique
+  createdAt DateTime @default(now())
+
+  Stop              Stop[]
+  Platform          Platform[]
+  PlatformsOnRoutes PlatformsOnRoutes[]
+  Route             Route[]
+  Trip              Trip[]
+}
+
 model Stop {
-  id   String @id
+  id   String
   name String
 
   avgLatitude  Float
@@ -24,10 +35,15 @@ model Stop {
   updatedAt DateTime @updatedAt
 
   platforms Platform[]
+
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
+
+  @@id([id, datasetName])
 }
 
 model Platform {
-  id      String  @id
+  id      String
   name    String
   code    String?
   isMetro Boolean
@@ -40,35 +56,64 @@ model Platform {
 
   routes PlatformsOnRoutes[]
 
-  stop   Stop?   @relation(fields: [stopId], references: [id])
+  stop   Stop?   @relation(fields: [stopId, datasetName], references: [id, datasetName])
   stopId String?
+
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
+
+  @@id([id, datasetName])
 }
 
 model Route {
-  id   String @id
+  id   String
   name String
 
   vehicleType VehicleType?
   isNight     Boolean?
 
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   stops PlatformsOnRoutes[]
+  Trip  Trip[]
+
+  @@id([id, datasetName])
 }
 
 model PlatformsOnRoutes {
   id         String   @id @default(uuid())
-  platform   Platform @relation(fields: [platformId], references: [id])
+  platform   Platform @relation(fields: [platformId, datasetName], references: [id, datasetName])
   platformId String
 
-  route   Route  @relation(fields: [routeId], references: [id])
+  route   Route  @relation(fields: [routeId, datasetName], references: [id, datasetName])
   routeId String
+
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id String
+
+  routeId String
+  route   Route  @relation(fields: [routeId, datasetName], references: [id, datasetName])
+
+  headsign String
+
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([platformId, routeId])
+  @@id([id, datasetName])
 }
 
 model Log {
