@@ -21,7 +21,7 @@ struct MetroDeparturesListView: View {
 
                 ClosestStopPageListItemView(
                     routeLabel: routeLabel,
-                    routeLabelBackground: getRouteType(routeLabel).color,
+                    routeLabelBackground: getRouteColor(routeLabel),
                     headsign: platformDepartures[0].headsign,
                     departure: platformDepartures[0].departure.predicted,
                     nextHeadsign: nextDeparture?.headsign,
@@ -32,7 +32,7 @@ struct MetroDeparturesListView: View {
 
                 ClosestStopPageListItemPlaceholderView(
                     routeLabel: routeLabel,
-                    routeLabelBackground: getRouteType(routeLabel).color
+                    routeLabelBackground: getRouteColor(routeLabel)
                 )
             }
         }

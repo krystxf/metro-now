@@ -65,35 +65,35 @@ struct ClosestStopPageListItemPlaceholderView: View {
     List {
         ClosestStopPageListItemPlaceholderView(
             routeLabel: "A",
-            routeLabelBackground: getRouteType("A").color
+            routeLabelBackground: getRouteColor("A")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: "A",
-            routeLabelBackground: getRouteType("A").color
+            routeLabelBackground: getRouteColor("A")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: "C",
-            routeLabelBackground: getRouteType("C").color
+            routeLabelBackground: getRouteColor("C")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: "C",
-            routeLabelBackground: getRouteType("C").color
+            routeLabelBackground: getRouteColor("C")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: nil,
-            routeLabelBackground: getRouteType("49").color
+            routeLabelBackground: getRouteColor("49")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: nil,
-            routeLabelBackground: getRouteType("149").color
+            routeLabelBackground: getRouteColor("149")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: nil,
-            routeLabelBackground: getRouteType("P2").color
+            routeLabelBackground: getRouteColor("P2")
         )
         ClosestStopPageListItemPlaceholderView(
             routeLabel: nil,
-            routeLabelBackground: getRouteType("LD").color
+            routeLabelBackground: getRouteColor("LD")
         )
     }
 }
