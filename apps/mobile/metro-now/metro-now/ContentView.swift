@@ -4,25 +4,30 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var showWelcomeScreen = true
+    @State private var showWelcomeScreen: Bool = false
+    @AppStorage(
+        AppStorageKeys.hasSeenWelcomeScreen.rawValue
+    ) var hasSeenWelcomeScreen = false
 
     var body: some View {
         NavigationStack {
             ClosestStopPageView()
-
-        }.sheet(
-            isPresented: $showWelcomeScreen,
-            onDismiss: {
-                showWelcomeScreen = false
-            }
-        ) {
-            WelcomeScreenView(
-                handleSubmit: {
-                    showWelcomeScreen = false
-                }
-            )
-            .presentationDetents([.medium])
         }
+        .onAppear {
+            showWelcomeScreen = !hasSeenWelcomeScreen
+        }
+        .sheet(
+            isPresented: $showWelcomeScreen,
+            onDismiss: dismissWelcomeScreen
+        ) {
+            WelcomeScreenView(handleDismiss: dismissWelcomeScreen)
+                .presentationDetents([.medium])
+        }
+    }
+
+    private func dismissWelcomeScreen() {
+        showWelcomeScreen = false
+        hasSeenWelcomeScreen = true
     }
 }
 

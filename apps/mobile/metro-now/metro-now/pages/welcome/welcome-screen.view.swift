@@ -10,7 +10,7 @@ private let headingGradient = LinearGradient(
 )
 
 struct WelcomeScreenView: View {
-    let handleSubmit: () -> Void
+    let handleDismiss: () -> Void
 
     @State private var showContent = false
 
@@ -38,7 +38,7 @@ struct WelcomeScreenView: View {
                 .font(.title3)
                 .multilineTextAlignment(.center)
 
-                Button(action: handleSubmit) {
+                Button(action: handleDismiss) {
                     Text("Continue")
                     Image(systemName: "chevron.forward")
                 }
