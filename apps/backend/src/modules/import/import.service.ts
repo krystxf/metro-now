@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { VehicleType } from "@prisma/client";
 import { unique } from "radash";
+import { Dataset } from "src/enums/dataset.enum";
 
 import { LogLevel, LogMessage, StopSyncTrigger } from "src/enums/log.enum";
 import {
@@ -67,7 +68,7 @@ export class ImportService {
             platforms.flatMap((platform) => platform.routes),
             (route) => route.id,
         );
-        const DATASET = "PRAGUE";
+        const DATASET = Dataset.PRAGUE;
 
         await this.prisma.$transaction(
             async (transaction) => {

@@ -22,6 +22,7 @@ model Dataset {
   PlatformsOnRoutes PlatformsOnRoutes[]
   Route             Route[]
   Trip              Trip[]
+  StopTime          StopTime[]
 }
 
 model Stop {
@@ -37,7 +38,8 @@ model Stop {
   platforms Platform[]
 
   datasetName String
-  dataset     Dataset @relation(fields: [datasetName], references: [name])
+  dataset     Dataset    @relation(fields: [datasetName], references: [name])
+  StopTime    StopTime[]
 
   @@id([id, datasetName])
 }
@@ -110,10 +112,30 @@ model Trip {
   datasetName String
   dataset     Dataset @relation(fields: [datasetName], references: [name])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  StopTime  StopTime[]
 
   @@id([id, datasetName])
+}
+
+model StopTime {
+  id String @id @default(uuid())
+
+  arrivalTime   String?
+  departureTime String
+
+  stopId String
+  stop   Stop   @relation(fields: [stopId, datasetName], references: [id, datasetName])
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId, datasetName], references: [id, datasetName])
+
+  datasetName String
+  dataset     Dataset @relation(fields: [datasetName], references: [name])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Log {

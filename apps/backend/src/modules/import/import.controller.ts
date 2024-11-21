@@ -8,13 +8,14 @@ import {
 } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Cache } from "cache-manager";
+import { Dataset } from "src/enums/dataset.enum";
 
 import { Environment } from "src/enums/environment.enum";
 import { StopSyncTrigger } from "src/enums/log.enum";
 import { ImportService } from "src/modules/import/import.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
-import * as csv from "@fast-csv/parse";
-import { Open as unzipperOpen } from "unzipper";
+import { parseCsvContents } from "src/utils/csv.utils";
+import { unzipResponse } from "src/utils/unzip-response.utils";
 
 @Controller("import")
 export class ImportController implements OnModuleInit {
@@ -34,7 +35,7 @@ export class ImportController implements OnModuleInit {
         const dataURL =
             "https://www.arcgis.com/sharing/rest/content/items/379d2e9a7907460c8ca7fda1f3e84328/data";
         await this.syncDataToRedis(dataURL);
-        await this.syncToDatabase(dataURL, "BRNO");
+        this.syncToDatabase(dataURL, Dataset.BRNO);
 
         if (process.env.NODE_ENV === Environment.TEST) {
             // await importPromise;
@@ -50,11 +51,17 @@ export class ImportController implements OnModuleInit {
 
     async syncDataToRedis(dataURL: string) {
         const response = await fetch(dataURL);
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const directory = await unzipperOpen.buffer(buffer);
+        const directory = await unzipResponse(response);
+        const filesToCache = [
+            "stops.txt",
+            "routes.txt",
+            "trips.txt",
+            "stop_times.txt",
+        ];
 
         for (const file of directory.files) {
+            if (!filesToCache.includes(file.path)) continue;
+
             const fileBuffer = await file.buffer();
 
             await this.cacheManager.set(
@@ -65,90 +72,27 @@ export class ImportController implements OnModuleInit {
         }
     }
 
-    async syncToDatabase(dataURL: string, datasetName: string) {
+    async syncToDatabase(dataURL: string, datasetName: Dataset) {
         const stopsRaw = await this.cacheManager.get(`${dataURL}/stops.txt`);
         const routesRaw = await this.cacheManager.get(`${dataURL}/routes.txt`);
         const tripsRaw = await this.cacheManager.get(`${dataURL}/trips.txt`);
+        const stopTimesRaw = await this.cacheManager.get(
+            `${dataURL}/stop_times.txt`,
+        );
 
-        if (!stopsRaw || !routesRaw || !tripsRaw) {
+        if (!stopsRaw || !routesRaw || !tripsRaw || !stopTimesRaw) {
             throw new HttpException(
-                "stops.txt not found",
+                "GTFS files not found",
                 HttpStatus.NOT_FOUND,
             );
         }
 
-        const parseCsvStops = () => {
-            return new Promise<any[]>((resolve) => {
-                const data: any[] = [];
-
-                csv.parseString(String(stopsRaw), { headers: true })
-                    .on("error", (error) => console.error(error))
-                    .on("data", (row) => {
-                        if (!row || !row.stop_name) return;
-
-                        data.push({
-                            ...row,
-                            stop_lat: Number(row.stop_lat),
-                            stop_lon: Number(row.stop_lon),
-                        });
-                    })
-                    .on("end", () => {
-                        resolve(data);
-                    });
-            });
-        };
-        const parseCsvRoutes = () => {
-            return new Promise<any[]>((resolve) => {
-                const data: any[] = [];
-
-                csv.parseString(String(routesRaw), { headers: true })
-                    .on("error", (error) => console.error(error))
-                    .on("data", (row) => {
-                        if (!row || !row.route_id || !row.route_short_name)
-                            return;
-
-                        data.push(row);
-                    })
-                    .on("end", () => {
-                        resolve(data);
-                    });
-            });
-        };
-        const parseCsvTrips = () => {
-            return new Promise<any[]>((resolve) => {
-                const data: any[] = [];
-
-                csv.parseString(String(tripsRaw), { headers: true })
-                    .on("error", (error) => console.error(error))
-                    .on("data", (row) => {
-                        if (
-                            !row ||
-                            !row.route_id ||
-                            !row.trip_id ||
-                            !row.trip_headsign
-                        )
-                            return;
-
-                        data.push(row);
-                    })
-                    .on("end", () => {
-                        resolve(data);
-                    });
-            });
-        };
-
-        const parsedStops = await parseCsvStops();
-        const parsedRoutes = await parseCsvRoutes();
-        const parsedTrips = await parseCsvTrips();
-
-        const stopsWithPlatforms = parsedStops
-            .map((stop) => ({
-                ...stop,
-                platforms: parsedStops.filter(
-                    (s) => s.parent_station === stop.stop_id,
-                ),
-            }))
-            .filter((stop) => stop.platforms.length);
+        const parsedStops = await parseCsvContents<any>(String(stopsRaw));
+        const parsedRoutes = await parseCsvContents<any>(String(routesRaw));
+        const parsedTrips = await parseCsvContents<any>(String(tripsRaw));
+        const parsedStopTimes = await parseCsvContents<any>(
+            String(stopTimesRaw),
+        );
 
         await this.prisma.dataset.upsert({
             create: { name: datasetName },
@@ -158,6 +102,9 @@ export class ImportController implements OnModuleInit {
 
         await this.prisma.$transaction(
             async (transaction) => {
+                await transaction.stopTime.deleteMany({
+                    where: { datasetName },
+                });
                 await transaction.trip.deleteMany({ where: { datasetName } });
                 await transaction.platformsOnRoutes.deleteMany({
                     where: { datasetName },
@@ -190,61 +137,29 @@ export class ImportController implements OnModuleInit {
 
                 console.log("Syncing stops");
                 await transaction.stop.createMany({
-                    data: stopsWithPlatforms.map((stop) => ({
+                    data: parsedStops.map((stop) => ({
                         id: stop.stop_id,
                         name: stop.stop_name,
-                        avgLatitude: stop.stop_lat,
-                        avgLongitude: stop.stop_lon,
+                        avgLatitude: Number(stop.stop_lat),
+                        avgLongitude: Number(stop.stop_lon),
                         datasetName,
                     })),
                 });
 
-                console.log("Syncing platforms");
-                await transaction.platform.createMany({
-                    data: stopsWithPlatforms.flatMap((stop) =>
-                        stop.platforms.map((platform) => ({
-                            id: platform.stop_id,
-                            name: platform.stop_name,
-                            code: platform.platform_code,
-                            latitude: platform.stop_lat,
-                            longitude: platform.stop_lon,
-                            stopId: stop.stop_id,
-                            isMetro: false,
-                            datasetName,
-                        })),
-                    ),
+                console.log("Syncing stop times");
+                await transaction.stopTime.createMany({
+                    data: parsedStopTimes.map((stopTime) => ({
+                        departureTime: stopTime.departure_time,
+                        arrivalTime: stopTime.arrival_time,
+                        tripId: stopTime.trip_id,
+                        stopId: stopTime.stop_id,
+                        datasetName,
+                    })),
                 });
             },
             {
                 timeout: 1000 * 60 * 5,
             },
         );
-    }
-
-    async getBrno() {
-        console.log("Brno: Getting data");
-        const dataURL =
-            "https://www.arcgis.com/sharing/rest/content/items/379d2e9a7907460c8ca7fda1f3e84328/data";
-
-        await this.syncDataToRedis(dataURL);
-        console.log("Brno: Synced data to Redis");
-
-        await this.syncToDatabase(dataURL, "BRNO");
-        console.log("Brno: Synced data to database");
-
-        return;
-    }
-
-    async getPrague() {
-        console.log("Prague: Getting data");
-        const dataURL = "http://data.pid.cz/PID_GTFS.zip";
-
-        await this.syncDataToRedis(dataURL);
-        console.log("Prague: Synced data to Redis");
-
-        await this.syncToDatabase(dataURL, "PRAGUE");
-        console.log("Prague: Synced data to database");
-
-        return;
     }
 }
