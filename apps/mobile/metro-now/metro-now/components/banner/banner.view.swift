@@ -15,7 +15,7 @@ struct BannerView: View {
     ) {
         self.label = label
         self.systemImage = systemImage
-        self.color = color?.opacity(0.1) ?? Color.accentColor.opacity(0)
+        self.color = color?.opacity(0.5) ?? Color.accentColor.opacity(0)
     }
 
     var body: some View {

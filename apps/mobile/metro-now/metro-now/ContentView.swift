@@ -37,18 +37,13 @@ struct ContentView: View {
             showWelcomeScreen = !hasSeenWelcomeScreen
         }
         .onReceive(networkMonitor.$isConnected) { isConnected in
-            if !isConnected {
-                withAnimation {
-                    showNoInternetBanner = true
-                }
+            setShowNoInternetBanner(!isConnected)
+        }
+    }
 
-                // Hide the banner after a delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    withAnimation {
-                        showNoInternetBanner = false
-                    }
-                }
-            }
+    private func setShowNoInternetBanner(_ value: Bool) {
+        withAnimation {
+            showNoInternetBanner = value
         }
     }
 
