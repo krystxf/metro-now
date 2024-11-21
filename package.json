@@ -12,6 +12,7 @@
         "web:dev": "pnpm run -r --filter @metro-now/web dev",
         "precommit": "pnpm format",
         "format": "pnpm --recursive --parallel format && pnpm exec prettier . --write",
+        "app:format": "pnpm --filter @metro-now/mobile format",
         "format:check": "pnpm -r format:check && pnpm exec prettier . --check",
         "docker:up:dev": "docker compose up postgres redis-stack",
         "docker:up": "docker compose up -d --build",
