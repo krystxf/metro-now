@@ -3,4 +3,5 @@
 
 enum AppStorageKeys: String {
     case hasSeenWelcomeScreen
+    case showMetroOnly
 }
