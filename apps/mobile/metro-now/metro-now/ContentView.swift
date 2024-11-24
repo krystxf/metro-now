@@ -11,6 +11,8 @@ struct ContentView: View {
         AppStorageKeys.hasSeenWelcomeScreen.rawValue
     ) var hasSeenWelcomeScreen = false
     @State private var showWelcomeScreen: Bool = false
+    @State private var showSearchScreen: Bool = true
+    @State private var searchText = ""
 
     var body: some View {
         ZStack {
@@ -24,14 +26,23 @@ struct ContentView: View {
                                 Label("Settings", systemImage: "gearshape")
                             }
                         }
-//                        ToolbarItem(placement: .topBarTrailing) {
-//                            NavigationLink {
-//                                SettingsPageView()
-//                            } label: {
-//                                Label("Search", systemImage: "magnifyingglass")
-//                            }
-//                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                showSearchScreen = true
+                            }) {
+                                Label("Search", systemImage: "magnifyingglass")
+                            }
+                        }
                     }
+            }
+            .sheet(
+                isPresented: $showSearchScreen,
+                onDismiss: {
+                    showSearchScreen = false
+                }
+            ) {
+                SearchPageView()
+                    .presentationDetents([.large])
             }
             .sheet(
                 isPresented: $showWelcomeScreen,
