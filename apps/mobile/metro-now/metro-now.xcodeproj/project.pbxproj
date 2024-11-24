@@ -144,7 +144,6 @@
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
 				2D7FEC782CE96F300073FF5B /* metro-nowTests */,
-				2D8EBE2C2CE93DC9004D5F5B /* Frameworks */,
 				2D001BA92CC8099B00C6B4F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -157,13 +156,6 @@
 				2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		2D8EBE2C2CE93DC9004D5F5B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
