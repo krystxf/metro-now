@@ -27,7 +27,7 @@ struct SettingsPageAboutSectionView: View {
             if let appStoreUrl {
                 ShareLink(item: appStoreUrl) {
                     Label(
-                        "Share app with friends",
+                        "Share metro-now",
                         systemImage: "square.and.arrow.up"
                     )
                 }
@@ -42,6 +42,7 @@ struct SettingsPageAboutSectionView: View {
                         systemImage: "star"
                     )
                 }
+                .accessibilityHint("Opens app rating in app store")
             }
 
             if let reportBugUrl {
@@ -51,6 +52,7 @@ struct SettingsPageAboutSectionView: View {
                         systemImage: "bubble.left.and.exclamationmark.bubble.right"
                     )
                 }
+                .accessibilityHint("Opens Github issue form")
             }
 
             if let requestFeatureUrl {
@@ -60,6 +62,7 @@ struct SettingsPageAboutSectionView: View {
                         systemImage: "star.bubble"
                     )
                 }
+                .accessibilityHint("Opens Github feature request form")
             }
         }
     }

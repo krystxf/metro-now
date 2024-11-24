@@ -51,9 +51,11 @@ struct ClosestStopPageView: View {
             }
             .navigationTitle(viewModel.closestMetroStop?.name ?? "Departures")
             .refreshable {
-                print("Refreshing")
+                do {
+                    print("Refreshing")
 
-                viewModel.refresh()
+                    viewModel.refresh()
+                }
             }
         } else {
             ProgressView()
