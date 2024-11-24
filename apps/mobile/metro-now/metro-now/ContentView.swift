@@ -16,6 +16,15 @@ struct ContentView: View {
         ZStack {
             NavigationStack {
                 ClosestStopPageView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            NavigationLink {
+                                SettingsPageView()
+                            } label: {
+                                Label("Settings", systemImage: "gearshape")
+                            }
+                        }
+                    }
             }
             .sheet(
                 isPresented: $showWelcomeScreen,
