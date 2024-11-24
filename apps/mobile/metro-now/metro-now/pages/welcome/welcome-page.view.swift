@@ -9,7 +9,7 @@ private let headingGradient = LinearGradient(
     endPoint: .trailing
 )
 
-struct WelcomeScreenView: View {
+struct WelcomePageView: View {
     let handleDismiss: () -> Void
 
     @State private var showContent = false
@@ -59,5 +59,5 @@ struct WelcomeScreenView: View {
 }
 
 #Preview {
-    WelcomeScreenView {}
+    WelcomePageView {}
 }

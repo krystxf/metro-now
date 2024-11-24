@@ -38,6 +38,15 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         stopPeriodicRefresh()
     }
 
+    func refresh() {
+        let stopIds = [closestMetroStop?.id ?? "", closestStop?.id ?? ""]
+
+        getDepartures(
+            stopsIds: stopIds.filter { !$0.isEmpty },
+            platformsIds: []
+        )
+    }
+
     private func startPeriodicRefresh() {
         stopPeriodicRefresh() // Stop any existing timer to avoid duplication.
         refreshTimer = Timer.scheduledTimer(

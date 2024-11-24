@@ -57,6 +57,8 @@
 				"components/route-label-view/get-color-by-route-name.utils.swift",
 				"components/route-label-view/route-type.enum.swift",
 				const/endpoint.const.swift,
+				const/github.const.swift,
+				"const/review-url.const.swift",
 				"types/api-types.swift",
 				utils/array.utils.swift,
 				"utils/get-platform-label.swift",
@@ -73,6 +75,8 @@
 				"components/route-label-view/route-name.view.swift",
 				"components/route-label-view/route-type.enum.swift",
 				const/endpoint.const.swift,
+				const/github.const.swift,
+				"const/review-url.const.swift",
 				"types/api-types.swift",
 				utils/array.utils.swift,
 				"utils/find-closest-stop.swift",
@@ -144,7 +148,6 @@
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
 				2D7FEC782CE96F300073FF5B /* metro-nowTests */,
-				2D8EBE2C2CE93DC9004D5F5B /* Frameworks */,
 				2D001BA92CC8099B00C6B4F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -157,13 +160,6 @@
 				2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		2D8EBE2C2CE93DC9004D5F5B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -471,7 +467,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -485,7 +481,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -493,7 +489,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -503,7 +499,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -517,7 +513,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -526,7 +522,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -536,7 +532,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -554,7 +550,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -570,7 +566,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -588,7 +584,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
