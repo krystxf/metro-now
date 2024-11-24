@@ -13,10 +13,10 @@ struct SettingsPageGeneralSectionView: View {
             header:
             Label("General", systemImage: "gear"),
             footer:
-            Text("Doesn't show buses or any other means of transport, just metro.")
+            Text("Other means of transport will be hidden")
         ) {
             Toggle(isOn: $showMetroOnly) {
-                Text("Metro only")
+                Text("Show only metro")
             }
         }
     }

@@ -1,7 +1,6 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import StoreKit
 import SwiftUI
 
 struct SettingsPageView: View {

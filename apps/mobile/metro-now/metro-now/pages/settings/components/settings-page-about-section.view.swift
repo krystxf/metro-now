@@ -11,19 +11,21 @@ private let requestFeatureUrl = URL(
     string: "https://github.com/krystxf/metro-now/issues/new?assignees=&labels=&projects=&template=feature_request.md&title="
 )
 
-private let appStoreLink = URL(
+private let appStoreUrl = URL(
     string: "https://apps.apple.com/cz/app/metro-now/id6504659402?platform=iphone"
 )
 
-struct SettingsPageAboutSectionView: View {
-    @Environment(\.requestReview) private var requestReview
+private let appStoreReviewUrl = URL(
+    string: "https://itunes.apple.com/us/app/metro-now/id6504659402?mt=8&action=write-review"
+)
 
+struct SettingsPageAboutSectionView: View {
     var body: some View {
         Section(
             header: Label("About", systemImage: "info.circle")
         ) {
-            if let appStoreLink {
-                ShareLink(item: appStoreLink) {
+            if let appStoreUrl {
+                ShareLink(item: appStoreUrl) {
                     Label(
                         "Share app with friends",
                         systemImage: "square.and.arrow.up"
@@ -31,11 +33,16 @@ struct SettingsPageAboutSectionView: View {
                 }
             }
 
-            Label("Rate the app", systemImage: "star")
-                .foregroundStyle(.link)
-                .onTapGesture {
-                    requestReview()
+            if let appStoreReviewUrl {
+                Link(
+                    destination: appStoreReviewUrl
+                ) {
+                    Label(
+                        "Give us a rating",
+                        systemImage: "star"
+                    )
                 }
+            }
 
             if let reportBugUrl {
                 Link(destination: reportBugUrl) {

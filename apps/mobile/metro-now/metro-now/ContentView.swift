@@ -17,13 +17,20 @@ struct ContentView: View {
             NavigationStack {
                 ClosestStopPageView()
                     .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
+                        ToolbarItem(placement: .topBarLeading) {
                             NavigationLink {
                                 SettingsPageView()
                             } label: {
                                 Label("Settings", systemImage: "gearshape")
                             }
                         }
+//                        ToolbarItem(placement: .topBarTrailing) {
+//                            NavigationLink {
+//                                SettingsPageView()
+//                            } label: {
+//                                Label("Search", systemImage: "magnifyingglass")
+//                            }
+//                        }
                     }
             }
             .sheet(
