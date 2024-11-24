@@ -5,6 +5,9 @@ import SwiftUI
 
 struct ClosestStopPageView: View {
     @StateObject private var viewModel = ClosestStopPageViewModel()
+    @AppStorage(
+        AppStorageKeys.showMetroOnly.rawValue
+    ) var showMetroOnly = false
 
     var body: some View {
         if viewModel.metroStops != nil || viewModel.allStops != nil {
@@ -18,7 +21,7 @@ struct ClosestStopPageView: View {
                     }
                 }
 
-                if let closestStop = viewModel.closestStop {
+                if !showMetroOnly, let closestStop = viewModel.closestStop {
                     let platforms = closestStop.platforms
                         .filter { platform in
                             platform.routes.contains(where: {
@@ -41,6 +44,11 @@ struct ClosestStopPageView: View {
                 }
             }
             .navigationTitle(viewModel.closestMetroStop?.name ?? "")
+            .refreshable {
+                print("Refreshing")
+
+                viewModel.refresh()
+            }
         } else {
             ProgressView()
         }
