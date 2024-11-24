@@ -6,18 +6,14 @@ import SwiftUI
 struct SettingsPageFooterView: View {
     var body: some View {
         VStack {
-            let versionNumber = Bundle.main.versionNumber ?? ""
-            let buildNumber = Bundle.main.buildNumber ?? ""
-            let formattedVersion = "\(versionNumber)(\(buildNumber))"
-
             Text("metro-now")
 
             Text("version: ")
-                + Text(formattedVersion).fontDesign(.monospaced)
+                + Text(getFormattedVersionNumber()).fontDesign(.monospaced)
 
-            Text(
-                "[source code](https://github.com/krystxf/metro-now)"
-            )
+            if let sourceCodeUrl = URL(string: GITHUB_URL) {
+                Link("source code", destination: sourceCodeUrl)
+            }
         }
     }
 }

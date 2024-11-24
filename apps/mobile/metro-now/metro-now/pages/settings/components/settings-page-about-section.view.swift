@@ -3,23 +3,13 @@
 
 import SwiftUI
 
-private let reportBugUrl = URL(
-    string: "https://github.com/krystxf/metro-now/issues/new?assignees=&labels=&projects=&template=bug_report.md&title="
-)
-
-private let requestFeatureUrl = URL(
-    string: "https://github.com/krystxf/metro-now/issues/new?assignees=&labels=&projects=&template=feature_request.md&title="
-)
-
 private let appStoreUrl = URL(
     string: "https://apps.apple.com/cz/app/metro-now/id6504659402?platform=iphone"
 )
 
-private let appStoreReviewUrl = URL(
-    string: "https://itunes.apple.com/us/app/metro-now/id6504659402?mt=8&action=write-review"
-)
-
 struct SettingsPageAboutSectionView: View {
+    let version = getFormattedVersionNumber()
+
     var body: some View {
         Section(
             header: Label("About", systemImage: "info.circle")
@@ -33,10 +23,8 @@ struct SettingsPageAboutSectionView: View {
                 }
             }
 
-            if let appStoreReviewUrl {
-                Link(
-                    destination: appStoreReviewUrl
-                ) {
+            if let REVIEW_URL {
+                Link(destination: REVIEW_URL) {
                     Label(
                         "Give us a rating",
                         systemImage: "star"
@@ -45,7 +33,10 @@ struct SettingsPageAboutSectionView: View {
                 .accessibilityHint("Opens app rating in app store")
             }
 
-            if let reportBugUrl {
+            if let reportBugUrl = getGithubIssueUrl(
+                template: .bug_report,
+                title: "Bug in version \(version)"
+            ) {
                 Link(destination: reportBugUrl) {
                     Label(
                         "Report bug",
@@ -55,8 +46,10 @@ struct SettingsPageAboutSectionView: View {
                 .accessibilityHint("Opens Github issue form")
             }
 
-            if let requestFeatureUrl {
-                Link(destination: requestFeatureUrl) {
+            if let featureRequestUrl = getGithubIssueUrl(
+                template: .feature_request
+            ) {
+                Link(destination: featureRequestUrl) {
                     Label(
                         "Feature request",
                         systemImage: "star.bubble"
