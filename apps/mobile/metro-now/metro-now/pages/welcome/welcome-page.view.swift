@@ -10,9 +10,9 @@ private let headingGradient = LinearGradient(
 )
 
 struct WelcomePageView: View {
-    let handleDismiss: () -> Void
-
     @State private var showContent = false
+
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .center) {
@@ -38,7 +38,9 @@ struct WelcomePageView: View {
                 .font(.title3)
                 .multilineTextAlignment(.center)
 
-                Button(action: handleDismiss) {
+                Button(action: {
+                    dismiss()
+                }) {
                     Text("Continue")
                     Image(systemName: "chevron.forward")
                 }
@@ -59,5 +61,5 @@ struct WelcomePageView: View {
 }
 
 #Preview {
-    WelcomePageView {}
+    WelcomePageView()
 }

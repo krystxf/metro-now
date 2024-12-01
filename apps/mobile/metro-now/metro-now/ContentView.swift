@@ -48,7 +48,7 @@ struct ContentView: View {
                 isPresented: $showWelcomeScreen,
                 onDismiss: dismissWelcomeScreen
             ) {
-                WelcomePageView(handleDismiss: dismissWelcomeScreen)
+                WelcomePageView()
                     .presentationDetents([.medium])
             }
 
