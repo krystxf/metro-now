@@ -107,7 +107,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
 
     private func getStops(metroOnly: Bool = false) {
         let request = AF.request(
-            "\(ENDPOINT)/v1/stop/all",
+            "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": String(metroOnly)]
         )
@@ -146,7 +146,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         decoder.dateDecodingStrategy = .iso8601
 
         let request = AF.request(
-            "\(ENDPOINT)/v2/departure",
+            "\(API_URL)/v2/departure",
             method: .get,
             parameters: [
                 "stop": stopsIds,
