@@ -16,7 +16,7 @@ extension Color {
 public extension Color {
     enum pragueMetro {
         public static let a = Color.green
-        public static let b = Color(hex: 0xFFA305)
+        public static let b = Color(hex: 0xFFCA38)
         public static let c = Color.red
     }
 }

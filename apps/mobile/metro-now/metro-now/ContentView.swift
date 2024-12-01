@@ -5,11 +5,13 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
+    @StateObject private var locationModel = LocationViewModel()
     @State private var showNoInternetBanner = false
 
     @AppStorage(
         AppStorageKeys.hasSeenWelcomeScreen.rawValue
     ) var hasSeenWelcomeScreen = false
+    @StateObject var stopsViewModel = StopsViewModel()
     @State private var showWelcomeScreen: Bool = false
     @State private var showSearchScreen: Bool = false
 
@@ -40,8 +42,11 @@ struct ContentView: View {
                     showSearchScreen = false
                 }
             ) {
-                SearchPageView()
-                    .presentationDetents([.large])
+                SearchPageView(
+                    location: locationModel.location
+                )
+                .environmentObject(stopsViewModel)
+                .presentationDetents([.large])
             }
             .sheet(
                 isPresented: $showWelcomeScreen,
