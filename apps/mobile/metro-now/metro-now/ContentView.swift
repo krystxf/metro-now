@@ -11,8 +11,7 @@ struct ContentView: View {
         AppStorageKeys.hasSeenWelcomeScreen.rawValue
     ) var hasSeenWelcomeScreen = false
     @State private var showWelcomeScreen: Bool = false
-    @State private var showSearchScreen: Bool = true
-    @State private var searchText = ""
+    @State private var showSearchScreen: Bool = false
 
     var body: some View {
         ZStack {
