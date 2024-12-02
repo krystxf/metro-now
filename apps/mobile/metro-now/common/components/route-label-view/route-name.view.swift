@@ -9,12 +9,18 @@ struct RouteNameIconView: View {
 
     var body: some View {
         Text(label.uppercased())
-            .font(.system(size: 12, weight: .bold, design: .monospaced))
+            .font(.system(size: 12))
+            .fontWeight(.bold)
+            .fontDesign(.default)
             .foregroundStyle(.white)
             .fixedSize(horizontal: true, vertical: true)
-            .frame(width: 26, height: 26)
+            .padding(.horizontal, 4)
+            .frame(minWidth: 26)
+            .frame(height: 26)
             .background(Rectangle().fill(background))
-            .clipShape(.rect(cornerRadius: 6))
+            .clipShape(
+                .rect(cornerRadius: 6)
+            )
     }
 }
 

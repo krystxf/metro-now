@@ -10,9 +10,9 @@ enum MetroLine: String {
 
     var color: Color {
         switch self {
-        case .A: .green
-        case .B: .yellow
-        case .C: .red
+        case .A: .pragueMetro.a
+        case .B: .pragueMetro.b
+        case .C: .pragueMetro.c
         }
     }
 }

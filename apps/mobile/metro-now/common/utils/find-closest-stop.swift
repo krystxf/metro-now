@@ -9,9 +9,7 @@ func findClosestStop(to location: CLLocation, stops: [ApiStop]) -> ApiStop? {
     var closestDistance: CLLocationDistance?
 
     for stop in stops {
-        let stopLocation = CLLocation(latitude: stop.avgLatitude, longitude: stop.avgLongitude)
-
-        let distance = location.distance(from: stopLocation)
+        let distance = getStopDistance(location, stop)
 
         guard closestDistance != nil else {
             closestStop = stop
@@ -26,4 +24,16 @@ func findClosestStop(to location: CLLocation, stops: [ApiStop]) -> ApiStop? {
     }
 
     return closestStop
+}
+
+func getStopDistance(
+    _ location: CLLocation,
+    _ stop: ApiStop
+) -> CLLocationDistance {
+    location.distance(
+        from: CLLocation(
+            latitude: stop.avgLatitude,
+            longitude: stop.avgLongitude
+        )
+    )
 }

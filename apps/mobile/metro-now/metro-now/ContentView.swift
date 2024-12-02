@@ -5,12 +5,15 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
+    @StateObject private var locationModel = LocationViewModel()
     @State private var showNoInternetBanner = false
 
     @AppStorage(
         AppStorageKeys.hasSeenWelcomeScreen.rawValue
     ) var hasSeenWelcomeScreen = false
+    @StateObject var stopsViewModel = StopsViewModel()
     @State private var showWelcomeScreen: Bool = false
+    @State private var showSearchScreen: Bool = false
 
     var body: some View {
         ZStack {
@@ -24,20 +27,32 @@ struct ContentView: View {
                                 Label("Settings", systemImage: "gearshape")
                             }
                         }
-//                        ToolbarItem(placement: .topBarTrailing) {
-//                            NavigationLink {
-//                                SettingsPageView()
-//                            } label: {
-//                                Label("Search", systemImage: "magnifyingglass")
-//                            }
-//                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                showSearchScreen = true
+                            }) {
+                                Label("Search", systemImage: "magnifyingglass")
+                            }
+                        }
                     }
+            }
+            .sheet(
+                isPresented: $showSearchScreen,
+                onDismiss: {
+                    showSearchScreen = false
+                }
+            ) {
+                SearchPageView(
+                    location: locationModel.location
+                )
+                .environmentObject(stopsViewModel)
+                .presentationDetents([.large])
             }
             .sheet(
                 isPresented: $showWelcomeScreen,
                 onDismiss: dismissWelcomeScreen
             ) {
-                WelcomePageView(handleDismiss: dismissWelcomeScreen)
+                WelcomePageView()
                     .presentationDetents([.medium])
             }
 

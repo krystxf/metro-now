@@ -2,33 +2,35 @@
 // https://github.com/krystxf/metro-now
 
 import Alamofire
-import CoreLocation
+import SwiftUI
 
-private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
+private let REFETCH_INTERVAL: TimeInterval = 10 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
 
-class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let locationManager = CLLocationManager()
-    @Published var location: CLLocation?
+class SearchPageDetailViewModel: NSObject, ObservableObject {
+    let stopId: String
 
-    @Published var stops: [ApiStop]?
-    @Published var closestStop: ApiStop?
     @Published var departures: [ApiDeparture]?
 
     private var refreshTimer: Timer?
 
-    override init() {
+    init(stopId: String) {
+        self.stopId = stopId
         super.init()
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
 
-        getStops()
+        refresh()
         startPeriodicRefresh()
     }
 
     deinit {
         stopPeriodicRefresh()
+    }
+
+    func refresh() {
+        getDepartures(
+            stopsIds: [stopId],
+            platformsIds: []
+        )
     }
 
     private func startPeriodicRefresh() {
@@ -38,11 +40,16 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
             repeats: true
         ) { [weak self] _ in
 
-            guard let self, let closestStop else {
+            guard
+                let self
+            else {
                 return
             }
 
-            getDepartures(stopsIds: [closestStop.id])
+            getDepartures(
+                stopsIds: [stopId],
+                platformsIds: []
+            )
         }
     }
 
@@ -51,55 +58,10 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
         refreshTimer = nil
     }
 
-    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else {
-            return
-        }
-        self.location = location
-
-        updateClosestStop()
-    }
-
-    func updateClosestStop() {
-        guard let location else {
-            return
-        }
-
-        if
-            let stops,
-            let nextValue = findClosestStop(to: location, stops: stops),
-            nextValue.id != self.closestStop?.id
-        {
-            closestStop = nextValue
-            getDepartures(stopsIds: [nextValue.id])
-        }
-    }
-
-    private func getStops() {
-        let request = AF.request(
-            "\(API_URL)/v1/stop/all",
-            method: .get,
-            parameters: ["metroOnly": String(true)]
-        )
-
-        request
-            .validate()
-            .responseDecodable(of: [ApiStop].self) { response in
-                switch response.result {
-                case let .success(fetchedStops):
-                    DispatchQueue.main.async {
-                        self.stops = fetchedStops
-                        print("Fetched \(fetchedStops.count) metro stops")
-
-                        self.updateClosestStop()
-                    }
-                case let .failure(error):
-                    print("Error fetching metroStops: \(error)")
-                }
-            }
-    }
-
-    private func getDepartures(stopsIds: [String]) {
+    private func getDepartures(
+        stopsIds: [String],
+        platformsIds: [String]
+    ) {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
@@ -107,10 +69,12 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [
+                "vehicleType": "metro",
                 "stop": stopsIds,
-                "limit": 20,
+                "platform": platformsIds,
+                "limit": 6,
                 "minutesBefore": 1,
-                "minutesAfter": String(5 * 60),
+                "minutesAfter": String(12 * 60),
             ]
         )
 
@@ -121,8 +85,14 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 case let .success(fetchedDepartures):
                     DispatchQueue.main.async {
                         if let oldDepartures = self.departures {
+                            let oldStuff = oldDepartures.filter { oldDeparture in
+                                !fetchedDepartures.contains(where: { fetchedDeparture in
+                                    fetchedDeparture.id == oldDeparture.id
+
+                                })
+                            }
                             self.departures = uniqueBy(
-                                array: oldDepartures + fetchedDepartures,
+                                array: oldStuff + fetchedDepartures,
                                 by: \.id
                             )
                             .filter {
