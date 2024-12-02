@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-struct ChangelogItem: View {
+private struct ChangelogItem: View {
     let version: String
     let changes: String
 

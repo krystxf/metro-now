@@ -1,11 +1,11 @@
 {
     "images": [
         {
-            "filename": "icon-1024x1024.png",
             "idiom": "universal",
             "scale": "1x"
         },
         {
+            "filename": "AppIcon-PragueMetro.png",
             "idiom": "universal",
             "scale": "2x"
         },

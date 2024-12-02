@@ -14,19 +14,20 @@ struct SettingsAboutPageView: View {
         VStack {
             List {
                 Section {
-                    HStack {
-                        Spacer()
-                        VStack {
-                            Image("BlueImage")
-                                .resizable()
-                                .frame(width: 64, height: 64)
-                                .cornerRadius(16)
-                            Text("About")
-                                .font(.title)
-                                .fontWeight(.bold)
-                            Text("The app is still in development. Stay tuned to see what's next!")
-                        }
-                        Spacer()
+                    VStack {
+                        Image("AppIcon-MetroNow-Image")
+                            .resizable()
+                            .frame(width: 64, height: 64)
+                            .cornerRadius(16)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        Text("About")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        Text("""
+                        The app is still in development. Stay tuned to see what's next!
+                        """)
+                        .font(.caption)
                     }
                 }
 
