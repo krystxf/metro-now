@@ -16,9 +16,9 @@ Keep in mind the size of the application, but if you have an amazing feature ide
 
 ### Code Contributions
 
--   Provide a clear PR title and description.
--   Ensure your code passes all checks (unless there's a reason it shouldn't).
--   Use semantic commit messages.
+- Provide a clear PR title and description.
+- Ensure your code passes all checks (unless there's a reason it shouldn't).
+- Use semantic commit messages.
 
 #### Setting Up the Local Environment
 
@@ -26,5 +26,5 @@ Keep in mind the size of the application, but if you have an amazing feature ide
 
 ##### Mobile app
 
--   Open `/apps/mobile` in Xcode, and everything should be ready.
--   Feel free to make suggestions to my code; I'm not a big-time Swiftie
+- Open `/apps/mobile` in Xcode, and everything should be ready.
+- Feel free to make suggestions to my code; I'm not a big-time Swiftie
