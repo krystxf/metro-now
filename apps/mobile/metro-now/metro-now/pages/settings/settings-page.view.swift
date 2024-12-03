@@ -34,6 +34,11 @@ struct SettingsPageView: View {
                 ) {
                     Label("About", systemImage: "info.square")
                 }
+                NavigationLink(
+                    destination: SettingsWidgetsPageView()
+                ) {
+                    Label("Home Screen Widgets", systemImage: "widget.small")
+                }
             }
         }
         .navigationTitle("Settings")
