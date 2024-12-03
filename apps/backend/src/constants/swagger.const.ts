@@ -2,7 +2,7 @@ import {
     GRAPHQL_PATH,
     SOURCE_CODE_URL,
     SWAGGER_JSON_PATH,
-} from "@metro-now/constants";
+} from "src/constants/api";
 
 export const SWAGGER_TITLE = "Metro Now API";
 export const SWAGGER_VERSION = "1.0";

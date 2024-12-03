@@ -12,7 +12,6 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.1.5",
-        "@metro-now/constants": "workspace:*",
         "@next/mdx": "^14.2.2",
         "clsx": "^2.1.1",
         "framer-motion": "^11.11.17",

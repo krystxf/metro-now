@@ -8,7 +8,7 @@ import {
     GRAPHQL_URL,
     SOURCE_CODE_URL,
     SWAGGER_URL,
-} from "@metro-now/constants";
+} from "../constants/api";
 import DownloadOnAppStoreLight from "../../public/download-on-appstore-light.svg";
 import MetroNowIcon from "../../public/metro-now-icon.png";
 import MetroNowIphoneMockup from "../../public/iphone-mockup.png";

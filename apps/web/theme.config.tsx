@@ -1,4 +1,4 @@
-import { SOURCE_CODE_URL } from "@metro-now/constants";
+import { SOURCE_CODE_URL } from "./src/constants/api";
 
 import React from "react";
 
