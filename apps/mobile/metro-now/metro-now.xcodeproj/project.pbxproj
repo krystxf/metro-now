@@ -10,6 +10,10 @@
 		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D87C85E2CE8BACA00209DE6 /* Alamofire */; };
 		2D8EBE2E2CE93DC9004D5F5B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D8EBE2D2CE93DC9004D5F5B /* Alamofire */; };
+		2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */; };
+		2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */; };
+		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2DEE771B2CFF5CD000F24AAD /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +31,13 @@
 			remoteGlobalIDString = 2D001BA72CC8099B00C6B4F8;
 			remoteInfo = "metro-now";
 		};
+		2DD9D1842CF3B8A90037CB95 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2D001BA02CC8099B00C6B4F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2DD9D1752CF3B8A70037CB95;
+			remoteInfo = widgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,12 +52,26 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DD9D1872CF3B8A90037CB95 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2D001BA82CC8099B00C6B4F8 /* metro-now.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "metro-now Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-nowTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = widgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,6 +116,25 @@
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
 		};
+		2DD9D18B2CF3B8A90037CB95 /* Exceptions for "widgets" folder in "widgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
+		};
+		2DFF3B692CFD3D9600D8AB90 /* Exceptions for "common" folder in "widgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"components/route-label-view/get-color-by-route-name.utils.swift",
+				"components/route-label-view/route-name.view.swift",
+				"components/route-label-view/route-type.enum.swift",
+				const/api.const.swift,
+				"types/api-types.swift",
+				utils/color.utils.swift,
+			);
+			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -114,8 +158,17 @@
 			exceptions = (
 				2D9601C92CC812EF000EF3D5 /* Exceptions for "common" folder in "metro-now Watch App" target */,
 				2D7FEC812CE96F830073FF5B /* Exceptions for "common" folder in "metro-nowTests" target */,
+				2DFF3B692CFD3D9600D8AB90 /* Exceptions for "common" folder in "widgetsExtension" target */,
 			);
 			path = common;
+			sourceTree = "<group>";
+		};
+		2DD9D17C2CF3B8A70037CB95 /* widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2DD9D18B2CF3B8A90037CB95 /* Exceptions for "widgets" folder in "widgetsExtension" target */,
+			);
+			path = widgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -144,6 +197,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DD9D1732CF3B8A70037CB95 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */,
+				2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */,
+				2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -154,6 +217,8 @@
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
 				2D7FEC782CE96F300073FF5B /* metro-nowTests */,
+				2DD9D17C2CF3B8A70037CB95 /* widgets */,
+				2DD9D1772CF3B8A70037CB95 /* Frameworks */,
 				2D001BA92CC8099B00C6B4F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -164,8 +229,18 @@
 				2D001BA82CC8099B00C6B4F8 /* metro-now.app */,
 				2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */,
 				2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */,
+				2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2DD9D1772CF3B8A70037CB95 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */,
+				2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -179,11 +254,13 @@
 				2D001BA52CC8099B00C6B4F8 /* Frameworks */,
 				2D001BA62CC8099B00C6B4F8 /* Resources */,
 				2D001BCB2CC8099D00C6B4F8 /* Embed Watch Content */,
+				2DD9D1872CF3B8A90037CB95 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				2D001BBB2CC8099C00C6B4F8 /* PBXTargetDependency */,
+				2DD9D1852CF3B8A90037CB95 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
@@ -243,6 +320,29 @@
 			productReference = 2D7FEC772CE96F300073FF5B /* metro-nowTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		2DD9D1752CF3B8A70037CB95 /* widgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2DD9D18A2CF3B8A90037CB95 /* Build configuration list for PBXNativeTarget "widgetsExtension" */;
+			buildPhases = (
+				2DD9D1722CF3B8A70037CB95 /* Sources */,
+				2DD9D1732CF3B8A70037CB95 /* Frameworks */,
+				2DD9D1742CF3B8A70037CB95 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2DD9D17C2CF3B8A70037CB95 /* widgets */,
+			);
+			name = widgetsExtension;
+			packageProductDependencies = (
+				2DEE771B2CFF5CD000F24AAD /* Alamofire */,
+			);
+			productName = widgetsExtension;
+			productReference = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -262,6 +362,9 @@
 					2D7FEC762CE96F300073FF5B = {
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = 2D001BA72CC8099B00C6B4F8;
+					};
+					2DD9D1752CF3B8A70037CB95 = {
+						CreatedOnToolsVersion = 16.1;
 					};
 				};
 			};
@@ -285,6 +388,7 @@
 				2D001BA72CC8099B00C6B4F8 /* metro-now */,
 				2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */,
 				2D7FEC762CE96F300073FF5B /* metro-nowTests */,
+				2DD9D1752CF3B8A70037CB95 /* widgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -305,6 +409,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2D7FEC752CE96F300073FF5B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DD9D1742CF3B8A70037CB95 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -335,6 +446,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DD9D1722CF3B8A70037CB95 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -347,6 +465,11 @@
 			isa = PBXTargetDependency;
 			target = 2D001BA72CC8099B00C6B4F8 /* metro-now */;
 			targetProxy = 2D7FEC7B2CE96F300073FF5B /* PBXContainerItemProxy */;
+		};
+		2DD9D1852CF3B8A90037CB95 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
+			targetProxy = 2DD9D1842CF3B8A90037CB95 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -487,7 +610,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -519,7 +642,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -557,7 +680,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -592,7 +715,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -644,6 +767,65 @@
 			};
 			name = Release;
 		};
+		2DD9D1882CF3B8A90037CB95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = widgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2DD9D1892CF3B8A90037CB95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = R6WU5ABNG2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = widgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -683,6 +865,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		2DD9D18A2CF3B8A90037CB95 /* Build configuration list for PBXNativeTarget "widgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DD9D1882CF3B8A90037CB95 /* Debug */,
+				2DD9D1892CF3B8A90037CB95 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -703,6 +894,11 @@
 			productName = Alamofire;
 		};
 		2D8EBE2D2CE93DC9004D5F5B /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		2DEE771B2CFF5CD000F24AAD /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;

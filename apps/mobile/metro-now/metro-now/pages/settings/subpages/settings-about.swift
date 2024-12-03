@@ -27,7 +27,7 @@ struct SettingsAboutPageView: View {
                         Text("""
                         The app is still in development. Stay tuned to see what's next!
                         """)
-                        .font(.caption)
+                        .multilineTextAlignment(.center)
                     }
                 }
 

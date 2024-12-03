@@ -5,7 +5,6 @@
     "scripts": {
         "xcode": "xed ./apps/mobile/metro-now",
         "dev": "pnpm --recursive --parallel run dev",
-        "prebuild": "pnpm run -r --filter @metro-now/constants build",
         "build": "pnpm --recursive --parallel run build",
         "backend:build": "pnpm run -r --filter @metro-now/backend build",
         "backend:dev": "pnpm run -r --filter @metro-now/backend dev",

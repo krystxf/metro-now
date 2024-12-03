@@ -1,4 +1,4 @@
-import { HOMEPAGE_URL } from "@metro-now/constants";
+import { HOMEPAGE_URL } from "../constants/api";
 import type { MetadataRoute } from "next";
 
 const docsPaths = [

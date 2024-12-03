@@ -1,9 +1,9 @@
-import { SWAGGER_JSON_PATH, SWAGGER_PATH } from "@metro-now/constants";
 import { VersioningType } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { AppModule } from "src/app.module";
+import { SWAGGER_JSON_PATH, SWAGGER_PATH } from "src/constants/api";
 import {
     SWAGGER_DESCRIPTION,
     SWAGGER_TITLE,

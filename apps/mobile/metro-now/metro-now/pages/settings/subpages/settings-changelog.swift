@@ -33,6 +33,13 @@ struct SettingsChangelogPageView: View {
             VStack(spacing: 16) {
                 Divider()
                 ChangelogItem(
+                    version: "v0.3.6",
+                    changes: [
+                        "frequency widget",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
                     version: "v0.3.5",
                     changes: [
                         "customizeable app icon",

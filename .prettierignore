@@ -6,3 +6,6 @@ node_modules
 pnpm-lock.yaml
 
 schema.gql
+
+apps/backend/dist
+apps/mobile/metro-now/build
