@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@apollo/server": "^4.11.0",
+        "@fast-csv/parse": "^5.0.2",
         "@metro-now/constants": "workspace:*",
         "@nestjs/apollo": "^12.2.0",
         "@nestjs/cache-manager": "^2.2.2",
@@ -42,6 +43,7 @@
         "radash": "^12.1.0",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
+        "unzipper": "^0.12.3",
         "zod": "^3.23.8"
     },
     "devDependencies": {
@@ -52,6 +54,7 @@
         "@types/jest": "^29.5.13",
         "@types/node": "^20.16.10",
         "@types/supertest": "^6.0.2",
+        "@types/unzipper": "^0.10.10",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
         "eslint": "^8.57.1",

@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
+import { Dataset } from "src/enums/dataset.enum";
 import { platformSelect } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
@@ -30,6 +31,7 @@ export class StopService {
                         isMetro: metroOnly,
                     },
                 },
+                datasetName: Dataset.PRAGUE,
             },
         });
 
@@ -47,6 +49,7 @@ export class StopService {
             select: getStopsSelect({ metroOnly: false }),
             where: {
                 id,
+                datasetName: Dataset.PRAGUE,
             },
         });
 

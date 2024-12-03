@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { VehicleType } from "@prisma/client";
 import { unique } from "radash";
+import { Dataset } from "src/enums/dataset.enum";
 
 import { LogLevel, LogMessage, StopSyncTrigger } from "src/enums/log.enum";
 import {
@@ -67,13 +68,28 @@ export class ImportService {
             platforms.flatMap((platform) => platform.routes),
             (route) => route.id,
         );
+        const DATASET = Dataset.PRAGUE;
 
         await this.prisma.$transaction(
             async (transaction) => {
-                await transaction.platformsOnRoutes.deleteMany();
-                await transaction.platform.deleteMany();
-                await transaction.route.deleteMany();
-                await transaction.stop.deleteMany();
+                await this.prisma.dataset.upsert({
+                    create: { name: DATASET },
+                    update: {},
+                    where: { name: DATASET },
+                });
+
+                await transaction.platformsOnRoutes.deleteMany({
+                    where: { datasetName: DATASET },
+                });
+                await transaction.platform.deleteMany({
+                    where: { datasetName: DATASET },
+                });
+                await transaction.stop.deleteMany({
+                    where: { datasetName: DATASET },
+                });
+                await transaction.route.deleteMany({
+                    where: { datasetName: DATASET },
+                });
 
                 // Create stops
                 await transaction.stop.createMany({
@@ -82,6 +98,7 @@ export class ImportService {
                         name: stop.name,
                         avgLatitude: stop.avgLatitude,
                         avgLongitude: stop.avgLongitude,
+                        datasetName: DATASET,
                     })),
                 });
 
@@ -102,6 +119,7 @@ export class ImportService {
                                 latitude: platform.latitude,
                                 longitude: platform.longitude,
                                 stopId: stopIdExists ? platform.stopId : null,
+                                datasetName: DATASET,
                             };
                         }),
                         (platform) => platform.id,
@@ -116,6 +134,7 @@ export class ImportService {
                         vehicleType:
                             VehicleType?.[route.vehicleType.toUpperCase()] ??
                             null,
+                        datasetName: DATASET,
                     })),
                 });
 
@@ -126,6 +145,7 @@ export class ImportService {
                             platform.routes.map((route) => ({
                                 platformId: platform.id,
                                 routeId: route.id,
+                                datasetName: DATASET,
                             })),
                         ),
                         (relation) =>
