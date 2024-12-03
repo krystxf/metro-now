@@ -7,12 +7,12 @@ import Testing
 @Test("ENDPOINT")
 func endpoint() async throws {
     #expect(
-        !ENDPOINT.contains("localhost"),
+        !API_URL.contains("localhost"),
         "ENDPOINT should not contain localhost"
     )
 
     #expect(
-        URL(string: ENDPOINT) != nil,
+        URL(string: API_URL) != nil,
         "ENDPOINT should be valid URL"
     )
 }
