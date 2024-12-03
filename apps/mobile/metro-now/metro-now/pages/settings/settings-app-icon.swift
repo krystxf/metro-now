@@ -10,19 +10,24 @@ struct SettingsAppIconItemView: View {
     let description: String
 
     var body: some View {
-        HStack {
+        HStack(alignment: .center) {
             Image("\(iconName)-Image")
                 .resizable()
                 .frame(width: 52, height: 52)
                 .cornerRadius(10)
                 .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
-            VStack {
-                Text(label).font(.headline).fontWeight(.semibold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text(description).font(.caption)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(label)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    Spacer()
+                }
+                Text(description)
+                    .font(.caption)
             }
         }
+        .contentShape(Rectangle())
         .onTapGesture {
             UIApplication.shared.setAlternateIconName(iconName) { error in
                 if let error {
@@ -46,7 +51,6 @@ struct SettingsAppIconPageView: View {
                     iconName: "AppIcon-MetroNow",
                     description: "Why so serious"
                 )
-
                 SettingsAppIconItemView(
                     label: "Prague metro",
                     iconName: "AppIcon-PragueMetro",
