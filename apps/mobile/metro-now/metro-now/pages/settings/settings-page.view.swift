@@ -11,13 +11,15 @@ struct SettingsPageView: View {
     var body: some View {
         List {
             Section(header: Text("Customize")) {
-                NavigationLink(
-                    destination: SettingsAppIconPageView()
-                ) {
-                    Label("App icon", systemImage: "app.dashed")
+                if UIApplication.shared.supportsAlternateIcons {
+                    NavigationLink(
+                        destination: SettingsAppIconPageView()
+                    ) {
+                        Label("App icon", systemImage: "app.dashed")
+                    }
                 }
                 Toggle(isOn: $showMetroOnly) {
-                    Text("Show only metro")
+                    Label("Show only metro", systemImage: "")
                 }
             }
 
