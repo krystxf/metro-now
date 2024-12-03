@@ -41,8 +41,6 @@ struct SettingsAppIconItemView: View {
 }
 
 struct SettingsAppIconPageView: View {
-    private let application = UIApplication.shared
-
     var body: some View {
         List {
             Section(header: Text("Choose your app icon")) {
@@ -63,5 +61,7 @@ struct SettingsAppIconPageView: View {
 }
 
 #Preview {
-    SettingsAppIconPageView()
+    NavigationStack {
+        SettingsAppIconPageView()
+    }
 }

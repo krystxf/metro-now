@@ -97,5 +97,7 @@ struct SettingsAboutPageView: View {
 }
 
 #Preview {
-    SettingsAboutPageView()
+    NavigationStack {
+        SettingsAboutPageView()
+    }
 }
