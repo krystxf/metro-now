@@ -78,30 +78,30 @@
 		2D7FEC812CE96F830073FF5B /* Exceptions for "common" folder in "metro-nowTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"components/countdown-view/countdown.utils.swift",
-				"components/route-label-view/get-color-by-route-name.utils.swift",
-				"components/route-label-view/route-type.enum.swift",
+				components/countdown/countdown.utils.swift,
+				"components/route-name-icon/get-color-by-route-name.utils.swift",
+				"components/route-name-icon/route-type.enum.swift",
 				const/api.const.swift,
 				const/github.const.swift,
 				"const/review-url.const.swift",
 				"types/api-types.swift",
 				utils/array.utils.swift,
 				utils/color.utils.swift,
-				"utils/get-platform-label.swift",
-				"utils/is-metro.utils.swift",
+				utils/getPlatformLabel.swift,
+				utils/isMetro.swift,
 				utils/network.utils.swift,
-				utils/station.utils.swift,
+				utils/shortenStopName.swift,
 			);
 			target = 2D7FEC762CE96F300073FF5B /* metro-nowTests */;
 		};
 		2D9601C92CC812EF000EF3D5 /* Exceptions for "common" folder in "metro-now Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"components/countdown-view/countdown.swift",
-				"components/countdown-view/countdown.utils.swift",
-				"components/route-label-view/get-color-by-route-name.utils.swift",
-				"components/route-label-view/route-name.view.swift",
-				"components/route-label-view/route-type.enum.swift",
+				components/countdown/countdown.utils.swift,
+				components/countdown/CountdownView.swift,
+				"components/route-name-icon/get-color-by-route-name.utils.swift",
+				"components/route-name-icon/route-type.enum.swift",
+				"components/route-name-icon/RouteNameIconView.swift",
 				const/api.const.swift,
 				const/github.const.swift,
 				"const/review-url.const.swift",
@@ -109,10 +109,10 @@
 				utils/array.utils.swift,
 				utils/color.utils.swift,
 				"utils/find-closest-stop.swift",
-				"utils/get-platform-label.swift",
-				"utils/is-metro.utils.swift",
+				utils/getPlatformLabel.swift,
+				utils/isMetro.swift,
 				utils/network.utils.swift,
-				utils/station.utils.swift,
+				utils/shortenStopName.swift,
 			);
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
 		};
@@ -126,9 +126,9 @@
 		2DFF3B692CFD3D9600D8AB90 /* Exceptions for "common" folder in "widgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"components/route-label-view/get-color-by-route-name.utils.swift",
-				"components/route-label-view/route-name.view.swift",
-				"components/route-label-view/route-type.enum.swift",
+				"components/route-name-icon/get-color-by-route-name.utils.swift",
+				"components/route-name-icon/route-type.enum.swift",
+				"components/route-name-icon/RouteNameIconView.swift",
 				const/api.const.swift,
 				"types/api-types.swift",
 				utils/color.utils.swift,
