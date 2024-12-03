@@ -29,30 +29,75 @@ private struct ChangelogItem: View {
 
 struct SettingsChangelogPageView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Divider()
-            ChangelogItem(
-                version: "v0.3.0",
-                changes: [
-                    "bus departures",
-                    "settings",
-                    "search",
-                ]
-            )
-            Divider()
-            ChangelogItem(
-                version: "v0.1.0",
-                changes: [
-                    "metro now is here!🎉",
-                ]
-            )
+        ScrollView {
+            VStack(spacing: 16) {
+                Divider()
+                ChangelogItem(
+                    version: "v0.3.5",
+                    changes: [
+                        "customizeable app icon",
+                        "settings page redesign",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.3.4",
+                    changes: [
+                        "search metro stations",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.3.3",
+                    changes: [
+                        "settings page",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.3.2",
+                    changes: [
+                        "welcome screen",
+                        "no internet warning",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.3.0",
+                    changes: [
+                        "buses, trams and more",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.2.0",
+                    changes: [
+                        "fix: crash at the final metro stop",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.2.0",
+                    changes: [
+                        "metro departures on iPhone",
+                    ]
+                )
+                Divider()
+                ChangelogItem(
+                    version: "v0.1.0",
+                    changes: [
+                        "metro now is here!🎉",
+                    ]
+                )
+            }
+            .padding()
         }
-        .padding()
-        .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle("What's new")
     }
 }
 
 #Preview {
-    SettingsChangelogPageView()
+    NavigationStack {
+        SettingsChangelogPageView()
+    }
 }
