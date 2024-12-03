@@ -26,9 +26,10 @@ struct SettingsAboutPageView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                         Text("""
                         The app is still in development. Stay tuned to see what's next!
-                        """)
-                        .font(.caption)
+                        """) 
+                        .multilineTextAlignment(.center)
                     }
+                 
                 }
 
                 if let appStoreUrl {

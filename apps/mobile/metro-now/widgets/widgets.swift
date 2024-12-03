@@ -17,7 +17,6 @@ struct Provider: TimelineProvider {
     func getTimeline(in _: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         var entries: [SimpleEntry] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
         let currentDate = Date()
         for hourOffset in 0 ..< 5 {
             let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
@@ -34,23 +33,157 @@ struct SimpleEntry: TimelineEntry {
     let date: Date
 }
 
+
+
+
+
+struct LargeWidgetListItemView: View {
+    let routeName: String
+    
+    let headsign: String
+    let departure: Date
+    
+    let nextHeadsing: String?
+    let nextDeparture: Date?
+    
+    var body: some View {
+        HStack{
+            RouteNameIconView(
+                label: routeName,
+                background: getRouteColor(routeName)
+            )
+            
+            VStack{
+                HStack{
+                    Text(headsign)
+                     Spacer()
+                    Text(departure,style: .offset)
+                        .fontDesign(.monospaced)
+                        .multilineTextAlignment(.trailing)
+                }
+                
+             
+                if let nextHeadsing, let nextDeparture {
+                    
+                    HStack{
+                        Text(headsign == nextHeadsing ? "Also in" : nextHeadsing)
+                        Spacer()
+                        Text(nextDeparture,style: .offset)
+                            .fontDesign(.monospaced)
+                             .multilineTextAlignment(.trailing)
+                        
+                    }
+                    .font(.caption)
+                }
+            }
+        }
+    }
+}
+
+struct WidgetsEntryPlaceholderView  : View {
+    var entry: Provider.Entry
+    
+    var body: some View {
+        Text("Muzeum")
+            .font(.headline)
+        
+        VStack{
+            LargeWidgetListItemView(
+                routeName: "a",
+                headsign: "D. Hostivar",
+                departure: .now,
+                nextHeadsing: "Skalka",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "a",
+                headsign: "N. Motol",departure: .now,
+                nextHeadsing: "N. Motol",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "c",
+                headsign: "Letnany",departure: .now,
+                nextHeadsing: "Letnany",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "c",
+                headsign: "Haje",departure: .now,
+                nextHeadsing: "Kacerov",
+                nextDeparture: .now
+            )
+            Divider()
+            Spacer()
+            
+            Text("Last refreshed: \(entry.date, style: .time)")
+                .foregroundStyle(.tertiary)
+                .font(.footnote)
+        }
+    
+             
+    }
+}
+
+struct LargeWidgetView : View {
+    var entry: Provider.Entry
+    
+    var body: some View {
+        Text("Muzeum")
+            .font(.headline)
+
+        VStack{
+            LargeWidgetListItemView(
+                routeName: "a",
+                headsign: "D. Hostivar",
+                departure: .now,
+                nextHeadsing: "Skalka",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "a",
+                headsign: "N. Motol",departure: .now,
+                nextHeadsing: "N. Motol",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "c",
+                headsign: "Letnany",departure: .now,
+                nextHeadsing: "Letnany",
+                nextDeparture: .now
+            )
+            Divider()
+            LargeWidgetListItemView(
+                routeName: "c",
+                headsign: "Haje",departure: .now,
+                nextHeadsing: "Kacerov",
+                nextDeparture: .now
+            )
+            Divider()
+            Spacer()
+            
+            Text("Last refreshed: \(entry.date, style: .time)")
+                .foregroundStyle(.tertiary)
+                .font(.footnote)
+        }
+    }
+}
+
 struct widgetsEntryView: View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var widgetFamily
 
     var body: some View {
-        VStack {
-            Text("🚇 metro-now")
-                .font(.headline)
-            Text("coming soon")
-                .font(.subheadline)
-
-            Spacer()
-            VStack {
-                Text(widgetFamily.description.lowercased())
-                Text("Last update: ") + Text(entry.date, style: .time)
-            }
-            .font(.footnote)
+        switch widgetFamily {
+            case .systemLarge, .systemExtraLarge:
+                LargeWidgetView(entry: entry)
+            default:
+                LargeWidgetView(entry: entry)
         }
     }
 }
@@ -69,8 +202,14 @@ struct widgets: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Metro Departures")
+        .description("Show metro departures from selected stop.")
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            .systemLarge,
+            .systemExtraLarge
+        ])
     }
 }
 
@@ -78,26 +217,16 @@ struct widgets: Widget {
     widgets()
 } timeline: {
     SimpleEntry(date: .now)
-    SimpleEntry(date: .now)
 }
 
 #Preview("medium", as: .systemMedium) {
     widgets()
 } timeline: {
     SimpleEntry(date: .now)
-    SimpleEntry(date: .now)
 }
 
 #Preview("large", as: .systemLarge) {
     widgets()
 } timeline: {
-    SimpleEntry(date: .now)
-    SimpleEntry(date: .now)
-}
-
-#Preview("extra large", as: .systemExtraLarge) {
-    widgets()
-} timeline: {
-    SimpleEntry(date: .now)
     SimpleEntry(date: .now)
 }
