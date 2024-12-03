@@ -13,6 +13,7 @@
 		2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */; };
 		2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */; };
 		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2DEE771B2CFF5CD000F24AAD /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,8 @@
 				"components/route-label-view/get-color-by-route-name.utils.swift",
 				"components/route-label-view/route-name.view.swift",
 				"components/route-label-view/route-type.enum.swift",
+				const/api.const.swift,
+				"types/api-types.swift",
 				utils/color.utils.swift,
 			);
 			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
@@ -198,6 +201,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */,
 				2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */,
 				2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */,
 			);
@@ -333,6 +337,7 @@
 			);
 			name = widgetsExtension;
 			packageProductDependencies = (
+				2DEE771B2CFF5CD000F24AAD /* Alamofire */,
 			);
 			productName = widgetsExtension;
 			productReference = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */;
@@ -605,7 +610,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -637,7 +642,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -675,7 +680,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -710,7 +715,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.5;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -768,7 +773,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = widgets/Info.plist;
@@ -780,7 +785,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -797,7 +802,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = widgets/Info.plist;
@@ -809,7 +814,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -889,6 +894,11 @@
 			productName = Alamofire;
 		};
 		2D8EBE2D2CE93DC9004D5F5B /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		2DEE771B2CFF5CD000F24AAD /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;

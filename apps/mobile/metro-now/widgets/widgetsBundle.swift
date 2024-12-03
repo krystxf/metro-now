@@ -1,9 +1,5 @@
-//
-//  widgetsBundle.swift
-//  widgets
-//
-//  Created by Kryštof Krátký on 24.11.2024.
-//
+// metro-now
+// https://github.com/krystxf/metro-now
 
 import SwiftUI
 import WidgetKit
@@ -11,6 +7,6 @@ import WidgetKit
 @main
 struct widgetsBundle: WidgetBundle {
     var body: some Widget {
-        widgets()
+        FrequencyWidget()
     }
 }
