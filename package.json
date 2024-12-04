@@ -18,7 +18,7 @@
         "docker:down": "docker compose down --remove-orphans --volumes"
     },
     "devDependencies": {
-        "prettier": "^3.2.5"
+        "prettier": "^3.4.1"
     },
     "homepage": "https://metro-now.vercel.app/",
     "repository": {
