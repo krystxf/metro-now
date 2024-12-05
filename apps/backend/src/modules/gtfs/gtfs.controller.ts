@@ -8,11 +8,19 @@ export class GtfsController implements OnModuleInit {
     constructor(private readonly gtfsService: GtfsService) {}
 
     async onModuleInit(): Promise<void> {
-        await this.gtfsService.syncGtfsData();
+        try {
+            this.gtfsService.syncGtfsData();
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     @Cron(CronExpression.EVERY_7_HOURS)
     async cronSyncStops(): Promise<void> {
-        await this.gtfsService.syncGtfsData();
+        try {
+            await this.gtfsService.syncGtfsData();
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
