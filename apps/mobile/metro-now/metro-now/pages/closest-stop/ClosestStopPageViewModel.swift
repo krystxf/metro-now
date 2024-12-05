@@ -4,6 +4,7 @@
 import Alamofire
 import CoreLocation
 import SwiftUI
+import WidgetKit
 
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
@@ -94,6 +95,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         {
             closestMetroStop = nextValue
             getDepartures(stopsIds: [nextValue.id], platformsIds: [])
+            WidgetCenter.shared.reloadAllTimelines()
         }
 
         if let allStops,
