@@ -10,6 +10,7 @@ export enum LogMessage {
     IMPORT_STOPS = "Import stops",
     REST = "REST",
     GRAPHQL = "GraphQL",
+    REQUEST_LOGS_CLEANUP = "Request logs cleanup",
 }
 
 export enum RestLogStatus {

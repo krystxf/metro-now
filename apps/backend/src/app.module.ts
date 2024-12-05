@@ -13,6 +13,7 @@ import { DepartureModule } from "src/modules/departure/departure.module";
 import { GtfsModule } from "src/modules/gtfs/gtfs.module";
 import { ImportModule } from "src/modules/import/import.module";
 import { LoggerModule } from "src/modules/logger/logger.module";
+import { LogsCleanupModule } from "src/modules/logs-cleanup/logs-cleanup.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { RouteModule } from "src/modules/route/route.module";
@@ -27,6 +28,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         StopModule,
         PrismaModule,
         LoggerModule,
+        LogsCleanupModule,
         StatusModule,
         GtfsModule,
         RouteModule,
