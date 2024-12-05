@@ -12,13 +12,12 @@ import {
 import { ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 import { EndpointVersion } from "src/enums/endpoint-version";
-import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { StopService } from "src/modules/stop/stop.service";
 import { metroOnlyQuery } from "src/swagger/query.swagger";
 
 @ApiTags("stop")
 @Controller("stop")
-@UseInterceptors(CacheInterceptor, LogInterceptor)
+@UseInterceptors(CacheInterceptor)
 export class StopController {
     constructor(private readonly stopService: StopService) {}
 
