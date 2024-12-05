@@ -71,6 +71,36 @@ model PlatformsOnRoutes {
   @@unique([platformId, routeId])
 }
 
+model GtfsRoute {
+  id        String   @id
+  type      String
+  shortName String
+  longName  String?
+  url       String?
+  color     String?
+  isNight   Boolean?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  GtfsRouteStop GtfsRouteStop[]
+}
+
+model GtfsRouteStop {
+  id String @id @default(uuid())
+
+  routeId String
+  route   GtfsRoute @relation(fields: [routeId], references: [id])
+
+  directionId  String
+  stopId       String
+  stopSequence Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([routeId, directionId, stopId, stopSequence])
+}
+
 model Log {
   id        BigInt   @id @default(autoincrement())
   level     LogLevel

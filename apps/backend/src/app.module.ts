@@ -9,10 +9,12 @@ import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_PATH } from "src/constants/api";
 import { DepartureModule } from "src/modules/departure/departure.module";
+import { GtfsModule } from "src/modules/gtfs/gtfs.module";
 import { ImportModule } from "src/modules/import/import.module";
 import { LoggerModule } from "src/modules/logger/logger.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
+import { RouteModule } from "src/modules/route/route.module";
 import { StatusModule } from "src/modules/status/status.module";
 import { StopModule } from "src/modules/stop/stop.module";
 
@@ -25,6 +27,8 @@ import { StopModule } from "src/modules/stop/stop.module";
         PrismaModule,
         LoggerModule,
         StatusModule,
+        GtfsModule,
+        RouteModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
         CacheModule.registerAsync(cacheModuleConfig),
