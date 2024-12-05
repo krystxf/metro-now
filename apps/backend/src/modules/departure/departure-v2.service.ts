@@ -95,6 +95,16 @@ export class DepartureServiceV2 {
             throw new Error(parsed.error.message);
         }
 
+        const gtfsRoutes = await this.prisma.gtfsRoute.findMany({
+            where: {
+                shortName: {
+                    in: parsed.data.departures.map(
+                        (departure) => departure.route.short_name,
+                    ),
+                },
+            },
+        });
+
         const parsedDepartures = parsed.data.departures.map((departure) => {
             return {
                 id: departure.trip.id,
@@ -102,6 +112,11 @@ export class DepartureServiceV2 {
                 delay: getDelayInSeconds(departure.delay),
                 headsign: departure.trip.headsign,
                 route: departure.route.short_name,
+                routeId:
+                    gtfsRoutes.find(
+                        (gtfsRoute) =>
+                            gtfsRoute.shortName === departure.route.short_name,
+                    )?.id ?? null,
                 platformId: departure.stop.id,
                 platformCode: departure.stop.platform_code,
             };
