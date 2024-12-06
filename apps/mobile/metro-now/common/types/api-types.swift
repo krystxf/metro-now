@@ -37,4 +37,5 @@ struct ApiDeparture: Codable {
     let delay: Int
 
     let route: String
+    let routeId: String?
 }

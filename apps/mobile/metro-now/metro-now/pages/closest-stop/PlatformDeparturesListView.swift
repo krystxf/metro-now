@@ -7,6 +7,8 @@ struct PlatformDeparturesListView: View {
     let platform: ApiPlatform
     let departures: [[ApiDeparture]]?
 
+    @State private var routeIdPreview: SheetIdItem?
+
     init(platform: ApiPlatform, departures: [ApiDeparture]?) {
         self.platform = platform
 
@@ -52,6 +54,11 @@ struct PlatformDeparturesListView: View {
                                 nextHeadsign: nextDeparture?.headsign,
                                 nextDeparture: nextDeparture?.departure.predicted
                             )
+                            .onLongPressGesture {
+                                if let routeId = departure.routeId {
+                                    routeIdPreview = SheetIdItem(id: routeId)
+                                }
+                            }
                         } else {
                             Text("Loading")
                         }
@@ -64,6 +71,10 @@ struct PlatformDeparturesListView: View {
                         )
                     }
                 }
+            }
+            .sheet(item: $routeIdPreview) { item in
+                RoutePreviewView(routeId: item.id)
+                    .presentationDetents([.medium, .large])
             }
         } else {
             EmptyView()
