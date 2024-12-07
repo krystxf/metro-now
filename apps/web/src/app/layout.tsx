@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { poppins } from "./fonts";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const WEB_URL = new URL("https://metronow.dev");
 
@@ -48,10 +49,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={poppins.className}>
-                <div className="dark:bg-black px-12 xl:px-24">
+                <div className="dark:bg-black min-h-screen">
                     <Navbar variant="transparent" />
 
-                    {children}
+                    <div className="px-12 xl:px-24">{children}</div>
+
+                    <Footer />
                 </div>
             </body>
         </html>

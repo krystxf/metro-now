@@ -1,25 +1,18 @@
 "use client";
-import { Card } from "@/components/Card";
+
 import Image from "next/image";
 
 import Link from "next/link";
-import {
-    APPSTORE_URL,
-    GRAPHQL_URL,
-    SOURCE_CODE_URL,
-    SWAGGER_URL,
-} from "../constants/api";
+import { APPSTORE_URL } from "../constants/api";
 import DownloadOnAppStoreLight from "../../public/download-on-appstore-light.svg";
 import MetroNowIcon from "../../public/metro-now-icon.png";
 import MetroNowIphoneMockup from "../../public/iphone-mockup.png";
 import MetroNowWatchMockup from "../../public/watch-mockup.png";
-
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { AppearingText } from "@/components/AppearingText";
 
-const LandingPage = () => {
+export default function LandingPage() {
     return (
-        <main className="max-w-screen-lg m-auto mt-24 pb-12">
+        <main className="max-w-screen-lg m-auto mt-24 pb-12 text-black dark:text-white">
             <div className="flex flex-col gap-2 items-center justify-center text-center">
                 <h1 className="text-4xl xl:text-6xl font-bold text-zinc-800 flex gap-2 items-center dark:text-slate-50">
                     <Image
@@ -86,69 +79,6 @@ const LandingPage = () => {
                     quality={90}
                 />
             </div>
-
-            <div className="mb-32 mt-24 gap-4 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-3 lg:text-left text-slate-950 dark:text-white">
-                <Card className="group min-h-44">
-                    <Link
-                        href={SOURCE_CODE_URL}
-                        className="h-full"
-                        target="_blank"
-                    >
-                        <Card.Title>
-                            Source code
-                            <ArrowTopRightOnSquareIcon className="h-5" />
-                        </Card.Title>
-
-                        <Card.Content className="opacity-50">
-                            Every line of code for this project is available on
-                            GitHub.
-                        </Card.Content>
-                    </Link>
-                </Card>
-
-                <Card className="min-h-44">
-                    <Link href="/docs" className="group">
-                        <Card.Title>
-                            API <Card.Arrow className="h-5" />
-                        </Card.Title>
-                    </Link>
-                    <Card.Content>
-                        <Card.Content.Link href={SWAGGER_URL} target="_blank">
-                            REST API
-                            <ArrowTopRightOnSquareIcon className="h-3" />
-                        </Card.Content.Link>
-
-                        <Card.Content.Link href={GRAPHQL_URL} target="_blank">
-                            GrapQL
-                            <ArrowTopRightOnSquareIcon className="h-3" />
-                        </Card.Content.Link>
-                    </Card.Content>
-                </Card>
-
-                <Card className="min-h-44">
-                    <Card.Title>Legal</Card.Title>
-
-                    <Card.Content>
-                        <Card.Content.Link
-                            href="/docs/privacy-policy"
-                            target="_blank"
-                        >
-                            Privacy policy
-                            <Card.Arrow />
-                        </Card.Content.Link>
-
-                        <Card.Content.Link
-                            href="/docs/terms-and-conditions"
-                            target="_blank"
-                        >
-                            Terms & conditions
-                            <Card.Arrow />
-                        </Card.Content.Link>
-                    </Card.Content>
-                </Card>
-            </div>
         </main>
     );
-};
-
-export default LandingPage;
+}
