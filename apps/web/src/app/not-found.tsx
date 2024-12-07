@@ -19,7 +19,6 @@ const LINKS = [
 const BackgroundText = () => {
     return (
         <>
-            {" "}
             <div
                 className={clsx(
                     "block dark:hidden",
