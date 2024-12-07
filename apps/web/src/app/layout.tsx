@@ -52,7 +52,7 @@ export default function RootLayout({
                 <div className="dark:bg-black min-h-screen">
                     <Navbar variant="transparent" />
 
-                    <div className="px-12 xl:px-24">{children}</div>
+                    {children}
 
                     <Footer />
                 </div>
