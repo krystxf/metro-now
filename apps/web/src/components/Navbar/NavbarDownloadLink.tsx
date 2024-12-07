@@ -33,7 +33,7 @@ export const NavbarDownloadLink = () => {
                         value={APPSTORE_URL}
                         fgColor="#000000"
                         bgColor="transparent"
-                        level="L"
+                        level="Q"
                         imageSettings={{
                             src: "/appstore-icon.svg",
                             x: undefined,

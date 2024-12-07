@@ -13,7 +13,6 @@ import { z } from "zod";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
-import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
     platformWithDistanceSchema,
@@ -34,7 +33,7 @@ import {
 
 @ApiTags("platform")
 @Controller("platform")
-@UseInterceptors(CacheInterceptor, LogInterceptor)
+@UseInterceptors(CacheInterceptor)
 export class PlatformController {
     constructor(private readonly platformService: PlatformService) {}
 

@@ -67,7 +67,7 @@ export const Footer = () => {
                         className="dark:p-2 dark:rounded-xl dark:bg-white transition-all ease-in-out dark:border dark:border-neutral-900 rounded dark:shadow-lg"
                         bgColor="transparent"
                         fgColor="black"
-                        level="L"
+                        level="Q"
                         imageSettings={{
                             src: "/appstore-icon.svg",
                             x: undefined,

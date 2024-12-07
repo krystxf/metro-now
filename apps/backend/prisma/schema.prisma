@@ -109,6 +109,18 @@ model Log {
   createdAt DateTime @default(now())
 }
 
+model RequestLog {
+  id        BigInt  @id @default(autoincrement())
+  method    String
+  path      String
+  status    Int
+  duration  Int
+  response  String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+}
+
 enum LogLevel {
   log
   error

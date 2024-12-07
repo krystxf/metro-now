@@ -19,7 +19,6 @@ import {
     departureSchema,
     type DepartureSchema,
 } from "src/modules/departure/schema/departure.schema";
-import { LogInterceptor } from "src/modules/logger/log.interceptor";
 import {
     metroOnlySchema,
     vehicleTypeSchema,
@@ -28,7 +27,7 @@ import { metroOnlyQuery } from "src/swagger/query.swagger";
 
 @ApiTags("departure")
 @Controller("departure")
-@UseInterceptors(CacheInterceptor, LogInterceptor)
+@UseInterceptors(CacheInterceptor)
 @CacheTTL(4 * 1000)
 export class DepartureController {
     constructor(
