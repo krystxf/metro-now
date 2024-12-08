@@ -1,7 +1,7 @@
-import { FeaturesSectionItem } from "@/components/FeaturesSection/FeaturesSectionItem";
+import { FeaturesSectionItem } from "@/components/sections/FeaturesSection/FeaturesSectionItem";
 import Image from "next/image";
-import IphoneMockup from "../../../public/iphone.png";
-import WatchMockup from "../../../public/watch.png";
+import IphoneMockup from "../../../../public/iphone.png";
+import WatchMockup from "../../../../public/watch.png";
 
 export const FeaturesSection = () => {
     return (
