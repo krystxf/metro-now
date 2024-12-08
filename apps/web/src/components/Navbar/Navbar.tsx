@@ -37,7 +37,7 @@ export const Navbar = (props: Props) => {
         <>
             <div
                 className={twMerge(
-                    "w-full flex justify-center sticky top-8",
+                    "w-full flex justify-center sticky z-50 top-8",
                     navbarTransitionClassname,
                     scrollY ? "px-6" : "px-0",
                 )}
