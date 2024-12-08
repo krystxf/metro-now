@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import { poppins } from "./fonts";
+import "@/styles/globals.css";
+import { poppins } from "@/fonts";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { getTitle } from "@/utils/metadata.utils";
 
 const WEB_URL = new URL("https://metronow.dev");
 
@@ -13,7 +14,7 @@ const appleAppLink = {
 } as const;
 
 export const metadata: Metadata = {
-    title: "Metro Now",
+    title: getTitle(),
     description: "Prague public transport app",
     category: "Public transport",
     keywords: ["prague", "praha", "public transport", "metro", "tram", "bus"],
@@ -49,7 +50,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={poppins.className}>
-                <div className="dark:bg-black min-h-screen">
+                <div className="dark:bg-black">
                     <Navbar variant="transparent" />
 
                     {children}

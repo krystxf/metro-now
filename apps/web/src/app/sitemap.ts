@@ -1,7 +1,8 @@
-import { HOMEPAGE_URL } from "../constants/api";
+import { HOMEPAGE_URL } from "@/constants/api";
 import type { MetadataRoute } from "next";
 
 const docsPaths = [
+    "/map",
     "/docs",
     "/docs/backend",
     "/docs/privacy-policy",

@@ -4,7 +4,7 @@ import React from "react";
 
 const themeConfig = {
     logo: <strong>🚇 metro-now</strong>,
-    docsRepositoryBase: `${SOURCE_CODE_URL}/tree/main/docs`,
+    docsRepositoryBase: `${SOURCE_CODE_URL}/tree/main/apps/web`,
     project: {
         link: SOURCE_CODE_URL,
     },

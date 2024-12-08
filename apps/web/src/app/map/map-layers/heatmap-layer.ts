@@ -39,7 +39,7 @@ export const heatmapLayer: LayerProps = {
         "heatmap-radius": {
             stops: [
                 [11, 5],
-                [15, 20],
+                [15, 50],
             ],
         },
         // decrease opacity to transition into the circle layer

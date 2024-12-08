@@ -11,3 +11,7 @@
 html {
     scroll-behavior: smooth;
 }
+
+[mapboxgl-children] {
+    height: auto !important;
+}

@@ -1,11 +1,14 @@
 "use server";
 
+import { MapClientPage } from "./client-page";
+
 type Datapoint = {
     latitude: number;
     longitude: number;
     name: string;
 };
-export const getStopsGeojson = async () => {
+
+export default async function MapPage() {
     const res = await fetch("https://api.metronow.dev/v1/platform/all");
     const data: Datapoint[] = await res.json();
 
@@ -20,5 +23,5 @@ export const getStopsGeojson = async () => {
         })),
     };
 
-    return geojson;
-};
+    return <MapClientPage stopsGeojson={geojson} />;
+}

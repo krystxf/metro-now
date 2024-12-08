@@ -1,25 +1,16 @@
 "use client";
 
 import MapGL, { Source, Layer } from "react-map-gl";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { pragueCoorinates } from "@/constants/coordinates";
-import { getStopsGeojson } from "@/components/sections/MapSection/functions/getStopsGeojson";
-import { pointsLayer } from "@/components/sections/MapSection/layers/point-layer";
-import { heatmapLayer } from "@/components/sections/MapSection/layers/heatmap-layer";
+import { pointsLayer } from "@/app/map/map-layers/point-layer";
+import { heatmapLayer } from "@/app/map/map-layers/heatmap-layer";
 import { PidLogo } from "@/components/PidLogo/PidLogo";
 
-export const MapSection = () => {
+export const MapClientPage = (props) => {
+    const { stopsGeojson } = props;
+
     const [allowZoom, setAllowZoom] = useState(false);
-    const [stopsGeojson, setStopsGeojson] = useState<null | object>(null);
-
-    const updateStopsGeojson = async () => {
-        const data = await getStopsGeojson();
-        setStopsGeojson(data);
-    };
-
-    useEffect(() => {
-        updateStopsGeojson();
-    }, []);
 
     return (
         <div
@@ -34,7 +25,7 @@ export const MapSection = () => {
                 </span>
             </div>
 
-            <div className="h-[60vh] w-full">
+            <div className="h-[80vh] w-full relative">
                 <MapGL
                     initialViewState={{
                         ...pragueCoorinates,
@@ -43,10 +34,11 @@ export const MapSection = () => {
                     dragRotate={false}
                     maxZoom={18}
                     minZoom={5}
-                    boxZoom={false}
                     style={{
                         position: "relative",
+                        display: "block",
                     }}
+                    boxZoom={false}
                     keyboard={false}
                     scrollZoom={allowZoom}
                     mapStyle="mapbox://styles/mapbox/dark-v9"
@@ -54,7 +46,7 @@ export const MapSection = () => {
                     attributionControl={false}
                 >
                     {stopsGeojson && (
-                        <Source type="geojson" data={stopsGeojson}>
+                        <Source type="geojson" data={stopsGeojson as any}>
                             <Layer {...heatmapLayer} />
                             <Layer {...pointsLayer} />
                         </Source>

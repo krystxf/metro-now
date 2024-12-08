@@ -56,6 +56,8 @@ export const Navbar = (props: Props) => {
                     <div className="gap-12 sm:flex hidden">
                         <NavbarLink href={"/"}>About</NavbarLink>
 
+                        <NavbarLink href={"/map"}>Map</NavbarLink>
+
                         <NavbarLink href={SOURCE_CODE_URL} target="_blank">
                             Source Code
                         </NavbarLink>

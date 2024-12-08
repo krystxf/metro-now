@@ -53,10 +53,10 @@ export const Footer = () => {
                     <FooterSectionHeading className="mt-8">
                         Legal
                     </FooterSectionHeading>
-                    <FooterLink href="/docs/terms-and-conditions">
+                    <FooterLink href="/terms-and-conditions">
                         Terms & conditions
                     </FooterLink>
-                    <FooterLink href="/docs/privacy-policy">
+                    <FooterLink href="/privacy-policy">
                         Privacy policy
                     </FooterLink>
                 </FooterSection>

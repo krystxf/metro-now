@@ -1,13 +1,13 @@
-{
-    "docs": {
-        "title": "Docs",
-        "type": "page"
+{ 
+    "home":{
+        "title": "Home",
+        "href": "/",
+        "type": "link"
     },
-
     "api": {
-        "title": "API",
+        "title": "Home",
         "type": "page",
-        "href": "/docs/api"
+        "href": "/"
     },
     "legal": {
         "title": "Legal",
@@ -15,11 +15,11 @@
         "items": {
             "about": {
                 "title": "Privacy policy",
-                "href": "/docs/privacy-policy"
+                "href": "/privacy-policy"
             },
             "contact": {
                 "title": "Terms & conditions",
-                "href": "/docs/terms-and-conditions"
+                "href": "/terms-and-conditions"
             }
         }
     }

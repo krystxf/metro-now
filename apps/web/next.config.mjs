@@ -9,6 +9,25 @@ const nextConfig = {
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
         imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     },
+    async redirects() {
+        return [
+            {
+                source: "/docs",
+                destination: "/",
+                permanent: true,
+            },
+            {
+                source: "/docs/privacy-policy",
+                destination: "/privacy-policy",
+                permanent: true,
+            },
+            {
+                source: "/docs/terms-and-conditions",
+                destination: "/terms-and-conditions",
+                permanent: true,
+            },
+        ];
+    },
 };
 
 const withNextra = nextra({
