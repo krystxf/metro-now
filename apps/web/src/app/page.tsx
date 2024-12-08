@@ -8,7 +8,7 @@ import DownloadOnAppStoreLight from "../../public/download-on-appstore-light.svg
 import MetroNowIcon from "../../public/metro-now-icon.png";
 import MetroNowIphoneMockup from "../../public/iphone-mockup.png";
 import { FeaturesSection } from "@/components/sections/FeaturesSection";
-import { HeatmpSection } from "@/components/sections/MapSection";
+import { MapSection } from "@/components/sections/MapSection";
 
 export default function LandingPage() {
     return (
@@ -63,7 +63,7 @@ export default function LandingPage() {
                 </div>
             </main>
 
-            <HeatmpSection />
+            <MapSection />
             <FeaturesSection />
         </>
     );
