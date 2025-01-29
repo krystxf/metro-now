@@ -1,5 +1,5 @@
-{ 
-    "home":{
+{
+    "home": {
         "title": "Home",
         "href": "/",
         "type": "link"
