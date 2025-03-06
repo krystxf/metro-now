@@ -1,0 +1,173 @@
+{
+    "info": {
+        "_postman_id": "ffce154e-3270-4344-a193-42344fcc19ae",
+        "name": "metro-now",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "16893880"
+    },
+    "item": [
+        {
+            "name": "departure",
+            "item": [
+                {
+                    "name": "stop",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{endpoint}}/v2/departure?stop[]=U1072",
+                            "host": ["{{endpoint}}"],
+                            "path": ["v2", "departure"],
+                            "query": [
+                                {
+                                    "key": "stop[]",
+                                    "value": "U1072",
+                                    "description": "Můstek"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "platform",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{endpoint}}/v2/departure?platform[]=U1072Z101P&platform[]=U1072Z102P",
+                            "host": ["{{endpoint}}"],
+                            "path": ["v2", "departure"],
+                            "query": [
+                                {
+                                    "key": "platform[]",
+                                    "value": "U1072Z101P"
+                                },
+                                {
+                                    "key": "platform[]",
+                                    "value": "U1072Z102P"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "stop",
+            "item": [
+                {
+                    "name": "all",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{endpoint}}/v1/stop/all",
+                            "host": ["{{endpoint}}"],
+                            "path": ["v1", "stop", "all"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{endpoint}}/v1/stop/U1072",
+                            "host": ["{{endpoint}}"],
+                            "path": ["v1", "stop", "U1072"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "platform",
+            "item": [
+                {
+                    "name": "all",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var template = `",
+                                    "<style type=\"text/css\">",
+                                    "    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+                                    "    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+                                    "    .tftable tr {background-color:#ffffff;}",
+                                    "    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+                                    "    .tftable tr:hover {background-color:#e0ffff;}",
+                                    "</style>",
+                                    "",
+                                    "<table class=\"tftable\" border=\"1\">",
+                                    "    <tr>",
+                                    "        <th>ID</th>",
+                                    "        <th>Latitude</th>",
+                                    "        <th>Longitude</th>",
+                                    "        <th>Name</th>",
+                                    "        <th>Routes</th>",
+                                    "    </tr>",
+                                    "    ",
+                                    "    {{#each response}}",
+                                    "        <tr>",
+                                    "            <td>{{id}}</td>",
+                                    "            <td>{{latitude}}</td>",
+                                    "            <td>{{longitude}}</td>",
+                                    "            <td>{{name}}</td>",
+                                    "            <td>",
+                                    "                <table>",
+                                    "                    <tr>",
+                                    "                        <th>ID</th>",
+                                    "                        <th>Name</th>",
+                                    "                    </tr>",
+                                    "                    {{#each routes}}",
+                                    "                        <tr>",
+                                    "                            <td>{{id}}</td>",
+                                    "                            <td>{{name}}</td>",
+                                    "                        </tr>",
+                                    "                    {{/each}}",
+                                    "                </table>",
+                                    "            </td>",
+                                    "        </tr>",
+                                    "    {{/each}}",
+                                    "</table>",
+                                    "`;",
+                                    "",
+                                    "function constructVisualizerPayload() {",
+                                    "    return { response: pm.response.json() }",
+                                    "}",
+                                    "",
+                                    "pm.visualizer.set(template, constructVisualizerPayload());"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{endpoint}}/v1/platform/all",
+                            "host": ["{{endpoint}}"],
+                            "path": ["v1", "platform", "all"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "endpoint",
+            "value": "http://localhost:3001",
+            "type": "default"
+        }
+    ]
+}
