@@ -25,13 +25,16 @@ struct CountdownView: View {
     var body: some View {
         Text(customFunction(getRemainingTime(timeRemaining)))
             .monospacedDigit()
+            .contentTransition(.numericText(value: timeRemaining))
             .onReceive(timer) { _ in
                 updateRemainingTime()
             }
     }
 
     private func updateRemainingTime() {
-        timeRemaining = targetDate.timeIntervalSinceNow
+        withAnimation {
+            timeRemaining = targetDate.timeIntervalSinceNow
+        }
     }
 }
 
