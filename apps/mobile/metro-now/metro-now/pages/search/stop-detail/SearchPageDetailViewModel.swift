@@ -74,7 +74,7 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
                 "platform": platformsIds,
                 "limit": 6,
                 "minutesBefore": 1,
-                "minutesAfter": String(12 * 60),
+                "minutesAfter": String(1 * 60),
             ]
         )
 

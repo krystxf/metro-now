@@ -74,7 +74,7 @@ class StopMetroDeparturesViewModel: NSObject, ObservableObject {
                 "platform": platformsIds,
                 "limit": 20,
                 "minutesBefore": 1,
-                "minutesAfter": String(8 * 60),
+                "minutesAfter": String(1 * 60),
             ]
         )
 

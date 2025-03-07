@@ -110,7 +110,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 "stop": stopsIds,
                 "limit": 20,
                 "minutesBefore": 1,
-                "minutesAfter": String(5 * 60),
+                "minutesAfter": String(1 * 60),
             ]
         )
 

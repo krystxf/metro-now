@@ -66,7 +66,7 @@ class DeparturesWidgetManager: NSObject, ObservableObject, CLLocationManagerDele
         let stopQuery = stopIds.map { "stop[]=\($0)" }.joined(separator: "&")
         let platformQuery = platformIds.map { "platform[]=\($0)" }.joined(separator: "&")
 
-        let url = "\(API_URL)/v2/departure?\(stopQuery)&\(platformQuery)&limit=4&minutesBefore=1&minutesAfter=\(3 * 60)"
+        let url = "\(API_URL)/v2/departure?\(stopQuery)&\(platformQuery)&limit=4&minutesBefore=1&minutesAfter=\(1 * 60)"
 
         // Print the full API request URL for debugging
         print("API Request URL for Departures: \(url)")

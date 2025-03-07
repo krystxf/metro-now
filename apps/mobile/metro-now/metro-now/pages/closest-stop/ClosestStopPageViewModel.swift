@@ -155,7 +155,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 "platform": platformsIds,
                 "limit": 4,
                 "minutesBefore": 1,
-                "minutesAfter": String(3 * 60),
+                "minutesAfter": String(1 * 60),
             ]
         )
 
