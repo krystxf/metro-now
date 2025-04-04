@@ -12,6 +12,7 @@ import { RequestLoggerMiddleware } from "src/middleware/request-logger-middlewar
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { GtfsModule } from "src/modules/gtfs/gtfs.module";
 import { ImportModule } from "src/modules/import/import.module";
+import { InfotextsModule } from "src/modules/infotexts/infotexts.module";
 import { LoggerModule } from "src/modules/logger/logger.module";
 import { LogsCleanupModule } from "src/modules/logs-cleanup/logs-cleanup.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
@@ -25,6 +26,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         PlatformModule,
         DepartureModule,
         ImportModule,
+        InfotextsModule,
         StopModule,
         PrismaModule,
         LoggerModule,
