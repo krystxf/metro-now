@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { InfotextPriority } from "src/types/graphql.generated";
+
 export const golemioInfoTextsSchema = z
     .object({
         valid_from: z.string().nullable(),
@@ -7,7 +9,10 @@ export const golemioInfoTextsSchema = z
         text: z.string(),
         text_en: z.string().nullable(),
         display_type: z.string(),
-        priority: z.enum(["low", "normal", "high"]),
+        priority: z
+            .enum(["low", "normal", "high"])
+            .transform((val) => val.toUpperCase())
+            .pipe(z.nativeEnum(InfotextPriority)),
         related_stops: z.array(
             z.object({
                 id: z.string(),

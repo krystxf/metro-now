@@ -25,18 +25,20 @@ export class InfotextsService {
         }
 
         return parsed.data.map((infotext) => ({
-            validFrom: infotext.valid_from,
-            validTo: infotext.valid_to,
+            id: infotext.id,
             text: infotext.text,
             textEn: infotext.text_en,
-            displayType: infotext.display_type,
             priority: infotext.priority,
+            displayType: infotext.display_type,
+
             relatedStops: infotext.related_stops.map((stop) => ({
                 id: stop.id,
                 name: stop.name,
                 platformCode: stop.platform_code,
             })),
-            id: infotext.id,
+
+            validFrom: infotext.valid_from,
+            validTo: infotext.valid_to,
         }));
     }
 }

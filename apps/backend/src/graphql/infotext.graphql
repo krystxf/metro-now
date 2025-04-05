@@ -1,0 +1,18 @@
+enum InfotextPriority {
+    LOW
+    NORMAL
+    HIGH
+}
+
+type Infotext {
+    id: ID!
+    text: String!
+    textEn: String
+    priority: InfotextPriority!
+    displayType: String!
+
+    relatedStops: [Stop!]!
+
+    validFrom: ISODateTime
+    validTo: ISODateTime
+}
