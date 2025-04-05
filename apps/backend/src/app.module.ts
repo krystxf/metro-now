@@ -8,6 +8,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_PATH } from "src/constants/api";
+import { GraphqlModule } from "src/graphql/graphql.module";
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { GtfsModule } from "src/modules/gtfs/gtfs.module";
 import { ImportModule } from "src/modules/import/import.module";
@@ -35,9 +36,10 @@ import { StopModule } from "src/modules/stop/stop.module";
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,
-            autoSchemaFile: "schema.gql",
+            typePaths: ["./**/*.graphql"],
             path: GRAPHQL_PATH,
         }),
+        GraphqlModule,
     ],
     controllers: [],
     providers: [],

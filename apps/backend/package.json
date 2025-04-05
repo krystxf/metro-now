@@ -2,7 +2,8 @@
     "name": "@metro-now/backend",
     "packageManager": "pnpm@9.1.0",
     "scripts": {
-        "prebuild": "rimraf dist && pnpm prisma:generate",
+        "typegen": "ts-node scripts/generate-types.ts",
+        "prebuild": "rimraf dist && pnpm prisma:generate && pnpm typegen",
         "build": "nest build",
         "start": "nest start",
         "dev": "nest start --watch",
