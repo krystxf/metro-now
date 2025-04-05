@@ -9,14 +9,12 @@ import {
     SWAGGER_TITLE,
     SWAGGER_VERSION,
 } from "src/constants/swagger.const";
-import { LoggerService } from "src/modules/logger/logger.service";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
         bufferLogs: true,
     });
 
-    app.useLogger(new LoggerService());
     app.enableCors();
 
     app.enableVersioning({

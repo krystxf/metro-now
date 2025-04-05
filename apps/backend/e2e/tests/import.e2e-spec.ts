@@ -3,9 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 
 import { configModuleConfig } from "src/config/config-module.config";
-import { StopSyncTrigger } from "src/enums/log.enum";
 import { ImportService } from "src/modules/import/import.service";
-import { LoggerModule } from "src/modules/logger/logger.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 
 describe("Import Module (e2e)", () => {
@@ -13,11 +11,7 @@ describe("Import Module (e2e)", () => {
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [
-                ConfigModule.forRoot(configModuleConfig),
-                PrismaModule,
-                LoggerModule,
-            ],
+            imports: [ConfigModule.forRoot(configModuleConfig), PrismaModule],
             providers: [ImportService],
         }).compile();
 
@@ -32,7 +26,7 @@ describe("Import Module (e2e)", () => {
     test(
         "Run import",
         async () => {
-            await app.get(ImportService).syncStops(StopSyncTrigger.TEST);
+            await app.get(ImportService).syncStops();
         },
         10 * 60 * 1_000,
     );

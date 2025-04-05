@@ -12,7 +12,6 @@ import {
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { DepartureModule } from "src/modules/departure/departure.module";
-import { LoggerModule } from "src/modules/logger/logger.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 
 describe("Departure Module (e2e)", () => {
@@ -24,7 +23,6 @@ describe("Departure Module (e2e)", () => {
                 CacheModule.register(cacheModuleConfig),
                 ConfigModule.forRoot(configModuleConfig),
                 PrismaModule,
-                LoggerModule,
                 DepartureModule,
             ],
         }).compile();
