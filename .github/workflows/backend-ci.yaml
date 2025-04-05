@@ -128,4 +128,5 @@ jobs:
             - name: Test e2e
               run: |
                   cd apps/backend 
+                  pnpm typegen
                   pnpm test:e2e --runInBand
