@@ -4,7 +4,7 @@ type Platform {
     latitude: Float!
     longitude: Float!
     isMetro: Boolean!
-    code: String!
+    code: String
     stop: Stop!
     routes: [Route!]!
 }

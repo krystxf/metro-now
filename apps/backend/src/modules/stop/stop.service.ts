@@ -21,12 +21,21 @@ export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
 export class StopService {
     constructor(private prisma: PrismaService) {}
 
-    async getAll({ metroOnly }: { metroOnly: boolean }) {
+    async getAll({
+        metroOnly,
+        where,
+    }: {
+        metroOnly: boolean;
+        where?: Prisma.StopWhereInput;
+    }) {
         const stops = await this.prisma.stop.findMany({
             select: getStopsSelect({ metroOnly }),
             where: {
+                ...where,
                 platforms: {
+                    ...where?.platforms,
                     some: {
+                        ...where?.platforms?.some,
                         isMetro: metroOnly,
                     },
                 },
@@ -42,7 +51,7 @@ export class StopService {
         }));
     }
 
-    async getStopById(id: string) {
+    async getOne(id: string) {
         const stop = await this.prisma.stop.findFirst({
             select: getStopsSelect({ metroOnly: false }),
             where: {

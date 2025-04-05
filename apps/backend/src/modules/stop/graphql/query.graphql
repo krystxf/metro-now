@@ -1,4 +1,4 @@
 type Query {
-    stops: [Stop!]!
+    stops(ids: [ID!]): [Stop!]!
     stop(id: ID!): Stop
 }
