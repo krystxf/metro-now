@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { InfotextPriority } from "src/types/graphql.generated";
 
-export const golemioInfoTextsSchema = z
+export const golemioResponseSchema = z
     .object({
         valid_from: z.string().nullable(),
         valid_to: z.string().nullable(),

@@ -10,4 +10,7 @@ definitionsFactory.generate({
     outputAs: "interface",
     skipResolverArgs: true,
     watch: false,
+    customScalarTypeMapping: {
+        ISODateTime: "string",
+    },
 });

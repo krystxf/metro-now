@@ -15,6 +15,6 @@ export class InfotextsController {
     @Get("/")
     @Version([EndpointVersion.v1])
     async getInfotextsV1() {
-        return this.infotextsService.getInfotexts();
+        return this.infotextsService.getAll();
     }
 }
