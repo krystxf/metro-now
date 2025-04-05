@@ -1,0 +1,4 @@
+type Query {
+    stops: [Stop!]!
+    stop(id: ID!): Stop
+}

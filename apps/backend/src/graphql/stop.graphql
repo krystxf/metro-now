@@ -1,0 +1,7 @@
+type Stop {
+    id: ID!
+    name: String!
+    avgLatitude: Float!
+    avgLongitude: Float!
+    platforms: [Platform!]!
+}
