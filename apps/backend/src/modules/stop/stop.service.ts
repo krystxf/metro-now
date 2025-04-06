@@ -51,11 +51,11 @@ export class StopService {
         }));
     }
 
-    async getOne(id: string) {
+    async getOne({ where }: { where?: Prisma.StopWhereInput }) {
         const stop = await this.prisma.stop.findFirst({
             select: getStopsSelect({ metroOnly: false }),
             where: {
-                id,
+                ...where,
             },
         });
 
@@ -65,7 +65,7 @@ export class StopService {
 
         return {
             ...stop,
-            platforms: stop.platforms.map((platform) => ({
+            platforms: (stop.platforms || []).map((platform) => ({
                 ...platform,
                 routes: platform.routes.map((route) => route.route),
             })),

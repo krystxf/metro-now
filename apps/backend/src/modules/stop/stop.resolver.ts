@@ -6,7 +6,10 @@ import { IQuery, Stop } from "src/types/graphql.generated";
 
 @Resolver()
 export class StopResolver {
-    constructor(private readonly stopService: StopService) {}
+    constructor(
+        private readonly stopService: StopService,
+        private readonly platformService: PlatformService,
+    ) {}
 
     @Query("stops")
     getAll(@Args("ids") ids: string[]): Promise<IQuery["stops"]> {
@@ -19,22 +22,21 @@ export class StopResolver {
     }
 
     @Query("stop")
-    getOne(@Args("id") id: string): Promise<IQuery["stop"]> {
-        return this.stopService.getOne(id) as Promise<IQuery["stop"]>;
+    getOne(@Args("id") id: string) {
+        return this.stopService.getOne({ where: { id } });
     }
-}
-
-@Resolver("Stop")
-export class StopFieldResolver {
-    constructor(private readonly platformService: PlatformService) {}
 
     @ResolveField("platforms")
-    async getPlatforms(@Parent() stop: Stop) {
+    getPlatforms(@Parent() stop: Stop) {
+        if (!stop.platforms) {
+            return [];
+        }
+
         const ids = stop.platforms.map((p) => p.id);
 
         return this.platformService.getAll({
             metroOnly: false,
             where: { id: { in: ids } },
-        }) as Promise<IQuery["platforms"]>;
+        });
     }
 }
