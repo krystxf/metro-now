@@ -4,6 +4,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { InfotextsResolver } from "src/modules/infotexts/infotexts.resolver";
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
+import { PlatformService } from "src/modules/platform/platform.service";
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 describe("InfotextResolver", () => {
     let resolver: InfotextsResolver;
@@ -14,6 +16,15 @@ describe("InfotextResolver", () => {
                 InfotextsResolver,
                 InfotextsService,
                 GolemioService,
+                PlatformService,
+                {
+                    provide: PrismaService,
+                    useValue: {
+                        platform: {
+                            findMany: jest.fn(),
+                        },
+                    },
+                },
                 {
                     provide: CACHE_MANAGER,
                     useValue: {

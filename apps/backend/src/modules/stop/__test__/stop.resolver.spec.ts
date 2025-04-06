@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 
+import { PlatformService } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 import { StopResolver } from "src/modules/stop/stop.resolver";
 import { StopService } from "src/modules/stop/stop.service";
@@ -12,6 +13,7 @@ describe("StopResolver", () => {
             providers: [
                 StopResolver,
                 StopService,
+                PlatformService,
                 {
                     provide: PrismaService,
                     useValue: {
