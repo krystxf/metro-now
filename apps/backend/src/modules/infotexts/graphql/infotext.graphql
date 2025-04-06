@@ -5,7 +5,7 @@ type Infotext {
     priority: InfotextPriority!
     displayType: String!
 
-    relatedStops: [Stop!]!
+    relatedPlatforms: [Platform!]!
 
     validFrom: ISODateTime
     validTo: ISODateTime
