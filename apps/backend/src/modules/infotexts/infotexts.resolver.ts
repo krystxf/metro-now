@@ -1,7 +1,7 @@
 import { Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { PlatformService } from "src/modules/platform/platform.service";
 import {
     Infotext,
     InfotextPriority,
@@ -12,7 +12,7 @@ import {
 export class InfotextsResolver {
     constructor(
         private readonly infotextsService: InfotextsService,
-        private prisma: PrismaService,
+        private readonly platformService: PlatformService,
     ) {}
 
     @Query("infotexts")
@@ -26,9 +26,10 @@ export class InfotextsResolver {
 
     @ResolveField("relatedPlatforms")
     getRelatedPlatforms(@Parent() infotext: Infotext) {
-        const ids = infotext.relatedPlatforms.map((p) => p.id);
+        const ids = infotext.relatedPlatforms.map(({ id }) => id);
 
-        return this.prisma.platform.findMany({
+        return this.platformService.getAll({
+            metroOnly: false,
             where: { id: { in: ids } },
         });
     }
