@@ -117,19 +117,44 @@ export class PlatformService {
         }));
     }
 
-    async getAllPlatforms({
+    async getAll({
         metroOnly,
+        where,
     }: {
         metroOnly: boolean;
+        where?: Prisma.PlatformWhereInput;
     }): Promise<PlatformSchema[]> {
         const platforms = await this.prisma.platform.findMany({
             select: platformSelect,
-            where: metroOnly ? { isMetro: true } : {},
+            where: {
+                ...where,
+                ...(metroOnly
+                    ? {
+                          isMetro: true,
+                      }
+                    : {}),
+            },
         });
 
         return platforms.map((platform) => ({
             ...platform,
             routes: platform.routes.map(({ route }) => route),
         }));
+    }
+
+    async getOne(id: string): Promise<PlatformSchema | null> {
+        const platform = await this.prisma.platform.findUnique({
+            select: platformSelect,
+            where: { id },
+        });
+
+        if (!platform) {
+            return null;
+        }
+
+        return {
+            ...platform,
+            routes: platform.routes.map(({ route }) => route),
+        };
     }
 }
