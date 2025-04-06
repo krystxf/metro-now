@@ -1,7 +1,8 @@
-import { Args, Query, Resolver } from "@nestjs/graphql";
+import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
+import { PlatformService } from "src/modules/platform/platform.service";
 import { StopService } from "src/modules/stop/stop.service";
-import { IQuery } from "src/types/graphql.generated";
+import { IQuery, Stop } from "src/types/graphql.generated";
 
 @Resolver()
 export class StopResolver {
@@ -20,5 +21,20 @@ export class StopResolver {
     @Query("stop")
     getOne(@Args("id") id: string): Promise<IQuery["stop"]> {
         return this.stopService.getOne(id) as Promise<IQuery["stop"]>;
+    }
+}
+
+@Resolver("Stop")
+export class StopFieldResolver {
+    constructor(private readonly platformService: PlatformService) {}
+
+    @ResolveField("platforms")
+    async getPlatforms(@Parent() stop: Stop) {
+        const ids = stop.platforms.map((p) => p.id);
+
+        return this.platformService.getAll({
+            metroOnly: false,
+            where: { id: { in: ids } },
+        }) as Promise<IQuery["platforms"]>;
     }
 }
