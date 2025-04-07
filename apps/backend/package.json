@@ -1,6 +1,5 @@
 {
     "name": "@metro-now/backend",
-    "packageManager": "pnpm@9.1.0",
     "scripts": {
         "typegen": "ts-node scripts/generate-types.ts",
         "prebuild": "rimraf dist && pnpm prisma:generate && pnpm typegen",
@@ -27,18 +26,18 @@
     "dependencies": {
         "@apollo/server": "^4.11.3",
         "@fast-csv/parse": "^5.0.2",
-        "@nestjs/apollo": "^12.2.2",
-        "@nestjs/cache-manager": "^2.3.0",
-        "@nestjs/common": "^10.4.15",
-        "@nestjs/config": "^3.3.0",
-        "@nestjs/core": "^10.4.15",
+        "@keyv/redis": "^4.3.3",
+        "@nestjs/apollo": "^13.0.4",
+        "@nestjs/cache-manager": "^3.0.1",
+        "@nestjs/common": "^11.0.13",
+        "@nestjs/config": "^4.0.2",
+        "@nestjs/core": "^11.0.13",
         "@nestjs/graphql": "^13.0.4",
-        "@nestjs/platform-express": "^10.4.15",
-        "@nestjs/schedule": "^4.1.2",
-        "@nestjs/swagger": "^7.4.2",
-        "@prisma/client": "5.20.0",
-        "cache-manager": "^5.7.6",
-        "cache-manager-redis-yet": "^5.1.5",
+        "@nestjs/platform-express": "^11.0.13",
+        "@nestjs/schedule": "^5.0.1",
+        "@nestjs/swagger": "^11.1.1",
+        "@prisma/client": "6.5.0",
+        "cache-manager": "^6.4.2",
         "graphql": "^16.10.0",
         "radash": "^12.1.0",
         "reflect-metadata": "^0.2.2",
@@ -48,12 +47,12 @@
         "zod": "^3.24.2"
     },
     "devDependencies": {
-        "@nestjs/cli": "^10.4.9",
-        "@nestjs/schematics": "^10.2.3",
-        "@nestjs/testing": "^10.4.15",
-        "@types/express": "^4.17.21",
+        "@nestjs/cli": "^11.0.6",
+        "@nestjs/schematics": "^11.0.4",
+        "@nestjs/testing": "^11.0.13",
+        "@types/express": "^5.0.1",
         "@types/jest": "^29.5.14",
-        "@types/node": "^20.17.30",
+        "@types/node": "^22.14.0",
         "@types/supertest": "^6.0.3",
         "@types/unzipper": "^0.10.11",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -67,7 +66,7 @@
         "prettier": "^3.5.3",
         "rimraf": "^6.0.1",
         "source-map-support": "^0.5.21",
-        "supertest": "^6.3.4",
+        "supertest": "^7.1.0",
         "ts-jest": "^29.3.1",
         "ts-loader": "^9.5.2",
         "ts-node": "^10.9.2",
@@ -75,8 +74,8 @@
         "typescript": "^5.8.3"
     },
     "optionalDependencies": {
-        "dotenv-cli": "^7.4.4",
-        "prisma": "^5.22.0"
+        "dotenv-cli": "^8.0.0",
+        "prisma": "^6.5.0"
     },
     "jest": {
         "moduleFileExtensions": [
