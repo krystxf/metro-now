@@ -1,0 +1,4 @@
+type Query {
+    departure(id: ID!): Departure!
+    departures(ids: [ID!], stopIds: [ID!], platformIds: [ID!]): [Departure!]!
+}

@@ -1,0 +1,14 @@
+type DepartureTime {
+    predicted: ISODateTime
+    scheduled: ISODateTime!
+}
+
+type Departure {
+    id: ID!
+    delay: Int!
+    headsign: String!
+
+    route: Route!
+    platform: Platform!
+    departureTime: DepartureTime!
+}
