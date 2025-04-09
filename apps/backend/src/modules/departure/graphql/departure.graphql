@@ -4,11 +4,14 @@ type DepartureTime {
 }
 
 type Departure {
-    id: ID!
-    delay: Int!
-    headsign: String!
+    """
+    in seconds
+    """
+    delay: Int
 
-    route: Route!
+    headsign: String
+
     platform: Platform!
     departureTime: DepartureTime!
+    route: Route
 }

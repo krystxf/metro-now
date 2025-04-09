@@ -142,10 +142,10 @@ export class PlatformService {
         }));
     }
 
-    async getOne(id: string): Promise<PlatformSchema | null> {
-        const platform = await this.prisma.platform.findUnique({
+    async getOne({ where }: { where: Prisma.PlatformWhereInput }) {
+        const platform = await this.prisma.platform.findFirst({
             select: platformSelect,
-            where: { id },
+            where,
         });
 
         if (!platform) {

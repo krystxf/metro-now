@@ -21,7 +21,9 @@ export class PlatformResolver {
 
     @Query("platform")
     getOne(@Args("id") id: string): Promise<IQuery["platform"]> {
-        return this.platformService.getOne(id) as Promise<IQuery["platform"]>;
+        return this.platformService.getOne({ where: { id } }) as Promise<
+            IQuery["platform"]
+        >;
     }
 
     @ResolveField("stop")
