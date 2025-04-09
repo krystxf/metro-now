@@ -1,7 +1,7 @@
 {
     "name": "@metro-now/backend",
     "scripts": {
-        "typegen": "ts-node scripts/generate-types.ts",
+        "typegen": "ts-node ./src/scripts/generate-types.ts",
         "prebuild": "rimraf dist && pnpm prisma:generate && pnpm typegen",
         "build": "nest build",
         "start": "nest start",
