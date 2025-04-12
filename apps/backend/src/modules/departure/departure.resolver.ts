@@ -3,8 +3,7 @@ import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PlatformService } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
-import { RouteService } from "src/modules/route/route.service";
-import { Departure, IQuery } from "src/types/graphql.generated";
+import { ParentType } from "src/types/parent";
 
 @Resolver("Departure")
 export class DepartureResolver {
@@ -15,10 +14,10 @@ export class DepartureResolver {
     ) {}
 
     @Query("departures")
-    async getDepartures(
+    async getMultiple(
         @Args("platformIds") platformIds: string[] = [],
         @Args("stopIds") stopIds: string[] = [],
-    ): Promise<IQuery["departures"]> {
+    ) {
         const stopPlatforms = await this.prismaService.stop.findMany({
             select: { platforms: { select: { id: true } } },
             where: { id: { in: stopIds } },
@@ -69,14 +68,16 @@ export class DepartureResolver {
     }
 
     @ResolveField("platform")
-    getStop(@Parent() departure: Departure) {
+    getPlatformField(@Parent() departure: ParentType<typeof this.getMultiple>) {
         return this.platformService.getOne({
             where: { id: departure.platform.id },
         });
     }
 
     @ResolveField("route")
-    async getRoute(@Parent() departure: Departure) {
+    async getRouteField(
+        @Parent() departure: ParentType<typeof this.getMultiple>,
+    ) {
         if (!departure?.route?.id) {
             return null;
         }

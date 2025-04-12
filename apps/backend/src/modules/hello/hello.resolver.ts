@@ -5,7 +5,7 @@ import { IQuery } from "src/types/graphql.generated";
 @Resolver()
 export class HelloResolver {
     @Query("hello")
-    hello(): IQuery["hello"] {
+    getHello(): IQuery["hello"] {
         return "Hello, world!";
     }
 }

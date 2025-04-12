@@ -1,14 +1,19 @@
+import { Cache } from "@nestjs/cache-manager";
 import { Injectable } from "@nestjs/common";
 
+import { CACHE_KEYS, ttl } from "src/constants/cache";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { golemioResponseSchema } from "src/modules/infotexts/schema/golemio-response.schema";
 import { responseSchema } from "src/modules/infotexts/schema/response.schema";
 
 @Injectable()
 export class InfotextsService {
-    constructor(private golemioService: GolemioService) {}
+    constructor(
+        private readonly golemioService: GolemioService,
+        private readonly cacheManager: Cache,
+    ) {}
 
-    async getAll() {
+    private async _getAll() {
         const res =
             await this.golemioService.getGolemioData(`/v3/pid/infotexts`);
 
@@ -29,7 +34,7 @@ export class InfotextsService {
             ...infotext,
             textEn: infotext.text_en,
             displayType: infotext.display_type,
-            relatedStops: infotext.related_stops.map((stop) => ({
+            relatedPlatforms: infotext.related_stops.map((stop) => ({
                 ...stop,
                 platformCode: stop.platform_code,
             })),
@@ -38,5 +43,13 @@ export class InfotextsService {
         }));
 
         return responseSchema.parse(parsedResponse);
+    }
+
+    async getAll() {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.infotexts.getAll,
+            this._getAll,
+            ttl({ minutes: 2 }),
+        );
     }
 }

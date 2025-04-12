@@ -123,7 +123,7 @@ export class PlatformService {
     }: {
         metroOnly: boolean;
         where?: Prisma.PlatformWhereInput;
-    }): Promise<PlatformSchema[]> {
+    }) {
         const platforms = await this.prisma.platform.findMany({
             select: platformSelect,
             where: {

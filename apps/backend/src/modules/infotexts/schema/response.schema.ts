@@ -7,10 +7,9 @@ export const responseSchema = z
         textEn: z.string().nullable(),
         priority: z.enum(["LOW", "NORMAL", "HIGH"]),
         displayType: z.string(),
-        relatedStops: z.array(
+        relatedPlatforms: z.array(
             z.object({
                 id: z.string(),
-                name: z.string(),
                 platformCode: z.string().nullable(),
             }),
         ),
