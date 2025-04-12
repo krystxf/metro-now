@@ -36,7 +36,7 @@
         "@nestjs/platform-express": "^11.0.13",
         "@nestjs/schedule": "^5.0.1",
         "@nestjs/swagger": "^11.1.1",
-        "@prisma/client": "6.5.0",
+        "@prisma/client": "5.20.0",
         "cache-manager": "^6.4.2",
         "graphql": "^16.10.0",
         "radash": "^12.1.0",
@@ -75,7 +75,7 @@
     },
     "optionalDependencies": {
         "dotenv-cli": "^8.0.0",
-        "prisma": "^6.5.0"
+        "prisma": "^5.20.0"
     },
     "jest": {
         "moduleFileExtensions": [
