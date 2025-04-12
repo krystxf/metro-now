@@ -1,4 +1,0 @@
-type Query {
-    platforms(ids: [ID!]): [Platform!]!
-    platform(id: ID!): Platform
-}

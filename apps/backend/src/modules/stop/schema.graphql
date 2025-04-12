@@ -5,3 +5,8 @@ type Stop {
     avgLongitude: Float!
     platforms: [Platform!]!
 }
+
+type Query {
+    stops(ids: [ID!]): [Stop!]!
+    stop(id: ID!): Stop
+}

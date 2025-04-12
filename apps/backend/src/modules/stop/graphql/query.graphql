@@ -1,4 +1,0 @@
-type Query {
-    stops(ids: [ID!]): [Stop!]!
-    stop(id: ID!): Stop
-}

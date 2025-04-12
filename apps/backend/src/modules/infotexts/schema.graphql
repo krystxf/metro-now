@@ -1,3 +1,9 @@
+enum InfotextPriority {
+    LOW
+    NORMAL
+    HIGH
+}
+
 type Infotext {
     id: ID!
     text: String!
@@ -9,4 +15,8 @@ type Infotext {
 
     validFrom: ISODateTime
     validTo: ISODateTime
+}
+
+type Query {
+    infotexts: [Infotext!]!
 }

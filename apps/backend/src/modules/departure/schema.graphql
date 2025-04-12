@@ -15,3 +15,7 @@ type Departure {
     departureTime: DepartureTime!
     route: Route
 }
+
+type Query {
+    departures(stopIds: [ID!], platformIds: [ID!]): [Departure!]!
+}

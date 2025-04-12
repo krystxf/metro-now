@@ -8,3 +8,8 @@ type Platform {
     stop: Stop!
     routes: [Route!]!
 }
+
+type Query {
+    platforms(ids: [ID!]): [Platform!]!
+    platform(id: ID!): Platform
+}

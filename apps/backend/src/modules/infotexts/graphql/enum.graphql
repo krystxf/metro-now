@@ -1,5 +1,0 @@
-enum InfotextPriority {
-    LOW
-    NORMAL
-    HIGH
-}
