@@ -6,9 +6,9 @@ export const cacheModuleConfig: CacheModuleAsyncOptions = {
     useFactory: async () => {
         return {
             stores: [
-                new KeyvRedis(
-                    `redis://${process.env.REDIS_HOST || "localhost"}:${parseInt(process.env.REDIS_PORT || "6379")}`,
-                ),
+                new KeyvRedis({
+                    url: `redis://${process.env.REDIS_HOST || "localhost"}:${parseInt(process.env.REDIS_PORT || "6379")}`,
+                }),
             ],
         };
     },
