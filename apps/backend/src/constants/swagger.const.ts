@@ -7,8 +7,7 @@ import {
 export const SWAGGER_TITLE = "Metro Now API";
 export const SWAGGER_VERSION = "1.0";
 export const SWAGGER_DESCRIPTION = `
-### Hello, fellow developer👋
-Thank you for checking out my project.
+# ⚠️ REST API is deprecated, use GraphQL instead ⚠️
 
 ### Links
 - [GraphQL Playground](${GRAPHQL_PATH})
