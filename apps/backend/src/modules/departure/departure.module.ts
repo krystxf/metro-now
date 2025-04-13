@@ -6,6 +6,7 @@ import { DepartureController } from "src/modules/departure/departure.controller"
 import { DepartureResolver } from "src/modules/departure/departure.resolver";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PlatformService } from "src/modules/platform/platform.service";
+import { RouteService } from "src/modules/route/route.service";
 
 @Module({
     controllers: [DepartureController],
@@ -15,6 +16,7 @@ import { PlatformService } from "src/modules/platform/platform.service";
         DepartureResolver,
         PlatformService,
         GolemioService,
+        RouteService,
     ],
     imports: [],
 })

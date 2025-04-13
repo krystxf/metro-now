@@ -4,6 +4,7 @@ import { GraphQLError } from "src/common/graphql-error";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PlatformService } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
+import { RouteService } from "src/modules/route/route.service";
 import { ParentType } from "src/types/parent";
 
 @Resolver("Departure")
@@ -12,6 +13,7 @@ export class DepartureResolver {
         private golemioService: GolemioService,
         private prismaService: PrismaService,
         private platformService: PlatformService,
+        private readonly routeService: RouteService,
     ) {}
 
     @Query("departures")
@@ -88,14 +90,6 @@ export class DepartureResolver {
             return null;
         }
 
-        const route = await this.prismaService.gtfsRoute.findFirst({
-            where: { id: departure.route.id },
-        });
-
-        if (!route) {
-            return null;
-        }
-
-        return { ...route, name: route.shortName };
+        return this.routeService.getOneGraphQL(departure.route.id);
     }
 }

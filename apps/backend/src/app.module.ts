@@ -10,7 +10,6 @@ import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_PATH } from "src/constants/api";
 import { DepartureModule } from "src/modules/departure/departure.module";
-import { GtfsModule } from "src/modules/gtfs/gtfs.module";
 import { HelloModule } from "src/modules/hello/hello.module";
 import { ImportModule } from "src/modules/import/import.module";
 import { InfotextsModule } from "src/modules/infotexts/infotexts.module";
@@ -29,7 +28,6 @@ import { StopModule } from "src/modules/stop/stop.module";
         StopModule,
         PrismaModule,
         StatusModule,
-        GtfsModule,
         RouteModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),

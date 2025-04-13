@@ -1,4 +1,18 @@
+type RouteDirection {
+    id: ID!
+    """
+    Platforms are sorted
+    """
+    platforms: [Platform!]!
+}
+
 type Route {
     id: ID!
     name: String
+    directions: [RouteDirection!]!
+}
+
+type Query {
+    route(id: ID!): Route
+    routes: [Route!]!
 }

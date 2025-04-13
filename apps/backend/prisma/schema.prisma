@@ -40,8 +40,9 @@ model Platform {
 
   routes PlatformsOnRoutes[]
 
-  stop   Stop?   @relation(fields: [stopId], references: [id])
-  stopId String?
+  stop          Stop?           @relation(fields: [stopId], references: [id])
+  stopId        String?
+  GtfsRouteStop GtfsRouteStop[]
 }
 
 model Route {
@@ -91,8 +92,11 @@ model GtfsRouteStop {
   routeId String
   route   GtfsRoute @relation(fields: [routeId], references: [id])
 
-  directionId  String
-  stopId       String
+  directionId String
+
+  stopId   String? // TODO: rename to platformId
+  platform Platform? @relation(fields: [stopId], references: [id])
+
   stopSequence Int
 
   createdAt DateTime @default(now())

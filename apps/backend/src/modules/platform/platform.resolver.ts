@@ -1,6 +1,7 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { PlatformService } from "src/modules/platform/platform.service";
+import { RouteService } from "src/modules/route/route.service";
 import { StopService } from "src/modules/stop/stop.service";
 import { ParentType } from "src/types/parent";
 
@@ -9,6 +10,7 @@ export class PlatformResolver {
     constructor(
         private readonly platformService: PlatformService,
         private readonly stopService: StopService,
+        private readonly routeService: RouteService,
     ) {}
 
     @Query("platform")
@@ -32,6 +34,19 @@ export class PlatformResolver {
     ) {
         return this.stopService.getOne({
             where: { platforms: { some: { id: platform.id } } },
+        });
+    }
+
+    @ResolveField("routes")
+    getRoutesField(
+        @Parent()
+        platform: ParentType<typeof this.getMultiple> &
+            ParentType<typeof this.getOne>,
+    ) {
+        return this.routeService.getManyGraphQL({
+            where: {
+                GtfsRouteStop: { some: { platform: { id: platform.id } } },
+            },
         });
     }
 }
