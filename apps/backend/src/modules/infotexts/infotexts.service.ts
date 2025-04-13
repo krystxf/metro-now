@@ -48,7 +48,7 @@ export class InfotextsService {
     async getAll() {
         return this.cacheManager.wrap(
             CACHE_KEYS.infotexts.getAll,
-            this._getAll,
+            async () => await this._getAll(),
             ttl({ minutes: 2 }),
         );
     }
