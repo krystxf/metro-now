@@ -1,5 +1,5 @@
-import { Cache } from "@nestjs/cache-manager";
-import { Injectable } from "@nestjs/common";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 
 import { CACHE_KEYS, ttl } from "src/constants/cache";
 import { GolemioService } from "src/modules/golemio/golemio.service";
@@ -10,7 +10,7 @@ import { responseSchema } from "src/modules/infotexts/schema/response.schema";
 export class InfotextsService {
     constructor(
         private readonly golemioService: GolemioService,
-        private readonly cacheManager: Cache,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {}
 
     private async _getAll() {
