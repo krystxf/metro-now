@@ -33,6 +33,6 @@ export class RouteController {
             throw new HttpException("Missing route ID", HttpStatus.BAD_REQUEST);
         }
 
-        return this.routeService.getRoute(id);
+        return this.routeService.getOneGraphQL(id);
     }
 }

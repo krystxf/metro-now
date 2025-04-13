@@ -55,9 +55,7 @@ export class PlatformController {
             );
         }
 
-        const platforms = await this.platformService.getAllPlatforms(
-            parsed.data,
-        );
+        const platforms = await this.platformService.getAll(parsed.data);
 
         return platformSchema.array().parse(platforms);
     }

@@ -1,0 +1,12 @@
+type Stop {
+    id: ID!
+    name: String!
+    avgLatitude: Float!
+    avgLongitude: Float!
+    platforms: [Platform!]!
+}
+
+type Query {
+    stops(ids: [ID!]): [Stop!]!
+    stop(id: ID!): Stop
+}

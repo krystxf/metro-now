@@ -73,14 +73,33 @@ export class GtfsService {
                 })),
             });
 
+            const platforms = await this.prisma.platform.findMany({
+                select: { id: true },
+            });
+            const platformIds = platforms.map((platform) => platform.id);
+
             await transaction.gtfsRouteStop.createMany({
-                data: routeStopsData.map((routeStop) => ({
-                    routeId: routeStop.route_id,
-                    directionId: routeStop.direction_id,
-                    stopId: routeStop.stop_id,
-                    stopSequence: Number(routeStop.stop_sequence),
-                })),
+                data: routeStopsData
+                    .map((routeStop) => {
+                        let stopId = routeStop.stop_id;
+
+                        if (stopId.includes("_")) {
+                            stopId = stopId.split("_")[0];
+                        }
+
+                        return {
+                            routeId: routeStop.route_id,
+                            directionId: routeStop.direction_id,
+                            stopId: stopId,
+                            stopSequence: Number(routeStop.stop_sequence),
+                        };
+                    })
+                    .filter((routeStop) =>
+                        platformIds.includes(routeStop.stopId),
+                    ),
             });
         });
+
+        console.log("Finished GTFS sync");
     }
 }

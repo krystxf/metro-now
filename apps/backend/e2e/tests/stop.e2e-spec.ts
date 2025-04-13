@@ -11,7 +11,6 @@ import {
 } from "e2e/utils/generate-test-urls";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
-import { LoggerModule } from "src/modules/logger/logger.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { StopModule } from "src/modules/stop/stop.module";
 
@@ -23,7 +22,6 @@ describe("Stop Module (e2e)", () => {
                 CacheModule.register(cacheModuleConfig),
                 ConfigModule.forRoot(configModuleConfig),
                 PrismaModule,
-                LoggerModule,
                 StopModule,
             ],
         }).compile();

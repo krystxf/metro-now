@@ -47,7 +47,7 @@ export class StopController {
             throw new HttpException("Missing stop ID", HttpStatus.BAD_REQUEST);
         }
 
-        const res = await this.stopService.getStopById(id);
+        const res = await this.stopService.getOne({ where: { id } });
 
         if (!res) {
             throw new HttpException("Stop ID not found", HttpStatus.NOT_FOUND);

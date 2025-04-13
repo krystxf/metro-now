@@ -1,0 +1,22 @@
+enum InfotextPriority {
+    LOW
+    NORMAL
+    HIGH
+}
+
+type Infotext {
+    id: ID!
+    text: String!
+    textEn: String
+    priority: InfotextPriority!
+    displayType: String!
+
+    relatedPlatforms: [Platform!]!
+
+    validFrom: ISODateTime
+    validTo: ISODateTime
+}
+
+type Query {
+    infotexts: [Infotext!]!
+}

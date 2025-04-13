@@ -40,8 +40,9 @@ model Platform {
 
   routes PlatformsOnRoutes[]
 
-  stop   Stop?   @relation(fields: [stopId], references: [id])
-  stopId String?
+  stop          Stop?           @relation(fields: [stopId], references: [id])
+  stopId        String?
+  GtfsRouteStop GtfsRouteStop[]
 }
 
 model Route {
@@ -91,43 +92,17 @@ model GtfsRouteStop {
   routeId String
   route   GtfsRoute @relation(fields: [routeId], references: [id])
 
-  directionId  String
-  stopId       String
+  directionId String
+
+  stopId   String // TODO: rename to platformId
+  platform Platform? @relation(fields: [stopId], references: [id])
+
   stopSequence Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([routeId, directionId, stopId, stopSequence])
-}
-
-model Log {
-  id        BigInt   @id @default(autoincrement())
-  level     LogLevel
-  message   String
-  trace     Json?
-  createdAt DateTime @default(now())
-}
-
-model RequestLog {
-  id        BigInt  @id @default(autoincrement())
-  method    String
-  path      String
-  status    Int
-  duration  Int
-  response  String?
-  userAgent String?
-
-  createdAt DateTime @default(now())
-}
-
-enum LogLevel {
-  log
-  error
-  warn
-  debug
-  verbose
-  fatal
 }
 
 enum VehicleType {

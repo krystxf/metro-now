@@ -16,7 +16,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 RUN pnpm deploy --filter=@metro-now/web --prod /prod/web
 RUN pnpm deploy --filter=@metro-now/backend --prod /prod/backend
-
+COPY apps/backend/src/**.*.graphql /prod/backend/dist
 
 FROM base AS metro-now_web
 COPY --from=build /prod/web /prod/web

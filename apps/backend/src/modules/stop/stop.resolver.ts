@@ -1,25 +1,43 @@
-import { Args, Query, Resolver } from "@nestjs/graphql";
+import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
-import { Stop } from "src/models/stop.model";
+import { PlatformService } from "src/modules/platform/platform.service";
 import { StopService } from "src/modules/stop/stop.service";
-import { metroOnlyQuery } from "src/swagger/query.swagger";
+import { ParentType } from "src/types/parent";
 
-@Resolver(() => Stop)
+@Resolver()
 export class StopResolver {
-    constructor(private readonly stopService: StopService) {}
+    constructor(
+        private readonly stopService: StopService,
+        private readonly platformService: PlatformService,
+    ) {}
 
-    @Query(() => [Stop], {
-        description: "Get all stops",
-    })
-    async stop(
-        @Args("metroOnly", {
-            description: metroOnlyQuery.description,
-            defaultValue: false,
-            nullable: true,
-            type: () => Boolean,
-        })
-        metroOnly,
-    ): Promise<Stop[]> {
-        return this.stopService.getAll({ metroOnly });
+    @Query("stop")
+    getOne(@Args("id") id: string) {
+        return this.stopService.getOne({ where: { id } });
+    }
+
+    @Query("stops")
+    getMultiple(@Args("ids") ids: string[]) {
+        return this.stopService.getAll({
+            metroOnly: false,
+            where: {
+                id: { in: ids },
+            },
+        });
+    }
+
+    @ResolveField("platforms")
+    getPlatformsField(
+        @Parent()
+        stop: ParentType<typeof this.getOne> &
+            ParentType<typeof this.getMultiple>,
+    ) {
+        const ids = stop.platforms.map((p) => p.id);
+        if (ids.length === 0) return [];
+
+        return this.platformService.getAll({
+            metroOnly: false,
+            where: { id: { in: ids } },
+        });
     }
 }

@@ -2,20 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { VehicleType } from "@prisma/client";
 import { unique } from "radash";
 
-import { LogLevel, LogMessage, StopSyncTrigger } from "src/enums/log.enum";
 import {
     pidStopsSchema,
     type PidStopsSchema,
 } from "src/modules/import/schema/pid-stops.schema";
-import { LoggerService } from "src/modules/logger/logger.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class ImportService {
-    constructor(
-        private readonly prisma: PrismaService,
-        private readonly logger: LoggerService,
-    ) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     async getStops(): Promise<PidStopsSchema> {
         const url = new URL("https://data.pid.cz/stops/json/stops.json");
@@ -140,9 +135,7 @@ export class ImportService {
         );
     }
 
-    async syncStops(trigger: StopSyncTrigger): Promise<void> {
-        const start = Date.now();
-
+    async syncStops(): Promise<void> {
         try {
             const stopsData = await this.getStops();
 
@@ -190,24 +183,8 @@ export class ImportService {
                     routes: platform.routes,
                 })),
             });
-
-            await this.logger.createLog(LogLevel.log, LogMessage.IMPORT_STOPS, {
-                trigger,
-                duration: Date.now() - start,
-                stops: stopsData.stopGroups.length,
-                platforms: platforms.length,
-            });
         } catch (error) {
             console.error(error);
-            await this.logger.createLog(
-                LogLevel.error,
-                LogMessage.IMPORT_STOPS,
-                {
-                    trigger,
-                    duration: Date.now() - start,
-                    error: JSON.stringify(error),
-                },
-            );
         } finally {
             console.log("Finished stop sync");
         }

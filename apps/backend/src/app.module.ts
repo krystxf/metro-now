@@ -1,19 +1,18 @@
 import { ApolloDriver, type ApolloDriverConfig } from "@nestjs/apollo";
 import { CacheModule } from "@nestjs/cache-manager";
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ScheduleModule } from "@nestjs/schedule";
 
+import { formatGraphQLError } from "src/common/graphql-error";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_PATH } from "src/constants/api";
-import { RequestLoggerMiddleware } from "src/middleware/request-logger-middleware";
 import { DepartureModule } from "src/modules/departure/departure.module";
-import { GtfsModule } from "src/modules/gtfs/gtfs.module";
+import { HelloModule } from "src/modules/hello/hello.module";
 import { ImportModule } from "src/modules/import/import.module";
-import { LoggerModule } from "src/modules/logger/logger.module";
-import { LogsCleanupModule } from "src/modules/logs-cleanup/logs-cleanup.module";
+import { InfotextsModule } from "src/modules/infotexts/infotexts.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { RouteModule } from "src/modules/route/route.module";
@@ -25,12 +24,10 @@ import { StopModule } from "src/modules/stop/stop.module";
         PlatformModule,
         DepartureModule,
         ImportModule,
+        InfotextsModule,
         StopModule,
         PrismaModule,
-        LoggerModule,
-        LogsCleanupModule,
         StatusModule,
-        GtfsModule,
         RouteModule,
         ConfigModule.forRoot(configModuleConfig),
         ScheduleModule.forRoot(),
@@ -38,15 +35,14 @@ import { StopModule } from "src/modules/stop/stop.module";
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,
-            autoSchemaFile: "schema.gql",
+            typePaths: ["./**/*.graphql"],
             path: GRAPHQL_PATH,
+            autoTransformHttpErrors: true,
+            formatError: formatGraphQLError,
         }),
+        HelloModule,
     ],
     controllers: [],
     providers: [],
 })
-export class AppModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer.apply(RequestLoggerMiddleware).forRoutes("*");
-    }
-}
+export class AppModule {}

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { group, unique } from "radash";
 
-import { platformSelect } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
 const gtfsRouteSelect = {
@@ -12,13 +12,27 @@ const gtfsRouteSelect = {
     color: true,
     url: true,
     type: true,
-};
-
-const gtfsRouteStopSelect = {
-    directionId: true,
-    stopId: true,
-    stopSequence: true,
-};
+    GtfsRouteStop: {
+        select: {
+            directionId: true,
+            stopId: true,
+            stopSequence: true,
+            platform: {
+                select: {
+                    id: true,
+                    latitude: true,
+                    longitude: true,
+                    name: true,
+                    isMetro: true,
+                    code: true,
+                },
+            },
+        },
+        orderBy: {
+            stopSequence: "asc",
+        },
+    },
+} as const satisfies Prisma.GtfsRouteSelect;
 
 @Injectable()
 export class RouteService {
@@ -33,7 +47,7 @@ export class RouteService {
         });
 
         const routeStops = await this.prisma.gtfsRouteStop.findMany({
-            select: gtfsRouteStopSelect,
+            select: gtfsRouteSelect.GtfsRouteStop.select,
             where: {
                 routeId: id,
             },
@@ -43,10 +57,14 @@ export class RouteService {
         });
 
         const stops = await this.prisma.platform.findMany({
-            select: platformSelect,
+            select: gtfsRouteSelect.GtfsRouteStop.select.platform.select,
             where: {
                 id: {
-                    in: unique(routeStops.map((item) => item.stopId)),
+                    in: unique(
+                        routeStops
+                            .map((item) => item.stopId)
+                            .filter((item) => item !== null),
+                    ),
                 },
             },
         });
@@ -61,5 +79,47 @@ export class RouteService {
                 (item) => item.directionId,
             ),
         };
+    }
+
+    private processRoute(
+        route: Prisma.GtfsRouteGetPayload<{ select: typeof gtfsRouteSelect }>,
+    ) {
+        return {
+            ...route,
+            id: route.id.slice(1),
+            name: route.shortName,
+            directions: Object.entries(
+                group(route.GtfsRouteStop, ({ directionId }) => directionId),
+            ).map(([key, value]) => ({
+                id: key,
+                platforms: value?.map((v) => v.platform),
+            })),
+        };
+    }
+
+    async getManyGraphQL({
+        where = {},
+    }: {
+        where?: Prisma.GtfsRouteWhereInput;
+    } = {}) {
+        const routes = await this.prisma.gtfsRoute.findMany({
+            select: gtfsRouteSelect,
+            where,
+        });
+
+        return routes.map(this.processRoute);
+    }
+
+    async getOneGraphQL(id: string) {
+        const route = await this.prisma.gtfsRoute.findFirst({
+            select: gtfsRouteSelect,
+            where: { id },
+        });
+
+        if (!route) {
+            return null;
+        }
+
+        return this.processRoute(route);
     }
 }

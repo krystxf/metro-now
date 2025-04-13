@@ -1,0 +1,15 @@
+type Platform {
+    id: ID!
+    name: String!
+    latitude: Float!
+    longitude: Float!
+    isMetro: Boolean!
+    code: String
+    stop: Stop!
+    routes: [Route!]!
+}
+
+type Query {
+    platforms(ids: [ID!]): [Platform!]!
+    platform(id: ID!): Platform
+}

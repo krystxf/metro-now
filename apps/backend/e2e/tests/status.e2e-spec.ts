@@ -7,7 +7,6 @@ import * as request from "supertest";
 import { getRequestTestLabel } from "e2e/constant/test-label";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
-import { LoggerModule } from "src/modules/logger/logger.module";
 import { PrismaModule } from "src/modules/prisma/prisma.module";
 import { StatusModule } from "src/modules/status/status.module";
 
@@ -20,7 +19,6 @@ describe("Status Module (e2e)", () => {
                 CacheModule.register(cacheModuleConfig),
                 ConfigModule.forRoot(configModuleConfig),
                 PrismaModule,
-                LoggerModule,
                 StatusModule,
             ],
         }).compile();
