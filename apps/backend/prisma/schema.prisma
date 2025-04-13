@@ -94,7 +94,7 @@ model GtfsRouteStop {
 
   directionId String
 
-  stopId   String? // TODO: rename to platformId
+  stopId   String // TODO: rename to platformId
   platform Platform? @relation(fields: [stopId], references: [id])
 
   stopSequence Int
