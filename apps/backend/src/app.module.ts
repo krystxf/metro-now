@@ -5,6 +5,7 @@ import { ConfigModule } from "@nestjs/config";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ScheduleModule } from "@nestjs/schedule";
 
+import { formatGraphQLError } from "src/common/graphql-error";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
 import { GRAPHQL_PATH } from "src/constants/api";
@@ -38,6 +39,8 @@ import { StopModule } from "src/modules/stop/stop.module";
             playground: true,
             typePaths: ["./**/*.graphql"],
             path: GRAPHQL_PATH,
+            autoTransformHttpErrors: true,
+            formatError: formatGraphQLError,
         }),
         HelloModule,
     ],

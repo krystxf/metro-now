@@ -1,5 +1,6 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
+import { GraphQLError } from "src/common/graphql-error";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { PlatformService } from "src/modules/platform/platform.service";
 import { PrismaService } from "src/modules/prisma/prisma.service";
@@ -18,6 +19,13 @@ export class DepartureResolver {
         @Args("platformIds") platformIds: string[] = [],
         @Args("stopIds") stopIds: string[] = [],
     ) {
+        if (platformIds.length === 0 && stopIds.length === 0) {
+            return GraphQLError({
+                message: "At least one `platformId` or `stopId` is required",
+                code: "BAD_USER_INPUT",
+            });
+        }
+
         const stopPlatforms = await this.prismaService.stop.findMany({
             select: { platforms: { select: { id: true } } },
             where: { id: { in: stopIds } },
@@ -51,9 +59,7 @@ export class DepartureResolver {
 
         return json.departures.map((departure) => ({
             ...departure,
-            route: {
-                id: `L${departure.route.short_name}`,
-            },
+            route: { id: `L${departure.route.short_name}` },
             platform: departure.stop,
             headsign: departure.trip.headsign,
             delay: departure.delay.is_available
