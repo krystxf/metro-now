@@ -1,0 +1,86 @@
+"""
+Indicates exactly one field must be supplied and this field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
+"""
+A directive used by the Apollo iOS client to annotate operations or fragments that should be used exclusively for generating local cache mutations instead of as standard operations.
+"""
+directive @apollo_client_ios_localCacheMutation on QUERY | MUTATION | SUBSCRIPTION | FRAGMENT_DEFINITION
+
+scalar ISODateTime
+
+type DepartureTime {
+  predicted: ISODateTime
+  scheduled: ISODateTime!
+}
+
+type Departure {
+  """in seconds"""
+  delay: Int
+  headsign: String
+  platform: Platform!
+  departureTime: DepartureTime!
+  route: Route
+}
+
+type Query {
+  departures(stopIds: [ID!], platformIds: [ID!]): [Departure!]!
+  hello: String!
+  infotexts: [Infotext!]!
+  platforms(ids: [ID!]): [Platform!]!
+  platform(id: ID!): Platform
+  route(id: ID!): Route
+  routes: [Route!]!
+  stops(ids: [ID!]): [Stop!]!
+  stop(id: ID!): Stop
+}
+
+enum InfotextPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+type Infotext {
+  id: ID!
+  text: String!
+  textEn: String
+  priority: InfotextPriority!
+  displayType: String!
+  relatedPlatforms: [Platform!]!
+  validFrom: ISODateTime
+  validTo: ISODateTime
+}
+
+type Platform {
+  id: ID!
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  isMetro: Boolean!
+  code: String
+  stop: Stop!
+  routes: [Route!]!
+}
+
+type RouteDirection {
+  id: ID!
+
+  """Platforms are sorted"""
+  platforms: [Platform!]!
+}
+
+type Route {
+  id: ID!
+  name: String
+  directions: [RouteDirection!]!
+}
+
+type Stop {
+  id: ID!
+  name: String!
+  avgLatitude: Float!
+  avgLongitude: Float!
+  platforms: [Platform!]!
+}

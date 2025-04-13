@@ -1,0 +1,18 @@
+query Infotexts {
+    infotexts {
+        id
+        text
+        textEn
+        priority
+        validFrom
+        validTo
+        relatedPlatforms {
+            code
+            name
+            stop {
+                id
+                name
+            }
+        }
+    }
+}

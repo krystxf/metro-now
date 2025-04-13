@@ -1,0 +1,36 @@
+{
+    "schemaNamespace": "MetroNowAPI",
+    "schemaDownloadConfiguration": {
+        "downloadMethod": {
+            "introspection": {
+                "endpointURL": "https://api.metronow.dev/graphql",
+                "httpMethod": {
+                    "POST": {}
+                },
+                "includeDeprecatedInputValues": false,
+                "outputFormat": "SDL"
+            }
+        },
+        "downloadTimeout": 60,
+        "headers": [],
+        "outputPath": "./graphql/schema.graphqls"
+    },
+    "input": {
+        "operationSearchPaths": ["**/*.graphql"],
+        "schemaSearchPaths": ["**/*.graphqls"]
+    },
+    "output": {
+        "testMocks": {
+            "none": {}
+        },
+        "schemaTypes": {
+            "path": "./MetroNowAPI",
+            "moduleType": {
+                "swiftPackageManager": {}
+            }
+        },
+        "operations": {
+            "inSchemaModule": {}
+        }
+    }
+}
