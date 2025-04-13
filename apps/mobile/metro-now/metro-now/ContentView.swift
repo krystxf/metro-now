@@ -1,6 +1,8 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
+import Apollo
+import MetroNowAPI
 import SwiftUI
 
 struct ContentView: View {
@@ -14,6 +16,7 @@ struct ContentView: View {
     @StateObject var stopsViewModel = StopsViewModel()
     @State private var showWelcomeScreen: Bool = false
     @State private var showSearchScreen: Bool = false
+    @State private var showInfotexts: Bool = false
 
     var body: some View {
         ZStack {
@@ -29,6 +32,13 @@ struct ContentView: View {
                         }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button(action: {
+                                showInfotexts = true
+                            }) {
+                                Label("Info", systemImage: "info.bubble")
+                            }
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
                                 showSearchScreen = true
                             }) {
                                 Label("Search", systemImage: "magnifyingglass")
@@ -36,6 +46,9 @@ struct ContentView: View {
                         }
                     }
             }
+
+            // MARK: - search sheet
+
             .sheet(
                 isPresented: $showSearchScreen,
                 onDismiss: {
@@ -48,6 +61,21 @@ struct ContentView: View {
                 .environmentObject(stopsViewModel)
                 .presentationDetents([.large])
             }
+
+            // MARK: - infotext sheet
+
+            .sheet(
+                isPresented: $showInfotexts,
+                onDismiss: {
+                    showInfotexts = false
+                }
+            ) {
+                InfotextsPageView()
+                    .presentationDetents([.large])
+            }
+
+            // MARK: - welcome sheet
+
             .sheet(
                 isPresented: $showWelcomeScreen,
                 onDismiss: dismissWelcomeScreen
