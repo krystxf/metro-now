@@ -24,9 +24,13 @@ export class StopService {
     async getAll({
         metroOnly,
         where,
+        limit,
+        offset,
     }: {
         metroOnly: boolean;
         where?: Prisma.StopWhereInput;
+        limit?: number | undefined;
+        offset?: number | undefined;
     }) {
         const stops = await this.prisma.stop.findMany({
             select: getStopsSelect({ metroOnly }),
@@ -40,6 +44,8 @@ export class StopService {
                     },
                 },
             },
+            ...(limit && { take: limit }),
+            ...(offset && { skip: offset }),
         });
 
         return stops.map((stop) => ({

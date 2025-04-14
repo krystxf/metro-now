@@ -7,6 +7,6 @@ type Stop {
 }
 
 type Query {
-    stops(ids: [ID!]): [Stop!]!
+    stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
     stop(id: ID!): Stop
 }
