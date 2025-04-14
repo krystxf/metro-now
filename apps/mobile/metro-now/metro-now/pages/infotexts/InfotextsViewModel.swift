@@ -14,7 +14,7 @@ class InfotextsViewModel: ObservableObject {
     }
 
     private func loadInfotexts() {
-        activeRequest = Network.shared.apollo.fetch(query: InfotextsQuery()) { [weak self] result in
+        activeRequest = Network.shared.apollo.fetch(query: InfotextsQuery(), cachePolicy: .returnCacheDataAndFetch) { [weak self] result in
             guard let self else {
                 return
             }

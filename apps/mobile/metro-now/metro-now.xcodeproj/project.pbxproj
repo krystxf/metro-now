@@ -21,6 +21,7 @@
 		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2DEE771B2CFF5CD000F24AAD /* Alamofire */; };
 		2DFD3EE22DAC892F000E871F /* codegen.sh in Resources */ = {isa = PBXBuildFile; fileRef = 2DFD3EE12DAC892F000E871F /* codegen.sh */; };
+		2DFD3EE52DAD6A0F000E871F /* Stops.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 2DFD3EE42DAD6A0F000E871F /* Stops.graphql */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +85,7 @@
 		2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		2DFD3EE12DAC892F000E871F /* codegen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = codegen.sh; sourceTree = "<group>"; };
+		2DFD3EE42DAD6A0F000E871F /* Stops.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = Stops.graphql; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -256,6 +258,7 @@
 			children = (
 				2D27D21B2DAC31C000B1F25D /* Hello.graphql */,
 				2D27D2212DAC397000B1F25D /* Infotexts.graphql */,
+				2DFD3EE42DAD6A0F000E871F /* Stops.graphql */,
 				2D27D21C2DAC31C000B1F25D /* schema.graphqls */,
 			);
 			path = graphql;
@@ -433,6 +436,7 @@
 				2D27D21F2DAC31C000B1F25D /* apollo-codegen-config.json in Resources */,
 				2DFD3EE22DAC892F000E871F /* codegen.sh in Resources */,
 				2D27D2202DAC31C000B1F25D /* schema.graphqls in Resources */,
+				2DFD3EE52DAD6A0F000E871F /* Stops.graphql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
