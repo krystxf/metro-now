@@ -1,4 +1,11 @@
-import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
+import {
+    Args,
+    Int,
+    Parent,
+    Query,
+    ResolveField,
+    Resolver,
+} from "@nestjs/graphql";
 
 import { PlatformService } from "src/modules/platform/platform.service";
 import { StopService } from "src/modules/stop/stop.service";
@@ -17,12 +24,16 @@ export class StopResolver {
     }
 
     @Query("stops")
-    getMultiple(@Args("ids") ids: string[]) {
+    getMultiple(
+        @Args("ids") ids: string[] | undefined,
+        @Args("limit") limit: number | undefined,
+        @Args("offset") offset: number | undefined,
+    ) {
         return this.stopService.getAll({
             metroOnly: false,
-            where: {
-                id: { in: ids },
-            },
+            where: ids ? { id: { in: ids } } : {},
+            limit: limit ?? undefined,
+            offset: offset ?? undefined,
         });
     }
 
