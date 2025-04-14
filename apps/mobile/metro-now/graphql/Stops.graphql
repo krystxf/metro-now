@@ -1,0 +1,8 @@
+query Stops {
+    stops {
+        id
+        avgLatitude
+        avgLongitude
+        name
+    }
+}
