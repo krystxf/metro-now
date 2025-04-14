@@ -1,12 +1,6 @@
-import {
-    Args,
-    Int,
-    Parent,
-    Query,
-    ResolveField,
-    Resolver,
-} from "@nestjs/graphql";
+import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
+import { PlatformsByStopLoader } from "src/modules/dataloader/dataloader.service";
 import { PlatformService } from "src/modules/platform/platform.service";
 import { StopService } from "src/modules/stop/stop.service";
 import { ParentType } from "src/types/parent";
@@ -16,6 +10,7 @@ export class StopResolver {
     constructor(
         private readonly stopService: StopService,
         private readonly platformService: PlatformService,
+        private readonly platformsByStopLoader: PlatformsByStopLoader,
     ) {}
 
     @Query("stop")
@@ -43,12 +38,10 @@ export class StopResolver {
         stop: ParentType<typeof this.getOne> &
             ParentType<typeof this.getMultiple>,
     ) {
+        console.log("getPlatformsField", stop.platforms);
         const ids = stop.platforms.map((p) => p.id);
         if (ids.length === 0) return [];
 
-        return this.platformService.getAll({
-            metroOnly: false,
-            where: { id: { in: ids } },
-        });
+        return this.platformsByStopLoader.loadMany(ids);
     }
 }

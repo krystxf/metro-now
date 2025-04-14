@@ -39,6 +39,15 @@ import { StopModule } from "src/modules/stop/stop.module";
             path: GRAPHQL_PATH,
             autoTransformHttpErrors: true,
             formatError: formatGraphQLError,
+
+            // useFactory: (dataloaderService: DataloaderService) => {
+            //     return {
+            //         autoSchemaFile: true,
+            //         context: () => ({
+            //             loaders: dataloaderService.getLoaders(),
+            //         }),
+            //     };
+            // },
         }),
         HelloModule,
     ],

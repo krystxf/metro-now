@@ -9,6 +9,7 @@ import { StopService } from "src/modules/stop/stop.service";
 @Module({
     controllers: [PlatformController],
     providers: [PlatformResolver, PlatformService, StopService, RouteService],
+    exports: [PlatformService],
     imports: [],
 })
 export class PlatformModule {}
