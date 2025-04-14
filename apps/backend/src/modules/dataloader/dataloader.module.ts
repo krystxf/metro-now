@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 
+import { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
 import { PlatformModule } from "src/modules/platform/platform.module";
-import { PlatformsByStopLoader } from "src/modules/dataloader/dataloader.service";
 
 @Module({
     imports: [PlatformModule],

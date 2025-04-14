@@ -1,16 +1,16 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
+import { RoutesByPlatformIdLoader } from "src/modules/dataloader/routes-by-platform.loader";
+import { StopByPlatformLoader } from "src/modules/dataloader/stop-by-platform.loader";
 import { PlatformService } from "src/modules/platform/platform.service";
-import { RouteService } from "src/modules/route/route.service";
-import { StopService } from "src/modules/stop/stop.service";
 import { ParentType } from "src/types/parent";
 
 @Resolver("Platform")
 export class PlatformResolver {
     constructor(
         private readonly platformService: PlatformService,
-        private readonly stopService: StopService,
-        private readonly routeService: RouteService,
+        private readonly routesByPlatformIdLoader: RoutesByPlatformIdLoader,
+        private readonly stopByPlatformLoader: StopByPlatformLoader,
     ) {}
 
     @Query("platform")
@@ -20,7 +20,7 @@ export class PlatformResolver {
 
     @Query("platforms")
     getMultiple(@Args("ids") ids: string[]) {
-        return this.platformService.getAll({
+        return this.platformService.getAllGraphQL({
             metroOnly: false,
             where: { id: { in: ids } },
         });
@@ -32,9 +32,11 @@ export class PlatformResolver {
         platform: ParentType<typeof this.getMultiple> &
             ParentType<typeof this.getOne>,
     ) {
-        return this.stopService.getOne({
-            where: { platforms: { some: { id: platform.id } } },
-        });
+        if (!platform.stopId) {
+            return null;
+        }
+
+        return this.stopByPlatformLoader.load(platform.stopId);
     }
 
     @ResolveField("routes")
@@ -43,10 +45,6 @@ export class PlatformResolver {
         platform: ParentType<typeof this.getMultiple> &
             ParentType<typeof this.getOne>,
     ) {
-        return this.routeService.getManyGraphQL({
-            where: {
-                GtfsRouteStop: { some: { platform: { id: platform.id } } },
-            },
-        });
+        return this.routesByPlatformIdLoader.load(platform.id);
     }
 }

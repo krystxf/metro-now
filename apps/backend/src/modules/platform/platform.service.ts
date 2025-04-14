@@ -13,6 +13,7 @@ export const platformSelect = {
     longitude: true,
     name: true,
     isMetro: true,
+    stopId: true,
     code: true,
     routes: {
         select: {
@@ -117,6 +118,9 @@ export class PlatformService {
         }));
     }
 
+    /**
+     * @deprecated Use getAllGraphQL instead
+     */
     async getAll({
         metroOnly,
         where,
@@ -140,6 +144,32 @@ export class PlatformService {
             ...platform,
             routes: platform.routes.map(({ route }) => route),
         }));
+    }
+
+    async getAllGraphQL({
+        metroOnly,
+        where,
+    }: {
+        metroOnly: boolean;
+        where?: Prisma.PlatformWhereInput;
+    }) {
+        const platforms = await this.prisma.platform.findMany({
+            select: {
+                id: true,
+                latitude: true,
+                longitude: true,
+                code: true,
+                name: true,
+                isMetro: true,
+                stopId: true,
+            },
+            where: {
+                ...where,
+                ...(metroOnly ? { isMetro: true } : {}),
+            },
+        });
+
+        return platforms;
     }
 
     async getOne({ where }: { where: Prisma.PlatformWhereInput }) {
