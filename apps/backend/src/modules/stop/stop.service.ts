@@ -21,12 +21,17 @@ export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
 export class StopService {
     constructor(private prisma: PrismaService) {}
 
+    /** @deprecated Use getAllGraphQL instead */
     async getAll({
         metroOnly,
         where,
+        limit,
+        offset,
     }: {
         metroOnly: boolean;
         where?: Prisma.StopWhereInput;
+        limit?: number | undefined;
+        offset?: number | undefined;
     }) {
         const stops = await this.prisma.stop.findMany({
             select: getStopsSelect({ metroOnly }),
@@ -40,6 +45,8 @@ export class StopService {
                     },
                 },
             },
+            ...(limit && { take: limit }),
+            ...(offset && { skip: offset }),
         });
 
         return stops.map((stop) => ({
@@ -49,6 +56,35 @@ export class StopService {
                 routes: platform.routes.map((route) => route.route),
             })),
         }));
+    }
+
+    async getAllGraphQL({
+        where,
+        limit,
+        offset,
+    }: {
+        where?: Prisma.StopWhereInput;
+        limit?: number | undefined;
+        offset?: number | undefined;
+    }) {
+        const stops = await this.prisma.stop.findMany({
+            select: {
+                id: true,
+                name: true,
+                avgLatitude: true,
+                avgLongitude: true,
+                platforms: {
+                    select: {
+                        id: true,
+                    },
+                },
+            },
+            where: where ?? {},
+            ...(limit && { take: limit }),
+            ...(offset && { skip: offset }),
+        });
+
+        return stops;
     }
 
     async getOne({ where }: { where?: Prisma.StopWhereInput }) {

@@ -66,6 +66,7 @@ export class ImportService {
         await this.prisma.$transaction(
             async (transaction) => {
                 await transaction.platformsOnRoutes.deleteMany();
+                await transaction.gtfsRouteStop.deleteMany();
                 await transaction.platform.deleteMany();
                 await transaction.route.deleteMany();
                 await transaction.stop.deleteMany();
