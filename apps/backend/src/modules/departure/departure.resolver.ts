@@ -7,6 +7,12 @@ import { PrismaService } from "src/modules/prisma/prisma.service";
 import { RouteService } from "src/modules/route/route.service";
 import { ParentType } from "src/types/parent";
 
+const ROUTE_ID_BY_NAME = {
+    A: "L991",
+    B: "L992",
+    C: "L993",
+};
+
 @Resolver("Departure")
 export class DepartureResolver {
     constructor(
@@ -20,6 +26,7 @@ export class DepartureResolver {
     async getMultiple(
         @Args("platformIds") platformIds: string[] = [],
         @Args("stopIds") stopIds: string[] = [],
+        @Args("limit") limit: number = 100,
     ) {
         if (platformIds.length === 0 && stopIds.length === 0) {
             return GraphQLError({
@@ -44,6 +51,9 @@ export class DepartureResolver {
                     ["skip", "canceled"],
                     ["mode", "departures"],
                     ["order", "real"],
+                    ["includeMetroTrains", "true"],
+                    ["limit", limit.toString()],
+                    ["minutesBefore", "1"],
                 ]),
         );
 
@@ -61,13 +71,17 @@ export class DepartureResolver {
 
         return json.departures.map((departure) => ({
             ...departure,
-            route: { id: `L${departure.route.short_name}` },
+            route: {
+                id:
+                    ROUTE_ID_BY_NAME[departure.route.short_name] ??
+                    `L${departure.route.short_name}`,
+            },
             platform: departure.stop,
             headsign: departure.trip.headsign,
             delay: departure.delay.is_available
                 ? (departure.delay.minutes ?? 0) * 60 +
                   (departure.delay.seconds ?? 0)
-                : undefined,
+                : 0,
             departureTime: {
                 predicted: departure.departure_timestamp.predicted,
                 scheduled: departure.departure_timestamp.scheduled,

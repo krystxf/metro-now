@@ -17,5 +17,12 @@ type Departure {
 }
 
 type Query {
-    departures(stopIds: [ID!], platformIds: [ID!]): [Departure!]!
+    departures(
+        stopIds: [ID!]
+        platformIds: [ID!]
+        """
+        maximum number of departures to return (max: 100)
+        """
+        limit: Int
+    ): [Departure!]!
 }
