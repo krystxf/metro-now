@@ -6,7 +6,7 @@ import SwiftUI
 struct InfotextsItem: View {
     let relatedStops: [String]
     let description: String
-    
+
     init(relatedStops: [String], description: String) {
         self.relatedStops = Array(Set(relatedStops))
         self.description = description

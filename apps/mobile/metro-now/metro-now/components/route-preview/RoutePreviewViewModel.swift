@@ -51,7 +51,7 @@ struct RouteAPIType: Decodable {
 // MARK: - Direction
 
 struct RouteAPITypeDirection: Identifiable, Decodable {
-    let id = UUID()
+    var id = UUID()
 
     let directionId, stopId: String
     let stopSequence: Int

@@ -72,9 +72,8 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
                 "vehicleType": "metro",
                 "stop": stopsIds,
                 "platform": platformsIds,
-                "limit": 6,
+                "limit": 100,
                 "minutesBefore": 1,
-                "minutesAfter": String(1 * 60),
             ]
         )
 
