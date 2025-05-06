@@ -7,6 +7,7 @@ import SwiftUI
 
 class InfotextsViewModel: ObservableObject {
     @Published var infotexts = [InfotextsQuery.Data.Infotext]()
+    @Published var isLoading = true
     @Published var activeRequest: Cancellable?
 
     init() {
@@ -26,7 +27,6 @@ class InfotextsViewModel: ObservableObject {
                 if let infotexts = graphQLResult.data?.infotexts {
                     self.infotexts = infotexts
                     print("Fetched infotexts")
-                    print(infotexts.map(\.text))
                 }
 
                 if let errors = graphQLResult.errors {
@@ -35,6 +35,8 @@ class InfotextsViewModel: ObservableObject {
             case let .failure(error):
                 print("Info errors: \(error)")
             }
+
+            isLoading = false
         }
     }
 }
