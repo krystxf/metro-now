@@ -1,3 +1,13 @@
+enum VehicleType {
+    BUS
+    TRAM
+    FERRY
+    TRAIN
+    FUNICULAR
+    SUBWAY
+    TROLLEYBUS
+}
+
 type RouteDirection {
     id: ID!
     """
@@ -10,6 +20,18 @@ type Route {
     id: ID!
     name: String
     directions: [RouteDirection!]!
+    isSubstitute: Boolean!
+
+    """
+    might not be accurate if isSubstitute is true
+    (shows the original vehicle type, not the substitute vehicle type)
+    """
+    vehicleType: VehicleType!
+
+    """
+    applies to BUS and TRAM only - defaults to false
+    """
+    isNight: Boolean!
 }
 
 type Query {
