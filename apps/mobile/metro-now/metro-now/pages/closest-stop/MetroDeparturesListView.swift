@@ -28,9 +28,7 @@ struct MetroDeparturesListView: View {
                     departure: platformDepartures[0].departure.predicted,
                     nextHeadsign: nextDeparture?.headsign,
                     nextDeparture: nextDeparture?.departure.scheduled
-                ).onLongPressGesture {
-                    routeIdPreview = SheetIdItem(id: "L\(route.id)")
-                }
+                )
             } else {
                 let route = platform.routes[0]
 
