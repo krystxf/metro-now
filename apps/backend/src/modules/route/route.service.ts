@@ -1,8 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { group, unique } from "radash";
+import { group } from "radash";
 
 import { PrismaService } from "src/modules/prisma/prisma.service";
+import {
+    BUS_PREFIXES,
+    METRO_LINES,
+    TRAIN_PREFIXES,
+} from "src/modules/route/route.const";
+import { VehicleType } from "src/types/graphql.generated";
 
 const gtfsRouteSelect = {
     id: true,
@@ -37,49 +43,6 @@ const gtfsRouteSelect = {
 @Injectable()
 export class RouteService {
     constructor(private prisma: PrismaService) {}
-
-    async getRoute(id: string) {
-        const route = await this.prisma.gtfsRoute.findFirst({
-            select: gtfsRouteSelect,
-            where: {
-                id,
-            },
-        });
-
-        const routeStops = await this.prisma.gtfsRouteStop.findMany({
-            select: gtfsRouteSelect.GtfsRouteStop.select,
-            where: {
-                routeId: id,
-            },
-            orderBy: {
-                stopSequence: "asc",
-            },
-        });
-
-        const stops = await this.prisma.platform.findMany({
-            select: gtfsRouteSelect.GtfsRouteStop.select.platform.select,
-            where: {
-                id: {
-                    in: unique(
-                        routeStops
-                            .map((item) => item.stopId)
-                            .filter((item) => item !== null),
-                    ),
-                },
-            },
-        });
-
-        return {
-            ...route,
-            directions: group(
-                routeStops.map((routeStop) => ({
-                    ...routeStop,
-                    stop: stops.find((stop) => stop.id === routeStop.stopId),
-                })),
-                (item) => item.directionId,
-            ),
-        };
-    }
 
     private processRoute(
         route: Prisma.GtfsRouteGetPayload<{ select: typeof gtfsRouteSelect }>,
@@ -121,5 +84,60 @@ export class RouteService {
         }
 
         return this.processRoute(route);
+    }
+
+    isSubstitute(routeName: string): boolean {
+        return routeName.startsWith("X");
+    }
+
+    private getNameWithoutSubstitute(routeName: string): string {
+        return this.isSubstitute(routeName) ? routeName.slice(1) : routeName;
+    }
+
+    isNight(routeName: string): boolean {
+        const routeNameParsed = this.getNameWithoutSubstitute(routeName);
+        const routeNumber = parseInt(routeNameParsed);
+
+        if (isNaN(routeNumber)) {
+            return false;
+        }
+
+        return (
+            (routeNumber >= 90 && routeNumber < 100) ||
+            (routeNumber >= 900 && routeNumber < 1000)
+        );
+    }
+
+    getVehicleType(routeName: string): VehicleType {
+        const routeNameParsed = this.getNameWithoutSubstitute(routeName);
+        const routeNumber = parseInt(routeNameParsed);
+
+        if (!isNaN(routeNumber)) {
+            if (routeNumber === 58 || routeNumber === 59) {
+                return VehicleType.TROLLEYBUS;
+            }
+            if (routeNumber < 100) {
+                return VehicleType.TRAM;
+            }
+            return VehicleType.BUS;
+        }
+        if (METRO_LINES.includes(routeNameParsed)) {
+            return VehicleType.SUBWAY;
+        }
+        if (routeName.startsWith("P")) {
+            return VehicleType.FERRY;
+        }
+        if (routeName === "LD") {
+            return VehicleType.FUNICULAR;
+        }
+        if (
+            TRAIN_PREFIXES.some((prefix) => routeNameParsed.startsWith(prefix))
+        ) {
+            return VehicleType.TRAIN;
+        }
+        if (BUS_PREFIXES.some((prefix) => routeNameParsed.startsWith(prefix))) {
+            return VehicleType.BUS;
+        }
+        return VehicleType.BUS;
     }
 }
