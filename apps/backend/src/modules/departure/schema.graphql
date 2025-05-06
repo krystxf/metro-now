@@ -1,5 +1,5 @@
 type DepartureTime {
-    predicted: ISODateTime
+    predicted: ISODateTime!
     scheduled: ISODateTime!
 }
 
