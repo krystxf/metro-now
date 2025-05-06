@@ -4,5 +4,12 @@ query Stops {
         avgLatitude
         avgLongitude
         name
+        platforms {
+            id
+            name
+            latitude
+            longitude
+            code
+        }
     }
 }
