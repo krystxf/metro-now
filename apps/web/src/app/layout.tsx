@@ -4,6 +4,7 @@ import { poppins } from "@/fonts";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { getTitle } from "@/utils/metadata.utils";
+import ogImage from "../../public/opengraph-image.png";
 
 const WEB_URL = new URL("https://metronow.dev");
 
@@ -20,8 +21,25 @@ export const metadata: Metadata = {
     keywords: ["prague", "praha", "public transport", "metro", "tram", "bus"],
     metadataBase: WEB_URL,
     openGraph: {
-        url: WEB_URL,
+        url: WEB_URL.toString(),
         type: "website",
+        title: getTitle(),
+        description: "Prague public transport app",
+        siteName: "Metro Now",
+        images: [
+            {
+                url: ogImage.src,
+                width: ogImage.width,
+                height: ogImage.height,
+                alt: "Metro Now - Prague Public Transport App",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: getTitle(),
+        description: "Prague public transport app",
+        images: [ogImage.src],
     },
     appLinks: {
         ios: {
