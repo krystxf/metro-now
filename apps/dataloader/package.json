@@ -1,0 +1,24 @@
+{
+    "name": "@metro-now/dataloader",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/app.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/app.js",
+        "dev:watch": "nodemon --watch src --ext ts --exec \"npm run build && npm start\"",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^5.1.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.10.0",
+        "nodemon": "^3.0.2",
+        "typescript": "^5.3.0"
+    }
+}
