@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@metro-now/database";
 
 import { PlatformWithDistanceSchema } from "src/modules/platform/schema/platform-with-distance.schema";
 import { PlatformSchema } from "src/modules/platform/schema/platform.schema";

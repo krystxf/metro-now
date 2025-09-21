@@ -1,0 +1,29 @@
+{
+    "name": "@metro-now/database",
+    "main": "index.ts",
+    "types": "index.ts",
+    "scripts": {
+        "prisma:studio": "dotenv -e ../backend/.env.local -- prisma studio",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate:create": "dotenv -e ../backend/.env.local -- prisma migrate dev",
+        "prisma:migrate:deploy": "dotenv -e ../backend/.env.local -- prisma migrate deploy",
+        "prisma:push": "dotenv -e ../backend/.env.local -- prisma db push",
+        "prisma:seed": "prisma db seed",
+        "prisma:reset": "dotenv -e ../backend/.env.local -- prisma migrate reset",
+        "prisma:status": "dotenv -e ../backend/.env.local -- prisma migrate status"
+    },
+    "dependencies": {
+        "@prisma/client": "5.20.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.3",
+        "ts-node": "^10.9.2"
+    },
+    "optionalDependencies": {
+        "dotenv-cli": "^8.0.0",
+        "prisma": "^5.20.0"
+    },
+    "prisma": {
+        "seed": "dotenv -e ../backend/.env.local -- ts-node prisma/seed.ts"
+    }
+}

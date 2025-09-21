@@ -2,7 +2,7 @@
     "name": "@metro-now/backend",
     "scripts": {
         "typegen": "ts-node ./src/scripts/generate-types.ts",
-        "prebuild": "rimraf dist && pnpm prisma:generate && pnpm typegen",
+        "prebuild": "rimraf dist && pnpm typegen",
         "build": "nest build",
         "start": "nest start",
         "dev": "nest start --watch",
@@ -15,18 +15,13 @@
         "test:watch": "jest --watch",
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "test:e2e": "jest --config ./e2e/jest-e2e.json",
-        "prisma:studio": "dotenv -e .env.local -- prisma studio",
-        "prisma:generate": "prisma generate",
-        "prisma:migrate:create": "dotenv -e .env.local -- prisma migrate dev",
-        "prisma:migrate:deploy": "dotenv -e .env.local -- prisma migrate deploy",
-        "prisma:push": "dotenv -e .env.local -- prisma db push",
-        "prisma:seed": "prisma db seed"
+        "test:e2e": "jest --config ./e2e/jest-e2e.json"
     },
     "dependencies": {
         "@apollo/server": "^4.11.3",
         "@fast-csv/parse": "^5.0.2",
         "@keyv/redis": "^4.3.3",
+        "@metro-now/database": "workspace:*",
         "@nestjs/apollo": "^13.0.4",
         "@nestjs/cache-manager": "^3.0.1",
         "@nestjs/common": "^11.0.13",
@@ -36,7 +31,6 @@
         "@nestjs/platform-express": "^11.0.13",
         "@nestjs/schedule": "^5.0.1",
         "@nestjs/swagger": "^11.1.1",
-        "@prisma/client": "5.20.0",
         "cache-manager": "^6.4.2",
         "dataloader": "^2.2.3",
         "graphql": "^16.10.0",
@@ -74,10 +68,6 @@
         "tsconfig-paths": "^4.2.0",
         "typescript": "^5.8.3"
     },
-    "optionalDependencies": {
-        "dotenv-cli": "^8.0.0",
-        "prisma": "^5.20.0"
-    },
     "jest": {
         "moduleFileExtensions": [
             "js",
@@ -97,8 +87,5 @@
         ],
         "coverageDirectory": "../coverage",
         "testEnvironment": "node"
-    },
-    "prisma": {
-        "seed": "dotenv -e .env.local -- ts-node prisma/seed.ts"
     }
 }

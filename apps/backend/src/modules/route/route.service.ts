@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@metro-now/database";
 import { group } from "radash";
 
 import { PrismaService } from "src/modules/prisma/prisma.service";

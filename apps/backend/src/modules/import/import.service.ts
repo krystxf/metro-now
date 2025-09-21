@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { VehicleType } from "@prisma/client";
+import { VehicleType } from "@metro-now/database";
 import { unique } from "radash";
 
 import {
