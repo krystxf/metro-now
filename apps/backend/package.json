@@ -24,12 +24,12 @@
         "prisma:seed": "prisma db seed"
     },
     "dependencies": {
-        "@apollo/server": "^4.11.3",
+        "@apollo/server": "^5.5.0",
         "@fast-csv/parse": "^5.0.2",
         "@keyv/redis": "^4.3.3",
         "@nestjs/apollo": "^13.0.4",
         "@nestjs/cache-manager": "^3.0.1",
-        "@nestjs/common": "^11.0.13",
+        "@nestjs/common": "^11.0.16",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.0.13",
         "@nestjs/graphql": "^13.0.4",
