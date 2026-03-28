@@ -24,7 +24,7 @@
         "prisma:seed": "prisma db seed"
     },
     "dependencies": {
-        "@apollo/server": "^4.11.3",
+        "@apollo/server": "^5.5.0",
         "@fast-csv/parse": "^5.0.2",
         "@keyv/redis": "^4.3.3",
         "@nestjs/apollo": "^13.0.4",
