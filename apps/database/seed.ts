@@ -32,11 +32,25 @@ type Platform = {
     stopId: string;
 };
 
+const BATCH_SIZE = 500;
+
 const parseSeedFile = <T>(path: string): T => {
     const raw = fs.readFileSync(path).toString();
 
     return JSON.parse(raw);
 };
+
+async function insertInBatches<T>(
+    transaction: Kysely<MetroNowDatabase>,
+    table: "Stop" | "Platform" | "Route",
+    values: T[],
+): Promise<void> {
+    for (let i = 0; i < values.length; i += BATCH_SIZE) {
+        await (transaction.insertInto(table) as any)
+            .values(values.slice(i, i + BATCH_SIZE))
+            .execute();
+    }
+}
 
 async function main() {
     const connectionString = process.env.DATABASE_URL;
@@ -63,21 +77,23 @@ async function main() {
 
         const timestamp = new Date();
 
-        if (stops.length > 0) {
-            const stopValues: NewStop[] = stops.map((stop) => ({
+        await insertInBatches(
+            transaction,
+            "Stop",
+            stops.map((stop) => ({
                 id: stop.id,
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
                 createdAt: timestamp,
                 updatedAt: timestamp,
-            }));
+            })),
+        );
 
-            await transaction.insertInto("Stop").values(stopValues).execute();
-        }
-
-        if (platforms.length > 0) {
-            const platformValues: NewPlatform[] = platforms.map((platform) => ({
+        await insertInBatches(
+            transaction,
+            "Platform",
+            platforms.map((platform) => ({
                 id: platform.id,
                 name: platform.name,
                 isMetro: platform.isMetro,
@@ -87,29 +103,21 @@ async function main() {
                 code: null,
                 createdAt: timestamp,
                 updatedAt: timestamp,
-            }));
+            })),
+        );
 
-            await transaction
-                .insertInto("Platform")
-                .values(platformValues)
-                .execute();
-        }
-
-        if (routes.length > 0) {
-            const routeValues: NewRoute[] = routes.map((route) => ({
+        await insertInBatches(
+            transaction,
+            "Route",
+            routes.map((route) => ({
                 id: route.id,
                 name: route.name,
                 vehicleType: null,
                 isNight: null,
                 createdAt: timestamp,
                 updatedAt: timestamp,
-            }));
-
-            await transaction
-                .insertInto("Route")
-                .values(routeValues)
-                .execute();
-        }
+            })),
+        );
     });
 
     await db.destroy();
