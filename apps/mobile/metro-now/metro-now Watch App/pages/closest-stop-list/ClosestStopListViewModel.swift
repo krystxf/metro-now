@@ -37,7 +37,6 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
             withTimeInterval: REFETCH_INTERVAL,
             repeats: true
         ) { [weak self] _ in
-
             guard let self, let closestStop else {
                 return
             }

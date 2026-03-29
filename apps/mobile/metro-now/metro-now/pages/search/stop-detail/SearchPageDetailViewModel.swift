@@ -39,7 +39,6 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
             withTimeInterval: REFETCH_INTERVAL,
             repeats: true
         ) { [weak self] _ in
-
             guard
                 let self
             else {

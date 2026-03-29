@@ -106,7 +106,9 @@ export class SyncSnapshotValidator {
 
         for (const key of keys) {
             if (seen.has(key)) {
-                throw new Error(`Duplicate ${name} record detected for '${key}'`);
+                throw new Error(
+                    `Duplicate ${name} record detected for '${key}'`,
+                );
             }
 
             seen.add(key);

@@ -1,10 +1,10 @@
-import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
 import { CACHE_KEYS, ttl } from "src/constants/cache";
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { DatabaseService } from "src/modules/database/database.service";
 import {
-    StatusObject,
+    type StatusObject,
     SystemStatus,
     SystemStatusService,
 } from "src/modules/status/status.types";
@@ -12,8 +12,8 @@ import {
 @Injectable()
 export class StatusService {
     constructor(
-        private prisma: PrismaService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly database: DatabaseService,
+        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     ) {}
 
     getBackendStatus(): StatusObject {
@@ -27,7 +27,7 @@ export class StatusService {
         return this.cacheManager.wrap(
             CACHE_KEYS.status.getGeoFunctionsStatus,
             async () => {
-                const extensionNames = await this.prisma.getExtensionNames();
+                const extensionNames = await this.database.getExtensionNames();
                 const isOk =
                     extensionNames.includes("cube") &&
                     extensionNames.includes("earthdistance");
@@ -45,9 +45,30 @@ export class StatusService {
         return this.cacheManager.wrap(
             CACHE_KEYS.status.getDbDataStatus,
             async () => {
-                const stopCount = await this.prisma.stop.count();
-                const routeCount = await this.prisma.route.count();
-                const platformCount = await this.prisma.platform.count();
+                const [stopCountResult, routeCountResult, platformCountResult] =
+                    await Promise.all([
+                        this.database.db
+                            .selectFrom("Stop")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                        this.database.db
+                            .selectFrom("Route")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                        this.database.db
+                            .selectFrom("Platform")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                    ]);
+                const stopCount = Number(stopCountResult.count);
+                const routeCount = Number(routeCountResult.count);
+                const platformCount = Number(platformCountResult.count);
 
                 const isOk =
                     stopCount > 0 && routeCount > 0 && platformCount > 0;

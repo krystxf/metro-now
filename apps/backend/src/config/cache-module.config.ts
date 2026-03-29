@@ -9,7 +9,7 @@ export const cacheModuleConfig: CacheModuleAsyncOptions = {
             stores: [
                 new Keyv({
                     store: new KeyvRedis(
-                        `redis://${process.env.REDIS_HOST || "localhost"}:${parseInt(process.env.REDIS_PORT || "6379")}`,
+                        `redis://${process.env.REDIS_HOST || "localhost"}:${Number.parseInt(process.env.REDIS_PORT || "6379")}`,
                     ),
                 }),
             ],

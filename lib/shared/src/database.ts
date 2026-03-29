@@ -1,6 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-
-type PrismaClientOptions = ConstructorParameters<typeof PrismaClient>[0];
+import {
+    type DatabaseClient,
+    type MetroNowDatabase,
+} from "@metro-now/database";
+import { Kysely, PostgresDialect } from "kysely";
+import { Pool, type PoolConfig } from "pg";
 
 type EnvSource = NodeJS.ProcessEnv;
 
@@ -13,9 +16,54 @@ const REQUIRED_DATABASE_ENV_KEYS = [
     "DB_SCHEMA",
 ] as const;
 
+const unwrapEnvValue = (value: string): string => {
+    const trimmedValue = value.trim();
+
+    if (
+        (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+        (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+    ) {
+        return trimmedValue.slice(1, -1);
+    }
+
+    return trimmedValue;
+};
+
+const expandEnvVariables = (value: string, env: EnvSource): string => {
+    return value.replace(
+        /\$\{([A-Z0-9_]+)\}/g,
+        (_match: string, key: string) => {
+            return env[key] ?? "";
+        },
+    );
+};
+
+const normalizeDatabaseUrl = (
+    databaseUrl: string,
+    env: EnvSource,
+): string | null => {
+    const expandedDatabaseUrl = expandEnvVariables(
+        unwrapEnvValue(databaseUrl),
+        env,
+    );
+
+    try {
+        return new URL(expandedDatabaseUrl).toString();
+    } catch {
+        return null;
+    }
+};
+
 export const createDatabaseUrl = (env: EnvSource = process.env): string => {
     if (env.DATABASE_URL) {
-        return env.DATABASE_URL;
+        const normalizedDatabaseUrl = normalizeDatabaseUrl(
+            env.DATABASE_URL,
+            env,
+        );
+
+        if (normalizedDatabaseUrl) {
+            return normalizedDatabaseUrl;
+        }
     }
 
     const missingKeys = REQUIRED_DATABASE_ENV_KEYS.filter((key) => !env[key]);
@@ -29,25 +77,26 @@ export const createDatabaseUrl = (env: EnvSource = process.env): string => {
     return `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.POSTGRES_DB}?schema=${env.DB_SCHEMA}`;
 };
 
-export const createPrismaClientOptions = ({
+export const createDatabasePool = ({
     env = process.env,
     ...options
-}: PrismaClientOptions & {
+}: PoolConfig & {
     env?: EnvSource;
-} = {}): PrismaClientOptions => ({
-    datasourceUrl: createDatabaseUrl(env),
-    ...options,
-});
+} = {}): Pool =>
+    new Pool({
+        connectionString: createDatabaseUrl(env),
+        ...options,
+    });
 
-export const createPrismaClient = ({
+export const createDatabaseClient = ({
     env = process.env,
-    ...options
-}: PrismaClientOptions & {
+    pool = createDatabasePool({ env }),
+}: {
     env?: EnvSource;
-} = {}): PrismaClient =>
-    new PrismaClient(
-        createPrismaClientOptions({
-            env,
-            ...options,
+    pool?: Pool;
+} = {}): DatabaseClient =>
+    new Kysely<MetroNowDatabase>({
+        dialect: new PostgresDialect({
+            pool,
         }),
-    );
+    });

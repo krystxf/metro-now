@@ -1,14 +1,13 @@
 import { Module } from "@nestjs/common";
 
 import { DataloaderModule } from "src/modules/dataloader/dataloader.module";
-import { PlatformService } from "src/modules/platform/platform.service";
+import { StopDataModule } from "src/modules/stop/stop-data.module";
 import { StopController } from "src/modules/stop/stop.controller";
 import { StopResolver } from "src/modules/stop/stop.resolver";
-import { StopService } from "src/modules/stop/stop.service";
 
 @Module({
     controllers: [StopController],
-    providers: [PlatformService, StopResolver, StopService],
-    imports: [DataloaderModule],
+    providers: [StopResolver],
+    imports: [DataloaderModule, StopDataModule],
 })
 export class StopModule {}

@@ -1,5 +1,5 @@
-import { HOMEPAGE_URL } from "../constants/api";
 import type { MetadataRoute } from "next";
+import { HOMEPAGE_URL } from "../constants/api";
 
 const robots = (): MetadataRoute.Robots => ({
     rules: {

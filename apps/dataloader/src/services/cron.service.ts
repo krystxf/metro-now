@@ -37,7 +37,7 @@ export class CronService {
         }
 
         if (!config.enabled) {
-            logger.info(`Skipping disabled cron job`, { name: config.name });
+            logger.info("Skipping disabled cron job", { name: config.name });
             return;
         }
 
@@ -59,7 +59,7 @@ export class CronService {
                     managedJob.lastError = null;
 
                     try {
-                        logger.info(`Running cron job`, {
+                        logger.info("Running cron job", {
                             name: config.name,
                             schedule: config.schedule,
                         });
@@ -69,7 +69,7 @@ export class CronService {
                             error instanceof Error
                                 ? error.message
                                 : String(error);
-                        logger.error(`Cron job failed`, {
+                        logger.error("Cron job failed", {
                             name: config.name,
                             error: managedJob.lastError,
                         });

@@ -1,5 +1,5 @@
 import {
-    GraphQLFormattedError,
+    type GraphQLFormattedError,
     GraphQLError as OriginalGraphQLError,
 } from "graphql";
 

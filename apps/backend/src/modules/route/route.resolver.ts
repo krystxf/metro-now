@@ -1,16 +1,20 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { RouteService } from "src/modules/route/route.service";
-import { VehicleType } from "src/types/graphql.generated";
-import { ParentType } from "src/types/parent";
+import type { VehicleType } from "src/types/graphql.generated";
+import type { ParentType } from "src/types/parent";
 
 @Resolver("Route")
 export class RouteResolver {
     constructor(private readonly routeService: RouteService) {}
 
+    private toDatabaseRouteId(id: string): string {
+        return id.startsWith("L") ? id : `L${id}`;
+    }
+
     @Query("route")
     getOne(@Args("id") id: string) {
-        return this.routeService.getOneGraphQL(`L${id}`);
+        return this.routeService.getOneGraphQL(this.toDatabaseRouteId(id));
     }
 
     @Query("routes")

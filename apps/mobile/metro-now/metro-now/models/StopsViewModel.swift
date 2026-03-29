@@ -8,10 +8,10 @@ import Foundation
 class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
-    // Published property to store user's current location
+    /// Published property to store user's current location
     @Published var location: CLLocation?
 
-    // Published property to handle location access status
+    /// Published property to handle location access status
     @Published var authorizationStatus: CLAuthorizationStatus?
 
     override init() {
@@ -26,7 +26,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         authorizationStatus = locationManager.authorizationStatus
     }
 
-    // CLLocationManagerDelegate method: called when location updates
+    /// CLLocationManagerDelegate method: called when location updates
     func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // Take the most recent location
         guard let latestLocation = locations.last else { return }
@@ -35,7 +35,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    // CLLocationManagerDelegate method: called when authorization status changes
+    /// CLLocationManagerDelegate method: called when authorization status changes
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         DispatchQueue.main.async {
             self.authorizationStatus = manager.authorizationStatus
@@ -88,7 +88,6 @@ class StopsViewModel: NSObject, ObservableObject {
         stopPeriodicRefresh() // Stop any existing timer to avoid duplication.
 
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-
             guard let self else {
                 return
             }

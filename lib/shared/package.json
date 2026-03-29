@@ -4,17 +4,20 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
-        "lint": "biome check src package.json tsconfig.json",
-        "format": "biome format src package.json tsconfig.json --write",
-        "format:check": "biome check src package.json tsconfig.json"
+        "build": "pnpm --filter @metro-now/database build && tsc",
+        "lint": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json",
+        "format": "biome format --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json --write",
+        "format:check": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json"
     },
     "dependencies": {
-        "@prisma/client": "5.20.0",
+        "@metro-now/database": "workspace:*",
+        "kysely": "^0.28.14",
+        "pg": "^8.20.0",
         "zod": "^3.24.2"
     },
     "devDependencies": {
         "@types/node": "^25.5.0",
+        "@types/pg": "^8.15.5",
         "typescript": "^5.8.3"
     }
 }

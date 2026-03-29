@@ -16,8 +16,8 @@ import { EndpointVersion } from "src/enums/endpoint-version";
 import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import {
-    departureSchema,
     type DepartureSchema,
+    departureSchema,
 } from "src/modules/departure/schema/departure.schema";
 import {
     metroOnlySchema,

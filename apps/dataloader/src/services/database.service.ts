@@ -1,15 +1,13 @@
-import { type PrismaClient } from "@metro-now/database";
-import { createPrismaClient } from "@metro-now/shared";
+import { type DatabaseClient, sql } from "@metro-now/database";
+import { createDatabaseClient } from "@metro-now/shared";
 
 export class DatabaseService {
-    readonly prisma: PrismaClient;
+    readonly db: DatabaseClient;
 
     constructor(
-        prisma: PrismaClient = createPrismaClient({
-            log: ["info", "warn", "error"],
-        }),
+        db: DatabaseClient = createDatabaseClient({ env: process.env }),
     ) {
-        this.prisma = prisma;
+        this.db = db;
     }
 
     async getDatabaseStats(): Promise<{
@@ -21,28 +19,46 @@ export class DatabaseService {
         gtfsRouteStops: number;
     }> {
         const [
-            stops,
-            platforms,
-            routes,
-            platformRoutes,
-            gtfsRoutes,
-            gtfsRouteStops,
+            stopsResult,
+            platformsResult,
+            routesResult,
+            platformRoutesResult,
+            gtfsRoutesResult,
+            gtfsRouteStopsResult,
         ] = await Promise.all([
-            this.prisma.stop.count(),
-            this.prisma.platform.count(),
-            this.prisma.route.count(),
-            this.prisma.platformsOnRoutes.count(),
-            this.prisma.gtfsRoute.count(),
-            this.prisma.gtfsRouteStop.count(),
+            this.db
+                .selectFrom("Stop")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("Platform")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("Route")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("PlatformsOnRoutes")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("GtfsRoute")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("GtfsRouteStop")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
         ]);
 
         return {
-            stops,
-            platforms,
-            routes,
-            platformRoutes,
-            gtfsRoutes,
-            gtfsRouteStops,
+            stops: Number(stopsResult.count),
+            platforms: Number(platformsResult.count),
+            routes: Number(routesResult.count),
+            platformRoutes: Number(platformRoutesResult.count),
+            gtfsRoutes: Number(gtfsRoutesResult.count),
+            gtfsRouteStops: Number(gtfsRouteStopsResult.count),
         };
     }
 
@@ -62,37 +78,24 @@ export class DatabaseService {
         }>;
     }> {
         const [stops, platforms, gtfsRoutes] = await Promise.all([
-            this.prisma.stop.findMany({
-                select: {
-                    id: true,
-                    name: true,
-                },
-                orderBy: {
-                    id: "asc",
-                },
-                take: 5,
-            }),
-            this.prisma.platform.findMany({
-                select: {
-                    id: true,
-                    name: true,
-                    stopId: true,
-                },
-                orderBy: {
-                    id: "asc",
-                },
-                take: 5,
-            }),
-            this.prisma.gtfsRoute.findMany({
-                select: {
-                    id: true,
-                    shortName: true,
-                },
-                orderBy: {
-                    id: "asc",
-                },
-                take: 5,
-            }),
+            this.db
+                .selectFrom("Stop")
+                .select(["id", "name"])
+                .orderBy("id", "asc")
+                .limit(5)
+                .execute(),
+            this.db
+                .selectFrom("Platform")
+                .select(["id", "name", "stopId"])
+                .orderBy("id", "asc")
+                .limit(5)
+                .execute(),
+            this.db
+                .selectFrom("GtfsRoute")
+                .select(["id", "shortName"])
+                .orderBy("id", "asc")
+                .limit(5)
+                .execute(),
         ]);
 
         return {
@@ -105,18 +108,20 @@ export class DatabaseService {
     async performHealthCheck(): Promise<{
         extensions: string[];
     }> {
-        await this.prisma.$queryRaw`SELECT 1`;
+        await sql`SELECT 1`.execute(this.db);
 
-        const extensions = await this.prisma.$queryRaw<Array<{ extname: string }>>`
-            SELECT extname FROM pg_extension ORDER BY extname
-        `;
+        const extensions = await sql<{ extname: string }>`
+            SELECT extname
+            FROM pg_extension
+            ORDER BY extname
+        `.execute(this.db);
 
         return {
-            extensions: extensions.map(({ extname }) => extname),
+            extensions: extensions.rows.map(({ extname }) => extname),
         };
     }
 
     async disconnect(): Promise<void> {
-        await this.prisma.$disconnect();
+        await this.db.destroy();
     }
 }

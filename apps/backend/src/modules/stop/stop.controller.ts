@@ -26,9 +26,9 @@ export class StopController {
     @ApiQuery(metroOnlyQuery)
     async getAllStopsV1(
         @Query("metroOnly")
-        metroOnlyQuery: unknown,
+        metroOnlyValue: unknown,
     ) {
-        const metroOnly: boolean = metroOnlyQuery === "true";
+        const metroOnly: boolean = metroOnlyValue === "true";
 
         return this.stopService.getAll({ metroOnly });
     }
@@ -47,7 +47,7 @@ export class StopController {
             throw new HttpException("Missing stop ID", HttpStatus.BAD_REQUEST);
         }
 
-        const res = await this.stopService.getOne({ where: { id } });
+        const res = await this.stopService.getOneById(id);
 
         if (!res) {
             throw new HttpException("Stop ID not found", HttpStatus.NOT_FOUND);

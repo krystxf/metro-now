@@ -1,4 +1,15 @@
-import { Prisma, type PrismaClient } from "@metro-now/database";
+import { randomUUID } from "node:crypto";
+import {
+    type DatabaseClient,
+    type DatabaseTransaction,
+    type NewGtfsRoute,
+    type NewGtfsRouteStop,
+    type NewPlatform,
+    type NewPlatformsOnRoutes,
+    type NewRoute,
+    type NewStop,
+    sql,
+} from "@metro-now/database";
 
 import type {
     SyncPersistenceResult,
@@ -11,45 +22,49 @@ import type {
     SyncedStop,
 } from "../types/sync.types";
 import { getSyncCounts } from "../types/sync.types";
+import { logger } from "../utils/logger";
 
 const LOCK_KEY = BigInt(4_241_001);
 const ENTITY_BATCH_SIZE = 100;
 const RELATION_BATCH_SIZE = 500;
 
-type TransactionClient = Prisma.TransactionClient;
+type IdTableName = "GtfsRoute" | "Platform" | "Route" | "Stop";
 
 export class SyncRepository {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly db: DatabaseClient) {}
 
     async persist(snapshot: SyncSnapshot): Promise<SyncPersistenceResult> {
-        return await this.prisma.$transaction(
-            async (transaction) => {
-                const lockAcquired =
-                    await this.tryAcquireTransactionLock(transaction);
+        return this.db.transaction().execute(async (transaction) => {
+            await this.configureTransaction(transaction);
 
-                if (!lockAcquired) {
-                    return {
-                        status: "skipped",
-                        reason: "A different dataloader instance is already syncing",
-                    };
-                }
+            const lockAcquired =
+                await this.tryAcquireTransactionLock(transaction);
 
-                await this.persistSnapshot(transaction, snapshot);
-
+            if (!lockAcquired) {
                 return {
-                    status: "success",
-                    counts: getSyncCounts(snapshot),
+                    status: "skipped",
+                    reason: "A different dataloader instance is already syncing",
                 };
-            },
-            {
-                maxWait: 10 * 1_000,
-                timeout: 20 * 60 * 1_000,
-            },
-        );
+            }
+
+            await this.persistSnapshot(transaction, snapshot);
+
+            return {
+                status: "success",
+                counts: getSyncCounts(snapshot),
+            };
+        });
+    }
+
+    private async configureTransaction(
+        transaction: DatabaseTransaction,
+    ): Promise<void> {
+        await sql`SET LOCAL lock_timeout = '10s'`.execute(transaction);
+        await sql`SET LOCAL statement_timeout = '20min'`.execute(transaction);
     }
 
     private async persistSnapshot(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         snapshot: SyncSnapshot,
     ): Promise<void> {
         await this.upsertStops(transaction, snapshot.stops);
@@ -65,113 +80,178 @@ export class SyncRepository {
     }
 
     private async upsertStops(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         stops: SyncedStop[],
     ): Promise<void> {
         await this.processInBatches(stops, ENTITY_BATCH_SIZE, async (chunk) => {
-            await Promise.all(
-                chunk.map((stop) =>
-                    transaction.stop.upsert({
-                        where: { id: stop.id },
-                        update: {
-                            name: stop.name,
-                            avgLatitude: stop.avgLatitude,
-                            avgLongitude: stop.avgLongitude,
-                        },
-                        create: stop,
-                    }),
-                ),
-            );
+            const timestamp = new Date();
+            const values: NewStop[] = chunk.map((stop) => ({
+                id: stop.id,
+                name: stop.name,
+                avgLatitude: stop.avgLatitude,
+                avgLongitude: stop.avgLongitude,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+            }));
+
+            await transaction
+                .insertInto("Stop")
+                .values(values)
+                .onConflict((conflict) =>
+                    conflict.column("id").doUpdateSet((expressionBuilder) => ({
+                        name: expressionBuilder.ref("excluded.name"),
+                        avgLatitude: expressionBuilder.ref(
+                            "excluded.avgLatitude",
+                        ),
+                        avgLongitude: expressionBuilder.ref(
+                            "excluded.avgLongitude",
+                        ),
+                        updatedAt: sql`now()`,
+                    })),
+                )
+                .execute();
         });
     }
 
     private async upsertRoutes(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         routes: SyncedRoute[],
     ): Promise<void> {
-        await this.processInBatches(routes, ENTITY_BATCH_SIZE, async (chunk) => {
-            await Promise.all(
-                chunk.map((route) =>
-                    transaction.route.upsert({
-                        where: { id: route.id },
-                        update: {
-                            name: route.name,
-                            vehicleType: route.vehicleType,
-                            isNight: route.isNight,
-                        },
-                        create: route,
-                    }),
-                ),
-            );
-        });
+        await this.processInBatches(
+            routes,
+            ENTITY_BATCH_SIZE,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewRoute[] = chunk.map((route) => ({
+                    id: route.id,
+                    name: route.name,
+                    vehicleType: route.vehicleType,
+                    isNight: route.isNight,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                await transaction
+                    .insertInto("Route")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .column("id")
+                            .doUpdateSet((expressionBuilder) => ({
+                                name: expressionBuilder.ref("excluded.name"),
+                                vehicleType: expressionBuilder.ref(
+                                    "excluded.vehicleType",
+                                ),
+                                isNight:
+                                    expressionBuilder.ref("excluded.isNight"),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
+            },
+        );
     }
 
     private async upsertPlatforms(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         platforms: SyncedPlatform[],
     ): Promise<void> {
         await this.processInBatches(
             platforms,
             ENTITY_BATCH_SIZE,
             async (chunk) => {
-                await Promise.all(
-                    chunk.map((platform) =>
-                        transaction.platform.upsert({
-                            where: { id: platform.id },
-                            update: {
-                                name: platform.name,
-                                code: platform.code,
-                                isMetro: platform.isMetro,
-                                latitude: platform.latitude,
-                                longitude: platform.longitude,
-                                stopId: platform.stopId,
-                            },
-                            create: platform,
-                        }),
-                    ),
-                );
+                const timestamp = new Date();
+                const values: NewPlatform[] = chunk.map((platform) => ({
+                    id: platform.id,
+                    name: platform.name,
+                    code: platform.code,
+                    isMetro: platform.isMetro,
+                    latitude: platform.latitude,
+                    longitude: platform.longitude,
+                    stopId: platform.stopId,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                await transaction
+                    .insertInto("Platform")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .column("id")
+                            .doUpdateSet((expressionBuilder) => ({
+                                name: expressionBuilder.ref("excluded.name"),
+                                code: expressionBuilder.ref("excluded.code"),
+                                isMetro:
+                                    expressionBuilder.ref("excluded.isMetro"),
+                                latitude:
+                                    expressionBuilder.ref("excluded.latitude"),
+                                longitude:
+                                    expressionBuilder.ref("excluded.longitude"),
+                                stopId: expressionBuilder.ref(
+                                    "excluded.stopId",
+                                ),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
             },
         );
     }
 
     private async upsertGtfsRoutes(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         gtfsRoutes: SyncedGtfsRoute[],
     ): Promise<void> {
         await this.processInBatches(
             gtfsRoutes,
             ENTITY_BATCH_SIZE,
             async (chunk) => {
-                await Promise.all(
-                    chunk.map((gtfsRoute) =>
-                        transaction.gtfsRoute.upsert({
-                            where: { id: gtfsRoute.id },
-                            update: {
-                                shortName: gtfsRoute.shortName,
-                                longName: gtfsRoute.longName,
-                                type: gtfsRoute.type,
-                                color: gtfsRoute.color,
-                                isNight: gtfsRoute.isNight,
-                                url: gtfsRoute.url,
-                            },
-                            create: gtfsRoute,
-                        }),
-                    ),
-                );
+                const timestamp = new Date();
+                const values: NewGtfsRoute[] = chunk.map((gtfsRoute) => ({
+                    id: gtfsRoute.id,
+                    shortName: gtfsRoute.shortName,
+                    longName: gtfsRoute.longName,
+                    type: gtfsRoute.type,
+                    color: gtfsRoute.color,
+                    isNight: gtfsRoute.isNight,
+                    url: gtfsRoute.url,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                await transaction
+                    .insertInto("GtfsRoute")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .column("id")
+                            .doUpdateSet((expressionBuilder) => ({
+                                shortName:
+                                    expressionBuilder.ref("excluded.shortName"),
+                                longName:
+                                    expressionBuilder.ref("excluded.longName"),
+                                type: expressionBuilder.ref("excluded.type"),
+                                color: expressionBuilder.ref("excluded.color"),
+                                isNight:
+                                    expressionBuilder.ref("excluded.isNight"),
+                                url: expressionBuilder.ref("excluded.url"),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
             },
         );
     }
 
     private async syncPlatformRoutes(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         platformRoutes: SyncedPlatformRoute[],
     ): Promise<void> {
-        const existingRelations = await transaction.platformsOnRoutes.findMany({
-            select: {
-                platformId: true,
-                routeId: true,
-            },
-        });
+        const existingRelations = await transaction
+            .selectFrom("PlatformsOnRoutes")
+            .select(["platformId", "routeId"])
+            .execute();
         const incomingKeys = new Set(
             platformRoutes.map((relation) =>
                 this.getPlatformRouteKey(relation),
@@ -193,10 +273,24 @@ export class SyncRepository {
             relationsToCreate,
             RELATION_BATCH_SIZE,
             async (chunk) => {
-                await transaction.platformsOnRoutes.createMany({
-                    data: chunk,
-                    skipDuplicates: true,
-                });
+                const timestamp = new Date();
+                const values: NewPlatformsOnRoutes[] = chunk.map(
+                    (relation) => ({
+                        id: randomUUID(),
+                        platformId: relation.platformId,
+                        routeId: relation.routeId,
+                        createdAt: timestamp,
+                        updatedAt: timestamp,
+                    }),
+                );
+
+                await transaction
+                    .insertInto("PlatformsOnRoutes")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict.columns(["platformId", "routeId"]).doNothing(),
+                    )
+                    .execute();
             },
         );
         await this.processInBatches(
@@ -207,30 +301,39 @@ export class SyncRepository {
                     return;
                 }
 
-                await transaction.platformsOnRoutes.deleteMany({
-                    where: {
-                        OR: chunk.map((relation) => ({
-                            platformId: relation.platformId,
-                            routeId: relation.routeId,
-                        })),
-                    },
-                });
+                await transaction
+                    .deleteFrom("PlatformsOnRoutes")
+                    .where((expressionBuilder) =>
+                        expressionBuilder.or(
+                            chunk.map((relation) =>
+                                expressionBuilder.and([
+                                    expressionBuilder(
+                                        "platformId",
+                                        "=",
+                                        relation.platformId,
+                                    ),
+                                    expressionBuilder(
+                                        "routeId",
+                                        "=",
+                                        relation.routeId,
+                                    ),
+                                ]),
+                            ),
+                        ),
+                    )
+                    .execute();
             },
         );
     }
 
     private async syncGtfsRouteStops(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         gtfsRouteStops: SyncedGtfsRouteStop[],
     ): Promise<void> {
-        const existingRouteStops = await transaction.gtfsRouteStop.findMany({
-            select: {
-                routeId: true,
-                directionId: true,
-                stopId: true,
-                stopSequence: true,
-            },
-        });
+        const existingRouteStops = await transaction
+            .selectFrom("GtfsRouteStop")
+            .select(["routeId", "directionId", "stopId", "stopSequence"])
+            .execute();
         const incomingKeys = new Set(
             gtfsRouteStops.map((routeStop) =>
                 this.getGtfsRouteStopKey(routeStop),
@@ -266,15 +369,31 @@ export class SyncRepository {
             routeStopsToCreate,
             RELATION_BATCH_SIZE,
             async (chunk) => {
-                await transaction.gtfsRouteStop.createMany({
-                    data: chunk.map((routeStop) => ({
-                        routeId: routeStop.routeId,
-                        directionId: routeStop.directionId,
-                        stopId: routeStop.platformId,
-                        stopSequence: routeStop.stopSequence,
-                    })),
-                    skipDuplicates: true,
-                });
+                const timestamp = new Date();
+                const values: NewGtfsRouteStop[] = chunk.map((routeStop) => ({
+                    id: randomUUID(),
+                    routeId: routeStop.routeId,
+                    directionId: routeStop.directionId,
+                    stopId: routeStop.platformId,
+                    stopSequence: routeStop.stopSequence,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                await transaction
+                    .insertInto("GtfsRouteStop")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .columns([
+                                "routeId",
+                                "directionId",
+                                "stopId",
+                                "stopSequence",
+                            ])
+                            .doNothing(),
+                    )
+                    .execute();
             },
         );
         await this.processInBatches(
@@ -285,88 +404,123 @@ export class SyncRepository {
                     return;
                 }
 
-                await transaction.gtfsRouteStop.deleteMany({
-                    where: {
-                        OR: chunk.map((routeStop) => ({
-                            routeId: routeStop.routeId,
-                            directionId: routeStop.directionId,
-                            stopId: routeStop.stopId,
-                            stopSequence: routeStop.stopSequence,
-                        })),
-                    },
-                });
+                await transaction
+                    .deleteFrom("GtfsRouteStop")
+                    .where((expressionBuilder) =>
+                        expressionBuilder.or(
+                            chunk.map((routeStop) =>
+                                expressionBuilder.and([
+                                    expressionBuilder(
+                                        "routeId",
+                                        "=",
+                                        routeStop.routeId,
+                                    ),
+                                    expressionBuilder(
+                                        "directionId",
+                                        "=",
+                                        routeStop.directionId,
+                                    ),
+                                    expressionBuilder(
+                                        "stopId",
+                                        "=",
+                                        routeStop.stopId,
+                                    ),
+                                    expressionBuilder(
+                                        "stopSequence",
+                                        "=",
+                                        routeStop.stopSequence,
+                                    ),
+                                ]),
+                            ),
+                        ),
+                    )
+                    .execute();
             },
         );
     }
 
     private async deleteStalePlatforms(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         platforms: SyncedPlatform[],
     ): Promise<void> {
         const incomingIds = new Set(platforms.map((platform) => platform.id));
-        const staleIds = (
-            await transaction.platform.findMany({
-                select: { id: true },
-            })
-        )
-            .map(({ id }) => id)
-            .filter((id) => !incomingIds.has(id));
+        const staleIds = (await this.selectIds(transaction, "Platform")).filter(
+            (id) => !incomingIds.has(id),
+        );
+        const deletableIds =
+            await this.excludePlatformIdsReferencedByGtfsStopTimes(
+                transaction,
+                staleIds,
+            );
 
-        await this.deleteByIds(transaction.platform, staleIds);
+        if (deletableIds.length !== staleIds.length) {
+            logger.warn(
+                "Skipping stale platform deletes protected by GTFS stop times",
+                {
+                    stalePlatformCount: staleIds.length,
+                    blockedPlatformCount: staleIds.length - deletableIds.length,
+                    sampleBlockedPlatformIds: staleIds
+                        .filter((id) => !deletableIds.includes(id))
+                        .slice(0, 10),
+                },
+            );
+        }
+
+        await this.deleteByIds(transaction, "Platform", deletableIds);
     }
 
     private async deleteStaleRoutes(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         routes: SyncedRoute[],
     ): Promise<void> {
         const incomingIds = new Set(routes.map((route) => route.id));
-        const staleIds = (
-            await transaction.route.findMany({
-                select: { id: true },
-            })
-        )
-            .map(({ id }) => id)
-            .filter((id) => !incomingIds.has(id));
+        const staleIds = (await this.selectIds(transaction, "Route")).filter(
+            (id) => !incomingIds.has(id),
+        );
 
-        await this.deleteByIds(transaction.route, staleIds);
+        await this.deleteByIds(transaction, "Route", staleIds);
     }
 
     private async deleteStaleStops(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         stops: SyncedStop[],
     ): Promise<void> {
         const incomingIds = new Set(stops.map((stop) => stop.id));
-        const staleIds = (
-            await transaction.stop.findMany({
-                select: { id: true },
-            })
-        )
-            .map(({ id }) => id)
-            .filter((id) => !incomingIds.has(id));
+        const staleIds = (await this.selectIds(transaction, "Stop")).filter(
+            (id) => !incomingIds.has(id),
+        );
 
-        await this.deleteByIds(transaction.stop, staleIds);
+        await this.deleteByIds(transaction, "Stop", staleIds);
     }
 
     private async deleteStaleGtfsRoutes(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
         gtfsRoutes: SyncedGtfsRoute[],
     ): Promise<void> {
         const incomingIds = new Set(gtfsRoutes.map((route) => route.id));
         const staleIds = (
-            await transaction.gtfsRoute.findMany({
-                select: { id: true },
-            })
-        )
-            .map(({ id }) => id)
-            .filter((id) => !incomingIds.has(id));
+            await this.selectIds(transaction, "GtfsRoute")
+        ).filter((id) => !incomingIds.has(id));
 
-        await this.deleteByIds(transaction.gtfsRoute, staleIds);
+        await this.deleteByIds(transaction, "GtfsRoute", staleIds);
+    }
+
+    private async selectIds(
+        transaction: DatabaseTransaction,
+        tableName: IdTableName,
+    ): Promise<string[]> {
+        const rows = await transaction
+            .selectFrom(tableName)
+            .select("id")
+            .orderBy("id", "asc")
+            .execute();
+
+        return rows.map(({ id }) => id);
     }
 
     private async deleteByIds(
-        model: {
-            deleteMany(args: { where: { id: { in: string[] } } }): Promise<unknown>;
-        },
+        transaction: DatabaseTransaction,
+        tableName: IdTableName,
         ids: string[],
     ): Promise<void> {
         await this.processInBatches(ids, RELATION_BATCH_SIZE, async (chunk) => {
@@ -374,24 +528,79 @@ export class SyncRepository {
                 return;
             }
 
-            await model.deleteMany({
-                where: {
-                    id: {
-                        in: chunk,
-                    },
-                },
-            });
+            await transaction
+                .deleteFrom(tableName)
+                .where("id", "in", chunk)
+                .execute();
         });
     }
 
     private async tryAcquireTransactionLock(
-        transaction: TransactionClient,
+        transaction: DatabaseTransaction,
     ): Promise<boolean> {
-        const [result] = await transaction.$queryRaw<Array<{ acquired: boolean }>>(
-            Prisma.sql`SELECT pg_try_advisory_xact_lock(${LOCK_KEY}) AS acquired`,
+        const result = await sql<{ acquired: boolean }>`
+            SELECT pg_try_advisory_xact_lock(${LOCK_KEY}) AS acquired
+        `.execute(transaction);
+
+        return result.rows[0]?.acquired ?? false;
+    }
+
+    private async excludePlatformIdsReferencedByGtfsStopTimes(
+        transaction: DatabaseTransaction,
+        platformIds: string[],
+    ): Promise<string[]> {
+        if (platformIds.length === 0) {
+            return platformIds;
+        }
+
+        const gtfsStopTimeTableExists = await this.hasTable(
+            transaction,
+            "GtfsStopTime",
         );
 
-        return result?.acquired ?? false;
+        if (!gtfsStopTimeTableExists) {
+            return platformIds;
+        }
+
+        const protectedPlatformIds = new Set<string>();
+
+        await this.processInBatches(
+            platformIds,
+            RELATION_BATCH_SIZE,
+            async (chunk) => {
+                const rows = await transaction
+                    .selectFrom("GtfsStopTime")
+                    .select("platformId")
+                    .distinct()
+                    .where("platformId", "is not", null)
+                    .where("platformId", "in", chunk)
+                    .execute();
+
+                for (const { platformId } of rows) {
+                    if (platformId) {
+                        protectedPlatformIds.add(platformId);
+                    }
+                }
+            },
+        );
+
+        return platformIds.filter((id) => !protectedPlatformIds.has(id));
+    }
+
+    private async hasTable(
+        transaction: DatabaseTransaction,
+        tableName: string,
+    ): Promise<boolean> {
+        const result = await sql<{ exists: boolean }>`
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_name = ${tableName}
+            ) AS exists
+        `.execute(transaction);
+
+        return Boolean(result.rows[0]?.exists);
     }
 
     private getPlatformRouteKey(relation: SyncedPlatformRoute): string {

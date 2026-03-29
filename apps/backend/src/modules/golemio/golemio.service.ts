@@ -1,6 +1,6 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
-import { Cache } from "cache-manager";
+import type { Cache } from "cache-manager";
 
 import { CACHE_KEYS, ttl } from "src/constants/cache";
 
@@ -18,9 +18,10 @@ const getTtlForPath = (path: string): number => {
 export class GolemioService {
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-    async getGolemioData(path: string): Promise<Response> {
+    async getGolemioData(path: string): Promise<unknown> {
         const url = `${GOLEMIO_API}${path}`;
-        const cachedResponse = await this.cacheManager.wrap(
+
+        return this.cacheManager.wrap(
             CACHE_KEYS.golemio.getGolemioData(path),
             async () => {
                 const res = await fetch(url, {
@@ -41,7 +42,5 @@ export class GolemioService {
             },
             getTtlForPath(path),
         );
-
-        return new Response(JSON.stringify(cachedResponse));
     }
 }

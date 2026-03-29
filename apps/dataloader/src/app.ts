@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 
 import { getDataloaderEnv, loadEnvironment } from "./config/env";
 import { CronService } from "./services/cron.service";
+import { DatabaseLogStore } from "./services/database-log-store.service";
 import { DatabaseService } from "./services/database.service";
 import { SyncService } from "./services/sync.service";
 import { logger } from "./utils/logger";
@@ -11,7 +12,8 @@ loadEnvironment();
 const env = getDataloaderEnv();
 const app = express();
 const databaseService = new DatabaseService();
-const syncService = new SyncService(databaseService.prisma);
+logger.setTransport(new DatabaseLogStore(databaseService.db));
+const syncService = new SyncService(databaseService.db);
 const cronService = new CronService();
 
 app.use(express.json());
@@ -129,7 +131,7 @@ const bootstrap = async (): Promise<void> => {
     cronService.startAll();
 
     app.listen(env.port, () => {
-        logger.info(`Dataloader listening`, {
+        logger.info("Dataloader listening", {
             port: env.port,
             syncSchedule: env.syncSchedule,
         });
@@ -137,16 +139,18 @@ const bootstrap = async (): Promise<void> => {
 };
 
 const shutdown = async (signal: string): Promise<void> => {
-    logger.info(`Received shutdown signal`, { signal });
+    logger.info("Received shutdown signal", { signal });
     cronService.shutdown();
+    await logger.flush();
     await databaseService.disconnect();
     process.exit(0);
 };
 
 void bootstrap().catch(async (error) => {
-    logger.error(`Failed to start dataloader`, {
+    logger.error("Failed to start dataloader", {
         error: error instanceof Error ? error.message : String(error),
     });
+    await logger.flush();
     await databaseService.disconnect();
     process.exit(1);
 });

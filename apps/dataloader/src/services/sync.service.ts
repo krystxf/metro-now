@@ -1,15 +1,15 @@
-import type { PrismaClient } from "@metro-now/database";
+import type { DatabaseClient } from "@metro-now/database";
 
 import type {
     SyncRunResult,
     SyncSnapshot,
     SyncTrigger,
 } from "../types/sync.types";
+import { logger } from "../utils/logger";
 import { GtfsService } from "./gtfs.service";
 import { PidImportService } from "./pid-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
-import { logger } from "../utils/logger";
 
 export class SyncService {
     private readonly importService = new PidImportService();
@@ -19,13 +19,15 @@ export class SyncService {
     private activeSync: Promise<SyncRunResult> | undefined;
     private lastRun: SyncRunResult | undefined;
 
-    constructor(prisma: PrismaClient) {
-        this.repository = new SyncRepository(prisma);
+    constructor(db: DatabaseClient) {
+        this.repository = new SyncRepository(db);
     }
 
     async syncEverything(trigger: SyncTrigger): Promise<SyncRunResult> {
         if (this.activeSync) {
-            logger.warn(`Sync already running, reusing active run`, { trigger });
+            logger.warn("Sync already running, reusing active run", {
+                trigger,
+            });
 
             return this.activeSync;
         }

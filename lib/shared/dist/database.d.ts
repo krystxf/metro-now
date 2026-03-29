@@ -1,12 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-type PrismaClientOptions = ConstructorParameters<typeof PrismaClient>[0];
+import { type DatabaseClient } from "@metro-now/database";
+import { Pool, type PoolConfig } from "pg";
 type EnvSource = NodeJS.ProcessEnv;
 export declare const createDatabaseUrl: (env?: EnvSource) => string;
-export declare const createPrismaClientOptions: ({ env, ...options }?: PrismaClientOptions & {
+export declare const createDatabasePool: ({ env, ...options }?: PoolConfig & {
     env?: EnvSource;
-}) => PrismaClientOptions;
-export declare const createPrismaClient: ({ env, ...options }?: PrismaClientOptions & {
+}) => Pool;
+export declare const createDatabaseClient: ({ env, pool, }?: {
     env?: EnvSource;
-}) => PrismaClient;
+    pool?: Pool;
+}) => DatabaseClient;
 export {};
 //# sourceMappingURL=database.d.ts.map

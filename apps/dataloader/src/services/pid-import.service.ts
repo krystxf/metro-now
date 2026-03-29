@@ -1,8 +1,8 @@
 import { VehicleType } from "@metro-now/database";
 
 import {
-    pidStopsSchema,
     type PidStopsSchema,
+    pidStopsSchema,
 } from "../schema/pid-stops.schema";
 import type { StopSnapshot, SyncedRoute } from "../types/sync.types";
 import { fetchWithTimeout } from "../utils/fetch.utils";
@@ -15,7 +15,9 @@ export class PidImportService {
     }
 
     async getStops(): Promise<PidStopsSchema> {
-        const response = await fetchWithTimeout(PID_STOPS_URL, { method: "GET" });
+        const response = await fetchWithTimeout(PID_STOPS_URL, {
+            method: "GET",
+        });
 
         if (!response.ok) {
             throw new Error(

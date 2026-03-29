@@ -18,7 +18,7 @@ describe("toArray", () => {
                 1,
                 69,
                 420,
-                -Infinity,
+                Number.NEGATIVE_INFINITY,
                 {
                     key: "value",
                 },
@@ -30,7 +30,7 @@ describe("toArray", () => {
             1,
             69,
             420,
-            -Infinity,
+            Number.NEGATIVE_INFINITY,
             {
                 key: "value",
             },

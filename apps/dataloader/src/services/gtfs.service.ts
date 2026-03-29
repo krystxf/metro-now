@@ -2,8 +2,8 @@ import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
 import type { GtfsSnapshot } from "../types/sync.types";
-import { fetchWithTimeout } from "../utils/fetch.utils";
 import { parseCsvString } from "../utils/csv.utils";
+import { fetchWithTimeout } from "../utils/fetch.utils";
 
 const GTFS_ARCHIVE_URL = "https://data.pid.cz/PID_GTFS.zip";
 
@@ -60,7 +60,9 @@ export class GtfsService {
         );
 
         return {
-            gtfsRoutes: rawRoutes.map((route) => this.parseGtfsRouteRecord(route)),
+            gtfsRoutes: rawRoutes.map((route) =>
+                this.parseGtfsRouteRecord(route),
+            ),
             gtfsRouteStops: rawRouteStops
                 .map((routeStop) => this.parseGtfsRouteStopRecord(routeStop))
                 .filter((routeStop) => platformIds.has(routeStop.platformId)),
@@ -71,7 +73,9 @@ export class GtfsService {
         const parsed = gtfsRouteRecordSchema.safeParse(route);
 
         if (!parsed.success) {
-            throw new Error(`Invalid GTFS route record: ${parsed.error.message}`);
+            throw new Error(
+                `Invalid GTFS route record: ${parsed.error.message}`,
+            );
         }
 
         return {

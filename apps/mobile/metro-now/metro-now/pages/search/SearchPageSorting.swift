@@ -5,5 +5,7 @@ import SwiftUI
 
 enum SearchPageSorting: String, CaseIterable, Identifiable {
     case alphabetical, distance
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 }
