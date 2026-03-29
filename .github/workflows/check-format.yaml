@@ -24,7 +24,3 @@ jobs:
               run: |
                   pnpm install
                   pnpm biome:check
-
-            - name: Check Prettier
-              run: |
-                  pnpm exec prettier . --check

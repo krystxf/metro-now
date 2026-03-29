@@ -15,16 +15,15 @@
         "biome:check": "pnpm --filter @metro-now/backend format:check && pnpm --filter @metro-now/dataloader format:check && pnpm --filter @metro-now/shared format:check",
         "biome:write": "pnpm --filter @metro-now/backend format && pnpm --filter @metro-now/dataloader format && pnpm --filter @metro-now/shared format",
         "precommit": "pnpm format",
-        "format": "pnpm --recursive --parallel format && pnpm exec prettier . --write",
+        "format": "pnpm --recursive --parallel format",
         "app:format": "pnpm --filter @metro-now/mobile format",
-        "format:check": "pnpm -r format:check && pnpm exec prettier . --check",
+        "format:check": "pnpm -r format:check",
         "docker:up:dev": "docker compose up postgres redis-stack",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down --remove-orphans --volumes"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "prettier": "^3.5.3"
+        "@biomejs/biome": "^1.9.4"
     },
     "homepage": "https://metro-now.vercel.app/",
     "repository": {
