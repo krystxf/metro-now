@@ -1,0 +1,173 @@
+import { GRAPHQL_URL, SOURCE_CODE_URL, SWAGGER_URL } from "@/constants/api";
+
+# API
+
+Metro Now exposes a public API for transit data. Prefer the GraphQL endpoint for new integrations.
+
+- GraphQL endpoint: [https://api.metronow.dev/graphql](https://api.metronow.dev/graphql)
+- REST API: [https://api.metronow.dev/](https://api.metronow.dev/)
+- Source code: [metro-now on GitHub](https://github.com/krystxf/metro-now)
+
+## Quick Start
+
+Send `POST` requests to <a href={GRAPHQL_URL}>{GRAPHQL_URL}</a> with a JSON body containing a `query` field.
+
+```bash
+curl -X POST 'https://api.metronow.dev/graphql' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"query":"query Hello { hello }"}'
+```
+
+## Query Examples
+
+### List Stops
+
+```graphql
+query Stops($limit: Int, $offset: Int) {
+  stops(limit: $limit, offset: $offset) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+  }
+}
+```
+
+```json
+{
+  "limit": 10,
+  "offset": 0
+}
+```
+
+### Get A Stop With Platforms And Routes
+
+```graphql
+query StopDetail($id: ID!) {
+  stop(id: $id) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    platforms {
+      id
+      name
+      code
+      isMetro
+      latitude
+      longitude
+      routes {
+        id
+        name
+        vehicleType
+        isNight
+        isSubstitute
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "id": "stop-id"
+}
+```
+
+### Get A Platform
+
+```graphql
+query PlatformDetail($id: ID!) {
+  platform(id: $id) {
+    id
+    name
+    code
+    isMetro
+    latitude
+    longitude
+    stop {
+      id
+      name
+    }
+    routes {
+      id
+      name
+      vehicleType
+    }
+  }
+}
+```
+
+```json
+{
+  "id": "platform-id"
+}
+```
+
+### Fetch Upcoming Departures
+
+`departures.limit` supports up to `100` items.
+
+```graphql
+query DeparturesByStop($stopIds: [ID!], $limit: Int) {
+  departures(stopIds: $stopIds, limit: $limit) {
+    delay
+    headsign
+    departureTime {
+      scheduled
+      predicted
+    }
+    platform {
+      id
+      name
+      code
+      stop {
+        id
+        name
+      }
+    }
+    route {
+      id
+      name
+      vehicleType
+      isNight
+      isSubstitute
+    }
+  }
+}
+```
+
+```json
+{
+  "stopIds": ["stop-id"],
+  "limit": 5
+}
+```
+
+### List Routes
+
+```graphql
+query Routes {
+  routes {
+    id
+    name
+    vehicleType
+    isNight
+    isSubstitute
+    directions {
+      id
+      platforms {
+        id
+        name
+      }
+    }
+  }
+}
+```
+
+## Notes
+
+- The REST API is still available, but it is deprecated in favor of GraphQL.
+- In production, this endpoint is intended for direct GraphQL requests rather than an embedded playground UI.
+- For the current implementation details, see the <a href={SOURCE_CODE_URL}>backend source code</a>.
+- If you still need the legacy REST surface, use the <a href={SWAGGER_URL}>Swagger docs</a>.
