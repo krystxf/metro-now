@@ -4,7 +4,6 @@
 import Foundation
 import Testing
 
-@Suite("shortenStopName")
 struct ShortenStopNameTests {
     @Test("static", arguments:
         zip([
@@ -25,10 +24,10 @@ struct ShortenStopNameTests {
             "Černý Most",
             "I. P. Pavlova",
         ]))
-    func testStaticShortenStopName(
+    func staticShortenStopName(
         stopName: String,
         expected: String
-    ) async throws {
+    ) {
         let shortened = shortenStopName(stopName)
 
         #expect(shortened == expected)
@@ -49,10 +48,10 @@ struct ShortenStopNameTests {
             "N. Veleslavín",
             "Nám. Míru",
         ]))
-    func testDynamicShortenStopName(
+    func dynamicShortenStopName(
         stopName: String,
         expected: String
-    ) async throws {
+    ) {
         let shortened = shortenStopName(stopName)
 
         #expect(shortened == expected)

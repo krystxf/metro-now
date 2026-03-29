@@ -1,0 +1,65 @@
+{
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "files": {
+        "include": [
+            "apps/backend/**/*.ts",
+            "apps/backend/**/*.js",
+            "apps/backend/tsconfig.json",
+            "apps/backend/package.json",
+            "apps/dataloader/**/*.ts",
+            "apps/dataloader/**/*.js",
+            "apps/dataloader/tsconfig.json",
+            "apps/dataloader/package.json",
+            "apps/database/**/*.ts",
+            "apps/database/**/*.json",
+            "apps/web/**/*.ts",
+            "apps/web/**/*.json",
+            "apps/web/tsconfig.json",
+            "lib/**/*.ts",
+            "lib/**/*.js",
+            "lib/shared/tsconfig.json",
+            "lib/shared/package.json",
+            ".github/**/*.yaml",
+            ".github/**/*.yml",
+            "biome.json",
+            "compose.yaml",
+            "package.json",
+            "pnpm-workspace.yaml"
+        ],
+        "ignore": [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/.next/**",
+            "apps/backend/src/types/graphql.generated.ts",
+            "apps/database/seeds/**"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf"
+    },
+    "organizeImports": {
+        "enabled": true
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "style": {
+                "useImportType": "off"
+            }
+        }
+    },
+    "javascript": {
+        "parser": {
+            "unsafeParameterDecoratorsEnabled": true
+        },
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "always",
+            "trailingCommas": "all"
+        }
+    }
+}

@@ -28,14 +28,9 @@ jobs:
               run: |
                   pnpm install
 
-            - name: Prisma generate
-              run: |
-                  cd apps/backend
-                  pnpm prisma:generate
-
             - name: Build
               run: |
-                  cd apps/backend 
+                  cd apps/backend
                   pnpm build
 
             - name: Test
@@ -110,20 +105,15 @@ jobs:
                   cat ".env.local"
                   echo "----------------------"
 
-            - name: Prisma generate
-              run: |
-                  cd apps/backend
-                  pnpm prisma:generate
-
             - name: Run migrations
               run: |
-                  cd apps/backend 
-                  pnpm prisma:migrate:deploy
+                  cd apps/database
+                  pnpm migrate:deploy
 
             - name: Run seeds
               run: |
-                  cd apps/backend  
-                  pnpm prisma:seed
+                  cd apps/database
+                  pnpm seed
 
             - name: Test e2e
               run: |

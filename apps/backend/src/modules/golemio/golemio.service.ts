@@ -1,39 +1,46 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
-import { Cache } from "cache-manager";
+import type { Cache } from "cache-manager";
 
-import { CACHE_KEYS } from "src/constants/cache";
+import { CACHE_KEYS, ttl } from "src/constants/cache";
 
-const TTL = 4 * 1_000;
 const GOLEMIO_API = "https://api.golemio.cz";
+
+const getTtlForPath = (path: string): number => {
+    if (path.startsWith("/v2/pid/departureboards")) {
+        return ttl({ seconds: 10 });
+    }
+
+    return ttl({ seconds: 30 });
+};
 
 @Injectable()
 export class GolemioService {
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-    async getGolemioData(path: string): Promise<Response> {
+    async getGolemioData(path: string): Promise<unknown> {
         const url = `${GOLEMIO_API}${path}`;
-        const CACHE_KEY = CACHE_KEYS.golemio.getGolemioData(path);
 
-        const cached = await this.cacheManager.get(CACHE_KEY);
+        return this.cacheManager.wrap(
+            CACHE_KEYS.golemio.getGolemioData(path),
+            async () => {
+                const res = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
+                    },
+                });
 
-        if (cached) {
-            return new Response(JSON.stringify(cached));
-        }
+                if (!res.ok) {
+                    throw new Error(
+                        `Failed to fetch Golemio data: ${res.status} ${res.statusText}`,
+                    );
+                }
 
-        const res = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
+                return await res.json();
             },
-        });
-
-        if (res.ok) {
-            const parsed = await res.clone().json();
-            await this.cacheManager.set(CACHE_KEY, parsed, TTL);
-        }
-
-        return res;
+            getTtlForPath(path),
+        );
     }
 }

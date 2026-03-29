@@ -28,6 +28,10 @@
 
 ```shell
 pnpm i
+
+# Start PostgreSQL and Redis for development
+pnpm docker:up:dev
+
 pnpm dev
 
 cd apps/backend

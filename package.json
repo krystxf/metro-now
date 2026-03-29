@@ -9,16 +9,21 @@
         "backend:build": "pnpm run -r --filter @metro-now/backend build",
         "backend:dev": "pnpm run -r --filter @metro-now/backend dev",
         "web:dev": "pnpm run -r --filter @metro-now/web dev",
+        "db:migrate:deploy": "pnpm run -r --filter @metro-now/database migrate:deploy",
+        "db:migrate:rollback": "pnpm run -r --filter @metro-now/database migrate:rollback",
+        "db:seed": "pnpm run -r --filter @metro-now/database seed",
+        "biome:check": "pnpm --filter @metro-now/backend format:check && pnpm --filter @metro-now/dataloader format:check && pnpm --filter @metro-now/shared format:check",
+        "biome:write": "pnpm --filter @metro-now/backend format && pnpm --filter @metro-now/dataloader format && pnpm --filter @metro-now/shared format",
         "precommit": "pnpm format",
-        "format": "pnpm --recursive --parallel format && pnpm exec prettier . --write",
+        "format": "pnpm --recursive --parallel format",
         "app:format": "pnpm --filter @metro-now/mobile format",
-        "format:check": "pnpm -r format:check && pnpm exec prettier . --check",
+        "format:check": "pnpm -r format:check",
         "docker:up:dev": "docker compose up postgres redis-stack",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down --remove-orphans --volumes"
     },
     "devDependencies": {
-        "prettier": "^3.5.3"
+        "@biomejs/biome": "^1.9.4"
     },
     "homepage": "https://metro-now.vercel.app/",
     "repository": {

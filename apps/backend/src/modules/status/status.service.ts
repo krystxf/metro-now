@@ -1,15 +1,20 @@
-import { Injectable } from "@nestjs/common";
+import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { DatabaseService } from "src/modules/database/database.service";
 import {
-    StatusObject,
+    type StatusObject,
     SystemStatus,
     SystemStatusService,
 } from "src/modules/status/status.types";
 
 @Injectable()
 export class StatusService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private readonly database: DatabaseService,
+        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    ) {}
 
     getBackendStatus(): StatusObject {
         return {
@@ -19,27 +24,61 @@ export class StatusService {
     }
 
     async getGeoFunctionsStatus(): Promise<StatusObject> {
-        const extensionNames = await this.prisma.getExtensionNames();
-        const isOk =
-            extensionNames.includes("cube") &&
-            extensionNames.includes("earthdistance");
+        return this.cacheManager.wrap(
+            CACHE_KEYS.status.getGeoFunctionsStatus,
+            async () => {
+                const extensionNames = await this.database.getExtensionNames();
+                const isOk =
+                    extensionNames.includes("cube") &&
+                    extensionNames.includes("earthdistance");
 
-        return {
-            service: SystemStatusService.GEO_FUNCTIONS,
-            status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
-        };
+                return {
+                    service: SystemStatusService.GEO_FUNCTIONS,
+                    status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
+                };
+            },
+            ttl({ seconds: 30 }),
+        );
     }
 
     async getDbDataStatus(): Promise<StatusObject> {
-        const stopCount = await this.prisma.stop.count();
-        const routeCount = await this.prisma.route.count();
-        const platformCount = await this.prisma.platform.count();
+        return this.cacheManager.wrap(
+            CACHE_KEYS.status.getDbDataStatus,
+            async () => {
+                const [stopCountResult, routeCountResult, platformCountResult] =
+                    await Promise.all([
+                        this.database.db
+                            .selectFrom("Stop")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                        this.database.db
+                            .selectFrom("Route")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                        this.database.db
+                            .selectFrom("Platform")
+                            .select(({ fn }) =>
+                                fn.countAll<number>().as("count"),
+                            )
+                            .executeTakeFirstOrThrow(),
+                    ]);
+                const stopCount = Number(stopCountResult.count);
+                const routeCount = Number(routeCountResult.count);
+                const platformCount = Number(platformCountResult.count);
 
-        const isOk = stopCount > 0 && routeCount > 0 && platformCount > 0;
+                const isOk =
+                    stopCount > 0 && routeCount > 0 && platformCount > 0;
 
-        return {
-            service: SystemStatusService.DB_DATA,
-            status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
-        };
+                return {
+                    service: SystemStatusService.DB_DATA,
+                    status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
+                };
+            },
+            ttl({ seconds: 30 }),
+        );
     }
 }

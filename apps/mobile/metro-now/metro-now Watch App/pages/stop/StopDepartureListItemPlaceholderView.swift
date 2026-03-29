@@ -6,8 +6,7 @@ import SwiftUI
 struct StopDepartureListItemPlaceholderView: View {
     let color: Color
 
-    init(color: Color?
-    ) {
+    init(color: Color?) {
         self.color = color ?? Color.gray.opacity(0.3)
     }
 

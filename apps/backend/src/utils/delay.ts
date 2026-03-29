@@ -1,10 +1,9 @@
-import { delaySchema, type DelaySchema } from "src/schema/delay.schema";
+import { type DelaySchema, delaySchema } from "src/schema/delay.schema";
 
 export const getDelayInSeconds = (delay: DelaySchema): number => {
     const parsed = delaySchema.safeParse(delay);
 
     if (!parsed.success) {
-        console.log("Invalid delay", delay);
         return 0;
     }
 

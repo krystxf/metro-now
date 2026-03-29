@@ -15,12 +15,12 @@ import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { PlatformService } from "src/modules/platform/platform.service";
 import {
+    type PlatformWithDistanceSchema,
     platformWithDistanceSchema,
-    PlatformWithDistanceSchema,
 } from "src/modules/platform/schema/platform-with-distance.schema";
 import {
-    platformSchema,
     type PlatformSchema,
+    platformSchema,
 } from "src/modules/platform/schema/platform.schema";
 import { boundingBoxSchema } from "src/schema/bounding-box.schema";
 import { metroOnlySchema } from "src/schema/metro-only.schema";

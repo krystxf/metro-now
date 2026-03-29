@@ -48,6 +48,7 @@ export const heatmapLayer: LayerProps = {
                 [14, 0.6],
                 [15, 0],
             ],
+            // biome-ignore lint/suspicious/noExplicitAny: mapbox-gl type mismatch for stop-based expressions
         } as any,
     },
 };

@@ -1,110 +1,347 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Platform, Route, Stop } from "@metro-now/database";
+import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { platformSelect } from "src/modules/platform/platform.service";
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { DatabaseService } from "src/modules/database/database.service";
+import { loadCachedBatch } from "src/utils/cache-batch";
 
-export const getStopsSelect = ({ metroOnly }: { metroOnly: boolean }) => {
-    return {
-        id: true,
-        name: true,
-        avgLatitude: true,
-        avgLongitude: true,
-        platforms: {
-            select: platformSelect,
-            where: metroOnly ? { isMetro: true } : {},
-        },
-    } satisfies Prisma.StopSelect;
+type StopRecordBase = Pick<
+    Stop,
+    "avgLatitude" | "avgLongitude" | "id" | "name"
+>;
+
+type PlatformRouteRecord = Pick<Route, "id" | "name">;
+
+type StopPlatformRecord = Pick<
+    Platform,
+    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name" | "stopId"
+> & {
+    routes: PlatformRouteRecord[];
 };
+
+type StopRecord = StopRecordBase & {
+    platforms: StopPlatformRecord[];
+};
+
+type StopGraphQLPlatformRecord = Pick<Platform, "id">;
+
+type StopGraphQLRecord = StopRecordBase & {
+    platforms: StopGraphQLPlatformRecord[];
+};
+
+const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
 
 @Injectable()
 export class StopService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private readonly database: DatabaseService,
+        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    ) {}
 
-    /** @deprecated Use getAllGraphQL instead */
+    private async loadStopRows({
+        ids,
+        limit,
+        offset,
+    }: {
+        ids?: readonly string[];
+        limit?: number;
+        offset?: number;
+    }): Promise<StopRecordBase[]> {
+        if (ids && ids.length === 0) {
+            return [];
+        }
+
+        let query = this.database.db
+            .selectFrom("Stop")
+            .select(["id", "name", "avgLatitude", "avgLongitude"]);
+
+        if (ids) {
+            query = query.where("id", "in", [...ids]);
+        }
+
+        if (typeof offset === "number") {
+            query = query.offset(offset);
+        }
+
+        if (typeof limit === "number") {
+            query = query.limit(limit);
+        }
+
+        return query.orderBy("id", "asc").execute();
+    }
+
+    private async loadPlatformRoutesByPlatformIds(
+        platformIds: readonly string[],
+    ): Promise<Map<string, PlatformRouteRecord[]>> {
+        const routesByPlatformId = new Map<string, PlatformRouteRecord[]>(
+            platformIds.map((platformId) => [platformId, []]),
+        );
+
+        if (platformIds.length === 0) {
+            return routesByPlatformId;
+        }
+
+        const rows = await this.database.db
+            .selectFrom("PlatformsOnRoutes")
+            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
+            .select([
+                "PlatformsOnRoutes.platformId as platformId",
+                "Route.id as routeId",
+                "Route.name as routeName",
+            ])
+            .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
+            .orderBy("PlatformsOnRoutes.platformId", "asc")
+            .orderBy("Route.id", "asc")
+            .execute();
+
+        for (const row of rows) {
+            routesByPlatformId.get(row.platformId)?.push({
+                id: row.routeId,
+                name: row.routeName,
+            });
+        }
+
+        return routesByPlatformId;
+    }
+
+    private async loadPlatformsByStopIds({
+        stopIds,
+        metroOnly,
+    }: {
+        stopIds: readonly string[];
+        metroOnly?: boolean;
+    }): Promise<Map<string, StopPlatformRecord[]>> {
+        const platformsByStopId = new Map<string, StopPlatformRecord[]>(
+            stopIds.map((stopId) => [stopId, []]),
+        );
+
+        if (stopIds.length === 0) {
+            return platformsByStopId;
+        }
+
+        let query = this.database.db
+            .selectFrom("Platform")
+            .select([
+                "id",
+                "latitude",
+                "longitude",
+                "name",
+                "isMetro",
+                "stopId",
+                "code",
+            ])
+            .where("stopId", "in", [...stopIds])
+            .orderBy("stopId", "asc")
+            .orderBy("id", "asc");
+
+        if (metroOnly) {
+            query = query.where("isMetro", "=", true);
+        }
+
+        const platforms = await query.execute();
+        const routesByPlatformId = await this.loadPlatformRoutesByPlatformIds(
+            platforms.map((platform) => platform.id),
+        );
+
+        for (const platform of platforms) {
+            if (!platform.stopId) {
+                continue;
+            }
+
+            platformsByStopId.get(platform.stopId)?.push({
+                ...platform,
+                routes: routesByPlatformId.get(platform.id) ?? [],
+            });
+        }
+
+        return platformsByStopId;
+    }
+
+    private async loadStopGraphQLPlatformIdsByStopIds(
+        stopIds: readonly string[],
+    ): Promise<Map<string, StopGraphQLPlatformRecord[]>> {
+        const platformsByStopId = new Map<string, StopGraphQLPlatformRecord[]>(
+            stopIds.map((stopId) => [stopId, []]),
+        );
+
+        if (stopIds.length === 0) {
+            return platformsByStopId;
+        }
+
+        const rows = await this.database.db
+            .selectFrom("Platform")
+            .select(["id", "stopId"])
+            .where("stopId", "in", [...stopIds])
+            .orderBy("stopId", "asc")
+            .orderBy("id", "asc")
+            .execute();
+
+        for (const row of rows) {
+            if (!row.stopId) {
+                continue;
+            }
+
+            platformsByStopId.get(row.stopId)?.push({
+                id: row.id,
+            });
+        }
+
+        return platformsByStopId;
+    }
+
+    private async loadGraphQLStopsByIds(
+        ids: readonly string[],
+    ): Promise<Map<string, StopGraphQLRecord | null>> {
+        const stops = await this.loadStopRows({
+            ids,
+        });
+        const platformIdsByStopId =
+            await this.loadStopGraphQLPlatformIdsByStopIds(
+                stops.map((stop) => stop.id),
+            );
+        const stopsById = new Map<string, StopGraphQLRecord | null>(
+            stops.map((stop) => [
+                stop.id,
+                {
+                    ...stop,
+                    platforms: platformIdsByStopId.get(stop.id) ?? [],
+                },
+            ]),
+        );
+
+        for (const id of ids) {
+            if (!stopsById.has(id)) {
+                stopsById.set(id, null);
+            }
+        }
+
+        return stopsById;
+    }
+
     async getAll({
         metroOnly,
-        where,
         limit,
         offset,
     }: {
         metroOnly: boolean;
-        where?: Prisma.StopWhereInput;
-        limit?: number | undefined;
-        offset?: number | undefined;
-    }) {
-        const stops = await this.prisma.stop.findMany({
-            select: getStopsSelect({ metroOnly }),
-            where: {
-                ...where,
-                platforms: {
-                    ...where?.platforms,
-                    some: {
-                        ...where?.platforms?.some,
-                        isMetro: metroOnly,
-                    },
-                },
-            },
-            ...(limit && { take: limit }),
-            ...(offset && { skip: offset }),
-        });
+        limit?: number;
+        offset?: number;
+    }): Promise<StopRecord[]> {
+        let stopIdQuery = this.database.db
+            .selectFrom("Platform")
+            .select("stopId")
+            .distinct()
+            .where("stopId", "is not", null)
+            .$if(metroOnly, (qb) => qb.where("isMetro", "=", true))
+            .orderBy("stopId", "asc");
 
-        return stops.map((stop) => ({
-            ...stop,
-            platforms: stop.platforms.map((platform) => ({
-                ...platform,
-                routes: platform.routes.map((route) => route.route),
-            })),
-        }));
+        if (typeof offset === "number") {
+            stopIdQuery = stopIdQuery.offset(offset);
+        }
+
+        if (typeof limit === "number") {
+            stopIdQuery = stopIdQuery.limit(limit);
+        }
+
+        const stopIds = (await stopIdQuery.execute()).flatMap(({ stopId }) =>
+            stopId ? [stopId] : [],
+        );
+        const stops = await this.loadStopRows({
+            ids: stopIds,
+        });
+        const platformsByStopId = await this.loadPlatformsByStopIds({
+            stopIds: stops.map((stop) => stop.id),
+            ...(metroOnly ? { metroOnly: true } : {}),
+        });
+        const stopById = new Map(stops.map((stop) => [stop.id, stop]));
+
+        return stopIds
+            .map((stopId) => {
+                const stop = stopById.get(stopId);
+
+                if (!stop) {
+                    return null;
+                }
+
+                return {
+                    ...stop,
+                    platforms: platformsByStopId.get(stop.id) ?? [],
+                };
+            })
+            .filter((stop): stop is StopRecord => stop !== null);
     }
 
     async getAllGraphQL({
-        where,
         limit,
         offset,
     }: {
-        where?: Prisma.StopWhereInput;
-        limit?: number | undefined;
-        offset?: number | undefined;
-    }) {
-        const stops = await this.prisma.stop.findMany({
-            select: {
-                id: true,
-                name: true,
-                avgLatitude: true,
-                avgLongitude: true,
-                platforms: {
-                    select: {
-                        id: true,
-                    },
-                },
-            },
-            where: where ?? {},
-            ...(limit && { take: limit }),
-            ...(offset && { skip: offset }),
-        });
+        limit?: number;
+        offset?: number;
+    }): Promise<StopGraphQLRecord[]> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.getAllGraphQL({
+                limit,
+                offset,
+            }),
+            async () => {
+                const stops = await this.loadStopRows({
+                    ...(typeof limit === "number" ? { limit } : {}),
+                    ...(typeof offset === "number" ? { offset } : {}),
+                });
+                const platformIdsByStopId =
+                    await this.loadStopGraphQLPlatformIdsByStopIds(
+                        stops.map((stop) => stop.id),
+                    );
 
-        return stops;
+                return stops.map((stop) => ({
+                    ...stop,
+                    platforms: platformIdsByStopId.get(stop.id) ?? [],
+                }));
+            },
+            GRAPHQL_CACHE_TTL_MS,
+        );
     }
 
-    async getOne({ where }: { where?: Prisma.StopWhereInput }) {
-        const stop = await this.prisma.stop.findFirst({
-            select: getStopsSelect({ metroOnly: false }),
-            where: {
-                ...where,
-            },
+    async getGraphQLByIds(
+        ids: readonly string[],
+    ): Promise<StopGraphQLRecord[]> {
+        const stopsById = await loadCachedBatch({
+            cacheManager: this.cacheManager,
+            getCacheKey: CACHE_KEYS.stop.getGraphQLById,
+            keys: ids,
+            loadMissing: async (missingIds) =>
+                this.loadGraphQLStopsByIds(missingIds),
+            ttlMs: GRAPHQL_CACHE_TTL_MS,
         });
 
-        if (!stop) {
-            return null;
-        }
+        return Array.from(new Set(ids))
+            .map((id) => stopsById.get(id))
+            .filter((stop): stop is StopGraphQLRecord => stop !== null);
+    }
 
-        return {
-            ...stop,
-            platforms: (stop.platforms || []).map((platform) => ({
-                ...platform,
-                routes: platform.routes.map((route) => route.route),
-            })),
-        };
+    async getOneById(id: string): Promise<StopRecord | null> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.getOne({ id }),
+            async () => {
+                const [stop] = await this.loadStopRows({
+                    ids: [id],
+                });
+
+                if (!stop) {
+                    return null;
+                }
+
+                const platformsByStopId = await this.loadPlatformsByStopIds({
+                    stopIds: [id],
+                });
+
+                return {
+                    ...stop,
+                    platforms: platformsByStopId.get(id) ?? [],
+                };
+            },
+            GRAPHQL_CACHE_TTL_MS,
+        );
     }
 }

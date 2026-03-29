@@ -5,19 +5,12 @@ import { StopByPlatformLoader } from "src/modules/dataloader/stop-by-platform.lo
 import { PlatformController } from "src/modules/platform/platform.controller";
 import { PlatformResolver } from "src/modules/platform/platform.resolver";
 import { PlatformService } from "src/modules/platform/platform.service";
-import { RouteService } from "src/modules/route/route.service";
-import { StopService } from "src/modules/stop/stop.service";
+import { StopDataModule } from "src/modules/stop/stop-data.module";
 
 @Module({
     controllers: [PlatformController],
-    providers: [
-        PlatformResolver,
-        PlatformService,
-        StopService,
-        RouteService,
-        StopByPlatformLoader,
-    ],
+    providers: [PlatformResolver, PlatformService, StopByPlatformLoader],
     exports: [PlatformService, StopByPlatformLoader],
-    imports: [RoutesByPlatformIdLoaderModule],
+    imports: [RoutesByPlatformIdLoaderModule, StopDataModule],
 })
 export class PlatformModule {}

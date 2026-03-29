@@ -2,7 +2,7 @@ import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
 import { StopService } from "src/modules/stop/stop.service";
-import { ParentType } from "src/types/parent";
+import type { ParentType } from "src/types/parent";
 
 @Resolver("Stop")
 export class StopResolver {
@@ -13,7 +13,7 @@ export class StopResolver {
 
     @Query("stop")
     getOne(@Args("id") id: string) {
-        return this.stopService.getOne({ where: { id } });
+        return this.stopService.getOneById(id);
     }
 
     @Query("stops")
@@ -22,10 +22,17 @@ export class StopResolver {
         @Args("limit") limit: number | undefined,
         @Args("offset") offset: number | undefined,
     ) {
+        if (ids && ids.length > 0) {
+            const stops = await this.stopService.getGraphQLByIds(ids);
+            const start = offset ?? 0;
+            const end = typeof limit === "number" ? start + limit : undefined;
+
+            return stops.slice(start, end);
+        }
+
         const res = await this.stopService.getAllGraphQL({
-            where: ids ? { id: { in: ids } } : {},
-            limit: limit ?? undefined,
-            offset: offset ?? undefined,
+            ...(typeof limit === "number" ? { limit } : {}),
+            ...(typeof offset === "number" ? { offset } : {}),
         });
 
         return res;
