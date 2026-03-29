@@ -1,14 +1,12 @@
 import { parseString } from "@fast-csv/parse";
 
 export async function parseCsvString<T>(csvString: string): Promise<T[]> {
-    return new Promise((resolve) => {
+    return await new Promise<T[]>((resolve, reject) => {
         const rows: T[] = [];
 
         parseString(csvString, { headers: true })
-            .on("error", (error) => console.error(error))
+            .on("error", (error) => reject(error))
             .on("data", (row) => rows.push(row))
-            .on("end", () => {
-                resolve(rows);
-            });
+            .on("end", () => resolve(rows));
     });
 }

@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaClient } from "@metro-now/database";
+import { createPrismaClientOptions } from "@metro-now/shared";
 
 @Injectable()
 export class PrismaService
@@ -7,10 +8,12 @@ export class PrismaService
     implements OnModuleInit, OnModuleDestroy
 {
     constructor() {
-        super({
-            datasourceUrl: `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.POSTGRES_DB}?schema=${process.env.DB_SCHEMA}`,
-            log: ["info", "warn", "error"],
-        });
+        super(
+            createPrismaClientOptions({
+                env: process.env,
+                log: ["info", "warn", "error"],
+            }),
+        );
     }
     async onModuleInit() {
         await this.$connect();

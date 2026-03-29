@@ -29,7 +29,7 @@ export class DepartureResolver {
         @Args("limit") limit: number = 100,
     ) {
         if (platformIds.length === 0 && stopIds.length === 0) {
-            return GraphQLError({
+            throw GraphQLError({
                 message: "At least one `platformId` or `stopId` is required",
                 code: "BAD_USER_INPUT",
             });

@@ -1,7 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@metro-now/database";
 import { group } from "radash";
 
+import { CACHE_KEYS, ttl } from "src/constants/cache";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 import {
     BUS_PREFIXES,
@@ -42,7 +44,10 @@ const gtfsRouteSelect = {
 
 @Injectable()
 export class RouteService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    ) {}
 
     private processRoute(
         route: Prisma.GtfsRouteGetPayload<{ select: typeof gtfsRouteSelect }>,
@@ -55,7 +60,9 @@ export class RouteService {
                 group(route.GtfsRouteStop, ({ directionId }) => directionId),
             ).map(([key, value]) => ({
                 id: key,
-                platforms: value?.map((v) => v.platform),
+                platforms: (value ?? [])
+                    .map((routeStop) => routeStop.platform)
+                    .filter((platform) => platform !== null),
             })),
         };
     }
@@ -65,19 +72,31 @@ export class RouteService {
     }: {
         where?: Prisma.GtfsRouteWhereInput;
     } = {}) {
-        const routes = await this.prisma.gtfsRoute.findMany({
-            select: gtfsRouteSelect,
-            where,
-        });
+        const routes = await this.cacheManager.wrap(
+            CACHE_KEYS.route.getManyGraphQL({
+                where,
+            }),
+            async () =>
+                await this.prisma.gtfsRoute.findMany({
+                    select: gtfsRouteSelect,
+                    where,
+                }),
+            ttl({ minutes: 5 }),
+        );
 
         return routes.map(this.processRoute);
     }
 
     async getOneGraphQL(id: string) {
-        const route = await this.prisma.gtfsRoute.findFirst({
-            select: gtfsRouteSelect,
-            where: { id },
-        });
+        const route = await this.cacheManager.wrap(
+            CACHE_KEYS.route.getOneGraphQL(id),
+            async () =>
+                await this.prisma.gtfsRoute.findFirst({
+                    select: gtfsRouteSelect,
+                    where: { id },
+                }),
+            ttl({ minutes: 5 }),
+        );
 
         if (!route) {
             return null;

@@ -1,8 +1,9 @@
 {
     "name": "@metro-now/database",
-    "main": "index.ts",
-    "types": "index.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
+        "build": "tsc",
         "prisma:studio": "dotenv -e ../backend/.env.local -- prisma studio",
         "prisma:generate": "prisma generate",
         "prisma:migrate:create": "dotenv -e ../backend/.env.local -- prisma migrate dev",

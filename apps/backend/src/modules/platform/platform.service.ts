@@ -1,6 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@metro-now/database";
 
+import { CACHE_KEYS, ttl } from "src/constants/cache";
 import { PlatformWithDistanceSchema } from "src/modules/platform/schema/platform-with-distance.schema";
 import { PlatformSchema } from "src/modules/platform/schema/platform.schema";
 import { PrismaService } from "src/modules/prisma/prisma.service";
@@ -29,7 +31,10 @@ export const platformSelect = {
 
 @Injectable()
 export class PlatformService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    ) {}
 
     async getPlatformsByDistance({
         latitude,
@@ -153,30 +158,43 @@ export class PlatformService {
         metroOnly: boolean;
         where?: Prisma.PlatformWhereInput;
     }) {
-        const platforms = await this.prisma.platform.findMany({
-            select: {
-                id: true,
-                latitude: true,
-                longitude: true,
-                code: true,
-                name: true,
-                isMetro: true,
-                stopId: true,
-            },
-            where: {
-                ...where,
-                ...(metroOnly ? { isMetro: true } : {}),
-            },
-        });
+        const platforms = await this.cacheManager.wrap(
+            CACHE_KEYS.platform.getAllGraphQL({
+                metroOnly,
+                where: where ?? {},
+            }),
+            async () =>
+                await this.prisma.platform.findMany({
+                    select: {
+                        id: true,
+                        latitude: true,
+                        longitude: true,
+                        code: true,
+                        name: true,
+                        isMetro: true,
+                        stopId: true,
+                    },
+                    where: {
+                        ...where,
+                        ...(metroOnly ? { isMetro: true } : {}),
+                    },
+                }),
+            ttl({ minutes: 5 }),
+        );
 
         return platforms;
     }
 
     async getOne({ where }: { where: Prisma.PlatformWhereInput }) {
-        const platform = await this.prisma.platform.findFirst({
-            select: platformSelect,
-            where,
-        });
+        const platform = await this.cacheManager.wrap(
+            CACHE_KEYS.platform.getOne(where),
+            async () =>
+                await this.prisma.platform.findFirst({
+                    select: platformSelect,
+                    where,
+                }),
+            ttl({ minutes: 5 }),
+        );
 
         if (!platform) {
             return null;

@@ -25,6 +25,15 @@ export class RoutesByPlatformIdLoader extends DataLoader<string, Route[]> {
                 },
             },
         });
-        return platformIds.map(() => routes);
+
+        return platformIds.map((platformId) =>
+            routes.filter((route) =>
+                route.directions.some((direction) =>
+                    direction.platforms.some(
+                        (platform) => platform?.id === platformId,
+                    ),
+                ),
+            ),
+        );
     }
 }

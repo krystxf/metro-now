@@ -8,4 +8,7 @@ pnpm-lock.yaml
 schema.gql
 
 apps/backend/dist
+apps/backend
+apps/dataloader
+lib
 apps/mobile/metro-now/build
