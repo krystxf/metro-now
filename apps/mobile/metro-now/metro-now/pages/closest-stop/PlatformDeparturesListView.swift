@@ -32,8 +32,7 @@ struct PlatformDeparturesListView: View {
                 .map(\.value)
                 .sorted(by: {
                     $0.first!.departure.predicted < $1.first!.departure.predicted
-                }
-                )
+                })
         )
     }
 

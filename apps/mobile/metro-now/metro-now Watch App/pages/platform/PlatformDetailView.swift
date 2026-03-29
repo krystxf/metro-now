@@ -46,8 +46,8 @@ struct PlatformDetailView: View {
         .toolbar {
             if let metroLineName = metroLine?.rawValue {
                 ToolbarItem(
-                    placement: .confirmationAction)
-                {
+                    placement: .confirmationAction
+                ) {
                     if #available(watchOS 11, *) {
                         Text(metroLineName)
                             .overlay(

@@ -5,7 +5,7 @@ import Foundation
 import Testing
 
 @Test("ENDPOINT")
-func endpoint() async throws {
+func endpoint() {
     #expect(
         !API_URL.contains("localhost"),
         "ENDPOINT should not contain localhost"

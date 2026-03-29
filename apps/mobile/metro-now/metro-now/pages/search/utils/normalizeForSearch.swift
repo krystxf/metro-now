@@ -7,9 +7,8 @@ func normalizeForSearch(_ input: String) -> String {
     // Replace dots with spaces
     let noDots = noDiacritics.replacingOccurrences(of: ".", with: " ")
     // Normalize spaces (trim and replace multiple spaces with single)
-    let normalizedSpaces = noDots
+    return noDots
         .components(separatedBy: .whitespacesAndNewlines)
         .filter { !$0.isEmpty }
         .joined(separator: "")
-    return normalizedSpaces
 }

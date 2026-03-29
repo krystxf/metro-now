@@ -51,8 +51,8 @@ struct StopDeparturesView: View {
             let platform = platforms.first(
                 where: {
                     $0.id == selectedPlatformId
-
-                })
+                }
+            )
 
             if let platform {
                 PlatformDetailView(

@@ -28,8 +28,7 @@ struct WelcomePageView: View {
                     .font(.system(size: 50))
 
                 VStack(spacing: 20) {
-                    Text("This app is currently in development, so you might notice some features are still in progress."
-                    )
+                    Text("This app is currently in development, so you might notice some features are still in progress.")
 
                     Text("Thanks for your patience as we work to improve your experience! ❤️‍🔥")
                         .fontWeight(.semibold)

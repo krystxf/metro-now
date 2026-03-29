@@ -15,13 +15,11 @@ func getGithubIssueUrl(template: GithubIssueTemplate, title: String = "") -> URL
         return nil
     }
 
-    let urlWithQueryParams = url.appending(queryItems: [
+    return url.appending(queryItems: [
         URLQueryItem(name: "assignees", value: nil),
         URLQueryItem(name: "labels", value: nil),
         URLQueryItem(name: "projects", value: nil),
         URLQueryItem(name: "template", value: "\(template.rawValue).md"),
         URLQueryItem(name: "title", value: title),
     ])
-
-    return urlWithQueryParams
 }

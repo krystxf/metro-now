@@ -4,7 +4,6 @@
 import Foundation
 import Testing
 
-@Suite("getRemainingTime")
 struct GetRemainingTimeTests {
     @Test(
         "zero",
@@ -13,14 +12,13 @@ struct GetRemainingTimeTests {
             ["0s", "0s", "0s", "-0s"]
         )
     )
-    func testGetRemainingTimeSeconds(
+    func getRemainingTimeSeconds(
         remainingTime: Double,
         expected: String
     ) {
         #expect(getRemainingTime(remainingTime) == expected)
     }
 
-    @Suite("future")
     struct GetRemainingTimeFutureTests {
         @Test(
             "seconds",
@@ -43,7 +41,7 @@ struct GetRemainingTimeTests {
                 ["1m 0s", "59m 0s", "59m 59s"]
             )
         )
-        func testGetRemainingTimeMinutes(
+        func getRemainingTimeMinutes(
             remainingTime: Double,
             expected: String
         ) {
@@ -67,7 +65,7 @@ struct GetRemainingTimeTests {
                 ]
             )
         )
-        func testGetRemainingTimeHours(
+        func getRemainingTimeHours(
             remainingTime: Double,
             expected: String
         ) {
@@ -75,7 +73,6 @@ struct GetRemainingTimeTests {
         }
     }
 
-    @Suite("past")
     struct GetRemainingTimePastTests {
         @Test(
             "seconds",
