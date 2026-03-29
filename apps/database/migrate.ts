@@ -1,9 +1,14 @@
-import * as path from "path";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
+import * as path from "node:path";
 
-import type { MetroNowDatabase } from "./index";
-import { Kysely, Migrator, FileMigrationProvider, PostgresDialect } from "kysely";
+import {
+    FileMigrationProvider,
+    Kysely,
+    Migrator,
+    PostgresDialect,
+} from "kysely";
 import { Pool } from "pg";
+import type { MetroNowDatabase } from "./index";
 
 const createDb = (): Kysely<MetroNowDatabase> => {
     const connectionString = process.env.DATABASE_URL;
@@ -36,7 +41,7 @@ const runMigrations = async (direction: "up" | "down"): Promise<void> => {
             ? await migrator.migrateToLatest()
             : await migrator.migrateDown();
 
-    results?.forEach((result) => {
+    for (const result of results ?? []) {
         if (result.status === "Success") {
             console.log(
                 `Migration "${result.migrationName}" ${direction === "up" ? "applied" : "reverted"} successfully`,
@@ -46,7 +51,7 @@ const runMigrations = async (direction: "up" | "down"): Promise<void> => {
                 `Failed to ${direction === "up" ? "apply" : "revert"} migration "${result.migrationName}"`,
             );
         }
-    });
+    }
 
     if (error) {
         console.error("Migration failed:", error);

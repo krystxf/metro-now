@@ -1,13 +1,8 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 
-import type {
-    MetroNowDatabase,
-    NewPlatform,
-    NewRoute,
-    NewStop,
-} from "./index";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
+import type { MetroNowDatabase, NewPlatform, NewRoute, NewStop } from "./index";
 
 type Stop = {
     id: string;
@@ -46,6 +41,7 @@ async function insertInBatches<T>(
     values: T[],
 ): Promise<void> {
     for (let i = 0; i < values.length; i += BATCH_SIZE) {
+        // biome-ignore lint/suspicious/noExplicitAny: Kysely insertInto returns different types per table, generic batch helper needs type erasure
         await (transaction.insertInto(table) as any)
             .values(values.slice(i, i + BATCH_SIZE))
             .execute();

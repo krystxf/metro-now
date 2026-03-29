@@ -1,7 +1,10 @@
 import type { Kysely } from "kysely";
 import { sql } from "kysely";
 
-export async function up(db: Kysely<any>): Promise<void> {
+export async function up(
+    db: // biome-ignore lint/suspicious/noExplicitAny: Kysely migration signature
+    Kysely<any>,
+): Promise<void> {
     // Extensions
     await sql`CREATE EXTENSION IF NOT EXISTS cube`.execute(db);
     await sql`CREATE EXTENSION IF NOT EXISTS earthdistance`.execute(db);
@@ -146,7 +149,10 @@ export async function up(db: Kysely<any>): Promise<void> {
     `.execute(db);
 }
 
-export async function down(db: Kysely<any>): Promise<void> {
+export async function down(
+    db: // biome-ignore lint/suspicious/noExplicitAny: Kysely migration signature
+    Kysely<any>,
+): Promise<void> {
     await sql`DROP TABLE IF EXISTS "Log" CASCADE`.execute(db);
     await sql`DROP TABLE IF EXISTS "GtfsRouteStop" CASCADE`.execute(db);
     await sql`DROP TABLE IF EXISTS "GtfsRoute" CASCADE`.execute(db);
