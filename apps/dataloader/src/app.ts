@@ -1,34 +1,164 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from "express";
 
+import { getDataloaderEnv, loadEnvironment } from "./config/env";
+import { CronService } from "./services/cron.service";
+import { DatabaseLogStore } from "./services/database-log-store.service";
+import { DatabaseService } from "./services/database.service";
+import { SyncService } from "./services/sync.service";
+import { logger } from "./utils/logger";
+
+loadEnvironment();
+
+const env = getDataloaderEnv();
 const app = express();
-const port = process.env.PORT || 3008;
+const databaseService = new DatabaseService();
+logger.setTransport(new DatabaseLogStore(databaseService.db));
+const syncService = new SyncService(databaseService.db);
+const cronService = new CronService();
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello World from TypeScript Express!');
+app.use(express.json());
+
+app.get("/", (_req: Request, res: Response) => {
+    res.send("Metro Now dataloader");
 });
 
-app.get('/health', (req: Request, res: Response) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        service: 'dataloader'
-    });
+app.get("/health", async (_req: Request, res: Response) => {
+    try {
+        const health = await databaseService.performHealthCheck();
+
+        res.json({
+            status: "ok",
+            service: "dataloader",
+            timestamp: new Date().toISOString(),
+            database: "connected",
+            extensions: health.extensions,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            service: "dataloader",
+            message: error instanceof Error ? error.message : String(error),
+        });
+    }
 });
 
-app.get('/status', (req: Request, res: Response) => {
+app.get("/status", (_req: Request, res: Response) => {
     res.json({
-        service: 'dataloader',
-        version: '1.0.0',
-        status: 'running',
-        uptime: process.uptime(),
+        service: "dataloader",
+        environment: process.env.NODE_ENV ?? "development",
+        port: env.port,
+        uptimeSeconds: process.uptime(),
+        sync: syncService.getStatus(),
+        cron: cronService.getJobStatus(),
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        port: port
     });
 });
 
-app.listen(port, () => {
-    console.log(`🚀 Dataloader app listening on port ${port}`);
-    console.log(`📍 Health check available at http://localhost:${port}/health`);
-    console.log(`📍 Status endpoint available at http://localhost:${port}/status`);
+app.get("/api/database/stats", async (_req: Request, res: Response) => {
+    try {
+        const [stats, preview] = await Promise.all([
+            databaseService.getDatabaseStats(),
+            databaseService.getDataPreview(),
+        ]);
+
+        res.json({
+            success: true,
+            stats,
+            preview,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : String(error),
+        });
+    }
+});
+
+app.post("/api/sync/run", async (_req: Request, res: Response) => {
+    try {
+        const result = await syncService.syncEverything("manual");
+
+        res.json({
+            success: true,
+            result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : String(error),
+        });
+    }
+});
+
+app.get("/api/sync/status", (_req: Request, res: Response) => {
+    res.json({
+        success: true,
+        sync: syncService.getStatus(),
+        cron: cronService.getJobStatus(),
+    });
+});
+
+app.post("/api/cron/start/:jobName", (req: Request, res: Response) => {
+    const success = cronService.startJob(req.params.jobName);
+
+    res.status(success ? 200 : 404).json({
+        success,
+    });
+});
+
+app.post("/api/cron/stop/:jobName", (req: Request, res: Response) => {
+    const success = cronService.stopJob(req.params.jobName);
+
+    res.status(success ? 200 : 404).json({
+        success,
+    });
+});
+
+const bootstrap = async (): Promise<void> => {
+    cronService.addJob(
+        {
+            name: "pid-sync",
+            description: "Syncs PID stops and GTFS snapshots into Postgres",
+            enabled: true,
+            schedule: env.syncSchedule,
+        },
+        async () => {
+            await syncService.syncEverything("cron");
+        },
+    );
+
+    await syncService.syncEverything("startup");
+    cronService.startAll();
+
+    app.listen(env.port, () => {
+        logger.info("Dataloader listening", {
+            port: env.port,
+            syncSchedule: env.syncSchedule,
+        });
+    });
+};
+
+const shutdown = async (signal: string): Promise<void> => {
+    logger.info("Received shutdown signal", { signal });
+    cronService.shutdown();
+    await logger.flush();
+    await databaseService.disconnect();
+    process.exit(0);
+};
+
+void bootstrap().catch(async (error) => {
+    logger.error("Failed to start dataloader", {
+        error: error instanceof Error ? error.message : String(error),
+    });
+    await logger.flush();
+    await databaseService.disconnect();
+    process.exit(1);
+});
+
+process.on("SIGINT", () => {
+    void shutdown("SIGINT");
+});
+
+process.on("SIGTERM", () => {
+    void shutdown("SIGTERM");
 });

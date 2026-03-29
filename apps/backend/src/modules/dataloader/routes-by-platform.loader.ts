@@ -3,7 +3,9 @@ import * as DataLoader from "dataloader";
 
 import { RouteService } from "src/modules/route/route.service";
 
-type Route = Awaited<ReturnType<RouteService["getOneGraphQL"]>>;
+type Route = Awaited<
+    ReturnType<RouteService["getManyGraphQLByPlatformIds"]>
+>[number][number];
 
 @Injectable({ scope: Scope.REQUEST })
 export class RoutesByPlatformIdLoader extends DataLoader<string, Route[]> {
@@ -14,17 +16,6 @@ export class RoutesByPlatformIdLoader extends DataLoader<string, Route[]> {
     private async batchLoadFn(
         platformIds: readonly string[],
     ): Promise<Route[][]> {
-        const routes = await this.routeService.getManyGraphQL({
-            where: {
-                GtfsRouteStop: {
-                    some: {
-                        platform: {
-                            id: { in: [...platformIds] },
-                        },
-                    },
-                },
-            },
-        });
-        return platformIds.map(() => routes);
+        return this.routeService.getManyGraphQLByPlatformIds(platformIds);
     }
 }

@@ -3,21 +3,22 @@ import * as DataLoader from "dataloader";
 
 import { PlatformService } from "src/modules/platform/platform.service";
 
+type PlatformRecord = Awaited<
+    ReturnType<PlatformService["getGraphQLByIds"]>
+>[number];
+
 @Injectable({ scope: Scope.REQUEST })
-export class PlatformsByStopLoader extends DataLoader<string, unknown> {
+export class PlatformsByStopLoader extends DataLoader<
+    string,
+    PlatformRecord | null
+> {
     constructor(private readonly platformService: PlatformService) {
         super((keys) => this.batchLoadFn(keys));
     }
 
     private async batchLoadFn(platformIds: readonly string[]) {
-        const platforms = await this.platformService.getAllGraphQL({
-            metroOnly: false,
-            where: {
-                id: {
-                    in: [...platformIds],
-                },
-            },
-        });
+        const platforms =
+            await this.platformService.getGraphQLByIds(platformIds);
 
         const platformMap = new Map(platforms.map((p) => [p.id, p]));
 

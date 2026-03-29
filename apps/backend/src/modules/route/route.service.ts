@@ -1,89 +1,233 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@metro-now/database";
+import type { GtfsRoute, Platform } from "@metro-now/database";
+import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
+import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
 
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { CACHE_KEYS, ttl, uniqueSortedStrings } from "src/constants/cache";
+import { DatabaseService } from "src/modules/database/database.service";
 import {
     BUS_PREFIXES,
     METRO_LINES,
     TRAIN_PREFIXES,
 } from "src/modules/route/route.const";
 import { VehicleType } from "src/types/graphql.generated";
+import { loadCachedBatch } from "src/utils/cache-batch";
 
-const gtfsRouteSelect = {
-    id: true,
-    shortName: true,
-    longName: true,
-    isNight: true,
-    color: true,
-    url: true,
-    type: true,
-    GtfsRouteStop: {
-        select: {
-            directionId: true,
-            stopId: true,
-            stopSequence: true,
-            platform: {
-                select: {
-                    id: true,
-                    latitude: true,
-                    longitude: true,
-                    name: true,
-                    isMetro: true,
-                    code: true,
-                },
-            },
-        },
-        orderBy: {
-            stopSequence: "asc",
-        },
-    },
-} as const satisfies Prisma.GtfsRouteSelect;
+type RouteRow = Pick<
+    GtfsRoute,
+    "color" | "id" | "isNight" | "longName" | "shortName" | "type" | "url"
+>;
+
+type RoutePlatformRecord = Pick<
+    Platform,
+    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name"
+>;
+
+type RouteStopRow = {
+    directionId: string;
+    platform: RoutePlatformRecord | null;
+    routeId: string;
+    stopSequence: number;
+};
+
+const processRoute = (route: RouteRow, routeStops: RouteStopRow[]) => {
+    return {
+        ...route,
+        id: route.id.slice(1),
+        name: route.shortName,
+        directions: Object.entries(
+            group(routeStops, ({ directionId }) => directionId),
+        ).map(([key, value]) => ({
+            id: key,
+            platforms: (value ?? [])
+                .sort((left, right) => left.stopSequence - right.stopSequence)
+                .flatMap((routeStop) =>
+                    routeStop.platform ? [routeStop.platform] : [],
+                ),
+        })),
+    };
+};
+
+type GraphQLRouteRecord = ReturnType<typeof processRoute>;
+
+const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
 
 @Injectable()
 export class RouteService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private readonly database: DatabaseService,
+        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    ) {}
 
-    private processRoute(
-        route: Prisma.GtfsRouteGetPayload<{ select: typeof gtfsRouteSelect }>,
-    ) {
-        return {
-            ...route,
-            id: route.id.slice(1),
-            name: route.shortName,
-            directions: Object.entries(
-                group(route.GtfsRouteStop, ({ directionId }) => directionId),
-            ).map(([key, value]) => ({
-                id: key,
-                platforms: value?.map((v) => v.platform),
-            })),
-        };
-    }
-
-    async getManyGraphQL({
-        where = {},
-    }: {
-        where?: Prisma.GtfsRouteWhereInput;
-    } = {}) {
-        const routes = await this.prisma.gtfsRoute.findMany({
-            select: gtfsRouteSelect,
-            where,
-        });
-
-        return routes.map(this.processRoute);
-    }
-
-    async getOneGraphQL(id: string) {
-        const route = await this.prisma.gtfsRoute.findFirst({
-            select: gtfsRouteSelect,
-            where: { id },
-        });
-
-        if (!route) {
-            return null;
+    private async loadRouteRows(
+        routeIds?: readonly string[],
+    ): Promise<RouteRow[]> {
+        if (routeIds && routeIds.length === 0) {
+            return [];
         }
 
-        return this.processRoute(route);
+        let query = this.database.db
+            .selectFrom("GtfsRoute")
+            .select([
+                "id",
+                "shortName",
+                "longName",
+                "isNight",
+                "color",
+                "url",
+                "type",
+            ]);
+
+        if (routeIds) {
+            query = query.where("id", "in", [...routeIds]);
+        }
+
+        return query.orderBy("id", "asc").execute();
+    }
+
+    private async loadRouteStops(
+        routeIds: readonly string[],
+    ): Promise<Map<string, RouteStopRow[]>> {
+        const routeStopsByRouteId = new Map<string, RouteStopRow[]>(
+            routeIds.map((routeId) => [routeId, []]),
+        );
+
+        if (routeIds.length === 0) {
+            return routeStopsByRouteId;
+        }
+
+        const rows = await this.database.db
+            .selectFrom("GtfsRouteStop")
+            .leftJoin("Platform", "Platform.id", "GtfsRouteStop.stopId")
+            .select([
+                "GtfsRouteStop.routeId as routeId",
+                "GtfsRouteStop.directionId as directionId",
+                "GtfsRouteStop.stopSequence as stopSequence",
+                "Platform.id as platformId",
+                "Platform.latitude as platformLatitude",
+                "Platform.longitude as platformLongitude",
+                "Platform.name as platformName",
+                "Platform.isMetro as platformIsMetro",
+                "Platform.code as platformCode",
+            ])
+            .where("GtfsRouteStop.routeId", "in", [...routeIds])
+            .orderBy("GtfsRouteStop.routeId", "asc")
+            .orderBy("GtfsRouteStop.directionId", "asc")
+            .orderBy("GtfsRouteStop.stopSequence", "asc")
+            .execute();
+
+        for (const row of rows) {
+            routeStopsByRouteId.get(row.routeId)?.push({
+                routeId: row.routeId,
+                directionId: row.directionId,
+                stopSequence: row.stopSequence,
+                platform: row.platformId
+                    ? {
+                          id: row.platformId,
+                          latitude: row.platformLatitude ?? 0,
+                          longitude: row.platformLongitude ?? 0,
+                          name: row.platformName ?? "",
+                          isMetro: row.platformIsMetro ?? false,
+                          code: row.platformCode,
+                      }
+                    : null,
+            });
+        }
+
+        return routeStopsByRouteId;
+    }
+
+    private async loadGraphQLRoutesByIds(
+        routeIds: readonly string[],
+    ): Promise<GraphQLRouteRecord[]> {
+        const [routes, routeStopsByRouteId] = await Promise.all([
+            this.loadRouteRows(routeIds),
+            this.loadRouteStops(routeIds),
+        ]);
+
+        return routes.map((route) =>
+            processRoute(route, routeStopsByRouteId.get(route.id) ?? []),
+        );
+    }
+
+    private async loadGraphQLRoutesByPlatformIds(
+        platformIds: readonly string[],
+    ): Promise<Map<string, GraphQLRouteRecord[]>> {
+        const routesByPlatformId = new Map<string, GraphQLRouteRecord[]>(
+            platformIds.map((platformId) => [platformId, []]),
+        );
+
+        if (platformIds.length === 0) {
+            return routesByPlatformId;
+        }
+
+        const routeLinks = await this.database.db
+            .selectFrom("GtfsRouteStop")
+            .select(["routeId", "stopId as platformId"])
+            .distinct()
+            .where("stopId", "in", [...platformIds])
+            .orderBy("routeId", "asc")
+            .execute();
+        const routeIds = uniqueSortedStrings(
+            routeLinks.map(({ routeId }) => routeId),
+        );
+        const routes = await this.loadGraphQLRoutesByIds(routeIds);
+        const routeById = new Map<string, GraphQLRouteRecord>(
+            routes.map((route) => [`L${route.id}` as const, route]),
+        );
+
+        for (const { platformId, routeId } of routeLinks) {
+            const route = routeById.get(routeId);
+
+            if (route) {
+                routesByPlatformId.get(platformId)?.push(route);
+            }
+        }
+
+        return routesByPlatformId;
+    }
+
+    async getManyGraphQL(): Promise<GraphQLRouteRecord[]> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.route.getManyGraphQL({}),
+            async () => {
+                const routeRows = await this.loadRouteRows();
+
+                return this.loadGraphQLRoutesByIds(
+                    routeRows.map((route) => route.id),
+                );
+            },
+            GRAPHQL_CACHE_TTL_MS,
+        );
+    }
+
+    async getOneGraphQL(id: string): Promise<GraphQLRouteRecord | null> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.route.getOneGraphQL(id),
+            async () => {
+                const [route] = await this.loadGraphQLRoutesByIds([id]);
+
+                return route ?? null;
+            },
+            GRAPHQL_CACHE_TTL_MS,
+        );
+    }
+
+    async getManyGraphQLByPlatformIds(
+        platformIds: readonly string[],
+    ): Promise<GraphQLRouteRecord[][]> {
+        const routesByPlatformId = await loadCachedBatch({
+            cacheManager: this.cacheManager,
+            getCacheKey: CACHE_KEYS.route.getManyGraphQLByPlatformId,
+            keys: platformIds,
+            loadMissing: async (missingPlatformIds) =>
+                this.loadGraphQLRoutesByPlatformIds(missingPlatformIds),
+            ttlMs: GRAPHQL_CACHE_TTL_MS,
+        });
+
+        return platformIds.map(
+            (platformId) => routesByPlatformId.get(platformId) ?? [],
+        );
     }
 
     isSubstitute(routeName: string): boolean {
@@ -96,9 +240,9 @@ export class RouteService {
 
     isNight(routeName: string): boolean {
         const routeNameParsed = this.getNameWithoutSubstitute(routeName);
-        const routeNumber = parseInt(routeNameParsed);
+        const routeNumber = Number.parseInt(routeNameParsed);
 
-        if (isNaN(routeNumber)) {
+        if (Number.isNaN(routeNumber)) {
             return false;
         }
 
@@ -110,9 +254,9 @@ export class RouteService {
 
     getVehicleType(routeName: string): VehicleType {
         const routeNameParsed = this.getNameWithoutSubstitute(routeName);
-        const routeNumber = parseInt(routeNameParsed);
+        const routeNumber = Number.parseInt(routeNameParsed);
 
-        if (!isNaN(routeNumber)) {
+        if (!Number.isNaN(routeNumber)) {
             if (routeNumber === 58 || routeNumber === 59) {
                 return VehicleType.TROLLEYBUS;
             }

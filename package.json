@@ -9,14 +9,11 @@
         "backend:build": "pnpm run -r --filter @metro-now/backend build",
         "backend:dev": "pnpm run -r --filter @metro-now/backend dev",
         "web:dev": "pnpm run -r --filter @metro-now/web dev",
-        "db:studio": "pnpm run -r --filter @metro-now/database prisma:studio",
-        "db:generate": "pnpm run -r --filter @metro-now/database prisma:generate",
-        "db:migrate:create": "pnpm run -r --filter @metro-now/database prisma:migrate:create",
-        "db:migrate:deploy": "pnpm run -r --filter @metro-now/database prisma:migrate:deploy",
-        "db:push": "pnpm run -r --filter @metro-now/database prisma:push",
-        "db:seed": "pnpm run -r --filter @metro-now/database prisma:seed",
-        "db:reset": "pnpm run -r --filter @metro-now/database prisma:reset",
-        "db:status": "pnpm run -r --filter @metro-now/database prisma:status",
+        "db:migrate:deploy": "pnpm run -r --filter @metro-now/database migrate:deploy",
+        "db:migrate:rollback": "pnpm run -r --filter @metro-now/database migrate:rollback",
+        "db:seed": "pnpm run -r --filter @metro-now/database seed",
+        "biome:check": "pnpm --filter @metro-now/backend format:check && pnpm --filter @metro-now/dataloader format:check && pnpm --filter @metro-now/shared format:check",
+        "biome:write": "pnpm --filter @metro-now/backend format && pnpm --filter @metro-now/dataloader format && pnpm --filter @metro-now/shared format",
         "precommit": "pnpm format",
         "format": "pnpm --recursive --parallel format && pnpm exec prettier . --write",
         "app:format": "pnpm --filter @metro-now/mobile format",
@@ -26,6 +23,7 @@
         "docker:down": "docker compose down --remove-orphans --volumes"
     },
     "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
         "prettier": "^3.5.3"
     },
     "homepage": "https://metro-now.vercel.app/",

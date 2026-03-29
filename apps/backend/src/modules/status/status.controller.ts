@@ -4,7 +4,7 @@ import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ApiDescription } from "src/decorators/swagger.decorator";
 import { StatusService } from "src/modules/status/status.service";
 import {
-    StatusObject,
+    type StatusObject,
     SystemStatus,
     SystemStatusService,
 } from "src/modules/status/status.types";

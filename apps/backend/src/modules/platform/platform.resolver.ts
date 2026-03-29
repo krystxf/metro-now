@@ -3,7 +3,7 @@ import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { RoutesByPlatformIdLoader } from "src/modules/dataloader/routes-by-platform.loader";
 import { StopByPlatformLoader } from "src/modules/dataloader/stop-by-platform.loader";
 import { PlatformService } from "src/modules/platform/platform.service";
-import { ParentType } from "src/types/parent";
+import type { ParentType } from "src/types/parent";
 
 @Resolver("Platform")
 export class PlatformResolver {
@@ -15,15 +15,18 @@ export class PlatformResolver {
 
     @Query("platform")
     getOne(@Args("id") id: string) {
-        return this.platformService.getOne({ where: { id } });
+        return this.platformService.getOneById(id);
     }
 
     @Query("platforms")
-    getMultiple(@Args("ids") ids: string[]) {
-        return this.platformService.getAllGraphQL({
-            metroOnly: false,
-            where: { id: { in: ids } },
-        });
+    getMultiple(@Args("ids") ids: string[] | undefined) {
+        if (!ids || ids.length === 0) {
+            return this.platformService.getAllGraphQL({
+                metroOnly: false,
+            });
+        }
+
+        return this.platformService.getGraphQLByIds(ids);
     }
 
     @ResolveField("stop")

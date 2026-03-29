@@ -1,4 +1,4 @@
-import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
 import { CACHE_KEYS, ttl } from "src/constants/cache";
@@ -14,17 +14,10 @@ export class InfotextsService {
     ) {}
 
     private async _getAll() {
-        const res =
-            await this.golemioService.getGolemioData(`/v3/pid/infotexts`);
+        const data =
+            await this.golemioService.getGolemioData("/v3/pid/infotexts");
 
-        if (!res.ok) {
-            throw new Error(
-                `Failed to fetch infotexts: ${res.status} ${res.statusText}`,
-            );
-        }
-
-        const json = await res.json();
-        const parsed = golemioResponseSchema.safeParse(json);
+        const parsed = golemioResponseSchema.safeParse(data);
 
         if (!parsed.success) {
             throw new Error(parsed.error.message);

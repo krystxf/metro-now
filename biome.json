@@ -1,0 +1,52 @@
+{
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "files": {
+        "include": [
+            "apps/backend/**/*.ts",
+            "apps/backend/**/*.js",
+            "apps/backend/tsconfig.json",
+            "apps/dataloader/**/*.ts",
+            "apps/dataloader/**/*.js",
+            "apps/dataloader/tsconfig.json",
+            "lib/**/*.ts",
+            "lib/**/*.js",
+            "lib/shared/tsconfig.json",
+            "apps/backend/package.json",
+            "apps/dataloader/package.json",
+            "lib/shared/package.json"
+        ],
+        "ignore": [
+            "**/node_modules/**",
+            "**/dist/**",
+            "apps/backend/src/types/graphql.generated.ts"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf"
+    },
+    "organizeImports": {
+        "enabled": true
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "style": {
+                "useImportType": "off"
+            }
+        }
+    },
+    "javascript": {
+        "parser": {
+            "unsafeParameterDecoratorsEnabled": true
+        },
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "always",
+            "trailingCommas": "all"
+        }
+    }
+}

@@ -1,11 +1,11 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 
+import { DatabaseService } from "src/modules/database/database.service";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { InfotextsResolver } from "src/modules/infotexts/infotexts.resolver";
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
 import { PlatformService } from "src/modules/platform/platform.service";
-import { PrismaService } from "src/modules/prisma/prisma.service";
 
 describe("InfotextResolver", () => {
     let resolver: InfotextsResolver;
@@ -18,10 +18,10 @@ describe("InfotextResolver", () => {
                 GolemioService,
                 PlatformService,
                 {
-                    provide: PrismaService,
+                    provide: DatabaseService,
                     useValue: {
-                        platform: {
-                            findMany: jest.fn(),
+                        db: {
+                            selectFrom: jest.fn(),
                         },
                     },
                 },

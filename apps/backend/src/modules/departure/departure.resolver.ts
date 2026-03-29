@@ -1,11 +1,10 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { GraphQLError } from "src/common/graphql-error";
-import { GolemioService } from "src/modules/golemio/golemio.service";
+import { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import { PlatformService } from "src/modules/platform/platform.service";
-import { PrismaService } from "src/modules/prisma/prisma.service";
 import { RouteService } from "src/modules/route/route.service";
-import { ParentType } from "src/types/parent";
+import type { ParentType } from "src/types/parent";
 
 const ROUTE_ID_BY_NAME = {
     A: "L991",
@@ -16,9 +15,8 @@ const ROUTE_ID_BY_NAME = {
 @Resolver("Departure")
 export class DepartureResolver {
     constructor(
-        private golemioService: GolemioService,
-        private prismaService: PrismaService,
-        private platformService: PlatformService,
+        private readonly departureBoardService: DepartureBoardService,
+        private readonly platformService: PlatformService,
         private readonly routeService: RouteService,
     ) {}
 
@@ -26,48 +24,32 @@ export class DepartureResolver {
     async getMultiple(
         @Args("platformIds") platformIds: string[] = [],
         @Args("stopIds") stopIds: string[] = [],
-        @Args("limit") limit: number = 100,
+        @Args("limit") limit = 100,
     ) {
         if (platformIds.length === 0 && stopIds.length === 0) {
-            return GraphQLError({
+            throw GraphQLError({
                 message: "At least one `platformId` or `stopId` is required",
                 code: "BAD_USER_INPUT",
             });
         }
 
-        const stopPlatforms = await this.prismaService.stop.findMany({
-            select: { platforms: { select: { id: true } } },
-            where: { id: { in: stopIds } },
+        const resolvedPlatformIds =
+            await this.departureBoardService.resolvePlatformIds({
+                platformIds,
+                stopIds,
+            });
+        const normalizedLimit = Math.max(1, Math.min(limit, 100));
+        const json = await this.departureBoardService.fetchDepartureBoard({
+            platformIds: resolvedPlatformIds,
+            params: {
+                includeMetroTrains: true,
+                limit: normalizedLimit,
+                minutesBefore: 1,
+                mode: "departures",
+                order: "real",
+                skip: "canceled",
+            },
         });
-        const stopPlatformIds = stopPlatforms.flatMap(({ platforms }) =>
-            platforms.map(({ id }) => id),
-        );
-
-        const searchParams = new URLSearchParams(
-            platformIds
-                .concat(stopPlatformIds)
-                .map((id) => ["ids", id])
-                .concat([
-                    ["skip", "canceled"],
-                    ["mode", "departures"],
-                    ["order", "real"],
-                    ["includeMetroTrains", "true"],
-                    ["limit", limit.toString()],
-                    ["minutesBefore", "1"],
-                ]),
-        );
-
-        const res = await this.golemioService.getGolemioData(
-            `/v2/pid/departureboards?${searchParams.toString()}`,
-        );
-
-        if (!res.ok) {
-            throw new Error(
-                `Failed to fetch departure data: ${res.status} ${res.statusText}`,
-            );
-        }
-
-        const json = await res.json();
 
         return json.departures.map((departure) => ({
             ...departure,
@@ -91,9 +73,7 @@ export class DepartureResolver {
 
     @ResolveField("platform")
     getPlatformField(@Parent() departure: ParentType<typeof this.getMultiple>) {
-        return this.platformService.getOne({
-            where: { id: departure.platform.id },
-        });
+        return this.platformService.getOneById(departure.platform.id);
     }
 
     @ResolveField("route")

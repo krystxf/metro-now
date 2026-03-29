@@ -11,8 +11,8 @@ import {
 } from "e2e/utils/generate-test-urls";
 import { cacheModuleConfig } from "src/config/cache-module.config";
 import { configModuleConfig } from "src/config/config-module.config";
+import { DatabaseModule } from "src/modules/database/database.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
-import { PrismaModule } from "src/modules/prisma/prisma.module";
 
 describe("Platform Module (e2e)", () => {
     let app: INestApplication;
@@ -22,7 +22,7 @@ describe("Platform Module (e2e)", () => {
             imports: [
                 CacheModule.register(cacheModuleConfig),
                 ConfigModule.forRoot(configModuleConfig),
-                PrismaModule,
+                DatabaseModule,
                 PlatformModule,
             ],
         }).compile();
