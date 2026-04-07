@@ -16,7 +16,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 RUN pnpm deploy --filter=@metro-now/web --prod /prod/web
 RUN pnpm deploy --filter=@metro-now/backend --prod /prod/backend
+RUN pnpm deploy --filter=@metro-now/dataloader --prod /prod/dataloader
 COPY apps/backend/src/**.*.graphql /prod/backend/dist
+
+FROM build AS metro-now_migrations
+WORKDIR /usr/src/app/apps/database
+CMD [ "npx", "ts-node", "migrate.ts", "up" ]
 
 FROM base AS metro-now_web
 COPY --from=build /prod/web /prod/web
@@ -29,3 +34,9 @@ COPY --from=build /prod/backend /prod/backend
 WORKDIR /prod/backend
 EXPOSE 3001
 CMD [ "pnpm", "start:prod" ]
+
+FROM base AS metro-now_dataloader
+COPY --from=build /prod/dataloader /prod/dataloader
+WORKDIR /prod/dataloader
+EXPOSE 3008
+CMD [ "pnpm", "start" ]
