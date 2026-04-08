@@ -18,7 +18,7 @@
         "framer-motion": "^11.18.2",
         "mapbox-gl": "^3.11.0",
         "motion": "12.0.0-alpha.2",
-        "next": "14.2.15",
+        "next": "15.5.14",
         "nextra": "^2.13.4",
         "nextra-theme-docs": "^2.13.4",
         "qrcode.react": "^4.2.0",
