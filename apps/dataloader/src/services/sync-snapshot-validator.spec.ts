@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import type { SyncSnapshot } from "../types/sync.types";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
 
-const createSnapshot = () => ({
+const createSnapshot = (): SyncSnapshot => ({
     stops: [
         {
             id: "U1",
@@ -56,6 +57,22 @@ const createSnapshot = () => ({
             stopSequence: 1,
         },
     ],
+    gtfsRouteShapes: [
+        {
+            routeId: "L1",
+            directionId: "0",
+            shapeId: "shape-1",
+            tripCount: 3,
+            isPrimary: true,
+            geoJson: {
+                type: "LineString" as const,
+                coordinates: [
+                    [14.4, 50.1],
+                    [14.5, 50.2],
+                ],
+            },
+        },
+    ],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {
@@ -78,4 +95,38 @@ test("SyncSnapshotValidator rejects missing platform references", () => {
     assert.throws(() => {
         validator.validate(snapshot);
     }, /missing platform 'missing-platform'/);
+});
+
+test("SyncSnapshotValidator rejects missing GTFS route shape references", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteShapes[0] = {
+        ...snapshot.gtfsRouteShapes[0],
+        routeId: "missing-route",
+    };
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /missing route 'missing-route'/);
+});
+
+test("SyncSnapshotValidator rejects invalid GTFS route shape GeoJSON", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteShapes[0] = {
+        ...snapshot.gtfsRouteShapes[0],
+        geoJson: {
+            ...snapshot.gtfsRouteShapes[0].geoJson,
+            coordinates: [
+                [14.4, 95],
+                [14.5, 50.2],
+            ] as [number, number][],
+        },
+    };
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /invalid latitude '95'/);
 });

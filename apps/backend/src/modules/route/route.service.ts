@@ -1,4 +1,8 @@
-import type { GtfsRoute, Platform } from "@metro-now/database";
+import type {
+    GtfsRoute,
+    GtfsRouteShape,
+    Platform,
+} from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
@@ -30,7 +34,32 @@ type RouteStopRow = {
     stopSequence: number;
 };
 
-const processRoute = (route: RouteRow, routeStops: RouteStopRow[]) => {
+type RouteExactShapeRow = Pick<
+    GtfsRouteShape,
+    "directionId" | "geoJson" | "routeId" | "shapeId" | "tripCount"
+>;
+
+const processRoute = (
+    route: RouteRow,
+    routeStops: RouteStopRow[],
+    routeExactShapes: RouteExactShapeRow[],
+) => {
+    const toGeoJsonString = (
+        coordinates: RouteExactShapeRow["geoJson"]["coordinates"],
+    ): string =>
+        JSON.stringify({
+            type: "LineString",
+            coordinates,
+        });
+
+    const sortedRouteShapes = [...routeExactShapes].sort((left, right) => {
+        return (
+            left.directionId.localeCompare(right.directionId) ||
+            right.tripCount - left.tripCount ||
+            left.shapeId.localeCompare(right.shapeId)
+        );
+    });
+
     return {
         ...route,
         id: route.id.slice(1),
@@ -45,6 +74,16 @@ const processRoute = (route: RouteRow, routeStops: RouteStopRow[]) => {
                     routeStop.platform ? [routeStop.platform] : [],
                 ),
         })),
+        shapes: sortedRouteShapes.map((shape) => ({
+            id: shape.shapeId,
+            directionId: shape.directionId,
+            tripCount: shape.tripCount,
+            points: shape.geoJson.coordinates.map(([longitude, latitude]) => ({
+                latitude,
+                longitude,
+            })),
+            geoJson: toGeoJsonString(shape.geoJson.coordinates),
+        })),
     };
 };
 
@@ -54,6 +93,8 @@ const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
 
 @Injectable()
 export class RouteService {
+    private gtfsRouteShapeTableAvailable: boolean | undefined;
+
     constructor(
         private readonly database: DatabaseService,
         @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
@@ -137,16 +178,93 @@ export class RouteService {
         return routeStopsByRouteId;
     }
 
+    private async loadRouteExactShapes(
+        routeIds: readonly string[],
+    ): Promise<Map<string, RouteExactShapeRow[]>> {
+        const routeExactShapesByRouteId = new Map<string, RouteExactShapeRow[]>(
+            routeIds.map((routeId) => [routeId, []]),
+        );
+
+        if (routeIds.length === 0) {
+            return routeExactShapesByRouteId;
+        }
+
+        if (this.gtfsRouteShapeTableAvailable === false) {
+            return routeExactShapesByRouteId;
+        }
+
+        let rows: RouteExactShapeRow[];
+
+        try {
+            rows = await this.database.db
+                .selectFrom("GtfsRouteShape")
+                .select([
+                    "routeId",
+                    "directionId",
+                    "shapeId",
+                    "tripCount",
+                    "geoJson",
+                ])
+                .where("routeId", "in", [...routeIds])
+                .where("isPrimary", "=", true)
+                .orderBy("routeId", "asc")
+                .orderBy("directionId", "asc")
+                .orderBy("shapeId", "asc")
+                .execute();
+            this.gtfsRouteShapeTableAvailable = true;
+        } catch (error) {
+            if (this.isMissingTableError(error, "GtfsRouteShape")) {
+                this.gtfsRouteShapeTableAvailable = false;
+
+                return routeExactShapesByRouteId;
+            }
+
+            throw error;
+        }
+
+        for (const row of rows) {
+            routeExactShapesByRouteId.get(row.routeId)?.push(row);
+        }
+
+        return routeExactShapesByRouteId;
+    }
+
+    private isMissingTableError(error: unknown, tableName: string): boolean {
+        if (
+            typeof error === "object" &&
+            error !== null &&
+            "code" in error &&
+            error.code === "42P01"
+        ) {
+            return true;
+        }
+
+        if (
+            error instanceof Error &&
+            error.message.includes(`relation "${tableName}" does not exist`)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     private async loadGraphQLRoutesByIds(
         routeIds: readonly string[],
     ): Promise<GraphQLRouteRecord[]> {
-        const [routes, routeStopsByRouteId] = await Promise.all([
+        const [routes, routeStopsByRouteId, routeExactShapesByRouteId] =
+            await Promise.all([
             this.loadRouteRows(routeIds),
             this.loadRouteStops(routeIds),
+            this.loadRouteExactShapes(routeIds),
         ]);
 
         return routes.map((route) =>
-            processRoute(route, routeStopsByRouteId.get(route.id) ?? []),
+            processRoute(
+                route,
+                routeStopsByRouteId.get(route.id) ?? [],
+                routeExactShapesByRouteId.get(route.id) ?? [],
+            ),
         );
     }
 

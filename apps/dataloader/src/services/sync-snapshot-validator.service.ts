@@ -8,6 +8,7 @@ export class SyncSnapshotValidator {
         this.assertNotEmpty("platformRoutes", snapshot.platformRoutes);
         this.assertNotEmpty("gtfsRoutes", snapshot.gtfsRoutes);
         this.assertNotEmpty("gtfsRouteStops", snapshot.gtfsRouteStops);
+        this.assertNotEmpty("gtfsRouteShapes", snapshot.gtfsRouteShapes);
 
         this.assertUniqueKeys(
             "stops",
@@ -39,6 +40,16 @@ export class SyncSnapshotValidator {
                     routeStop.directionId,
                     routeStop.platformId,
                     routeStop.stopSequence,
+                ].join("::"),
+            ),
+        );
+        this.assertUniqueKeys(
+            "gtfsRouteShapes",
+            snapshot.gtfsRouteShapes.map((routeShape) =>
+                [
+                    routeShape.routeId,
+                    routeShape.directionId,
+                    routeShape.shapeId,
                 ].join("::"),
             ),
         );
@@ -92,6 +103,102 @@ export class SyncSnapshotValidator {
                     `GTFS route stop has invalid stop sequence '${routeStop.stopSequence}'`,
                 );
             }
+        }
+
+        const routeDirectionKeys = new Set<string>();
+        const primaryRouteShapeCountByRouteDirection = new Map<
+            string,
+            number
+        >();
+
+        for (const routeShape of snapshot.gtfsRouteShapes) {
+            const routeDirectionKey = [
+                routeShape.routeId,
+                routeShape.directionId,
+            ].join("::");
+
+            routeDirectionKeys.add(routeDirectionKey);
+
+            if (!gtfsRouteIds.has(routeShape.routeId)) {
+                throw new Error(
+                    `GTFS route shape references missing route '${routeShape.routeId}'`,
+                );
+            }
+
+            if (routeShape.tripCount < 1) {
+                throw new Error(
+                    `GTFS route shape has invalid trip count '${routeShape.tripCount}'`,
+                );
+            }
+
+            if (routeShape.geoJson.type !== "LineString") {
+                throw new Error(
+                    `GTFS route shape has invalid GeoJSON type '${routeShape.geoJson.type}'`,
+                );
+            }
+
+            if (routeShape.geoJson.coordinates.length < 2) {
+                throw new Error(
+                    `GTFS route shape has insufficient coordinates for shape '${routeShape.shapeId}'`,
+                );
+            }
+
+            for (const [longitude, latitude] of routeShape.geoJson
+                .coordinates) {
+                if (
+                    !Number.isFinite(latitude) ||
+                    latitude < -90 ||
+                    latitude > 90
+                ) {
+                    throw new Error(
+                        `GTFS route shape has invalid latitude '${latitude}'`,
+                    );
+                }
+
+                if (
+                    !Number.isFinite(longitude) ||
+                    longitude < -180 ||
+                    longitude > 180
+                ) {
+                    throw new Error(
+                        `GTFS route shape has invalid longitude '${longitude}'`,
+                    );
+                }
+            }
+
+            if (!routeShape.isPrimary) {
+                continue;
+            }
+
+            const nextPrimaryCount =
+                (primaryRouteShapeCountByRouteDirection.get(
+                    routeDirectionKey,
+                ) ?? 0) + 1;
+
+            primaryRouteShapeCountByRouteDirection.set(
+                routeDirectionKey,
+                nextPrimaryCount,
+            );
+
+            if (nextPrimaryCount > 1) {
+                throw new Error(
+                    `GTFS route shapes contain multiple primary shapes for '${routeDirectionKey}'`,
+                );
+            }
+        }
+
+        for (const routeDirectionKey of routeDirectionKeys) {
+            if (
+                primaryRouteShapeCountByRouteDirection.get(
+                    routeDirectionKey,
+                ) === 1
+            ) {
+                continue;
+            }
+
+            throw new Error(
+                `GTFS route shapes missing primary shape for '${routeDirectionKey}'`,
+            );
         }
     }
 

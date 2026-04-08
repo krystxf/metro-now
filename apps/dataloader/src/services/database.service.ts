@@ -17,6 +17,7 @@ export class DatabaseService {
         platformRoutes: number;
         gtfsRoutes: number;
         gtfsRouteStops: number;
+        gtfsRouteShapes: number;
     }> {
         const [
             stopsResult,
@@ -25,6 +26,7 @@ export class DatabaseService {
             platformRoutesResult,
             gtfsRoutesResult,
             gtfsRouteStopsResult,
+            gtfsRouteShapesResult,
         ] = await Promise.all([
             this.db
                 .selectFrom("Stop")
@@ -50,6 +52,10 @@ export class DatabaseService {
                 .selectFrom("GtfsRouteStop")
                 .select(({ fn }) => fn.countAll<number>().as("count"))
                 .executeTakeFirstOrThrow(),
+            this.db
+                .selectFrom("GtfsRouteShape")
+                .select(({ fn }) => fn.countAll<number>().as("count"))
+                .executeTakeFirstOrThrow(),
         ]);
 
         return {
@@ -59,6 +65,7 @@ export class DatabaseService {
             platformRoutes: Number(platformRoutesResult.count),
             gtfsRoutes: Number(gtfsRoutesResult.count),
             gtfsRouteStops: Number(gtfsRouteStopsResult.count),
+            gtfsRouteShapes: Number(gtfsRouteShapesResult.count),
         };
     }
 
@@ -76,32 +83,55 @@ export class DatabaseService {
             id: string;
             shortName: string;
         }>;
+        gtfsRouteShapes: Array<{
+            routeId: string;
+            directionId: string;
+            shapeId: string;
+            tripCount: number;
+            isPrimary: boolean;
+        }>;
     }> {
-        const [stops, platforms, gtfsRoutes] = await Promise.all([
-            this.db
-                .selectFrom("Stop")
-                .select(["id", "name"])
-                .orderBy("id", "asc")
-                .limit(5)
-                .execute(),
-            this.db
-                .selectFrom("Platform")
-                .select(["id", "name", "stopId"])
-                .orderBy("id", "asc")
-                .limit(5)
-                .execute(),
-            this.db
-                .selectFrom("GtfsRoute")
-                .select(["id", "shortName"])
-                .orderBy("id", "asc")
-                .limit(5)
-                .execute(),
-        ]);
+        const [stops, platforms, gtfsRoutes, gtfsRouteShapes] =
+            await Promise.all([
+                this.db
+                    .selectFrom("Stop")
+                    .select(["id", "name"])
+                    .orderBy("id", "asc")
+                    .limit(5)
+                    .execute(),
+                this.db
+                    .selectFrom("Platform")
+                    .select(["id", "name", "stopId"])
+                    .orderBy("id", "asc")
+                    .limit(5)
+                    .execute(),
+                this.db
+                    .selectFrom("GtfsRoute")
+                    .select(["id", "shortName"])
+                    .orderBy("id", "asc")
+                    .limit(5)
+                    .execute(),
+                this.db
+                    .selectFrom("GtfsRouteShape")
+                    .select([
+                        "routeId",
+                        "directionId",
+                        "shapeId",
+                        "tripCount",
+                        "isPrimary",
+                    ])
+                    .orderBy("routeId", "asc")
+                    .orderBy("directionId", "asc")
+                    .orderBy("shapeId", "asc")
+                    .limit(5)
+                    .execute(),
+            ]);
 
         return {
             stops,
             platforms,
             gtfsRoutes,
+            gtfsRouteShapes,
         };
     }
 

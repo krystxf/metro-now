@@ -28,6 +28,13 @@ export const LogLevel = {
 
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
+export type GeoJsonPosition = [number, number];
+
+export type GeoJsonLineString = {
+    type: "LineString";
+    coordinates: GeoJsonPosition[];
+};
+
 export interface StopTable {
     id: string;
     name: string;
@@ -88,6 +95,18 @@ export interface GtfsRouteStopTable {
     updatedAt: Generated<Date>;
 }
 
+export interface GtfsRouteShapeTable {
+    id: Generated<string>;
+    routeId: string;
+    directionId: string;
+    shapeId: string;
+    tripCount: number;
+    isPrimary: boolean;
+    geoJson: GeoJsonLineString;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
 export interface GtfsStopTimeTable {
     id: Generated<string>;
     platformId: string | null;
@@ -122,6 +141,7 @@ export interface MetroNowDatabase {
     PlatformsOnRoutes: PlatformsOnRoutesTable;
     GtfsRoute: GtfsRouteTable;
     GtfsRouteStop: GtfsRouteStopTable;
+    GtfsRouteShape: GtfsRouteShapeTable;
     GtfsStopTime: GtfsStopTimeTable;
     Log: LogTable;
     RequestLog: RequestLogTable;
@@ -136,6 +156,7 @@ export type Route = Selectable<RouteTable>;
 export type PlatformsOnRoutes = Selectable<PlatformsOnRoutesTable>;
 export type GtfsRoute = Selectable<GtfsRouteTable>;
 export type GtfsRouteStop = Selectable<GtfsRouteStopTable>;
+export type GtfsRouteShape = Selectable<GtfsRouteShapeTable>;
 export type GtfsStopTime = Selectable<GtfsStopTimeTable>;
 export type Log = Selectable<LogTable>;
 export type RequestLog = Selectable<RequestLogTable>;
@@ -150,5 +171,6 @@ export type NewPlatformsOnRoutes = Insertable<PlatformsOnRoutesTable>;
 export type NewGtfsRoute = Insertable<GtfsRouteTable>;
 export type GtfsRouteUpdate = Updateable<GtfsRouteTable>;
 export type NewGtfsRouteStop = Insertable<GtfsRouteStopTable>;
+export type NewGtfsRouteShape = Insertable<GtfsRouteShapeTable>;
 export type NewLog = Insertable<LogTable>;
 export type NewRequestLog = Insertable<RequestLogTable>;

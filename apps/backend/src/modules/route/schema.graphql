@@ -16,10 +16,18 @@ type RouteDirection {
     platforms: [Platform!]!
 }
 
+type RouteShape {
+    id: ID!
+    directionId: ID!
+    tripCount: Int!
+    geoJson: String!
+}
+
 type Route {
     id: ID!
     name: String
     directions: [RouteDirection!]!
+    shapes: [RouteShape!]!
     isSubstitute: Boolean!
 
     """

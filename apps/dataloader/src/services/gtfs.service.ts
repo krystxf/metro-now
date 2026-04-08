@@ -24,6 +24,204 @@ const gtfsRouteStopRecordSchema = z.object({
     stop_sequence: z.string().min(1),
 });
 
+const gtfsTripRecordSchema = z.object({
+    route_id: z.string().min(1),
+    direction_id: z.string().optional(),
+    shape_id: z.string().optional(),
+});
+
+const gtfsShapePointRecordSchema = z.object({
+    shape_id: z.string().min(1),
+    shape_pt_lat: z.string().min(1),
+    shape_pt_lon: z.string().min(1),
+    shape_pt_sequence: z.string().min(1),
+});
+
+export type ParsedGtfsTripRecord = {
+    routeId: string;
+    directionId: string;
+    shapeId: string | null;
+};
+
+export type ParsedGtfsShapePointRecord = {
+    shapeId: string;
+    latitude: number;
+    longitude: number;
+    sequence: number;
+};
+
+const UNKNOWN_DIRECTION_ID = "unknown";
+
+const getGtfsRouteShapeKey = (routeShape: {
+    routeId: string;
+    directionId: string;
+    shapeId: string;
+}): string =>
+    [routeShape.routeId, routeShape.directionId, routeShape.shapeId].join("::");
+
+const getGtfsRouteDirectionKey = (routeShape: {
+    routeId: string;
+    directionId: string;
+}): string => [routeShape.routeId, routeShape.directionId].join("::");
+
+const comparePrimaryRouteShape = (
+    left: {
+        shapeId: string;
+        tripCount: number;
+        geoJson: { coordinates: [number, number][] };
+    },
+    right: {
+        shapeId: string;
+        tripCount: number;
+        geoJson: { coordinates: [number, number][] };
+    },
+): number => {
+    if (left.tripCount !== right.tripCount) {
+        return left.tripCount - right.tripCount;
+    }
+
+    if (left.geoJson.coordinates.length !== right.geoJson.coordinates.length) {
+        return (
+            left.geoJson.coordinates.length - right.geoJson.coordinates.length
+        );
+    }
+
+    return right.shapeId.localeCompare(left.shapeId);
+};
+
+const sortShapePoints = (
+    shapePoints: ParsedGtfsShapePointRecord[],
+): ParsedGtfsShapePointRecord[] =>
+    [...shapePoints].sort((left, right) => left.sequence - right.sequence);
+
+export const buildGtfsShapeDatasets = ({
+    trips,
+    shapePoints,
+    routeIdsWithImportedPlatforms,
+}: {
+    trips: ParsedGtfsTripRecord[];
+    shapePoints: ParsedGtfsShapePointRecord[];
+    routeIdsWithImportedPlatforms: Set<string>;
+}): Pick<GtfsSnapshot, "gtfsRouteShapes"> => {
+    const routeShapeTripCountsByKey = new Map<
+        string,
+        {
+            routeId: string;
+            directionId: string;
+            shapeId: string;
+            tripCount: number;
+        }
+    >();
+
+    for (const trip of trips) {
+        if (!trip.shapeId || !routeIdsWithImportedPlatforms.has(trip.routeId)) {
+            continue;
+        }
+
+        const routeShapeKey = getGtfsRouteShapeKey({
+            routeId: trip.routeId,
+            directionId: trip.directionId,
+            shapeId: trip.shapeId,
+        });
+        const existingRouteShape = routeShapeTripCountsByKey.get(routeShapeKey);
+
+        if (existingRouteShape) {
+            existingRouteShape.tripCount += 1;
+            continue;
+        }
+
+        routeShapeTripCountsByKey.set(routeShapeKey, {
+            routeId: trip.routeId,
+            directionId: trip.directionId,
+            shapeId: trip.shapeId,
+            tripCount: 1,
+        });
+    }
+
+    const shapePointsByShapeId = new Map<
+        string,
+        ParsedGtfsShapePointRecord[]
+    >();
+
+    for (const shapePoint of shapePoints) {
+        const existingShapePoints =
+            shapePointsByShapeId.get(shapePoint.shapeId) ?? [];
+
+        existingShapePoints.push(shapePoint);
+        shapePointsByShapeId.set(shapePoint.shapeId, existingShapePoints);
+    }
+    const gtfsRouteShapes = [...routeShapeTripCountsByKey.values()]
+        .map((routeShape) => {
+            const unsortedShapePoints = shapePointsByShapeId.get(
+                routeShape.shapeId,
+            );
+
+            if (!unsortedShapePoints || unsortedShapePoints.length === 0) {
+                throw new Error(
+                    `GTFS trip references missing shape '${routeShape.shapeId}' for route '${routeShape.routeId}' direction '${routeShape.directionId}'`,
+                );
+            }
+
+            const sortedShapePoints = sortShapePoints(unsortedShapePoints);
+
+            return {
+                routeId: routeShape.routeId,
+                directionId: routeShape.directionId,
+                shapeId: routeShape.shapeId,
+                tripCount: routeShape.tripCount,
+                isPrimary: false,
+                geoJson: {
+                    type: "LineString" as const,
+                    coordinates: sortedShapePoints.map(
+                        (shapePoint): [number, number] => [
+                            shapePoint.longitude,
+                            shapePoint.latitude,
+                        ],
+                    ),
+                },
+            };
+        })
+        .sort((left, right) => {
+            return (
+                left.routeId.localeCompare(right.routeId) ||
+                left.directionId.localeCompare(right.directionId) ||
+                left.shapeId.localeCompare(right.shapeId)
+            );
+        });
+    const primaryRouteShapeByRouteDirection = new Map<
+        string,
+        (typeof gtfsRouteShapes)[number]
+    >();
+
+    for (const routeShape of gtfsRouteShapes) {
+        const routeDirectionKey = getGtfsRouteDirectionKey(routeShape);
+        const currentPrimaryRouteShape =
+            primaryRouteShapeByRouteDirection.get(routeDirectionKey);
+
+        if (
+            !currentPrimaryRouteShape ||
+            comparePrimaryRouteShape(routeShape, currentPrimaryRouteShape) > 0
+        ) {
+            primaryRouteShapeByRouteDirection.set(
+                routeDirectionKey,
+                routeShape,
+            );
+        }
+    }
+
+    return {
+        gtfsRouteShapes: gtfsRouteShapes.map((routeShape) => ({
+            ...routeShape,
+            isPrimary:
+                getGtfsRouteShapeKey(
+                    primaryRouteShapeByRouteDirection.get(
+                        getGtfsRouteDirectionKey(routeShape),
+                    ) ?? routeShape,
+                ) === getGtfsRouteShapeKey(routeShape),
+        })),
+    };
+};
+
 export class GtfsService {
     async getGtfsSnapshot(platformIds: Set<string>): Promise<GtfsSnapshot> {
         const response = await fetchWithTimeout(GTFS_ARCHIVE_URL);
@@ -43,6 +241,12 @@ export class GtfsService {
         const routeStopsEntry = directory.files.find(
             (file) => file.path === "route_stops.txt",
         );
+        const tripsEntry = directory.files.find(
+            (file) => file.path === "trips.txt",
+        );
+        const shapesEntry = directory.files.find(
+            (file) => file.path === "shapes.txt",
+        );
 
         if (!routesEntry) {
             throw new Error("routes.txt not found in GTFS archive");
@@ -52,20 +256,48 @@ export class GtfsService {
             throw new Error("route_stops.txt not found in GTFS archive");
         }
 
+        if (!tripsEntry) {
+            throw new Error("trips.txt not found in GTFS archive");
+        }
+
+        if (!shapesEntry) {
+            throw new Error("shapes.txt not found in GTFS archive");
+        }
+
         const rawRoutes = await parseCsvString<Record<string, string>>(
             (await routesEntry.buffer()).toString(),
         );
         const rawRouteStops = await parseCsvString<Record<string, string>>(
             (await routeStopsEntry.buffer()).toString(),
         );
+        const rawTrips = await parseCsvString<Record<string, string>>(
+            (await tripsEntry.buffer()).toString(),
+        );
+        const rawShapePoints = await parseCsvString<Record<string, string>>(
+            (await shapesEntry.buffer()).toString(),
+        );
+
+        const gtfsRoutes = rawRoutes.map((route) =>
+            this.parseGtfsRouteRecord(route),
+        );
+        const gtfsRouteStops = rawRouteStops
+            .map((routeStop) => this.parseGtfsRouteStopRecord(routeStop))
+            .filter((routeStop) => platformIds.has(routeStop.platformId));
+        const routeIdsWithImportedPlatforms = new Set(
+            gtfsRouteStops.map((routeStop) => routeStop.routeId),
+        );
+        const { gtfsRouteShapes } = buildGtfsShapeDatasets({
+            trips: rawTrips.map((record) => this.parseGtfsTripRecord(record)),
+            shapePoints: rawShapePoints.map((shapePointRecord) =>
+                this.parseGtfsShapePointRecord(shapePointRecord),
+            ),
+            routeIdsWithImportedPlatforms,
+        });
 
         return {
-            gtfsRoutes: rawRoutes.map((route) =>
-                this.parseGtfsRouteRecord(route),
-            ),
-            gtfsRouteStops: rawRouteStops
-                .map((routeStop) => this.parseGtfsRouteStopRecord(routeStop))
-                .filter((routeStop) => platformIds.has(routeStop.platformId)),
+            gtfsRoutes,
+            gtfsRouteStops,
+            gtfsRouteShapes,
         };
     }
 
@@ -114,8 +346,61 @@ export class GtfsService {
         };
     }
 
+    private parseGtfsTripRecord(trip: Record<string, string>) {
+        const parsed = gtfsTripRecordSchema.safeParse(trip);
+
+        if (!parsed.success) {
+            throw new Error(
+                `Invalid GTFS trip record: ${parsed.error.message}`,
+            );
+        }
+
+        return {
+            routeId: parsed.data.route_id,
+            directionId: this.toDirectionId(parsed.data.direction_id),
+            shapeId: this.toOptionalString(parsed.data.shape_id),
+        };
+    }
+
+    private parseGtfsShapePointRecord(shapePoint: Record<string, string>) {
+        const parsed = gtfsShapePointRecordSchema.safeParse(shapePoint);
+
+        if (!parsed.success) {
+            throw new Error(
+                `Invalid GTFS shape point record: ${parsed.error.message}`,
+            );
+        }
+
+        const latitude = Number(parsed.data.shape_pt_lat);
+        const longitude = Number(parsed.data.shape_pt_lon);
+        const sequence = Number(parsed.data.shape_pt_sequence);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            throw new Error(
+                `Invalid GTFS shape point coordinates: ${parsed.data.shape_pt_lat}, ${parsed.data.shape_pt_lon}`,
+            );
+        }
+
+        if (!Number.isInteger(sequence)) {
+            throw new Error(
+                `Invalid GTFS shape point sequence: ${parsed.data.shape_pt_sequence}`,
+            );
+        }
+
+        return {
+            shapeId: parsed.data.shape_id,
+            latitude,
+            longitude,
+            sequence,
+        };
+    }
+
     private normalizePlatformId(stopId: string): string {
         return stopId.split("_")[0];
+    }
+
+    private toDirectionId(value?: string): string {
+        return this.toOptionalString(value) ?? UNKNOWN_DIRECTION_ID;
     }
 
     private parseNightFlag(value?: string): boolean | null {

@@ -3,6 +3,7 @@ import {
     type DatabaseClient,
     type DatabaseTransaction,
     type NewGtfsRoute,
+    type NewGtfsRouteShape,
     type NewGtfsRouteStop,
     type NewPlatform,
     type NewPlatformsOnRoutes,
@@ -15,6 +16,7 @@ import type {
     SyncPersistenceResult,
     SyncSnapshot,
     SyncedGtfsRoute,
+    SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
     SyncedPlatform,
     SyncedPlatformRoute,
@@ -73,6 +75,7 @@ export class SyncRepository {
         await this.upsertGtfsRoutes(transaction, snapshot.gtfsRoutes);
         await this.syncPlatformRoutes(transaction, snapshot.platformRoutes);
         await this.syncGtfsRouteStops(transaction, snapshot.gtfsRouteStops);
+        await this.syncGtfsRouteShapes(transaction, snapshot.gtfsRouteShapes);
         await this.deleteStalePlatforms(transaction, snapshot.platforms);
         await this.deleteStaleRoutes(transaction, snapshot.routes);
         await this.deleteStaleStops(transaction, snapshot.stops);
@@ -439,6 +442,98 @@ export class SyncRepository {
         );
     }
 
+    private async syncGtfsRouteShapes(
+        transaction: DatabaseTransaction,
+        gtfsRouteShapes: SyncedGtfsRouteShape[],
+    ): Promise<void> {
+        const existingRouteShapes = await transaction
+            .selectFrom("GtfsRouteShape")
+            .select(["routeId", "directionId", "shapeId"])
+            .execute();
+        const incomingKeys = new Set(
+            gtfsRouteShapes.map((routeShape) =>
+                this.getGtfsRouteShapeKey(routeShape),
+            ),
+        );
+        const routeShapesToDelete = existingRouteShapes.filter(
+            (routeShape) =>
+                !incomingKeys.has(this.getGtfsRouteShapeKey(routeShape)),
+        );
+
+        await this.processInBatches(
+            gtfsRouteShapes,
+            RELATION_BATCH_SIZE,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewGtfsRouteShape[] = chunk.map((routeShape) => ({
+                    id: randomUUID(),
+                    routeId: routeShape.routeId,
+                    directionId: routeShape.directionId,
+                    shapeId: routeShape.shapeId,
+                    tripCount: routeShape.tripCount,
+                    isPrimary: routeShape.isPrimary,
+                    geoJson: routeShape.geoJson,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                await transaction
+                    .insertInto("GtfsRouteShape")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .columns(["routeId", "directionId", "shapeId"])
+                            .doUpdateSet((expressionBuilder) => ({
+                                tripCount:
+                                    expressionBuilder.ref("excluded.tripCount"),
+                                isPrimary:
+                                    expressionBuilder.ref("excluded.isPrimary"),
+                                geoJson:
+                                    expressionBuilder.ref("excluded.geoJson"),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
+            },
+        );
+        await this.processInBatches(
+            routeShapesToDelete,
+            RELATION_BATCH_SIZE,
+            async (chunk) => {
+                if (chunk.length === 0) {
+                    return;
+                }
+
+                await transaction
+                    .deleteFrom("GtfsRouteShape")
+                    .where((expressionBuilder) =>
+                        expressionBuilder.or(
+                            chunk.map((routeShape) =>
+                                expressionBuilder.and([
+                                    expressionBuilder(
+                                        "routeId",
+                                        "=",
+                                        routeShape.routeId,
+                                    ),
+                                    expressionBuilder(
+                                        "directionId",
+                                        "=",
+                                        routeShape.directionId,
+                                    ),
+                                    expressionBuilder(
+                                        "shapeId",
+                                        "=",
+                                        routeShape.shapeId,
+                                    ),
+                                ]),
+                            ),
+                        ),
+                    )
+                    .execute();
+            },
+        );
+    }
+
     private async deleteStalePlatforms(
         transaction: DatabaseTransaction,
         platforms: SyncedPlatform[],
@@ -613,6 +708,19 @@ export class SyncRepository {
             routeStop.directionId,
             routeStop.platformId,
             routeStop.stopSequence,
+        ].join("::");
+    }
+
+    private getGtfsRouteShapeKey(
+        routeShape: Pick<
+            SyncedGtfsRouteShape,
+            "routeId" | "directionId" | "shapeId"
+        >,
+    ): string {
+        return [
+            routeShape.routeId,
+            routeShape.directionId,
+            routeShape.shapeId,
         ].join("::");
     }
 
