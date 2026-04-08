@@ -1,4 +1,8 @@
-import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
+import {
+    type MiddlewareConsumer,
+    Module,
+    type NestModule,
+} from "@nestjs/common";
 
 import { RequestLogService } from "src/modules/log/request-log.service";
 import { RequestLoggingMiddleware } from "src/modules/log/request-logging.middleware";

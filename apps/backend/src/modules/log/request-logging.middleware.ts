@@ -1,5 +1,5 @@
 import { Injectable, type NestMiddleware } from "@nestjs/common";
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 import { RequestLogService } from "src/modules/log/request-log.service";
 
@@ -15,11 +15,9 @@ export class RequestLoggingMiddleware implements NestMiddleware {
             const headers = Object.fromEntries(
                 Object.entries(req.headers).filter(
                     ([key]) =>
-                        ![
-                            "authorization",
-                            "cookie",
-                            "set-cookie",
-                        ].includes(key),
+                        !["authorization", "cookie", "set-cookie"].includes(
+                            key,
+                        ),
                 ),
             );
 
@@ -30,8 +28,7 @@ export class RequestLoggingMiddleware implements NestMiddleware {
                 durationMs,
                 cached: res.getHeader("x-cache") === "HIT",
                 userAgent: req.headers["user-agent"] ?? null,
-                appVersion:
-                    (req.headers["x-app-version"] as string) ?? null,
+                appVersion: (req.headers["x-app-version"] as string) ?? null,
                 headers,
             });
         });

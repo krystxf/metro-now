@@ -7,7 +7,8 @@
         "build": "tsc",
         "lint": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json",
         "format": "biome format --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json --write",
-        "format:check": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json"
+        "format:check": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json",
+        "types:check": "tsc --noEmit"
     },
     "dependencies": {
         "@metro-now/database": "workspace:*",

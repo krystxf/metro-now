@@ -1,0 +1,77 @@
+name: Build
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: build-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    backend:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build backend
+              run: pnpm turbo run build --filter=@metro-now/backend
+
+    dataloader:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build dataloader
+              run: pnpm turbo run build --filter=@metro-now/dataloader
+
+    web:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build web
+              run: pnpm turbo run build --filter=@metro-now/web

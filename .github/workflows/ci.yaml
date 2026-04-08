@@ -1,0 +1,128 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    functional:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Test
+              run: pnpm test
+
+            - name: Types check
+              run: pnpm types:check
+
+    backend-e2e:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: postgres_user
+                    POSTGRES_PASSWORD: postgres_password
+                    POSTGRES_DB: metro-now
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+            redis:
+                image: redis:7
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 6379:6379
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Setup environment
+              run: |
+                  cp apps/backend/.env.local.example apps/backend/.env.local
+                  {
+                      echo ""
+                      echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_API_KEY }}"
+                  } >> apps/backend/.env.local
+
+            - name: Run migrations
+              run: pnpm turbo run migrate:deploy --filter=@metro-now/database
+
+            - name: Run seeds
+              run: pnpm turbo run seed --filter=@metro-now/database
+
+            - name: Run backend e2e tests
+              run: pnpm turbo run test:e2e --filter=@metro-now/backend
+
+    docker:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false
+            matrix:
+                target:
+                    - metro-now_web
+                    - metro-now_backend
+                    - metro-now_dataloader
+                    - metro-now_migrations
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  target: ${{ matrix.target }}
+                  load: true
+                  tags: metro-now:${{ matrix.target }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  push: false

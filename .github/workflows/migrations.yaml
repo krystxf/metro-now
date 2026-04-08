@@ -1,0 +1,60 @@
+name: Migrations
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: migrations-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    migrate:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: postgres_user
+                    POSTGRES_PASSWORD: postgres_password
+                    POSTGRES_DB: metro-now
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Setup database environment
+              run: |
+                  {
+                      echo "POSTGRES_USER=postgres_user"
+                      echo "POSTGRES_PASSWORD=postgres_password"
+                      echo "POSTGRES_DB=metro-now"
+                      echo "DB_HOST=localhost"
+                      echo "DB_PORT=5432"
+                      echo "DB_SCHEMA=public"
+                      echo 'DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}/${POSTGRES_DB}?schema=${DB_SCHEMA}"'
+                  } > apps/backend/.env.local
+
+            - name: Run migrations
+              run: pnpm turbo run migrate:deploy --filter=@metro-now/database
