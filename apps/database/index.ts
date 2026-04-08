@@ -102,6 +102,19 @@ export interface LogTable {
     createdAt: Generated<Date>;
 }
 
+export interface RequestLogTable {
+    id: string;
+    method: string;
+    path: string;
+    statusCode: number;
+    durationMs: number;
+    cached: Generated<boolean>;
+    userAgent: string | null;
+    appVersion: string | null;
+    headers: Record<string, unknown> | null;
+    createdAt: Generated<Date>;
+}
+
 export interface MetroNowDatabase {
     Stop: StopTable;
     Platform: PlatformTable;
@@ -111,6 +124,7 @@ export interface MetroNowDatabase {
     GtfsRouteStop: GtfsRouteStopTable;
     GtfsStopTime: GtfsStopTimeTable;
     Log: LogTable;
+    RequestLog: RequestLogTable;
 }
 
 export type DatabaseClient = Kysely<MetroNowDatabase>;
@@ -124,6 +138,7 @@ export type GtfsRoute = Selectable<GtfsRouteTable>;
 export type GtfsRouteStop = Selectable<GtfsRouteStopTable>;
 export type GtfsStopTime = Selectable<GtfsStopTimeTable>;
 export type Log = Selectable<LogTable>;
+export type RequestLog = Selectable<RequestLogTable>;
 
 export type NewStop = Insertable<StopTable>;
 export type StopUpdate = Updateable<StopTable>;
@@ -136,3 +151,4 @@ export type NewGtfsRoute = Insertable<GtfsRouteTable>;
 export type GtfsRouteUpdate = Updateable<GtfsRouteTable>;
 export type NewGtfsRouteStop = Insertable<GtfsRouteStopTable>;
 export type NewLog = Insertable<LogTable>;
+export type NewRequestLog = Insertable<RequestLogTable>;
