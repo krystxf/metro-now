@@ -2,7 +2,7 @@
     "name": "@metro-now/backend",
     "scripts": {
         "typegen": "ts-node ./src/scripts/generate-types.ts",
-        "prebuild": "rimraf dist && pnpm --filter @metro-now/shared build && pnpm --filter @metro-now/database build && pnpm typegen",
+        "prebuild": "rimraf dist && pnpm typegen",
         "build": "nest build",
         "start": "nest start",
         "dev": "nest start --watch",
@@ -12,12 +12,12 @@
         "lint:fix": "biome check --config-path ../../biome.json ../../apps/backend/src ../../apps/backend/package.json ../../apps/backend/tsconfig.json --write",
         "format": "biome format --config-path ../../biome.json ../../apps/backend/src ../../apps/backend/package.json ../../apps/backend/tsconfig.json --write",
         "format:check": "biome check --config-path ../../biome.json ../../apps/backend/src ../../apps/backend/package.json ../../apps/backend/tsconfig.json",
-        "types:check": "pnpm --filter @metro-now/shared build && pnpm --filter @metro-now/database build && tsc --incremental --noEmit",
-        "test": "pnpm --filter @metro-now/shared build && pnpm --filter @metro-now/database build && jest",
+        "types:check": "tsc --incremental --noEmit",
+        "test": "jest",
         "test:watch": "jest --watch",
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "test:e2e": "jest --config ./e2e/jest-e2e.json"
+        "test:e2e": "jest --config ./e2e/jest-e2e.json --runInBand"
     },
     "dependencies": {
         "@apollo/server": "^5.5.0",

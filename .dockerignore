@@ -3,6 +3,8 @@
 !apps/**
 !lib/
 !lib/**
+!biome.json
 !package.json
 !pnpm-lock.yaml
 !pnpm-workspace.yaml
+!turbo.json

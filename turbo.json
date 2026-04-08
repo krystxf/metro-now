@@ -1,0 +1,58 @@
+{
+    "$schema": "https://turborepo.com/schema.json",
+    "globalDependencies": ["biome.json"],
+    "tasks": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**"]
+        },
+        "typegen": {
+            "dependsOn": ["^build"],
+            "outputs": []
+        },
+        "dev": {
+            "dependsOn": ["^build"],
+            "cache": false,
+            "persistent": true
+        },
+        "start:debug": {
+            "dependsOn": ["^build"],
+            "cache": false,
+            "persistent": true
+        },
+        "lint": {
+            "outputs": []
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "outputs": []
+        },
+        "test:e2e": {
+            "dependsOn": ["typegen", "^build"],
+            "outputs": []
+        },
+        "types:check": {
+            "dependsOn": ["^build"],
+            "outputs": []
+        },
+        "format": {
+            "cache": false,
+            "outputs": []
+        },
+        "format:check": {
+            "outputs": []
+        },
+        "migrate:deploy": {
+            "cache": false,
+            "outputs": []
+        },
+        "migrate:rollback": {
+            "cache": false,
+            "outputs": []
+        },
+        "seed": {
+            "cache": false,
+            "outputs": []
+        }
+    }
+}

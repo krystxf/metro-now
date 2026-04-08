@@ -4,7 +4,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "pnpm --filter @metro-now/database build && tsc",
+        "build": "tsc",
         "lint": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json",
         "format": "biome format --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json --write",
         "format:check": "biome check --config-path ../../biome.json ../../lib/shared/src ../../lib/shared/package.json ../../lib/shared/tsconfig.json"

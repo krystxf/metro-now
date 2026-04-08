@@ -1,0 +1,12 @@
+{
+    "$schema": "../../node_modules/turbo/schema.json",
+    "extends": ["//"],
+    "tasks": {
+        "build": {
+            "outputs": ["$TURBO_EXTENDS$", "src/types/graphql.generated.ts"]
+        },
+        "typegen": {
+            "outputs": ["src/types/graphql.generated.ts"]
+        }
+    }
+}

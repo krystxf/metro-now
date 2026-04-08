@@ -4,7 +4,7 @@
     "description": "Metro Now background sync worker",
     "main": "dist/app.js",
     "scripts": {
-        "build": "pnpm --filter @metro-now/shared build && pnpm --filter @metro-now/database build && tsc",
+        "build": "tsc",
         "start": "node dist/app.js",
         "dev": "nodemon --watch src --ext ts --exec \"pnpm run build && pnpm run start\"",
         "lint": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json",

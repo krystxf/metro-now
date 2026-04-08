@@ -26,27 +26,23 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  pnpm install
+                  pnpm install --frozen-lockfile
 
             - name: Build
               run: |
-                  cd apps/backend
-                  pnpm build
+                  pnpm turbo run build --filter=@metro-now/backend
 
             - name: Test
               run: |
-                  cd apps/backend
-                  pnpm test
+                  pnpm turbo run test --filter=@metro-now/backend
 
             - name: Lint
               run: |
-                  cd apps/backend
-                  pnpm lint
+                  pnpm turbo run lint --filter=@metro-now/backend
 
             - name: Types check
               run: |
-                  cd apps/backend
-                  pnpm types:check
+                  pnpm turbo run types:check --filter=@metro-now/backend
 
     e2e:
         runs-on: ubuntu-latest
@@ -92,7 +88,7 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  pnpm install
+                  pnpm install --frozen-lockfile
 
             - name: Setup environment
               run: |
@@ -107,16 +103,12 @@ jobs:
 
             - name: Run migrations
               run: |
-                  cd apps/database
-                  pnpm migrate:deploy
+                  pnpm turbo run migrate:deploy --filter=@metro-now/database
 
             - name: Run seeds
               run: |
-                  cd apps/database
-                  pnpm seed
+                  pnpm turbo run seed --filter=@metro-now/database
 
             - name: Test e2e
               run: |
-                  cd apps/backend 
-                  pnpm typegen
-                  pnpm test:e2e --runInBand
+                  pnpm turbo run test:e2e --filter=@metro-now/backend

@@ -26,19 +26,16 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  pnpm install
+                  pnpm install --frozen-lockfile
 
             - name: Build
               run: |
-                  cd apps/web 
-                  pnpm build
+                  pnpm turbo run build --filter=@metro-now/web
 
             - name: Lint
               run: |
-                  cd apps/web
-                  pnpm lint
+                  pnpm turbo run lint --filter=@metro-now/web
 
             - name: Types check
               run: |
-                  cd apps/web
-                  pnpm types:check
+                  pnpm turbo run types:check --filter=@metro-now/web
