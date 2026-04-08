@@ -27,7 +27,7 @@ class FrequencyWidgetManager: NSObject, ObservableObject, CLLocationManagerDeleg
     }
 
     private func fetchMetroStops() {
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": "true"]
@@ -64,7 +64,7 @@ class FrequencyWidgetManager: NSObject, ObservableObject, CLLocationManagerDeleg
         let platformQuery = platformIds.map { "platform[]=\($0)" }.joined(separator: "&")
 
         // API request to fetch departures
-        let request = AF.request("\(API_URL)/v2/departure?\(platformQuery)&limit=\(4)&minutesBefore=0&minutesAfter=\(12 * 60)", method: .get)
+        let request = apiSession.request("\(API_URL)/v2/departure?\(platformQuery)&limit=\(4)&minutesBefore=0&minutesAfter=\(12 * 60)", method: .get)
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

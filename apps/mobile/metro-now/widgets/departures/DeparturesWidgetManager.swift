@@ -27,7 +27,7 @@ class DeparturesWidgetManager: NSObject, ObservableObject, CLLocationManagerDele
     }
 
     private func fetchMetroStops() {
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": "true"]
@@ -72,7 +72,7 @@ class DeparturesWidgetManager: NSObject, ObservableObject, CLLocationManagerDele
         print("API Request URL for Departures: \(url)")
 
         // API request to fetch departures
-        let request = AF.request(url, method: .get)
+        let request = apiSession.request(url, method: .get)
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

@@ -64,16 +64,16 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [
                 "vehicleType": "metro",
                 "stop": stopsIds,
                 "platform": platformsIds,
-                "limit": 6,
+                "limit": 10,
                 "minutesBefore": 1,
-                "minutesAfter": String(1 * 60),
+                "minutesAfter": String(6 * 60),
             ]
         )
 

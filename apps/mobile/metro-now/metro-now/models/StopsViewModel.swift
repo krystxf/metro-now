@@ -108,7 +108,7 @@ class StopsViewModel: NSObject, ObservableObject {
     }
 
     private func fetchStops(metroOnly: Bool = false) async -> [ApiStop]? {
-        let req = AF.request(
+        let req = apiSession.request(
             "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": String(metroOnly)]

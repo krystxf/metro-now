@@ -33,19 +33,77 @@ struct ApiRouteShapePoint: Decodable {
     let sequence: Int?
 }
 
+struct ApiGeoJsonLineString: Decodable {
+    let type: String
+    let coordinates: [[Double]]
+}
+
 struct ApiRouteShape: Identifiable, Decodable {
     let id: String
     let directionId: String?
     let tripCount: Int?
+    let geoJson: ApiGeoJsonLineString
     let points: [ApiRouteShapePoint]
 
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case directionId
+        case tripCount
+        case geoJson
+        case points
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(String.self, forKey: .id)
+        directionId = try container.decodeIfPresent(String.self, forKey: .directionId)
+        tripCount = try container.decodeIfPresent(Int.self, forKey: .tripCount)
+        points = try container.decodeIfPresent([ApiRouteShapePoint].self, forKey: .points) ?? []
+
+        if let geoJsonString = try container.decodeIfPresent(String.self, forKey: .geoJson) {
+            let geoJsonData = Data(geoJsonString.utf8)
+
+            do {
+                geoJson = try JSONDecoder().decode(ApiGeoJsonLineString.self, from: geoJsonData)
+            } catch {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .geoJson,
+                    in: container,
+                    debugDescription: "Invalid GeoJSON LineString payload"
+                )
+            }
+        } else {
+            geoJson = ApiGeoJsonLineString(
+                type: "LineString",
+                coordinates: points.map { [$0.longitude, $0.latitude] }
+            )
+        }
+    }
+
+    var normalizedCoordinates: [(latitude: Double, longitude: Double)] {
+        let coordinates = geoJson.coordinates.compactMap { coordinate -> (Double, Double)? in
+            guard coordinate.count >= 2 else {
+                return nil
+            }
+
+            return (coordinate[1], coordinate[0])
+        }
+
+        if coordinates.count > 1 {
+            return coordinates
+        }
+
+        return points.map { ($0.latitude, $0.longitude) }
+    }
+
     private var normalizedCoordinateKey: String {
-        let forward = points
+        let forward = normalizedCoordinates
             .map { point in
                 "\(point.latitude.rounded(toPlaces: 6)),\(point.longitude.rounded(toPlaces: 6))"
             }
             .joined(separator: ";")
-        let reversed = points
+        let reversed = normalizedCoordinates
             .reversed()
             .map { point in
                 "\(point.latitude.rounded(toPlaces: 6)),\(point.longitude.rounded(toPlaces: 6))"
@@ -117,7 +175,7 @@ struct ApiRouteDetail: Decodable {
         var seenShapeKeys = Set<String>()
 
         return shapes.filter { shape in
-            guard shape.points.count > 1 else {
+            guard shape.normalizedCoordinates.count > 1 else {
                 return false
             }
 
