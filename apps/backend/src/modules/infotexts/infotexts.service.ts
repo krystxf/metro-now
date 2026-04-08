@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { GolemioService } from "src/modules/golemio/golemio.service";
 import { golemioResponseSchema } from "src/modules/infotexts/schema/golemio-response.schema";
 import { responseSchema } from "src/modules/infotexts/schema/response.schema";
@@ -42,7 +42,7 @@ export class InfotextsService {
         return this.cacheManager.wrap(
             CACHE_KEYS.infotexts.getAll,
             async () => await this._getAll(),
-            ttl({ minutes: 2 }),
+            CACHE_TTL.infotexts,
         );
     }
 }

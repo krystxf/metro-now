@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import {
     type StatusObject,
@@ -37,7 +37,7 @@ export class StatusService {
                     status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
                 };
             },
-            ttl({ seconds: 30 }),
+            CACHE_TTL.statusChecks,
         );
     }
 
@@ -78,7 +78,7 @@ export class StatusService {
                     status: isOk ? SystemStatus.OK : SystemStatus.ERROR,
                 };
             },
-            ttl({ seconds: 30 }),
+            CACHE_TTL.statusChecks,
         );
     }
 }

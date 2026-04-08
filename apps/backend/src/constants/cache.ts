@@ -76,16 +76,36 @@ export const CACHE_KEYS = {
     },
 };
 
+export const MAX_CACHE_TTL_MS = 36 * 3600 * 1000;
+
 export const ttl = ({
+    hours = 0,
     minutes = 0,
     seconds = 0,
 }: {
+    hours?: number;
     minutes?: number;
     seconds?: number;
 }) => {
-    if (seconds + minutes === 0) {
+    if (hours + minutes + seconds === 0) {
         throw new Error("ttl: cannot be 0");
     }
 
-    return (minutes * 60 + seconds) * 1000;
+    const ttlMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+
+    if (ttlMs > MAX_CACHE_TTL_MS) {
+        throw new Error("ttl: cannot exceed 36 hours");
+    }
+
+    return ttlMs;
+};
+
+export const CACHE_TTL = {
+    routeData: ttl({ hours: 36 }),
+    stopData: ttl({ hours: 36 }),
+    platformData: ttl({ hours: 36 }),
+    infotexts: ttl({ minutes: 5 }),
+    golemioDepartureBoards: ttl({ seconds: 10 }),
+    golemioDefault: ttl({ seconds: 30 }),
+    statusChecks: ttl({ seconds: 30 }),
 };
