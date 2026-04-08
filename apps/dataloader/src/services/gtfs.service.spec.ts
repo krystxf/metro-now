@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildGtfsShapeDatasets } from "./gtfs.service";
+import {
+    GtfsService,
+    buildGtfsShapeDatasets,
+    buildGtfsStationEntranceDataset,
+} from "./gtfs.service";
 
 test("buildGtfsShapeDatasets derives route geometries and primary shapes", () => {
     const datasets = buildGtfsShapeDatasets({
@@ -154,4 +158,94 @@ test("buildGtfsShapeDatasets rejects trip shapes missing from shapes.txt", () =>
             }),
         /missing shape 'missing-shape'/,
     );
+});
+
+test("buildGtfsStationEntranceDataset derives metro station entrances from GTFS stops", () => {
+    const datasets = buildGtfsStationEntranceDataset({
+        stops: [
+            {
+                id: "U1072S1",
+                name: "Mustek",
+                latitude: 50.08353,
+                longitude: 14.42456,
+                locationType: "1",
+                parentStationId: null,
+            },
+            {
+                id: "U1072E1",
+                name: "Mustek entrance A",
+                latitude: 50.08312,
+                longitude: 14.42496,
+                locationType: "2",
+                parentStationId: "U1072S1",
+            },
+            {
+                id: "U1072E2",
+                name: "Mustek entrance B",
+                latitude: 50.08394,
+                longitude: 14.42415,
+                locationType: "2",
+                parentStationId: "U1072S1",
+            },
+            {
+                id: "U9999E1",
+                name: "Ignored non-metro entrance",
+                latitude: 50.1,
+                longitude: 14.5,
+                locationType: "2",
+                parentStationId: "U9999S1",
+            },
+        ],
+        importedMetroStopIds: new Set(["U1072"]),
+    });
+
+    assert.deepEqual(datasets.gtfsStationEntrances, [
+        {
+            id: "U1072E1",
+            stopId: "U1072",
+            parentStationId: "U1072S1",
+            name: "Mustek entrance A",
+            latitude: 50.08312,
+            longitude: 14.42496,
+        },
+        {
+            id: "U1072E2",
+            stopId: "U1072",
+            parentStationId: "U1072S1",
+            name: "Mustek entrance B",
+            latitude: 50.08394,
+            longitude: 14.42415,
+        },
+    ]);
+});
+
+test("GtfsService parses blank stop names for non-entrance GTFS locations", () => {
+    const service = new GtfsService() as unknown as {
+        parseGtfsStopRecord(stop: Record<string, string>): {
+            id: string;
+            name: string;
+            latitude: number;
+            longitude: number;
+            locationType: string;
+            parentStationId: string | null;
+        };
+    };
+
+    const parsed = service.parseGtfsStopRecord({
+        stop_id: "U135N2",
+        stop_name: "",
+        stop_lat: "50.106538",
+        stop_lon: "14.537558",
+        location_type: "3",
+        parent_station: "U135S1",
+    });
+
+    assert.deepEqual(parsed, {
+        id: "U135N2",
+        name: "",
+        latitude: 50.106538,
+        longitude: 14.537558,
+        locationType: "3",
+        parentStationId: "U135S1",
+    });
 });

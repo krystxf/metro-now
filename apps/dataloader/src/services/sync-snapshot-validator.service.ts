@@ -53,6 +53,10 @@ export class SyncSnapshotValidator {
                 ].join("::"),
             ),
         );
+        this.assertUniqueKeys(
+            "gtfsStationEntrances",
+            snapshot.gtfsStationEntrances.map((entrance) => entrance.id),
+        );
 
         const stopIds = new Set(snapshot.stops.map((stop) => stop.id));
         const platformIds = new Set(
@@ -101,6 +105,34 @@ export class SyncSnapshotValidator {
             if (routeStop.stopSequence < 0) {
                 throw new Error(
                     `GTFS route stop has invalid stop sequence '${routeStop.stopSequence}'`,
+                );
+            }
+        }
+
+        for (const entrance of snapshot.gtfsStationEntrances) {
+            if (!stopIds.has(entrance.stopId)) {
+                throw new Error(
+                    `GTFS station entrance references missing stop '${entrance.stopId}'`,
+                );
+            }
+
+            if (
+                !Number.isFinite(entrance.latitude) ||
+                entrance.latitude < -90 ||
+                entrance.latitude > 90
+            ) {
+                throw new Error(
+                    `GTFS station entrance has invalid latitude '${entrance.latitude}'`,
+                );
+            }
+
+            if (
+                !Number.isFinite(entrance.longitude) ||
+                entrance.longitude < -180 ||
+                entrance.longitude > 180
+            ) {
+                throw new Error(
+                    `GTFS station entrance has invalid longitude '${entrance.longitude}'`,
                 );
             }
         }

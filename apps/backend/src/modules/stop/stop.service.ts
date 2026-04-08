@@ -1,8 +1,13 @@
-import type { Platform, Route, Stop } from "@metro-now/database";
+import type {
+    GtfsStationEntrance,
+    Platform,
+    Route,
+    Stop,
+} from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
@@ -26,11 +31,17 @@ type StopRecord = StopRecordBase & {
 
 type StopGraphQLPlatformRecord = Pick<Platform, "id">;
 
+type StopGraphQLEntranceRecord = Pick<
+    GtfsStationEntrance,
+    "id" | "latitude" | "longitude" | "name"
+>;
+
 type StopGraphQLRecord = StopRecordBase & {
+    entrances: StopGraphQLEntranceRecord[];
     platforms: StopGraphQLPlatformRecord[];
 };
 
-const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
+const STOP_DATA_CACHE_TTL_MS = CACHE_TTL.stopData;
 
 @Injectable()
 export class StopService {
@@ -190,6 +201,37 @@ export class StopService {
         return platformsByStopId;
     }
 
+    private async loadStopGraphQLEntrancesByStopIds(
+        stopIds: readonly string[],
+    ): Promise<Map<string, StopGraphQLEntranceRecord[]>> {
+        const entrancesByStopId = new Map<string, StopGraphQLEntranceRecord[]>(
+            stopIds.map((stopId) => [stopId, []]),
+        );
+
+        if (stopIds.length === 0) {
+            return entrancesByStopId;
+        }
+
+        const rows = await this.database.db
+            .selectFrom("GtfsStationEntrance")
+            .select(["id", "latitude", "longitude", "name", "stopId"])
+            .where("stopId", "in", [...stopIds])
+            .orderBy("stopId", "asc")
+            .orderBy("id", "asc")
+            .execute();
+
+        for (const row of rows) {
+            entrancesByStopId.get(row.stopId)?.push({
+                id: row.id,
+                latitude: row.latitude,
+                longitude: row.longitude,
+                name: row.name,
+            });
+        }
+
+        return entrancesByStopId;
+    }
+
     private async loadGraphQLStopsByIds(
         ids: readonly string[],
     ): Promise<Map<string, StopGraphQLRecord | null>> {
@@ -200,11 +242,15 @@ export class StopService {
             await this.loadStopGraphQLPlatformIdsByStopIds(
                 stops.map((stop) => stop.id),
             );
+        const entrancesByStopId = await this.loadStopGraphQLEntrancesByStopIds(
+            stops.map((stop) => stop.id),
+        );
         const stopsById = new Map<string, StopGraphQLRecord | null>(
             stops.map((stop) => [
                 stop.id,
                 {
                     ...stop,
+                    entrances: entrancesByStopId.get(stop.id) ?? [],
                     platforms: platformIdsByStopId.get(stop.id) ?? [],
                 },
             ]),
@@ -293,13 +339,18 @@ export class StopService {
                     await this.loadStopGraphQLPlatformIdsByStopIds(
                         stops.map((stop) => stop.id),
                     );
+                const entrancesByStopId =
+                    await this.loadStopGraphQLEntrancesByStopIds(
+                        stops.map((stop) => stop.id),
+                    );
 
                 return stops.map((stop) => ({
                     ...stop,
+                    entrances: entrancesByStopId.get(stop.id) ?? [],
                     platforms: platformIdsByStopId.get(stop.id) ?? [],
                 }));
             },
-            GRAPHQL_CACHE_TTL_MS,
+            STOP_DATA_CACHE_TTL_MS,
         );
     }
 
@@ -312,7 +363,7 @@ export class StopService {
             keys: ids,
             loadMissing: async (missingIds) =>
                 this.loadGraphQLStopsByIds(missingIds),
-            ttlMs: GRAPHQL_CACHE_TTL_MS,
+            ttlMs: STOP_DATA_CACHE_TTL_MS,
         });
 
         return Array.from(new Set(ids))
@@ -341,7 +392,7 @@ export class StopService {
                     platforms: platformsByStopId.get(id) ?? [],
                 };
             },
-            GRAPHQL_CACHE_TTL_MS,
+            STOP_DATA_CACHE_TTL_MS,
         );
     }
 }

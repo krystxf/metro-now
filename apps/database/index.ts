@@ -107,6 +107,17 @@ export interface GtfsRouteShapeTable {
     updatedAt: Generated<Date>;
 }
 
+export interface GtfsStationEntranceTable {
+    id: string;
+    stopId: string;
+    parentStationId: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
 export interface GtfsStopTimeTable {
     id: Generated<string>;
     platformId: string | null;
@@ -142,6 +153,7 @@ export interface MetroNowDatabase {
     GtfsRoute: GtfsRouteTable;
     GtfsRouteStop: GtfsRouteStopTable;
     GtfsRouteShape: GtfsRouteShapeTable;
+    GtfsStationEntrance: GtfsStationEntranceTable;
     GtfsStopTime: GtfsStopTimeTable;
     Log: LogTable;
     RequestLog: RequestLogTable;
@@ -157,6 +169,7 @@ export type PlatformsOnRoutes = Selectable<PlatformsOnRoutesTable>;
 export type GtfsRoute = Selectable<GtfsRouteTable>;
 export type GtfsRouteStop = Selectable<GtfsRouteStopTable>;
 export type GtfsRouteShape = Selectable<GtfsRouteShapeTable>;
+export type GtfsStationEntrance = Selectable<GtfsStationEntranceTable>;
 export type GtfsStopTime = Selectable<GtfsStopTimeTable>;
 export type Log = Selectable<LogTable>;
 export type RequestLog = Selectable<RequestLogTable>;
@@ -172,5 +185,6 @@ export type NewGtfsRoute = Insertable<GtfsRouteTable>;
 export type GtfsRouteUpdate = Updateable<GtfsRouteTable>;
 export type NewGtfsRouteStop = Insertable<GtfsRouteStopTable>;
 export type NewGtfsRouteShape = Insertable<GtfsRouteShapeTable>;
+export type NewGtfsStationEntrance = Insertable<GtfsStationEntranceTable>;
 export type NewLog = Insertable<LogTable>;
 export type NewRequestLog = Insertable<RequestLogTable>;

@@ -57,6 +57,15 @@ export type SyncedGtfsRouteShape = {
     geoJson: GeoJsonLineString;
 };
 
+export type SyncedGtfsStationEntrance = {
+    id: string;
+    stopId: string;
+    parentStationId: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+};
+
 export type StopSnapshot = {
     stops: SyncedStop[];
     platforms: SyncedPlatform[];
@@ -68,6 +77,7 @@ export type GtfsSnapshot = {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
+    gtfsStationEntrances: SyncedGtfsStationEntrance[];
 };
 
 export type SyncSnapshot = StopSnapshot & GtfsSnapshot;
@@ -80,6 +90,7 @@ export type SyncCounts = {
     gtfsRoutes: number;
     gtfsRouteStops: number;
     gtfsRouteShapes: number;
+    gtfsStationEntrances: number;
 };
 
 export type SyncRunResult = {
@@ -110,4 +121,5 @@ export const getSyncCounts = (snapshot: SyncSnapshot): SyncCounts => ({
     gtfsRoutes: snapshot.gtfsRoutes.length,
     gtfsRouteStops: snapshot.gtfsRouteStops.length,
     gtfsRouteShapes: snapshot.gtfsRouteShapes.length,
+    gtfsStationEntrances: snapshot.gtfsStationEntrances.length,
 });

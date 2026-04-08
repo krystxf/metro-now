@@ -24,6 +24,15 @@ const gtfsRouteStopRecordSchema = z.object({
     stop_sequence: z.string().min(1),
 });
 
+const gtfsStopRecordSchema = z.object({
+    stop_id: z.string().min(1),
+    stop_name: z.string(),
+    stop_lat: z.string().min(1),
+    stop_lon: z.string().min(1),
+    location_type: z.string().optional(),
+    parent_station: z.string().optional(),
+});
+
 const gtfsTripRecordSchema = z.object({
     route_id: z.string().min(1),
     direction_id: z.string().optional(),
@@ -50,7 +59,18 @@ export type ParsedGtfsShapePointRecord = {
     sequence: number;
 };
 
+export type ParsedGtfsStopRecord = {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    locationType: string;
+    parentStationId: string | null;
+};
+
 const UNKNOWN_DIRECTION_ID = "unknown";
+const GTFS_LOCATION_TYPE_STOP = "0";
+const GTFS_LOCATION_TYPE_ENTRANCE = "2";
 
 const getGtfsRouteShapeKey = (routeShape: {
     routeId: string;
@@ -222,8 +242,84 @@ export const buildGtfsShapeDatasets = ({
     };
 };
 
+export const buildGtfsStationEntranceDataset = ({
+    stops,
+    importedMetroStopIds,
+}: {
+    stops: ParsedGtfsStopRecord[];
+    importedMetroStopIds: Set<string>;
+}): Pick<GtfsSnapshot, "gtfsStationEntrances"> => {
+    const gtfsStationEntrancesById = new Map<
+        string,
+        GtfsSnapshot["gtfsStationEntrances"][number]
+    >();
+
+    for (const stop of stops) {
+        if (stop.locationType !== GTFS_LOCATION_TYPE_ENTRANCE) {
+            continue;
+        }
+
+        if (!stop.parentStationId) {
+            throw new Error(
+                `GTFS station entrance '${stop.id}' is missing parent_station`,
+            );
+        }
+
+        const stopId = getCanonicalStopIdFromParentStationId(
+            stop.parentStationId,
+        );
+
+        if (!importedMetroStopIds.has(stopId)) {
+            continue;
+        }
+
+        gtfsStationEntrancesById.set(stop.id, {
+            id: stop.id,
+            stopId,
+            parentStationId: stop.parentStationId,
+            name: stop.name,
+            latitude: stop.latitude,
+            longitude: stop.longitude,
+        });
+    }
+
+    return {
+        gtfsStationEntrances: Array.from(
+            gtfsStationEntrancesById.values(),
+        ).sort(
+            (left, right) =>
+                left.stopId.localeCompare(right.stopId) ||
+                left.parentStationId.localeCompare(right.parentStationId) ||
+                left.id.localeCompare(right.id),
+        ),
+    };
+};
+
+const normalizeGtfsStopId = (stopId: string): string => stopId.split("_")[0];
+
+const getCanonicalStopIdFromParentStationId = (
+    parentStationId: string,
+): string => {
+    const normalizedParentStationId = normalizeGtfsStopId(parentStationId);
+    const stopId = normalizedParentStationId.split("S")[0];
+
+    if (!stopId || stopId === normalizedParentStationId) {
+        throw new Error(
+            `Unexpected GTFS parent_station format '${parentStationId}'`,
+        );
+    }
+
+    return stopId;
+};
+
 export class GtfsService {
-    async getGtfsSnapshot(platformIds: Set<string>): Promise<GtfsSnapshot> {
+    async getGtfsSnapshot({
+        platformIds,
+        importedMetroStopIds,
+    }: {
+        platformIds: Set<string>;
+        importedMetroStopIds: Set<string>;
+    }): Promise<GtfsSnapshot> {
         const response = await fetchWithTimeout(GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
@@ -241,6 +337,9 @@ export class GtfsService {
         const routeStopsEntry = directory.files.find(
             (file) => file.path === "route_stops.txt",
         );
+        const stopsEntry = directory.files.find(
+            (file) => file.path === "stops.txt",
+        );
         const tripsEntry = directory.files.find(
             (file) => file.path === "trips.txt",
         );
@@ -256,6 +355,10 @@ export class GtfsService {
             throw new Error("route_stops.txt not found in GTFS archive");
         }
 
+        if (!stopsEntry) {
+            throw new Error("stops.txt not found in GTFS archive");
+        }
+
         if (!tripsEntry) {
             throw new Error("trips.txt not found in GTFS archive");
         }
@@ -269,6 +372,9 @@ export class GtfsService {
         );
         const rawRouteStops = await parseCsvString<Record<string, string>>(
             (await routeStopsEntry.buffer()).toString(),
+        );
+        const rawStops = await parseCsvString<Record<string, string>>(
+            (await stopsEntry.buffer()).toString(),
         );
         const rawTrips = await parseCsvString<Record<string, string>>(
             (await tripsEntry.buffer()).toString(),
@@ -293,11 +399,18 @@ export class GtfsService {
             ),
             routeIdsWithImportedPlatforms,
         });
+        const { gtfsStationEntrances } = buildGtfsStationEntranceDataset({
+            stops: rawStops.map((stopRecord) =>
+                this.parseGtfsStopRecord(stopRecord),
+            ),
+            importedMetroStopIds,
+        });
 
         return {
             gtfsRoutes,
             gtfsRouteStops,
             gtfsRouteShapes,
+            gtfsStationEntrances,
         };
     }
 
@@ -343,6 +456,38 @@ export class GtfsService {
             directionId: parsed.data.direction_id,
             platformId: this.normalizePlatformId(parsed.data.stop_id),
             stopSequence,
+        };
+    }
+
+    private parseGtfsStopRecord(stop: Record<string, string>) {
+        const parsed = gtfsStopRecordSchema.safeParse(stop);
+
+        if (!parsed.success) {
+            throw new Error(
+                `Invalid GTFS stop record: ${parsed.error.message}`,
+            );
+        }
+
+        const latitude = Number(parsed.data.stop_lat);
+        const longitude = Number(parsed.data.stop_lon);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            throw new Error(
+                `Invalid GTFS stop coordinates: ${parsed.data.stop_lat}, ${parsed.data.stop_lon}`,
+            );
+        }
+
+        return {
+            id: normalizeGtfsStopId(parsed.data.stop_id),
+            name: parsed.data.stop_name.trim(),
+            latitude,
+            longitude,
+            locationType:
+                this.toOptionalString(parsed.data.location_type) ??
+                GTFS_LOCATION_TYPE_STOP,
+            parentStationId: parsed.data.parent_station
+                ? normalizeGtfsStopId(parsed.data.parent_station)
+                : null,
         };
     }
 

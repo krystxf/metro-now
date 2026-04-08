@@ -1,8 +1,16 @@
+type StopEntrance {
+    id: ID!
+    name: String!
+    latitude: Float!
+    longitude: Float!
+}
+
 type Stop {
     id: ID!
     name: String!
     avgLatitude: Float!
     avgLongitude: Float!
+    entrances: [StopEntrance!]!
     platforms: [Platform!]!
 }
 

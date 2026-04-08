@@ -5,6 +5,7 @@ import {
     type NewGtfsRoute,
     type NewGtfsRouteShape,
     type NewGtfsRouteStop,
+    type NewGtfsStationEntrance,
     type NewPlatform,
     type NewPlatformsOnRoutes,
     type NewRoute,
@@ -18,6 +19,7 @@ import type {
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
+    SyncedGtfsStationEntrance,
     SyncedPlatform,
     SyncedPlatformRoute,
     SyncedRoute,
@@ -30,7 +32,12 @@ const LOCK_KEY = BigInt(4_241_001);
 const ENTITY_BATCH_SIZE = 100;
 const RELATION_BATCH_SIZE = 500;
 
-type IdTableName = "GtfsRoute" | "Platform" | "Route" | "Stop";
+type IdTableName =
+    | "GtfsRoute"
+    | "GtfsStationEntrance"
+    | "Platform"
+    | "Route"
+    | "Stop";
 
 export class SyncRepository {
     constructor(private readonly db: DatabaseClient) {}
@@ -73,9 +80,17 @@ export class SyncRepository {
         await this.upsertRoutes(transaction, snapshot.routes);
         await this.upsertPlatforms(transaction, snapshot.platforms);
         await this.upsertGtfsRoutes(transaction, snapshot.gtfsRoutes);
+        await this.upsertGtfsStationEntrances(
+            transaction,
+            snapshot.gtfsStationEntrances,
+        );
         await this.syncPlatformRoutes(transaction, snapshot.platformRoutes);
         await this.syncGtfsRouteStops(transaction, snapshot.gtfsRouteStops);
         await this.syncGtfsRouteShapes(transaction, snapshot.gtfsRouteShapes);
+        await this.deleteStaleGtfsStationEntrances(
+            transaction,
+            snapshot.gtfsStationEntrances,
+        );
         await this.deleteStalePlatforms(transaction, snapshot.platforms);
         await this.deleteStaleRoutes(transaction, snapshot.routes);
         await this.deleteStaleStops(transaction, snapshot.stops);
@@ -239,6 +254,54 @@ export class SyncRepository {
                                 isNight:
                                     expressionBuilder.ref("excluded.isNight"),
                                 url: expressionBuilder.ref("excluded.url"),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
+            },
+        );
+    }
+
+    private async upsertGtfsStationEntrances(
+        transaction: DatabaseTransaction,
+        gtfsStationEntrances: SyncedGtfsStationEntrance[],
+    ): Promise<void> {
+        await this.processInBatches(
+            gtfsStationEntrances,
+            ENTITY_BATCH_SIZE,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewGtfsStationEntrance[] = chunk.map(
+                    (entrance) => ({
+                        id: entrance.id,
+                        stopId: entrance.stopId,
+                        parentStationId: entrance.parentStationId,
+                        name: entrance.name,
+                        latitude: entrance.latitude,
+                        longitude: entrance.longitude,
+                        createdAt: timestamp,
+                        updatedAt: timestamp,
+                    }),
+                );
+
+                await transaction
+                    .insertInto("GtfsStationEntrance")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .column("id")
+                            .doUpdateSet((expressionBuilder) => ({
+                                stopId: expressionBuilder.ref(
+                                    "excluded.stopId",
+                                ),
+                                parentStationId: expressionBuilder.ref(
+                                    "excluded.parentStationId",
+                                ),
+                                name: expressionBuilder.ref("excluded.name"),
+                                latitude:
+                                    expressionBuilder.ref("excluded.latitude"),
+                                longitude:
+                                    expressionBuilder.ref("excluded.longitude"),
                                 updatedAt: sql`now()`,
                             })),
                     )
@@ -598,6 +661,20 @@ export class SyncRepository {
         ).filter((id) => !incomingIds.has(id));
 
         await this.deleteByIds(transaction, "GtfsRoute", staleIds);
+    }
+
+    private async deleteStaleGtfsStationEntrances(
+        transaction: DatabaseTransaction,
+        gtfsStationEntrances: SyncedGtfsStationEntrance[],
+    ): Promise<void> {
+        const incomingIds = new Set(
+            gtfsStationEntrances.map((entrance) => entrance.id),
+        );
+        const staleIds = (
+            await this.selectIds(transaction, "GtfsStationEntrance")
+        ).filter((id) => !incomingIds.has(id));
+
+        await this.deleteByIds(transaction, "GtfsStationEntrance", staleIds);
     }
 
     private async selectIds(

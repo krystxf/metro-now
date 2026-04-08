@@ -102,9 +102,18 @@ export class SyncService {
 
     private async createSnapshot(): Promise<SyncSnapshot> {
         const stopSnapshot = await this.importService.getStopSnapshot();
-        const gtfsSnapshot = await this.gtfsService.getGtfsSnapshot(
-            new Set(stopSnapshot.platforms.map((platform) => platform.id)),
-        );
+        const gtfsSnapshot = await this.gtfsService.getGtfsSnapshot({
+            platformIds: new Set(
+                stopSnapshot.platforms.map((platform) => platform.id),
+            ),
+            importedMetroStopIds: new Set(
+                stopSnapshot.platforms.flatMap((platform) =>
+                    platform.isMetro && platform.stopId
+                        ? [platform.stopId]
+                        : [],
+                ),
+            ),
+        });
 
         return {
             ...stopSnapshot,

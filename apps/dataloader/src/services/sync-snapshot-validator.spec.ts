@@ -73,6 +73,16 @@ const createSnapshot = (): SyncSnapshot => ({
             },
         },
     ],
+    gtfsStationEntrances: [
+        {
+            id: "U1E1",
+            stopId: "U1",
+            parentStationId: "U1S1",
+            name: "Entrance 1",
+            latitude: 50.1005,
+            longitude: 14.4005,
+        },
+    ],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {
@@ -129,4 +139,18 @@ test("SyncSnapshotValidator rejects invalid GTFS route shape GeoJSON", () => {
     assert.throws(() => {
         validator.validate(snapshot);
     }, /invalid latitude '95'/);
+});
+
+test("SyncSnapshotValidator rejects missing GTFS station entrance stop references", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsStationEntrances[0] = {
+        ...snapshot.gtfsStationEntrances[0],
+        stopId: "missing-stop",
+    };
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /missing stop 'missing-stop'/);
 });
