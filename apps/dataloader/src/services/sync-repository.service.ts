@@ -32,6 +32,12 @@ const LOCK_KEY = BigInt(4_241_001);
 const ENTITY_BATCH_SIZE = 100;
 const RELATION_BATCH_SIZE = 500;
 
+type SyncRepositoryOptions = {
+    entityBatchSize?: number;
+    relationBatchSize?: number;
+    batchDelayMs?: number;
+};
+
 type IdTableName =
     | "GtfsRoute"
     | "GtfsStationEntrance"
@@ -40,7 +46,19 @@ type IdTableName =
     | "Stop";
 
 export class SyncRepository {
-    constructor(private readonly db: DatabaseClient) {}
+    private readonly entityBatchSize: number;
+    private readonly relationBatchSize: number;
+    private readonly batchDelayMs: number;
+
+    constructor(
+        private readonly db: DatabaseClient,
+        options: SyncRepositoryOptions = {},
+    ) {
+        this.entityBatchSize = options.entityBatchSize ?? ENTITY_BATCH_SIZE;
+        this.relationBatchSize =
+            options.relationBatchSize ?? RELATION_BATCH_SIZE;
+        this.batchDelayMs = options.batchDelayMs ?? 0;
+    }
 
     async persist(snapshot: SyncSnapshot): Promise<SyncPersistenceResult> {
         return this.db.transaction().execute(async (transaction) => {
@@ -101,34 +119,40 @@ export class SyncRepository {
         transaction: DatabaseTransaction,
         stops: SyncedStop[],
     ): Promise<void> {
-        await this.processInBatches(stops, ENTITY_BATCH_SIZE, async (chunk) => {
-            const timestamp = new Date();
-            const values: NewStop[] = chunk.map((stop) => ({
-                id: stop.id,
-                name: stop.name,
-                avgLatitude: stop.avgLatitude,
-                avgLongitude: stop.avgLongitude,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            }));
+        await this.processInBatches(
+            stops,
+            this.entityBatchSize,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewStop[] = chunk.map((stop) => ({
+                    id: stop.id,
+                    name: stop.name,
+                    avgLatitude: stop.avgLatitude,
+                    avgLongitude: stop.avgLongitude,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
 
-            await transaction
-                .insertInto("Stop")
-                .values(values)
-                .onConflict((conflict) =>
-                    conflict.column("id").doUpdateSet((expressionBuilder) => ({
-                        name: expressionBuilder.ref("excluded.name"),
-                        avgLatitude: expressionBuilder.ref(
-                            "excluded.avgLatitude",
-                        ),
-                        avgLongitude: expressionBuilder.ref(
-                            "excluded.avgLongitude",
-                        ),
-                        updatedAt: sql`now()`,
-                    })),
-                )
-                .execute();
-        });
+                await transaction
+                    .insertInto("Stop")
+                    .values(values)
+                    .onConflict((conflict) =>
+                        conflict
+                            .column("id")
+                            .doUpdateSet((expressionBuilder) => ({
+                                name: expressionBuilder.ref("excluded.name"),
+                                avgLatitude: expressionBuilder.ref(
+                                    "excluded.avgLatitude",
+                                ),
+                                avgLongitude: expressionBuilder.ref(
+                                    "excluded.avgLongitude",
+                                ),
+                                updatedAt: sql`now()`,
+                            })),
+                    )
+                    .execute();
+            },
+        );
     }
 
     private async upsertRoutes(
@@ -137,7 +161,7 @@ export class SyncRepository {
     ): Promise<void> {
         await this.processInBatches(
             routes,
-            ENTITY_BATCH_SIZE,
+            this.entityBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewRoute[] = chunk.map((route) => ({
@@ -176,7 +200,7 @@ export class SyncRepository {
     ): Promise<void> {
         await this.processInBatches(
             platforms,
-            ENTITY_BATCH_SIZE,
+            this.entityBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewPlatform[] = chunk.map((platform) => ({
@@ -223,7 +247,7 @@ export class SyncRepository {
     ): Promise<void> {
         await this.processInBatches(
             gtfsRoutes,
-            ENTITY_BATCH_SIZE,
+            this.entityBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewGtfsRoute[] = chunk.map((gtfsRoute) => ({
@@ -268,7 +292,7 @@ export class SyncRepository {
     ): Promise<void> {
         await this.processInBatches(
             gtfsStationEntrances,
-            ENTITY_BATCH_SIZE,
+            this.entityBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewGtfsStationEntrance[] = chunk.map(
@@ -337,7 +361,7 @@ export class SyncRepository {
 
         await this.processInBatches(
             relationsToCreate,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewPlatformsOnRoutes[] = chunk.map(
@@ -361,7 +385,7 @@ export class SyncRepository {
         );
         await this.processInBatches(
             relationsToDelete,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 if (chunk.length === 0) {
                     return;
@@ -433,7 +457,7 @@ export class SyncRepository {
 
         await this.processInBatches(
             routeStopsToCreate,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewGtfsRouteStop[] = chunk.map((routeStop) => ({
@@ -464,7 +488,7 @@ export class SyncRepository {
         );
         await this.processInBatches(
             routeStopsToDelete,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 if (chunk.length === 0) {
                     return;
@@ -525,7 +549,7 @@ export class SyncRepository {
 
         await this.processInBatches(
             gtfsRouteShapes,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 const timestamp = new Date();
                 const values: NewGtfsRouteShape[] = chunk.map((routeShape) => ({
@@ -561,7 +585,7 @@ export class SyncRepository {
         );
         await this.processInBatches(
             routeShapesToDelete,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 if (chunk.length === 0) {
                     return;
@@ -695,16 +719,20 @@ export class SyncRepository {
         tableName: IdTableName,
         ids: string[],
     ): Promise<void> {
-        await this.processInBatches(ids, RELATION_BATCH_SIZE, async (chunk) => {
-            if (chunk.length === 0) {
-                return;
-            }
+        await this.processInBatches(
+            ids,
+            this.relationBatchSize,
+            async (chunk) => {
+                if (chunk.length === 0) {
+                    return;
+                }
 
-            await transaction
-                .deleteFrom(tableName)
-                .where("id", "in", chunk)
-                .execute();
-        });
+                await transaction
+                    .deleteFrom(tableName)
+                    .where("id", "in", chunk)
+                    .execute();
+            },
+        );
     }
 
     private async tryAcquireTransactionLock(
@@ -738,7 +766,7 @@ export class SyncRepository {
 
         await this.processInBatches(
             platformIds,
-            RELATION_BATCH_SIZE,
+            this.relationBatchSize,
             async (chunk) => {
                 const rows = await transaction
                     .selectFrom("GtfsStopTime")
@@ -808,6 +836,16 @@ export class SyncRepository {
     ): Promise<void> {
         for (let index = 0; index < items.length; index += batchSize) {
             await callback(items.slice(index, index + batchSize));
+
+            const hasMoreBatches = index + batchSize < items.length;
+
+            if (hasMoreBatches && this.batchDelayMs > 0) {
+                await this.sleep(this.batchDelayMs);
+            }
         }
+    }
+
+    private async sleep(durationMs: number): Promise<void> {
+        await new Promise((resolve) => setTimeout(resolve, durationMs));
     }
 }

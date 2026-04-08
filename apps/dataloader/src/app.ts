@@ -13,7 +13,12 @@ const env = getDataloaderEnv();
 const app = express();
 const databaseService = new DatabaseService();
 logger.setTransport(new DatabaseLogStore(databaseService.db));
-const syncService = new SyncService(databaseService.db);
+const syncService = new SyncService(databaseService.db, {
+    entityBatchSize: env.entityBatchSize,
+    relationBatchSize: env.relationBatchSize,
+    batchDelayMs: env.batchDelayMs,
+    phaseDelayMs: env.phaseDelayMs,
+});
 const cronService = new CronService();
 
 app.use(express.json());
@@ -134,6 +139,12 @@ const bootstrap = async (): Promise<void> => {
         logger.info("Dataloader listening", {
             port: env.port,
             syncSchedule: env.syncSchedule,
+            throttle: {
+                entityBatchSize: env.entityBatchSize,
+                relationBatchSize: env.relationBatchSize,
+                batchDelayMs: env.batchDelayMs,
+                phaseDelayMs: env.phaseDelayMs,
+            },
         });
     });
 };

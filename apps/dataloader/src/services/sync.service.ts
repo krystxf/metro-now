@@ -16,11 +16,21 @@ export class SyncService {
     private readonly gtfsService = new GtfsService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
+    private readonly phaseDelayMs: number;
     private activeSync: Promise<SyncRunResult> | undefined;
     private lastRun: SyncRunResult | undefined;
 
-    constructor(db: DatabaseClient) {
-        this.repository = new SyncRepository(db);
+    constructor(
+        db: DatabaseClient,
+        options: {
+            entityBatchSize?: number;
+            relationBatchSize?: number;
+            batchDelayMs?: number;
+            phaseDelayMs?: number;
+        } = {},
+    ) {
+        this.repository = new SyncRepository(db, options);
+        this.phaseDelayMs = options.phaseDelayMs ?? 0;
     }
 
     async syncEverything(trigger: SyncTrigger): Promise<SyncRunResult> {
@@ -63,6 +73,10 @@ export class SyncService {
         this.logGtfsStationEntranceSnapshot(snapshot);
 
         this.validator.validate(snapshot);
+        await this.pauseBetweenPhases(
+            "snapshot validation",
+            "database persistence",
+        );
 
         const persistenceResult = await this.repository.persist(snapshot);
         const finishedAt = new Date();
@@ -104,6 +118,7 @@ export class SyncService {
 
     private async createSnapshot(): Promise<SyncSnapshot> {
         const stopSnapshot = await this.importService.getStopSnapshot();
+        await this.pauseBetweenPhases("PID snapshot", "GTFS snapshot");
         const gtfsSnapshot = await this.gtfsService.getGtfsSnapshot({
             platformIds: new Set(
                 stopSnapshot.platforms.map((platform) => platform.id),
@@ -124,10 +139,7 @@ export class SyncService {
     }
 
     private logGtfsStationEntranceSnapshot(
-        snapshot: Pick<
-            SyncSnapshot,
-            "gtfsStationEntrances" | "platforms"
-        >,
+        snapshot: Pick<SyncSnapshot, "gtfsStationEntrances" | "platforms">,
     ): void {
         const metroStopIds = new Set(
             snapshot.platforms.flatMap((platform) =>
@@ -143,5 +155,22 @@ export class SyncService {
             gtfsStationEntranceStops: gtfsStationEntranceStopIds.size,
             metroStops: metroStopIds.size,
         });
+    }
+
+    private async pauseBetweenPhases(
+        completedPhase: string,
+        nextPhase: string,
+    ): Promise<void> {
+        if (this.phaseDelayMs <= 0) {
+            return;
+        }
+
+        logger.info("Throttling sync phase transition", {
+            completedPhase,
+            nextPhase,
+            delayMs: this.phaseDelayMs,
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, this.phaseDelayMs));
     }
 }
