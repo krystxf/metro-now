@@ -14,27 +14,47 @@ struct ContentView: View {
     @StateObject var stopsViewModel = StopsViewModel()
     @State private var showWelcomeScreen: Bool = false
     @State private var showSearchScreen: Bool = false
+    @State private var showInfotexts: Bool = false
 
     var body: some View {
         ZStack {
-            NavigationStack {
-                ClosestStopPageView()
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            NavigationLink {
-                                SettingsPageView()
-                            } label: {
-                                Label("Settings", systemImage: "gearshape")
+            TabView {
+                NavigationStack {
+                    ClosestStopPageView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                NavigationLink {
+                                    SettingsPageView()
+                                } label: {
+                                    Label("Settings", systemImage: "gearshape")
+                                }
+                            }
+                            ToolbarItemGroup(placement: .topBarTrailing) {
+                                Button(action: {
+                                    showInfotexts = true
+                                }) {
+                                    Label("Info", systemImage: "info.bubble")
+                                }
+                                Button(action: {
+                                    showSearchScreen = true
+                                }) {
+                                    Label("Search", systemImage: "magnifyingglass")
+                                }
                             }
                         }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button(action: {
-                                showSearchScreen = true
-                            }) {
-                                Label("Search", systemImage: "magnifyingglass")
-                            }
-                        }
-                    }
+                }
+                .tabItem {
+                    Label("Departures", systemImage: "clock")
+                }
+
+                NavigationStack {
+                    MapPageView()
+                        .environmentObject(stopsViewModel)
+                        .navigationTitle("Map")
+                }
+                .tabItem {
+                    Label("Map", systemImage: "map")
+                }
             }
             .sheet(
                 isPresented: $showSearchScreen,
@@ -48,6 +68,9 @@ struct ContentView: View {
                 .environmentObject(stopsViewModel)
                 .presentationDetents([.large])
             }
+            .sheet(isPresented: $showInfotexts) {
+                InfotextsPageView()
+            }
             .sheet(
                 isPresented: $showWelcomeScreen,
                 onDismiss: dismissWelcomeScreen
@@ -57,12 +80,13 @@ struct ContentView: View {
             }
 
             VStack {
-                Spacer()
                 if showNoInternetBanner {
                     NoInternetBannerView()
-                        .transition(getBannerTransition(.bottom))
+                        .transition(getBannerTransition(.top))
                 }
+                Spacer()
             }
+            .ignoresSafeArea(edges: .bottom)
         }
         .onAppear {
             showWelcomeScreen = !hasSeenWelcomeScreen
