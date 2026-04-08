@@ -8,6 +8,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
+        "lint:fix": "next lint --fix",
         "types:check": "tsc --pretty"
     },
     "dependencies": {

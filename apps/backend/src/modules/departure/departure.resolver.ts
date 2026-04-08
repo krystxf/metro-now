@@ -1,9 +1,9 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { GraphQLError } from "src/common/graphql-error";
+import { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
+import { RouteByIdLoader } from "src/modules/dataloader/route-by-id.loader";
 import { DepartureBoardService } from "src/modules/departure/departure-board.service";
-import { PlatformService } from "src/modules/platform/platform.service";
-import { RouteService } from "src/modules/route/route.service";
 import type { ParentType } from "src/types/parent";
 
 const ROUTE_ID_BY_NAME = {
@@ -16,8 +16,8 @@ const ROUTE_ID_BY_NAME = {
 export class DepartureResolver {
     constructor(
         private readonly departureBoardService: DepartureBoardService,
-        private readonly platformService: PlatformService,
-        private readonly routeService: RouteService,
+        private readonly platformByIdLoader: PlatformsByStopLoader,
+        private readonly routeByIdLoader: RouteByIdLoader,
     ) {}
 
     @Query("departures")
@@ -73,7 +73,7 @@ export class DepartureResolver {
 
     @ResolveField("platform")
     getPlatformField(@Parent() departure: ParentType<typeof this.getMultiple>) {
-        return this.platformService.getOneById(departure.platform.id);
+        return this.platformByIdLoader.load(departure.platform.id);
     }
 
     @ResolveField("route")
@@ -84,6 +84,6 @@ export class DepartureResolver {
             return null;
         }
 
-        return this.routeService.getOneGraphQL(departure.route.id);
+        return this.routeByIdLoader.load(departure.route.id);
     }
 }

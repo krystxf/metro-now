@@ -27,6 +27,8 @@ const buildCacheKey = (prefix: string, value?: unknown): string => {
     return `${prefix}.${stableStringify(value)}`;
 };
 
+const STOP_CACHE_PREFIX = "stop.v2";
+
 export const uniqueStrings = <Value extends string>(
     values: readonly Value[],
 ): Value[] => {
@@ -68,11 +70,14 @@ export const CACHE_KEYS = {
         getGeoFunctionsStatus: "status.getGeoFunctionsStatus",
     },
     stop: {
+        getAll: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getAll`, params),
         getAllGraphQL: (params: unknown) =>
-            buildCacheKey("stop.getAllGraphQL", params),
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getAllGraphQL`, params),
         getGraphQLById: (id: string) =>
-            buildCacheKey("stop.getGraphQLById", id),
-        getOne: (params: unknown) => buildCacheKey("stop.getOne", params),
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getGraphQLById`, id),
+        getOne: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getOne`, params),
     },
 };
 

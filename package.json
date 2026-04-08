@@ -6,6 +6,7 @@
         "xcode": "xed ./apps/mobile/metro-now",
         "dev": "turbo run dev",
         "build": "turbo run build",
+        "graphql:test": "node graphql-test/index.js",
         "lint": "turbo run lint",
         "lint:fix": "pnpm biome:write && pnpm app:format && pnpm --filter @metro-now/web lint:fix",
         "test": "turbo run test",

@@ -1,4 +1,3 @@
-import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
@@ -6,7 +5,6 @@ import {
     HttpStatus,
     Param,
     Query,
-    UseInterceptors,
     Version,
 } from "@nestjs/common";
 import { ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
@@ -17,7 +15,6 @@ import { metroOnlyQuery } from "src/swagger/query.swagger";
 
 @ApiTags("stop")
 @Controller("stop")
-@UseInterceptors(CacheInterceptor)
 export class StopController {
     constructor(private readonly stopService: StopService) {}
 

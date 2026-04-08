@@ -60,6 +60,8 @@ export class SyncService {
 
         const snapshot = await this.createSnapshot();
 
+        this.logGtfsStationEntranceSnapshot(snapshot);
+
         this.validator.validate(snapshot);
 
         const persistenceResult = await this.repository.persist(snapshot);
@@ -119,5 +121,27 @@ export class SyncService {
             ...stopSnapshot,
             ...gtfsSnapshot,
         };
+    }
+
+    private logGtfsStationEntranceSnapshot(
+        snapshot: Pick<
+            SyncSnapshot,
+            "gtfsStationEntrances" | "platforms"
+        >,
+    ): void {
+        const metroStopIds = new Set(
+            snapshot.platforms.flatMap((platform) =>
+                platform.isMetro && platform.stopId ? [platform.stopId] : [],
+            ),
+        );
+        const gtfsStationEntranceStopIds = new Set(
+            snapshot.gtfsStationEntrances.map((entrance) => entrance.stopId),
+        );
+
+        logger.info("Prepared GTFS station entrance snapshot", {
+            gtfsStationEntrances: snapshot.gtfsStationEntrances.length,
+            gtfsStationEntranceStops: gtfsStationEntranceStopIds.size,
+            metroStops: metroStopIds.size,
+        });
     }
 }

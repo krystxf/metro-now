@@ -3,7 +3,11 @@ import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
 
-import { CACHE_KEYS, ttl, uniqueSortedStrings } from "src/constants/cache";
+import {
+    CACHE_KEYS,
+    CACHE_TTL,
+    uniqueSortedStrings,
+} from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import {
     BUS_PREFIXES,
@@ -85,7 +89,7 @@ const processRoute = (
 
 type GraphQLRouteRecord = ReturnType<typeof processRoute>;
 
-const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
+const ROUTE_DATA_CACHE_TTL_MS = CACHE_TTL.routeData;
 
 @Injectable()
 export class RouteService {
@@ -311,7 +315,7 @@ export class RouteService {
                     routeRows.map((route) => route.id),
                 );
             },
-            GRAPHQL_CACHE_TTL_MS,
+            ROUTE_DATA_CACHE_TTL_MS,
         );
     }
 
@@ -323,8 +327,35 @@ export class RouteService {
 
                 return route ?? null;
             },
-            GRAPHQL_CACHE_TTL_MS,
+            ROUTE_DATA_CACHE_TTL_MS,
         );
+    }
+
+    async getGraphQLByIds(
+        ids: readonly string[],
+    ): Promise<GraphQLRouteRecord[]> {
+        const routesById = await loadCachedBatch({
+            cacheManager: this.cacheManager,
+            getCacheKey: CACHE_KEYS.route.getOneGraphQL,
+            keys: ids,
+            loadMissing: async (missingIds) => {
+                const routes = await this.loadGraphQLRoutesByIds(missingIds);
+                const result = new Map<string, GraphQLRouteRecord | null>(
+                    missingIds.map((id) => [id, null]),
+                );
+
+                for (const route of routes) {
+                    result.set(`L${route.id}`, route);
+                }
+
+                return result;
+            },
+            ttlMs: ROUTE_DATA_CACHE_TTL_MS,
+        });
+
+        return Array.from(new Set(ids))
+            .map((id) => routesById.get(id))
+            .filter((route): route is GraphQLRouteRecord => route !== null);
     }
 
     async getManyGraphQLByPlatformIds(
@@ -336,7 +367,7 @@ export class RouteService {
             keys: platformIds,
             loadMissing: async (missingPlatformIds) =>
                 this.loadGraphQLRoutesByPlatformIds(missingPlatformIds),
-            ttlMs: GRAPHQL_CACHE_TTL_MS,
+            ttlMs: ROUTE_DATA_CACHE_TTL_MS,
         });
 
         return platformIds.map(

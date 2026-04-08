@@ -25,19 +25,20 @@ type StopPlatformRecord = Pick<
     routes: PlatformRouteRecord[];
 };
 
+type StopEntranceRecord = Pick<
+    GtfsStationEntrance,
+    "id" | "latitude" | "longitude" | "name"
+>;
+
 type StopRecord = StopRecordBase & {
+    entrances: StopEntranceRecord[];
     platforms: StopPlatformRecord[];
 };
 
 type StopGraphQLPlatformRecord = Pick<Platform, "id">;
 
-type StopGraphQLEntranceRecord = Pick<
-    GtfsStationEntrance,
-    "id" | "latitude" | "longitude" | "name"
->;
-
 type StopGraphQLRecord = StopRecordBase & {
-    entrances: StopGraphQLEntranceRecord[];
+    entrances: StopEntranceRecord[];
     platforms: StopGraphQLPlatformRecord[];
 };
 
@@ -201,10 +202,10 @@ export class StopService {
         return platformsByStopId;
     }
 
-    private async loadStopGraphQLEntrancesByStopIds(
+    private async loadStopEntrancesByStopIds(
         stopIds: readonly string[],
-    ): Promise<Map<string, StopGraphQLEntranceRecord[]>> {
-        const entrancesByStopId = new Map<string, StopGraphQLEntranceRecord[]>(
+    ): Promise<Map<string, StopEntranceRecord[]>> {
+        const entrancesByStopId = new Map<string, StopEntranceRecord[]>(
             stopIds.map((stopId) => [stopId, []]),
         );
 
@@ -242,7 +243,7 @@ export class StopService {
             await this.loadStopGraphQLPlatformIdsByStopIds(
                 stops.map((stop) => stop.id),
             );
-        const entrancesByStopId = await this.loadStopGraphQLEntrancesByStopIds(
+        const entrancesByStopId = await this.loadStopEntrancesByStopIds(
             stops.map((stop) => stop.id),
         );
         const stopsById = new Map<string, StopGraphQLRecord | null>(
@@ -274,48 +275,62 @@ export class StopService {
         limit?: number;
         offset?: number;
     }): Promise<StopRecord[]> {
-        let stopIdQuery = this.database.db
-            .selectFrom("Platform")
-            .select("stopId")
-            .distinct()
-            .where("stopId", "is not", null)
-            .$if(metroOnly, (qb) => qb.where("isMetro", "=", true))
-            .orderBy("stopId", "asc");
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.getAll({
+                metroOnly,
+                limit,
+                offset,
+            }),
+            async () => {
+                let stopIdQuery = this.database.db
+                    .selectFrom("Platform")
+                    .select("stopId")
+                    .distinct()
+                    .where("stopId", "is not", null)
+                    .$if(metroOnly, (qb) => qb.where("isMetro", "=", true))
+                    .orderBy("stopId", "asc");
 
-        if (typeof offset === "number") {
-            stopIdQuery = stopIdQuery.offset(offset);
-        }
-
-        if (typeof limit === "number") {
-            stopIdQuery = stopIdQuery.limit(limit);
-        }
-
-        const stopIds = (await stopIdQuery.execute()).flatMap(({ stopId }) =>
-            stopId ? [stopId] : [],
-        );
-        const stops = await this.loadStopRows({
-            ids: stopIds,
-        });
-        const platformsByStopId = await this.loadPlatformsByStopIds({
-            stopIds: stops.map((stop) => stop.id),
-            ...(metroOnly ? { metroOnly: true } : {}),
-        });
-        const stopById = new Map(stops.map((stop) => [stop.id, stop]));
-
-        return stopIds
-            .map((stopId) => {
-                const stop = stopById.get(stopId);
-
-                if (!stop) {
-                    return null;
+                if (typeof offset === "number") {
+                    stopIdQuery = stopIdQuery.offset(offset);
                 }
 
-                return {
-                    ...stop,
-                    platforms: platformsByStopId.get(stop.id) ?? [],
-                };
-            })
-            .filter((stop): stop is StopRecord => stop !== null);
+                if (typeof limit === "number") {
+                    stopIdQuery = stopIdQuery.limit(limit);
+                }
+
+                const stopIds = (await stopIdQuery.execute()).flatMap(
+                    ({ stopId }) => (stopId ? [stopId] : []),
+                );
+                const stops = await this.loadStopRows({
+                    ids: stopIds,
+                });
+                const platformsByStopId = await this.loadPlatformsByStopIds({
+                    stopIds: stops.map((stop) => stop.id),
+                    ...(metroOnly ? { metroOnly: true } : {}),
+                });
+                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
+                    stops.map((stop) => stop.id),
+                );
+                const stopById = new Map(stops.map((stop) => [stop.id, stop]));
+
+                return stopIds
+                    .map((stopId) => {
+                        const stop = stopById.get(stopId);
+
+                        if (!stop) {
+                            return null;
+                        }
+
+                        return {
+                            ...stop,
+                            entrances: entrancesByStopId.get(stop.id) ?? [],
+                            platforms: platformsByStopId.get(stop.id) ?? [],
+                        };
+                    })
+                    .filter((stop): stop is StopRecord => stop !== null);
+            },
+            STOP_DATA_CACHE_TTL_MS,
+        );
     }
 
     async getAllGraphQL({
@@ -339,10 +354,9 @@ export class StopService {
                     await this.loadStopGraphQLPlatformIdsByStopIds(
                         stops.map((stop) => stop.id),
                     );
-                const entrancesByStopId =
-                    await this.loadStopGraphQLEntrancesByStopIds(
-                        stops.map((stop) => stop.id),
-                    );
+                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
+                    stops.map((stop) => stop.id),
+                );
 
                 return stops.map((stop) => ({
                     ...stop,
@@ -386,9 +400,13 @@ export class StopService {
                 const platformsByStopId = await this.loadPlatformsByStopIds({
                     stopIds: [id],
                 });
+                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
+                    [id],
+                );
 
                 return {
                     ...stop,
+                    entrances: entrancesByStopId.get(id) ?? [],
                     platforms: platformsByStopId.get(id) ?? [],
                 };
             },
