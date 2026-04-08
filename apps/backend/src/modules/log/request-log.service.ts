@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { type NewRequestLog } from "@metro-now/database";
 import { Injectable, type OnModuleDestroy } from "@nestjs/common";
 
@@ -12,7 +11,6 @@ export class RequestLogService implements OnModuleDestroy {
 
     log(entry: Omit<NewRequestLog, "id" | "createdAt">): void {
         const logEntry: NewRequestLog = {
-            id: randomUUID(),
             ...entry,
             createdAt: new Date(),
         };

@@ -59,7 +59,7 @@ const NUMERIC_ID_TABLES: Record<TableName, NumericIdTableConfig> = {
 const quote = (value: string): string => `"${value}"`;
 
 const migrateTextPrimaryKeyToInteger = async (
-    db: Kysely<any>,
+    db: Kysely<unknown>,
     tableName: TableName,
 ): Promise<void> => {
     const {
@@ -73,44 +73,56 @@ const migrateTextPrimaryKeyToInteger = async (
     } = NUMERIC_ID_TABLES[tableName];
     const tempTableName = `${tableName}__new`;
 
-    await sql.raw(`CREATE SEQUENCE IF NOT EXISTS ${quote(sequenceName)}`).execute(
-        db,
-    );
+    await sql
+        .raw(`CREATE SEQUENCE IF NOT EXISTS ${quote(sequenceName)}`)
+        .execute(db);
 
-    await sql.raw(`
+    await sql
+        .raw(`
         CREATE TABLE ${quote(tempTableName)} (
             "id" INTEGER NOT NULL DEFAULT nextval('${quote(sequenceName)}'),
             ${columnsDefinition}
         )
-    `).execute(db);
+    `)
+        .execute(db);
 
-    await sql.raw(`
+    await sql
+        .raw(`
         INSERT INTO ${quote(tempTableName)} ("id", ${insertColumns})
         SELECT
             ROW_NUMBER() OVER (ORDER BY ${orderBy}) AS "id",
             ${selectColumns}
         FROM ${quote(tableName)}
-    `).execute(db);
+    `)
+        .execute(db);
 
-    await sql.raw(`
+    await sql
+        .raw(`
         SELECT setval(
             '${quote(sequenceName)}',
             COALESCE((SELECT MAX("id") FROM ${quote(tempTableName)}), 1),
             EXISTS(SELECT 1 FROM ${quote(tempTableName)})
         )
-    `).execute(db);
+    `)
+        .execute(db);
 
-    await sql.raw(
-        `ALTER SEQUENCE ${quote(sequenceName)} OWNED BY ${quote(tempTableName)}."id"`,
-    ).execute(db);
+    await sql
+        .raw(
+            `ALTER SEQUENCE ${quote(sequenceName)} OWNED BY ${quote(tempTableName)}."id"`,
+        )
+        .execute(db);
 
     await sql.raw(`DROP TABLE ${quote(tableName)}`).execute(db);
-    await sql.raw(
-        `ALTER TABLE ${quote(tempTableName)} RENAME TO ${quote(tableName)}`,
-    ).execute(db);
-    await sql.raw(
-        `ALTER TABLE ${quote(tableName)} ADD CONSTRAINT ${quote(primaryKeyName)} PRIMARY KEY ("id")`,
-    ).execute(db);
+    await sql
+        .raw(
+            `ALTER TABLE ${quote(tempTableName)} RENAME TO ${quote(tableName)}`,
+        )
+        .execute(db);
+    await sql
+        .raw(
+            `ALTER TABLE ${quote(tableName)} ADD CONSTRAINT ${quote(primaryKeyName)} PRIMARY KEY ("id")`,
+        )
+        .execute(db);
 
     for (const indexStatement of indexes) {
         await sql.raw(indexStatement).execute(db);
@@ -118,7 +130,7 @@ const migrateTextPrimaryKeyToInteger = async (
 };
 
 const migrateIntegerPrimaryKeyToText = async (
-    db: Kysely<any>,
+    db: Kysely<unknown>,
     tableName: TableName,
 ): Promise<void> => {
     const {
@@ -131,29 +143,37 @@ const migrateIntegerPrimaryKeyToText = async (
     } = NUMERIC_ID_TABLES[tableName];
     const tempTableName = `${tableName}__old`;
 
-    await sql.raw(`
+    await sql
+        .raw(`
         CREATE TABLE ${quote(tempTableName)} (
             "id" TEXT NOT NULL,
             ${columnsDefinition}
         )
-    `).execute(db);
+    `)
+        .execute(db);
 
-    await sql.raw(`
+    await sql
+        .raw(`
         INSERT INTO ${quote(tempTableName)} ("id", ${insertColumns})
         SELECT
             "id"::TEXT AS "id",
             ${selectColumns}
         FROM ${quote(tableName)}
         ORDER BY "id"
-    `).execute(db);
+    `)
+        .execute(db);
 
     await sql.raw(`DROP TABLE ${quote(tableName)}`).execute(db);
-    await sql.raw(
-        `ALTER TABLE ${quote(tempTableName)} RENAME TO ${quote(tableName)}`,
-    ).execute(db);
-    await sql.raw(
-        `ALTER TABLE ${quote(tableName)} ADD CONSTRAINT ${quote(primaryKeyName)} PRIMARY KEY ("id")`,
-    ).execute(db);
+    await sql
+        .raw(
+            `ALTER TABLE ${quote(tempTableName)} RENAME TO ${quote(tableName)}`,
+        )
+        .execute(db);
+    await sql
+        .raw(
+            `ALTER TABLE ${quote(tableName)} ADD CONSTRAINT ${quote(primaryKeyName)} PRIMARY KEY ("id")`,
+        )
+        .execute(db);
 
     for (const indexStatement of indexes) {
         await sql.raw(indexStatement).execute(db);
