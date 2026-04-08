@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type { DatabaseClient, NewLog } from "@metro-now/database";
 
 import type { LogEntry, LogTransport } from "../utils/logger";
@@ -18,7 +17,6 @@ export class DatabaseLogStore implements LogTransport {
         this.pendingWrite = this.pendingWrite
             .then(async () => {
                 const row: NewLog = {
-                    id: randomUUID(),
                     service: SERVICE_NAME,
                     level: entry.level,
                     message: entry.message,

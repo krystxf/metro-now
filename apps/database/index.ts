@@ -113,7 +113,7 @@ export interface GtfsStopTimeTable {
 }
 
 export interface LogTable {
-    id: Generated<string>;
+    id: Generated<number>;
     service: string;
     level: LogLevel;
     message: string;
@@ -122,7 +122,7 @@ export interface LogTable {
 }
 
 export interface RequestLogTable {
-    id: string;
+    id: Generated<number>;
     method: string;
     path: string;
     statusCode: number;
