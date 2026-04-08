@@ -131,7 +131,7 @@ describe("Route Module (e2e)", () => {
     });
 
     it("returns a route with shapes", async () => {
-        const response = await request(app.getHttpAdapter().getInstance())
+        const response = await request(app.getHttpServer())
             .get("/route/L1")
             .expect(200)
             .accept("application/json");
