@@ -1,8 +1,4 @@
-import type {
-    GtfsRoute,
-    GtfsRouteShape,
-    Platform,
-} from "@metro-now/database";
+import type { GtfsRoute, GtfsRouteShape, Platform } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
@@ -254,10 +250,10 @@ export class RouteService {
     ): Promise<GraphQLRouteRecord[]> {
         const [routes, routeStopsByRouteId, routeExactShapesByRouteId] =
             await Promise.all([
-            this.loadRouteRows(routeIds),
-            this.loadRouteStops(routeIds),
-            this.loadRouteExactShapes(routeIds),
-        ]);
+                this.loadRouteRows(routeIds),
+                this.loadRouteStops(routeIds),
+                this.loadRouteExactShapes(routeIds),
+            ]);
 
         return routes.map((route) =>
             processRoute(
