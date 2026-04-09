@@ -7,8 +7,16 @@ import type {
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
+import {
+    CACHE_KEYS,
+    CACHE_TTL,
+    uniqueSortedStrings,
+} from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
+import {
+    METRO_LINES,
+    TRAIN_PREFIXES,
+} from "src/modules/route/route.const";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
 type StopRecordBase = Pick<
@@ -43,6 +51,85 @@ type StopGraphQLRecord = StopRecordBase & {
 };
 
 const STOP_DATA_CACHE_TTL_MS = CACHE_TTL.stopData;
+
+const normalizeRouteName = (routeName: string): string =>
+    routeName.startsWith("X") ? routeName.slice(1) : routeName;
+
+const isRailRouteName = (routeName: string): boolean => {
+    const normalizedRouteName = normalizeRouteName(routeName).toUpperCase();
+
+    return (
+        METRO_LINES.includes(normalizedRouteName) ||
+        TRAIN_PREFIXES.some((prefix) =>
+            normalizedRouteName.startsWith(prefix),
+        )
+    );
+};
+
+const uniquePlatformNames = (
+    platforms: readonly Pick<Platform, "name">[],
+): string[] =>
+    Array.from(
+        new Set(
+            platforms
+                .map((platform) => platform.name.trim())
+                .filter((name) => name.length > 0),
+        ),
+    );
+
+const resolveMetroOnlyStopName = ({
+    stopName,
+    platforms,
+}: {
+    stopName: string;
+    platforms: readonly Pick<Platform, "name">[];
+}): string => {
+    const metroPlatformNames = uniquePlatformNames(platforms);
+
+    return metroPlatformNames.length === 1 ? metroPlatformNames[0] : stopName;
+};
+
+const resolveRailStopName = ({
+    stopName,
+    platforms,
+}: {
+    stopName: string;
+    platforms: readonly StopPlatformRecord[];
+}): string => {
+    const metroPlatformNames = uniquePlatformNames(
+        platforms.filter((platform) => platform.isMetro),
+    );
+
+    if (metroPlatformNames.length === 1) {
+        return metroPlatformNames[0];
+    }
+
+    const trainPlatformNames = uniquePlatformNames(
+        platforms.filter((platform) => !platform.isMetro),
+    );
+
+    return trainPlatformNames.length === 1 ? trainPlatformNames[0] : stopName;
+};
+
+const filterRailPlatforms = (
+    platforms: readonly StopPlatformRecord[],
+): StopPlatformRecord[] =>
+    platforms.flatMap((platform) => {
+        const railRoutes = platform.routes.filter((route) =>
+            isRailRouteName(route.name),
+        );
+
+        if (!platform.isMetro && railRoutes.length === 0) {
+            return [];
+        }
+
+        return [
+            {
+                ...platform,
+                routes: railRoutes,
+            },
+        ];
+    });
 
 @Injectable()
 export class StopService {
@@ -120,9 +207,11 @@ export class StopService {
     private async loadPlatformsByStopIds({
         stopIds,
         metroOnly,
+        railOnly,
     }: {
         stopIds: readonly string[];
         metroOnly?: boolean;
+        railOnly?: boolean;
     }): Promise<Map<string, StopPlatformRecord[]>> {
         const platformsByStopId = new Map<string, StopPlatformRecord[]>(
             stopIds.map((stopId) => [stopId, []]),
@@ -167,7 +256,52 @@ export class StopService {
             });
         }
 
+        if (railOnly) {
+            for (const [stopId, platforms] of platformsByStopId) {
+                platformsByStopId.set(stopId, filterRailPlatforms(platforms));
+            }
+        }
+
         return platformsByStopId;
+    }
+
+    private async loadRailStopIds({
+        limit,
+        offset,
+    }: {
+        limit?: number;
+        offset?: number;
+    }): Promise<string[]> {
+        const rows = await this.database.db
+            .selectFrom("Platform")
+            .innerJoin(
+                "PlatformsOnRoutes",
+                "PlatformsOnRoutes.platformId",
+                "Platform.id",
+            )
+            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
+            .select([
+                "Platform.stopId as stopId",
+                "Platform.isMetro as isMetro",
+                "Route.name as routeName",
+            ])
+            .where("Platform.stopId", "is not", null)
+            .orderBy("Platform.stopId", "asc")
+            .orderBy("Route.name", "asc")
+            .execute();
+
+        const stopIds = uniqueSortedStrings(
+            rows.flatMap(({ isMetro, routeName, stopId }) =>
+                stopId && (isMetro || isRailRouteName(routeName))
+                    ? [stopId]
+                    : [],
+            ),
+        );
+
+        const normalizedOffset = offset ?? 0;
+        const normalizedLimit = limit ?? stopIds.length;
+
+        return stopIds.slice(normalizedOffset, normalizedOffset + normalizedLimit);
     }
 
     private async loadStopGraphQLPlatformIdsByStopIds(
@@ -268,45 +402,53 @@ export class StopService {
 
     async getAll({
         metroOnly,
+        railOnly,
         limit,
         offset,
     }: {
         metroOnly: boolean;
+        railOnly?: boolean;
         limit?: number;
         offset?: number;
     }): Promise<StopRecord[]> {
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.getAll({
                 metroOnly,
+                railOnly,
                 limit,
                 offset,
             }),
             async () => {
-                let stopIdQuery = this.database.db
-                    .selectFrom("Platform")
-                    .select("stopId")
-                    .distinct()
-                    .where("stopId", "is not", null)
-                    .$if(metroOnly, (qb) => qb.where("isMetro", "=", true))
-                    .orderBy("stopId", "asc");
-
-                if (typeof offset === "number") {
-                    stopIdQuery = stopIdQuery.offset(offset);
-                }
-
-                if (typeof limit === "number") {
-                    stopIdQuery = stopIdQuery.limit(limit);
-                }
-
-                const stopIds = (await stopIdQuery.execute()).flatMap(
-                    ({ stopId }) => (stopId ? [stopId] : []),
-                );
+                const stopIds = railOnly
+                    ? await this.loadRailStopIds({
+                          limit,
+                          offset,
+                      })
+                    : (
+                          await this.database.db
+                              .selectFrom("Platform")
+                              .select("stopId")
+                              .distinct()
+                              .where("stopId", "is not", null)
+                              .$if(metroOnly, (qb) =>
+                                  qb.where("isMetro", "=", true),
+                              )
+                              .$if(typeof offset === "number", (qb) =>
+                                  qb.offset(offset!),
+                              )
+                              .$if(typeof limit === "number", (qb) =>
+                                  qb.limit(limit!),
+                              )
+                              .orderBy("stopId", "asc")
+                              .execute()
+                      ).flatMap(({ stopId }) => (stopId ? [stopId] : []));
                 const stops = await this.loadStopRows({
                     ids: stopIds,
                 });
                 const platformsByStopId = await this.loadPlatformsByStopIds({
                     stopIds: stops.map((stop) => stop.id),
                     ...(metroOnly ? { metroOnly: true } : {}),
+                    ...(railOnly ? { railOnly: true } : {}),
                 });
                 const entrancesByStopId = await this.loadStopEntrancesByStopIds(
                     stops.map((stop) => stop.id),
@@ -321,10 +463,29 @@ export class StopService {
                             return null;
                         }
 
+                        const platforms = platformsByStopId.get(stop.id) ?? [];
+
+                        if (railOnly && platforms.length === 0) {
+                            return null;
+                        }
+
                         return {
                             ...stop,
+                            ...((metroOnly || railOnly)
+                                ? {
+                                      name: metroOnly
+                                          ? resolveMetroOnlyStopName({
+                                                stopName: stop.name,
+                                                platforms,
+                                            })
+                                          : resolveRailStopName({
+                                                stopName: stop.name,
+                                                platforms,
+                                            }),
+                                  }
+                                : {}),
                             entrances: entrancesByStopId.get(stop.id) ?? [],
-                            platforms: platformsByStopId.get(stop.id) ?? [],
+                            platforms,
                         };
                     })
                     .filter((stop): stop is StopRecord => stop !== null);

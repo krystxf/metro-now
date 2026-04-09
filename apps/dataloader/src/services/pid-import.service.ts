@@ -9,6 +9,23 @@ import { fetchWithTimeout } from "../utils/fetch.utils";
 
 const PID_STOPS_URL = "https://data.pid.cz/stops/json/stops.json";
 
+const resolveStopGroupName = (
+    stopGroup: PidStopsSchema["stopGroups"][number],
+): string => {
+    const metroPlatformNames = Array.from(
+        new Set(
+            stopGroup.stops
+                .filter((platform) => platform.isMetro === true)
+                .map((platform) => platform.altIdosName.trim())
+                .filter((name) => name.length > 0),
+        ),
+    );
+
+    return metroPlatformNames.length === 1
+        ? metroPlatformNames[0]
+        : stopGroup.name;
+};
+
 export class PidImportService {
     async getStopSnapshot(): Promise<StopSnapshot> {
         return this.buildStopSnapshot(await this.getStops());
@@ -49,7 +66,7 @@ export class PidImportService {
         for (const stopGroup of stopsData.stopGroups) {
             stops.set(`U${stopGroup.node}`, {
                 id: `U${stopGroup.node}`,
-                name: stopGroup.name,
+                name: resolveStopGroupName(stopGroup),
                 avgLatitude: stopGroup.avgLat,
                 avgLongitude: stopGroup.avgLon,
             });

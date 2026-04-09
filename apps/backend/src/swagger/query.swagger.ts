@@ -10,6 +10,16 @@ export const metroOnlyQuery = {
     required: false,
 } as const satisfies ApiQueryOptions;
 
+export const railOnlyQuery = {
+    name: "railOnly",
+    allowEmptyValue: true,
+    type: Boolean,
+    example: false,
+    description:
+        "if set to `true` returns only rail results (metro and train), otherwise returns all results. Defaults to `false`.",
+    required: false,
+} as const satisfies ApiQueryOptions;
+
 export const latitudeQuery = {
     name: "latitude",
     type: Number,

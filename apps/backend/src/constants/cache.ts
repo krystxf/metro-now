@@ -27,7 +27,7 @@ const buildCacheKey = (prefix: string, value?: unknown): string => {
     return `${prefix}.${stableStringify(value)}`;
 };
 
-const STOP_CACHE_PREFIX = "stop.v2";
+const STOP_CACHE_PREFIX = "stop.v4";
 
 export const uniqueStrings = <Value extends string>(
     values: readonly Value[],
