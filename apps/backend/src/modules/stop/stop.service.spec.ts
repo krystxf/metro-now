@@ -6,11 +6,7 @@ import { StopService } from "src/modules/stop/stop.service";
 type QueryRow = Record<string, unknown>;
 
 const getColumnKey = (column: string): string =>
-    column
-        .split(" as ")[0]
-        .split(".")
-        .at(-1)
-        ?.replaceAll('"', "") ?? column;
+    column.split(" as ")[0].split(".").at(-1)?.replaceAll('"', "") ?? column;
 
 const getAliasKey = (column: string): string =>
     column.split(" as ").at(-1)?.replaceAll('"', "") ?? getColumnKey(column);
@@ -47,7 +43,9 @@ const createQueryBuilder = (rows: QueryRow[]) => {
             }
 
             if (operator === "is not") {
-                currentRows = currentRows.filter((row) => row[columnKey] !== value);
+                currentRows = currentRows.filter(
+                    (row) => row[columnKey] !== value,
+                );
             }
 
             return builder;
@@ -70,7 +68,10 @@ const createQueryBuilder = (rows: QueryRow[]) => {
 
             return builder;
         },
-        $if(condition: boolean, callback: (qb: typeof builder) => typeof builder) {
+        $if(
+            condition: boolean,
+            callback: (qb: typeof builder) => typeof builder,
+        ) {
             return condition ? callback(builder) : builder;
         },
         async execute() {
@@ -167,7 +168,9 @@ describe("StopService", () => {
         } as unknown as DatabaseService;
 
         const cacheManager = {
-            wrap: jest.fn(async (_key: string, callback: () => unknown) => callback()),
+            wrap: jest.fn(async (_key: string, callback: () => unknown) =>
+                callback(),
+            ),
         } as unknown as Cache;
 
         return new StopService(database, cacheManager);
