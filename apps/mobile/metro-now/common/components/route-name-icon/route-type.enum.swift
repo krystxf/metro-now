@@ -23,6 +23,15 @@ let METRO_LINES = [
     MetroLine.C.rawValue,
 ]
 
+let TRAIN_ROUTE_PREFIXES = [
+    "L",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+]
+
 enum RouteType {
     case fallback
     case metro(MetroLine)
@@ -32,6 +41,7 @@ enum RouteType {
     case ferry
     case funicular
     case train
+    case leoExpress
 
     var color: Color {
         switch self {
@@ -43,6 +53,7 @@ enum RouteType {
         case .ferry: .cyan
         case .funicular: .brown
         case .train: .gray
+        case .leoExpress: .orange
         }
     }
 
@@ -64,6 +75,8 @@ enum RouteType {
             "Funicular"
         case .train:
             "Train"
+        case .leoExpress:
+            "Leo Express"
         }
     }
 }

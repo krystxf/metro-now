@@ -23,6 +23,7 @@ struct SearchPageView: View {
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
+                entrances: stop.entrances,
                 platforms: stop.platforms.map {
                     platform in
                     ApiPlatform(

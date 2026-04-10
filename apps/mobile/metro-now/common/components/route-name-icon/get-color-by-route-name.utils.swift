@@ -19,6 +19,15 @@ func getRouteColor(_ routeName: String?) -> Color {
     return getRouteType(routeName).color
 }
 
+func isRailRoute(_ routeName: String?) -> Bool {
+    switch getRouteType(routeName) {
+    case .metro, .train, .leoExpress:
+        true
+    default:
+        false
+    }
+}
+
 func getRouteType(_ routeName: String?) -> RouteType {
     guard var routeName else {
         return RouteType.fallback
@@ -32,18 +41,23 @@ func getRouteType(_ routeName: String?) -> RouteType {
     if let metroLine = MetroLine(rawValue: routeName.uppercased()) {
         return RouteType.metro(metroLine)
     }
+    // funicular
+    else if routeName.hasPrefix("LD") {
+        return RouteType.funicular
+    }
+    // Leo Express
+    else if routeName.hasPrefix("LE") {
+        return RouteType.leoExpress
+    }
     // train
-    else if routeName.hasPrefix("S") || routeName.hasPrefix("R") {
+    else if TRAIN_ROUTE_PREFIXES.contains(where: { routeName.hasPrefix($0) }) {
         return RouteType.train
     }
     // ferry
     else if routeName.hasPrefix("P") {
         return RouteType.ferry
     }
-    // funicular
-    else if routeName.hasPrefix("LD") {
-        return RouteType.funicular
-    } else if routeName.hasPrefix("BB") {
+    else if routeName.hasPrefix("BB") {
         return RouteType.bus
     }
     // bus or tram

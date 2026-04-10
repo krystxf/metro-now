@@ -1,12 +1,105 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
+import CoreLocation
 import Foundation
 
-struct ApiStop: Codable {
+struct ApiStop: Codable, Identifiable {
     let id, name: String
     let avgLatitude, avgLongitude: Double
+    let entrances: [ApiStopEntrance]
     let platforms: [ApiPlatform]
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case avgLatitude
+        case avgLongitude
+        case entrances
+        case platforms
+    }
+}
+
+extension ApiStop {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        avgLatitude = try container.decode(Double.self, forKey: .avgLatitude)
+        avgLongitude = try container.decode(Double.self, forKey: .avgLongitude)
+        entrances = try container.decodeIfPresent([ApiStopEntrance].self, forKey: .entrances) ?? []
+        platforms = try container.decode([ApiPlatform].self, forKey: .platforms)
+    }
+
+    private var fallbackCoordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: avgLatitude,
+            longitude: avgLongitude
+        )
+    }
+
+    private var accurateCoordinateCandidates: [CLLocationCoordinate2D] {
+        let entranceCoordinates = entrances.map(\.coordinate)
+
+        if !entranceCoordinates.isEmpty {
+            return entranceCoordinates
+        }
+
+        let metroPlatformCoordinates = platforms
+            .filter(\.isMetro)
+            .map(\.coordinate)
+
+        if !metroPlatformCoordinates.isEmpty {
+            return metroPlatformCoordinates
+        }
+
+        return [fallbackCoordinate]
+    }
+
+    var preferredCoordinate: CLLocationCoordinate2D {
+        Self.coordinateCentroid(for: accurateCoordinateCandidates)
+            ?? fallbackCoordinate
+    }
+
+    func distance(to location: CLLocation) -> CLLocationDistance {
+        accurateCoordinateCandidates
+            .map { coordinate in
+                location.distance(
+                    from: CLLocation(
+                        latitude: coordinate.latitude,
+                        longitude: coordinate.longitude
+                    )
+                )
+            }
+            .min() ?? location.distance(
+                from: CLLocation(
+                    latitude: fallbackCoordinate.latitude,
+                    longitude: fallbackCoordinate.longitude
+                )
+            )
+    }
+
+    private static func coordinateCentroid(
+        for coordinates: [CLLocationCoordinate2D]
+    ) -> CLLocationCoordinate2D? {
+        guard !coordinates.isEmpty else {
+            return nil
+        }
+
+        let count = Double(coordinates.count)
+
+        return CLLocationCoordinate2D(
+            latitude: coordinates.map(\.latitude).reduce(0, +) / count,
+            longitude: coordinates.map(\.longitude).reduce(0, +) / count
+        )
+    }
+}
+
+struct ApiStopEntrance: Codable, Identifiable {
+    let id: String
+    let name: String
+    let latitude, longitude: Double
 }
 
 struct ApiPlatform: Codable {
@@ -20,6 +113,46 @@ struct ApiPlatform: Codable {
 
 struct ApiRoute: Codable {
     let id, name: String
+}
+
+extension ApiStopEntrance {
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: latitude,
+            longitude: longitude
+        )
+    }
+}
+
+extension ApiPlatform {
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: latitude,
+            longitude: longitude
+        )
+    }
+
+    func supports(_ departure: ApiDeparture) -> Bool {
+        guard id == departure.platformId else {
+            return false
+        }
+
+        guard !routes.isEmpty else {
+            return true
+        }
+
+        if let routeId = departure.routeId,
+           routes.contains(where: { route in
+               route.id == routeId || route.backendRouteId == routeId
+           })
+        {
+            return true
+        }
+
+        return routes.contains(where: { route in
+            route.name == departure.route
+        })
+    }
 }
 
 extension ApiRoute {
@@ -163,7 +296,7 @@ struct ApiRouteDetail: Decodable {
         name = try container.decode(String.self, forKey: .name)
         shortName = try container.decode(String.self, forKey: .shortName)
         longName = try container.decodeIfPresent(String.self, forKey: .longName)
-        isNight = try container.decode(Bool.self, forKey: .isNight)
+        isNight = try container.decodeIfPresent(Bool.self, forKey: .isNight) ?? false
         color = try container.decodeIfPresent(String.self, forKey: .color)
         url = try container.decodeIfPresent(String.self, forKey: .url)
         type = try container.decode(String.self, forKey: .type)

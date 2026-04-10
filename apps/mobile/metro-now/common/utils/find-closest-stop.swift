@@ -30,10 +30,5 @@ func getStopDistance(
     _ location: CLLocation,
     _ stop: ApiStop
 ) -> CLLocationDistance {
-    location.distance(
-        from: CLLocation(
-            latitude: stop.avgLatitude,
-            longitude: stop.avgLongitude
-        )
-    )
+    stop.distance(to: location)
 }

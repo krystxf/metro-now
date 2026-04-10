@@ -14,6 +14,7 @@
 		2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */; };
 		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2DEE771B2CFF5CD000F24AAD /* Alamofire */; };
+		AA0001012D07A00100000001 /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = AA0001022D07A00100000002 /* MapboxMaps */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -178,6 +179,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0001012D07A00100000001 /* MapboxMaps in Frameworks */,
 				2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -269,6 +271,7 @@
 			name = "metro-now";
 			packageProductDependencies = (
 				2D87C85E2CE8BACA00209DE6 /* Alamofire */,
+				AA0001022D07A00100000002 /* MapboxMaps */,
 			);
 			productName = "metro-now";
 			productReference = 2D001BA82CC8099B00C6B4F8 /* metro-now.app */;
@@ -379,6 +382,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				AA0001032D07A00100000003 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2D001BA92CC8099B00C6B4F8 /* Products */;
@@ -889,6 +893,14 @@
 				minimumVersion = 5.10.1;
 			};
 		};
+		AA0001032D07A00100000003 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = 11.20.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -906,6 +918,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2D87C85D2CE8BACA00209DE6 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		AA0001022D07A00100000002 /* MapboxMaps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0001032D07A00100000003 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;
+			productName = MapboxMaps;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
