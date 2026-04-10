@@ -1,7 +1,7 @@
 import type { RoutesByPlatformIdLoader } from "src/modules/dataloader/routes-by-platform.loader";
 import type { StopByPlatformLoader } from "src/modules/dataloader/stop-by-platform.loader";
-import type { PlatformService } from "src/modules/platform/platform.service";
 import { PlatformResolver } from "src/modules/platform/platform.resolver";
+import type { PlatformService } from "src/modules/platform/platform.service";
 
 const createMocks = () => {
     const platformService = {

@@ -3,15 +3,15 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
+import { buildGtfsPersistenceSnapshot } from "../services/gtfs-persistence.utils";
 import {
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
 } from "../services/gtfs.service";
-import { buildGtfsPersistenceSnapshot } from "../services/gtfs-persistence.utils";
 import { PidImportService } from "../services/pid-import.service";
 import { SyncSnapshotValidator } from "../services/sync-snapshot-validator.service";
-import { parseCsvString } from "../utils/csv.utils";
 import type { SyncSnapshot } from "../types/sync.types";
+import { parseCsvString } from "../utils/csv.utils";
 
 const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
     const pidService = new PidImportService();
@@ -23,11 +23,11 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
                 name: "Můstek",
                 node: 1072,
                 avgLat: 50.0831,
-                avgLon: 14.4250,
+                avgLon: 14.425,
                 stops: [
                     {
                         lat: 50.0831,
-                        lon: 14.4250,
+                        lon: 14.425,
                         gtfsIds: ["U1072Z101P"],
                         altIdosName: "Můstek",
                         isMetro: true,
@@ -74,9 +74,7 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
         ],
     });
 
-    const platformIds = new Set(
-        stopSnapshot.platforms.map((p) => p.id),
-    );
+    const platformIds = new Set(stopSnapshot.platforms.map((p) => p.id));
     const metroStopIds = new Set(
         stopSnapshot.platforms.flatMap((p) =>
             p.isMetro && p.stopId ? [p.stopId] : [],
@@ -101,13 +99,13 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
             {
                 shapeId: "sh-a-0",
                 latitude: 50.0831,
-                longitude: 14.4250,
+                longitude: 14.425,
                 sequence: 2,
             },
             {
                 shapeId: "sh-a-1",
                 latitude: 50.0831,
-                longitude: 14.4250,
+                longitude: 14.425,
                 sequence: 1,
             },
             {
@@ -128,7 +126,7 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
                 id: "U1072S1",
                 name: "Můstek station",
                 latitude: 50.0831,
-                longitude: 14.4250,
+                longitude: 14.425,
                 locationType: "1",
                 parentStationId: null,
             },
@@ -356,11 +354,7 @@ test("integration: each route direction has exactly one primary shape", async ()
     }
 
     for (const [key, count] of primaryByDirection) {
-        assert.equal(
-            count,
-            1,
-            `Direction ${key} has ${count} primary shapes`,
-        );
+        assert.equal(count, 1, `Direction ${key} has ${count} primary shapes`);
     }
 });
 

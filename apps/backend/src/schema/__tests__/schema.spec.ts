@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
-    buildSchema,
     type GraphQLEnumType,
-    type GraphQLField,
     type GraphQLNamedType,
     type GraphQLNonNull,
+    type GraphQLNullableType,
     type GraphQLObjectType,
     type GraphQLSchema,
+    buildSchema,
     isEnumType,
     isListType,
     isNonNullType,
@@ -63,10 +63,7 @@ const getObjectType = (
     return type;
 };
 
-const getEnumType = (
-    schema: GraphQLSchema,
-    name: string,
-): GraphQLEnumType => {
+const getEnumType = (schema: GraphQLSchema, name: string): GraphQLEnumType => {
     const type = schema.getType(name);
 
     if (!isEnumType(type)) {
@@ -75,6 +72,20 @@ const getEnumType = (
 
     return type;
 };
+
+const getQueryFields = (schema: GraphQLSchema) => {
+    const queryType = schema.getQueryType();
+
+    if (!queryType) {
+        throw new Error("Schema has no Query type");
+    }
+
+    return queryType.getFields();
+};
+
+const ofType = (
+    type: GraphQLNonNull<GraphQLNullableType>,
+): GraphQLNullableType => type.ofType;
 
 describe("GraphQL schema", () => {
     let schema: GraphQLSchema;
@@ -102,8 +113,7 @@ describe("GraphQL schema", () => {
         ];
 
         it("has all expected query fields", () => {
-            const queryType = schema.getQueryType()!;
-            const fieldNames = Object.keys(queryType.getFields());
+            const fieldNames = Object.keys(getQueryFields(schema));
 
             for (const name of EXPECTED_QUERIES) {
                 expect(fieldNames).toContain(name);
@@ -111,8 +121,7 @@ describe("GraphQL schema", () => {
         });
 
         it("has no unexpected query fields", () => {
-            const queryType = schema.getQueryType()!;
-            const fieldNames = Object.keys(queryType.getFields());
+            const fieldNames = Object.keys(getQueryFields(schema));
 
             for (const name of fieldNames) {
                 expect(EXPECTED_QUERIES).toContain(name);
@@ -120,16 +129,18 @@ describe("GraphQL schema", () => {
         });
 
         it("hello returns non-null String", () => {
-            const field = schema.getQueryType()!.getFields()["hello"];
+            const field = getQueryFields(schema).hello;
 
             expect(isNonNullType(field.type)).toBe(true);
             expect(
-                isScalarType((field.type as GraphQLNonNull<any>).ofType),
+                isScalarType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
             ).toBe(true);
         });
 
         it("stop returns nullable Stop", () => {
-            const field = schema.getQueryType()!.getFields()["stop"];
+            const field = getQueryFields(schema).stop;
 
             expect(isNonNullType(field.type)).toBe(false);
             expect(isObjectType(field.type)).toBe(true);
@@ -137,17 +148,18 @@ describe("GraphQL schema", () => {
         });
 
         it("stops returns non-null list of non-null Stop", () => {
-            const field = schema.getQueryType()!.getFields()["stops"];
+            const field = getQueryFields(schema).stops;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
 
         it("route returns nullable Route", () => {
-            const field = schema.getQueryType()!.getFields()["route"];
+            const field = getQueryFields(schema).route;
 
             expect(isNonNullType(field.type)).toBe(false);
             expect(isObjectType(field.type)).toBe(true);
@@ -155,7 +167,7 @@ describe("GraphQL schema", () => {
         });
 
         it("platform returns nullable Platform", () => {
-            const field = schema.getQueryType()!.getFields()["platform"];
+            const field = getQueryFields(schema).platform;
 
             expect(isNonNullType(field.type)).toBe(false);
             expect(isObjectType(field.type)).toBe(true);
@@ -163,7 +175,7 @@ describe("GraphQL schema", () => {
         });
 
         it("departures requires stopIds or platformIds arguments", () => {
-            const field = schema.getQueryType()!.getFields()["departures"];
+            const field = getQueryFields(schema).departures;
             const argNames = field.args.map((a) => a.name);
 
             expect(argNames).toContain("stopIds");
@@ -172,22 +184,22 @@ describe("GraphQL schema", () => {
         });
 
         it("stop query takes required id argument", () => {
-            const field = schema.getQueryType()!.getFields()["stop"];
+            const field = getQueryFields(schema).stop;
             const idArg = field.args.find((a) => a.name === "id");
 
-            expect(idArg).toBeDefined();
-            expect(isNonNullType(idArg!.type)).toBe(true);
+            if (!idArg) throw new Error("Expected id argument on stop query");
+
+            expect(isNonNullType(idArg.type)).toBe(true);
         });
 
         it("stops query accepts optional ids, limit, offset", () => {
-            const field = schema.getQueryType()!.getFields()["stops"];
+            const field = getQueryFields(schema).stops;
             const argNames = field.args.map((a) => a.name);
 
             expect(argNames).toContain("ids");
             expect(argNames).toContain("limit");
             expect(argNames).toContain("offset");
 
-            // all optional
             for (const arg of field.args) {
                 expect(isNonNullType(arg.type)).toBe(false);
             }
@@ -196,40 +208,40 @@ describe("GraphQL schema", () => {
 
     describe("Stop type", () => {
         it("has all required fields", () => {
-            const stop = getObjectType(schema, "Stop");
-            const fields = stop.getFields();
+            const fields = getObjectType(schema, "Stop").getFields();
 
-            expect(fields["id"]).toBeDefined();
-            expect(fields["name"]).toBeDefined();
-            expect(fields["avgLatitude"]).toBeDefined();
-            expect(fields["avgLongitude"]).toBeDefined();
-            expect(fields["entrances"]).toBeDefined();
-            expect(fields["platforms"]).toBeDefined();
+            expect(fields.id).toBeDefined();
+            expect(fields.name).toBeDefined();
+            expect(fields.avgLatitude).toBeDefined();
+            expect(fields.avgLongitude).toBeDefined();
+            expect(fields.entrances).toBeDefined();
+            expect(fields.platforms).toBeDefined();
         });
 
         it("id and name are non-null", () => {
-            const stop = getObjectType(schema, "Stop");
+            const fields = getObjectType(schema, "Stop").getFields();
 
-            expect(isNonNullType(stop.getFields()["id"].type)).toBe(true);
-            expect(isNonNullType(stop.getFields()["name"].type)).toBe(true);
+            expect(isNonNullType(fields.id.type)).toBe(true);
+            expect(isNonNullType(fields.name.type)).toBe(true);
         });
 
         it("platforms returns a list of Platform", () => {
-            const stop = getObjectType(schema, "Stop");
-            const field = stop.getFields()["platforms"];
+            const field = getObjectType(schema, "Stop").getFields().platforms;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
     });
 
     describe("Platform type", () => {
         it("has all required fields", () => {
-            const platform = getObjectType(schema, "Platform");
-            const fieldNames = Object.keys(platform.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "Platform").getFields(),
+            );
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
@@ -246,33 +258,29 @@ describe("GraphQL schema", () => {
         });
 
         it("code is nullable", () => {
-            const platform = getObjectType(schema, "Platform");
+            const fields = getObjectType(schema, "Platform").getFields();
 
-            expect(isNonNullType(platform.getFields()["code"].type)).toBe(
-                false,
-            );
+            expect(isNonNullType(fields.code.type)).toBe(false);
         });
 
         it("stop is nullable", () => {
-            const platform = getObjectType(schema, "Platform");
+            const fields = getObjectType(schema, "Platform").getFields();
 
-            expect(isNonNullType(platform.getFields()["stop"].type)).toBe(
-                false,
-            );
+            expect(isNonNullType(fields.stop.type)).toBe(false);
         });
 
         it("isMetro is non-null Boolean", () => {
-            const platform = getObjectType(schema, "Platform");
-            const field = platform.getFields()["isMetro"];
+            const fields = getObjectType(schema, "Platform").getFields();
 
-            expect(isNonNullType(field.type)).toBe(true);
+            expect(isNonNullType(fields.isMetro.type)).toBe(true);
         });
     });
 
     describe("Route type", () => {
         it("has all required fields", () => {
-            const route = getObjectType(schema, "Route");
-            const fieldNames = Object.keys(route.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "Route").getFields(),
+            );
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
@@ -288,28 +296,31 @@ describe("GraphQL schema", () => {
         });
 
         it("name is nullable", () => {
-            const route = getObjectType(schema, "Route");
+            const fields = getObjectType(schema, "Route").getFields();
 
-            expect(isNonNullType(route.getFields()["name"].type)).toBe(false);
+            expect(isNonNullType(fields.name.type)).toBe(false);
         });
 
         it("vehicleType is non-null VehicleType enum", () => {
-            const route = getObjectType(schema, "Route");
-            const field = route.getFields()["vehicleType"];
+            const field = getObjectType(schema, "Route").getFields()
+                .vehicleType;
 
             expect(isNonNullType(field.type)).toBe(true);
 
-            const innerType = (field.type as GraphQLNonNull<any>).ofType;
+            const innerType = ofType(
+                field.type as GraphQLNonNull<GraphQLNullableType>,
+            );
 
             expect(isEnumType(innerType)).toBe(true);
-            expect(innerType.name).toBe("VehicleType");
+            expect((innerType as GraphQLNamedType).name).toBe("VehicleType");
         });
     });
 
     describe("Departure type", () => {
         it("has all required fields", () => {
-            const departure = getObjectType(schema, "Departure");
-            const fieldNames = Object.keys(departure.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "Departure").getFields(),
+            );
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
@@ -324,47 +335,38 @@ describe("GraphQL schema", () => {
         });
 
         it("delay is nullable", () => {
-            const departure = getObjectType(schema, "Departure");
+            const fields = getObjectType(schema, "Departure").getFields();
 
-            expect(isNonNullType(departure.getFields()["delay"].type)).toBe(
-                false,
-            );
+            expect(isNonNullType(fields.delay.type)).toBe(false);
         });
 
         it("route is nullable", () => {
-            const departure = getObjectType(schema, "Departure");
+            const fields = getObjectType(schema, "Departure").getFields();
 
-            expect(isNonNullType(departure.getFields()["route"].type)).toBe(
-                false,
-            );
+            expect(isNonNullType(fields.route.type)).toBe(false);
         });
 
         it("platform is non-null", () => {
-            const departure = getObjectType(schema, "Departure");
+            const fields = getObjectType(schema, "Departure").getFields();
 
-            expect(
-                isNonNullType(departure.getFields()["platform"].type),
-            ).toBe(true);
+            expect(isNonNullType(fields.platform.type)).toBe(true);
         });
     });
 
     describe("DepartureTime type", () => {
         it("has predicted and scheduled as non-null", () => {
-            const dt = getObjectType(schema, "DepartureTime");
+            const fields = getObjectType(schema, "DepartureTime").getFields();
 
-            expect(
-                isNonNullType(dt.getFields()["predicted"].type),
-            ).toBe(true);
-            expect(
-                isNonNullType(dt.getFields()["scheduled"].type),
-            ).toBe(true);
+            expect(isNonNullType(fields.predicted.type)).toBe(true);
+            expect(isNonNullType(fields.scheduled.type)).toBe(true);
         });
     });
 
     describe("Infotext type", () => {
         it("has all required fields", () => {
-            const infotext = getObjectType(schema, "Infotext");
-            const fieldNames = Object.keys(infotext.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "Infotext").getFields(),
+            );
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
@@ -381,41 +383,40 @@ describe("GraphQL schema", () => {
         });
 
         it("textEn is nullable", () => {
-            const infotext = getObjectType(schema, "Infotext");
+            const fields = getObjectType(schema, "Infotext").getFields();
 
-            expect(isNonNullType(infotext.getFields()["textEn"].type)).toBe(
-                false,
-            );
+            expect(isNonNullType(fields.textEn.type)).toBe(false);
         });
 
         it("validFrom and validTo are nullable", () => {
-            const infotext = getObjectType(schema, "Infotext");
+            const fields = getObjectType(schema, "Infotext").getFields();
 
-            expect(
-                isNonNullType(infotext.getFields()["validFrom"].type),
-            ).toBe(false);
-            expect(
-                isNonNullType(infotext.getFields()["validTo"].type),
-            ).toBe(false);
+            expect(isNonNullType(fields.validFrom.type)).toBe(false);
+            expect(isNonNullType(fields.validTo.type)).toBe(false);
         });
 
         it("priority is non-null InfotextPriority enum", () => {
-            const infotext = getObjectType(schema, "Infotext");
-            const field = infotext.getFields()["priority"];
+            const field = getObjectType(schema, "Infotext").getFields()
+                .priority;
 
             expect(isNonNullType(field.type)).toBe(true);
 
-            const innerType = (field.type as GraphQLNonNull<any>).ofType;
+            const innerType = ofType(
+                field.type as GraphQLNonNull<GraphQLNullableType>,
+            );
 
             expect(isEnumType(innerType)).toBe(true);
-            expect(innerType.name).toBe("InfotextPriority");
+            expect((innerType as GraphQLNamedType).name).toBe(
+                "InfotextPriority",
+            );
         });
     });
 
     describe("RouteDirection type", () => {
         it("has id and platforms fields", () => {
-            const rd = getObjectType(schema, "RouteDirection");
-            const fieldNames = Object.keys(rd.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "RouteDirection").getFields(),
+            );
 
             expect(fieldNames).toContain("id");
             expect(fieldNames).toContain("platforms");
@@ -424,8 +425,9 @@ describe("GraphQL schema", () => {
 
     describe("RouteShape type", () => {
         it("has id, directionId, tripCount, geoJson", () => {
-            const rs = getObjectType(schema, "RouteShape");
-            const fieldNames = Object.keys(rs.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "RouteShape").getFields(),
+            );
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
@@ -440,23 +442,19 @@ describe("GraphQL schema", () => {
 
     describe("StopEntrance type", () => {
         it("has id, name, latitude, longitude", () => {
-            const se = getObjectType(schema, "StopEntrance");
-            const fieldNames = Object.keys(se.getFields());
+            const fieldNames = Object.keys(
+                getObjectType(schema, "StopEntrance").getFields(),
+            );
 
             expect(fieldNames).toEqual(
-                expect.arrayContaining([
-                    "id",
-                    "name",
-                    "latitude",
-                    "longitude",
-                ]),
+                expect.arrayContaining(["id", "name", "latitude", "longitude"]),
             );
         });
 
         it("all fields are non-null", () => {
-            const se = getObjectType(schema, "StopEntrance");
+            const fields = getObjectType(schema, "StopEntrance").getFields();
 
-            for (const field of Object.values(se.getFields())) {
+            for (const field of Object.values(fields)) {
                 expect(isNonNullType(field.type)).toBe(true);
             }
         });
@@ -464,19 +462,22 @@ describe("GraphQL schema", () => {
 
     describe("InfotextRelatedStop type", () => {
         it("has id, name, and nullable platformCode", () => {
-            const irs = getObjectType(schema, "InfotextRelatedStop");
-            const fields = irs.getFields();
+            const fields = getObjectType(
+                schema,
+                "InfotextRelatedStop",
+            ).getFields();
 
-            expect(isNonNullType(fields["id"].type)).toBe(true);
-            expect(isNonNullType(fields["name"].type)).toBe(true);
-            expect(isNonNullType(fields["platformCode"].type)).toBe(false);
+            expect(isNonNullType(fields.id.type)).toBe(true);
+            expect(isNonNullType(fields.name.type)).toBe(true);
+            expect(isNonNullType(fields.platformCode.type)).toBe(false);
         });
     });
 
     describe("enums", () => {
         it("VehicleType has all expected values", () => {
-            const vehicleType = getEnumType(schema, "VehicleType");
-            const values = vehicleType.getValues().map((v) => v.name);
+            const values = getEnumType(schema, "VehicleType")
+                .getValues()
+                .map((v) => v.name);
 
             expect(values).toEqual(
                 expect.arrayContaining([
@@ -493,8 +494,9 @@ describe("GraphQL schema", () => {
         });
 
         it("InfotextPriority has LOW, NORMAL, HIGH", () => {
-            const priority = getEnumType(schema, "InfotextPriority");
-            const values = priority.getValues().map((v) => v.name);
+            const values = getEnumType(schema, "InfotextPriority")
+                .getValues()
+                .map((v) => v.name);
 
             expect(values).toEqual(
                 expect.arrayContaining(["LOW", "NORMAL", "HIGH"]),
@@ -514,95 +516,101 @@ describe("GraphQL schema", () => {
 
     describe("cross-type references", () => {
         it("Stop.platforms references Platform type", () => {
-            const stop = getObjectType(schema, "Stop");
-            const field = stop.getFields()["platforms"];
+            const field = getObjectType(schema, "Stop").getFields().platforms;
 
             // [Platform!]! → NonNull(List(NonNull(Platform)))
             expect(isNonNullType(field.type)).toBe(true);
 
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
+            const listType = ofType(
+                field.type as GraphQLNonNull<GraphQLNullableType>,
+            );
 
             expect(isListType(listType)).toBe(true);
+
+            if (!isListType(listType)) throw new Error("Expected list type");
 
             const innerType = listType.ofType;
 
             expect(isNonNullType(innerType)).toBe(true);
-            expect((innerType as GraphQLNonNull<any>).ofType.name).toBe(
-                "Platform",
-            );
+            expect(
+                (
+                    ofType(
+                        innerType as GraphQLNonNull<GraphQLNullableType>,
+                    ) as GraphQLNamedType
+                ).name,
+            ).toBe("Platform");
         });
 
         it("Platform.stop references Stop type", () => {
-            const platform = getObjectType(schema, "Platform");
-            const field = platform.getFields()["stop"];
+            const field = getObjectType(schema, "Platform").getFields().stop;
 
             expect(isObjectType(field.type)).toBe(true);
             expect((field.type as GraphQLObjectType).name).toBe("Stop");
         });
 
         it("Platform.routes references Route type", () => {
-            const platform = getObjectType(schema, "Platform");
-            const field = platform.getFields()["routes"];
+            const field = getObjectType(schema, "Platform").getFields().routes;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
 
         it("Departure.platform references Platform type", () => {
-            const departure = getObjectType(schema, "Departure");
-            const field = departure.getFields()["platform"];
+            const field = getObjectType(schema, "Departure").getFields()
+                .platform;
 
             expect(isNonNullType(field.type)).toBe(true);
             expect(
                 (
-                    (field.type as GraphQLNonNull<any>)
-                        .ofType as GraphQLObjectType
+                    ofType(
+                        field.type as GraphQLNonNull<GraphQLNullableType>,
+                    ) as GraphQLNamedType
                 ).name,
             ).toBe("Platform");
         });
 
         it("Departure.route references Route type", () => {
-            const departure = getObjectType(schema, "Departure");
-            const field = departure.getFields()["route"];
+            const field = getObjectType(schema, "Departure").getFields().route;
 
             expect(isObjectType(field.type)).toBe(true);
             expect((field.type as GraphQLObjectType).name).toBe("Route");
         });
 
         it("Route.directions references RouteDirection type", () => {
-            const route = getObjectType(schema, "Route");
-            const field = route.getFields()["directions"];
+            const field = getObjectType(schema, "Route").getFields().directions;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
 
         it("Route.shapes references RouteShape type", () => {
-            const route = getObjectType(schema, "Route");
-            const field = route.getFields()["shapes"];
+            const field = getObjectType(schema, "Route").getFields().shapes;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
 
         it("Stop.entrances references StopEntrance type", () => {
-            const stop = getObjectType(schema, "Stop");
-            const field = stop.getFields()["entrances"];
+            const field = getObjectType(schema, "Stop").getFields().entrances;
 
             expect(isNonNullType(field.type)).toBe(true);
-
-            const listType = (field.type as GraphQLNonNull<any>).ofType;
-
-            expect(isListType(listType)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
         });
     });
 
@@ -632,7 +640,6 @@ describe("GraphQL schema", () => {
             const typeMap = schema.getTypeMap();
             const referencedTypes = new Set<string>();
 
-            // collect all types referenced from Query fields and other object type fields
             const collectReferences = (type: GraphQLNamedType) => {
                 if (!isObjectType(type)) return;
 

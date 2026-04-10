@@ -1,6 +1,6 @@
 import type { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
-import type { StopService } from "src/modules/stop/stop.service";
 import { StopResolver } from "src/modules/stop/stop.resolver";
+import type { StopService } from "src/modules/stop/stop.service";
 
 const createMocks = () => {
     const stopService = {
@@ -129,11 +129,7 @@ describe("StopResolver", () => {
 
             stopService.getAllGraphQL.mockResolvedValue(stops);
 
-            const result = await resolver.getMultiple(
-                undefined,
-                10,
-                undefined,
-            );
+            const result = await resolver.getMultiple(undefined, 10, undefined);
 
             expect(stopService.getAllGraphQL).toHaveBeenCalledWith({
                 limit: 10,

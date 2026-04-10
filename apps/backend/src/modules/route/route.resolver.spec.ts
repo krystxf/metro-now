@@ -1,5 +1,5 @@
-import type { RouteService } from "src/modules/route/route.service";
 import { RouteResolver } from "src/modules/route/route.resolver";
+import type { RouteService } from "src/modules/route/route.service";
 import { VehicleType } from "src/types/graphql.generated";
 
 const createMocks = () => {

@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PidImportService } from "../services/pid-import.service";
-import { SyncSnapshotValidator } from "../services/sync-snapshot-validator.service";
+import { GtfsFeedId } from "@metro-now/database";
 import {
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
 } from "../services/gtfs.service";
-import { GtfsFeedId } from "@metro-now/database";
+import { PidImportService } from "../services/pid-import.service";
+import { SyncSnapshotValidator } from "../services/sync-snapshot-validator.service";
 
 test("integration: PidImportService builds a snapshot from realistic multi-group stop data", () => {
     const service = new PidImportService();
@@ -23,14 +23,12 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
                 stops: [
                     {
                         lat: 50.0831,
-                        lon: 14.4250,
+                        lon: 14.425,
                         gtfsIds: ["U1072Z101P"],
                         altIdosName: "Můstek",
                         isMetro: true,
                         platform: "1",
-                        lines: [
-                            { id: "991", name: "A", type: "METRO" },
-                        ],
+                        lines: [{ id: "991", name: "A", type: "METRO" }],
                     },
                     {
                         lat: 50.0839,
@@ -39,9 +37,7 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
                         altIdosName: "Můstek",
                         isMetro: true,
                         platform: "2",
-                        lines: [
-                            { id: "991", name: "A", type: "METRO" },
-                        ],
+                        lines: [{ id: "991", name: "A", type: "METRO" }],
                     },
                     {
                         lat: 50.0817,
@@ -70,9 +66,7 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
                         altIdosName: "Malostranská",
                         isMetro: true,
                         platform: "1",
-                        lines: [
-                            { id: "991", name: "A", type: "METRO" },
-                        ],
+                        lines: [{ id: "991", name: "A", type: "METRO" }],
                     },
                     {
                         lat: 50.0887,
@@ -81,9 +75,7 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
                         altIdosName: "Malostranská",
                         isMetro: true,
                         platform: "2",
-                        lines: [
-                            { id: "991", name: "A", type: "METRO" },
-                        ],
+                        lines: [{ id: "991", name: "A", type: "METRO" }],
                     },
                 ],
             },
@@ -100,9 +92,7 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
                         altIdosName: "Anděl",
                         isMetro: false,
                         platform: "A",
-                        lines: [
-                            { id: "L12", name: "12", type: "TRAM" },
-                        ],
+                        lines: [{ id: "L12", name: "12", type: "TRAM" }],
                     },
                 ],
             },
@@ -134,9 +124,7 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
 
     assert.equal(metroPlatforms.length, 4);
 
-    const tramPlatform = snapshot.platforms.find(
-        (p) => p.id === "U1072Z1P",
-    );
+    const tramPlatform = snapshot.platforms.find((p) => p.id === "U1072Z1P");
 
     assert.ok(tramPlatform);
     assert.equal(tramPlatform.isMetro, false);

@@ -88,75 +88,75 @@ describe("RouteService", () => {
 
     describe("getVehicleTypeForRoute", () => {
         it("returns TRAM for numeric route under 100", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "22" }),
-            ).toBe(VehicleType.TRAM);
+            expect(service.getVehicleTypeForRoute({ routeName: "22" })).toBe(
+                VehicleType.TRAM,
+            );
         });
 
         it("returns BUS for numeric route 100+", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "119" }),
-            ).toBe(VehicleType.BUS);
+            expect(service.getVehicleTypeForRoute({ routeName: "119" })).toBe(
+                VehicleType.BUS,
+            );
         });
 
         it("returns TROLLEYBUS for route 58", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "58" }),
-            ).toBe(VehicleType.TROLLEYBUS);
+            expect(service.getVehicleTypeForRoute({ routeName: "58" })).toBe(
+                VehicleType.TROLLEYBUS,
+            );
         });
 
         it("returns TROLLEYBUS for route 59", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "59" }),
-            ).toBe(VehicleType.TROLLEYBUS);
+            expect(service.getVehicleTypeForRoute({ routeName: "59" })).toBe(
+                VehicleType.TROLLEYBUS,
+            );
         });
 
         it("returns SUBWAY for metro line A", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "A" }),
-            ).toBe(VehicleType.SUBWAY);
+            expect(service.getVehicleTypeForRoute({ routeName: "A" })).toBe(
+                VehicleType.SUBWAY,
+            );
         });
 
         it("returns SUBWAY for metro line B", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "B" }),
-            ).toBe(VehicleType.SUBWAY);
+            expect(service.getVehicleTypeForRoute({ routeName: "B" })).toBe(
+                VehicleType.SUBWAY,
+            );
         });
 
         it("returns FERRY for P-prefixed route", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "P1" }),
-            ).toBe(VehicleType.FERRY);
+            expect(service.getVehicleTypeForRoute({ routeName: "P1" })).toBe(
+                VehicleType.FERRY,
+            );
         });
 
         it("returns FUNICULAR for LD", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "LD" }),
-            ).toBe(VehicleType.FUNICULAR);
+            expect(service.getVehicleTypeForRoute({ routeName: "LD" })).toBe(
+                VehicleType.FUNICULAR,
+            );
         });
 
         it("returns TRAIN for S-prefixed route", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "S9" }),
-            ).toBe(VehicleType.TRAIN);
+            expect(service.getVehicleTypeForRoute({ routeName: "S9" })).toBe(
+                VehicleType.TRAIN,
+            );
         });
 
         it("returns TRAIN for R-prefixed route", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "R10" }),
-            ).toBe(VehicleType.TRAIN);
+            expect(service.getVehicleTypeForRoute({ routeName: "R10" })).toBe(
+                VehicleType.TRAIN,
+            );
         });
 
         it("returns BUS for AE-prefixed route", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "AE" }),
-            ).toBe(VehicleType.BUS);
+            expect(service.getVehicleTypeForRoute({ routeName: "AE" })).toBe(
+                VehicleType.BUS,
+            );
         });
 
         it("strips X prefix for substitute routes", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "X22" }),
-            ).toBe(VehicleType.TRAM);
+            expect(service.getVehicleTypeForRoute({ routeName: "X22" })).toBe(
+                VehicleType.TRAM,
+            );
         });
 
         it("prefers gtfsRouteType when provided", () => {
@@ -178,9 +178,9 @@ describe("RouteService", () => {
         });
 
         it("defaults to BUS for unknown route names", () => {
-            expect(
-                service.getVehicleTypeForRoute({ routeName: "ZZZ" }),
-            ).toBe(VehicleType.BUS);
+            expect(service.getVehicleTypeForRoute({ routeName: "ZZZ" })).toBe(
+                VehicleType.BUS,
+            );
         });
     });
 });

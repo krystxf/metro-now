@@ -1,4 +1,4 @@
-import { formatGraphQLError, GraphQLError } from "./graphql-error";
+import { GraphQLError, formatGraphQLError } from "./graphql-error";
 
 describe("GraphQLError", () => {
     it("creates an error with message and code extension", () => {
