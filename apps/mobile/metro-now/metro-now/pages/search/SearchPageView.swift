@@ -99,7 +99,9 @@ struct SearchPageView: View {
             if let stop = metroStops?.first(where: { $0.id == stopId }) {
                 SearchStopDetailView(
                     stop: stop,
-                    viewModel: SearchPageDetailViewModel(stopId: stop.id)
+                    viewModel: SearchPageDetailViewModel(
+                        platformIds: stop.platforms.map(\.id)
+                    )
                 )
             }
         }

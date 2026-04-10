@@ -8,14 +8,14 @@ private let REFETCH_INTERVAL: TimeInterval = 10 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
 
 class SearchPageDetailViewModel: NSObject, ObservableObject {
-    let stopId: String
+    let platformIds: [String]
 
     @Published var departures: [ApiDeparture]?
 
     private var refreshTimer: Timer?
 
-    init(stopId: String) {
-        self.stopId = stopId
+    init(platformIds: [String]) {
+        self.platformIds = platformIds
         super.init()
 
         refresh()
@@ -28,8 +28,8 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
 
     func refresh() {
         getDepartures(
-            stopsIds: [stopId],
-            platformsIds: []
+            stopsIds: [],
+            platformsIds: platformIds
         )
     }
 
@@ -46,8 +46,8 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
             }
 
             getDepartures(
-                stopsIds: [stopId],
-                platformsIds: []
+                stopsIds: [],
+                platformsIds: platformIds
             )
         }
     }
@@ -68,7 +68,6 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [
-                "vehicleType": "metro",
                 "stop": stopsIds,
                 "platform": platformsIds,
                 "limit": 10,
