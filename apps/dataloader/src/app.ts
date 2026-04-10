@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 
 import { getDataloaderEnv, loadEnvironment } from "./config/env";
+import { CacheInvalidationService } from "./services/cache-invalidation.service";
 import { CronService } from "./services/cron.service";
 import { DatabaseLogStore } from "./services/database-log-store.service";
 import { DatabaseService } from "./services/database.service";
@@ -13,11 +14,17 @@ const env = getDataloaderEnv();
 const app = express();
 const databaseService = new DatabaseService();
 logger.setTransport(new DatabaseLogStore(databaseService.db));
+
+const redisHost = process.env.REDIS_HOST || "localhost";
+const redisPort = Number.parseInt(process.env.REDIS_PORT || "6379");
+const cacheInvalidation = new CacheInvalidationService(redisHost, redisPort);
+
 const syncService = new SyncService(databaseService.db, {
     entityBatchSize: env.entityBatchSize,
     relationBatchSize: env.relationBatchSize,
     batchDelayMs: env.batchDelayMs,
     phaseDelayMs: env.phaseDelayMs,
+    cacheInvalidation,
 });
 const cronService = new CronService();
 
@@ -120,6 +127,18 @@ app.post("/api/cron/stop/:jobName", (req: Request, res: Response) => {
 });
 
 const bootstrap = async (): Promise<void> => {
+    try {
+        await cacheInvalidation.connect();
+        logger.info("Connected to Redis for cache invalidation", {
+            host: redisHost,
+            port: redisPort,
+        });
+    } catch (error) {
+        logger.warn("Failed to connect to Redis for cache invalidation, continuing without it", {
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
     cronService.addJob(
         {
             name: "pid-sync",
@@ -152,6 +171,7 @@ const bootstrap = async (): Promise<void> => {
 const shutdown = async (signal: string): Promise<void> => {
     logger.info("Received shutdown signal", { signal });
     cronService.shutdown();
+    await cacheInvalidation.disconnect();
     await logger.flush();
     await databaseService.disconnect();
     process.exit(0);

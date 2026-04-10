@@ -8,6 +8,7 @@ import type {
     SyncTrigger,
 } from "../types/sync.types";
 import { logger } from "../utils/logger";
+import type { CacheInvalidationService } from "./cache-invalidation.service";
 import { BratislavaImportService } from "./bratislava-import.service";
 import { BrnoImportService } from "./brno-import.service";
 import { GtfsService } from "./gtfs.service";
@@ -32,6 +33,7 @@ export class SyncService {
     private readonly zsrImportService = new ZsrImportService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
+    private readonly cacheInvalidation: CacheInvalidationService | null;
     private readonly phaseDelayMs: number;
     private activeSync: Promise<SyncRunResult> | undefined;
     private lastRun: SyncRunResult | undefined;
@@ -43,9 +45,11 @@ export class SyncService {
             relationBatchSize?: number;
             batchDelayMs?: number;
             phaseDelayMs?: number;
+            cacheInvalidation?: CacheInvalidationService;
         } = {},
     ) {
         this.repository = new SyncRepository(db, options);
+        this.cacheInvalidation = options.cacheInvalidation ?? null;
         this.phaseDelayMs = options.phaseDelayMs ?? 0;
     }
 
@@ -105,6 +109,7 @@ export class SyncService {
                       finishedAt,
                       durationMs: finishedAt.getTime() - startedAt.getTime(),
                       counts: persistenceResult.counts,
+                      changedEntities: persistenceResult.changedEntities,
                   }
                 : {
                       status: "skipped",
@@ -121,7 +126,23 @@ export class SyncService {
             logger.info(`Finished ${trigger} sync`, {
                 durationMs: result.durationMs,
                 counts: result.counts,
+                changedEntities: result.changedEntities,
             });
+
+            if (this.cacheInvalidation && result.changedEntities) {
+                try {
+                    await this.cacheInvalidation.invalidateForChangedEntities(
+                        result.changedEntities,
+                    );
+                } catch (error) {
+                    logger.error("Failed to invalidate backend caches", {
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                    });
+                }
+            }
         } else {
             logger.warn(`Skipped ${trigger} sync`, {
                 durationMs: result.durationMs,
