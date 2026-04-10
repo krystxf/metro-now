@@ -104,7 +104,17 @@ const createQueryBuilder = (rows: QueryRow[]) => {
 };
 
 describe("StopService", () => {
-    const createService = () => {
+    const createService = ({
+        extraStops = [],
+        extraPlatforms = [],
+        extraPlatformsOnRoutes = [],
+        extraEntrances = [],
+    }: {
+        extraStops?: QueryRow[];
+        extraPlatforms?: QueryRow[];
+        extraPlatformsOnRoutes?: QueryRow[];
+        extraEntrances?: QueryRow[];
+    } = {}) => {
         const rowsByTable: Record<string, QueryRow[]> = {
             Stop: [
                 {
@@ -113,6 +123,7 @@ describe("StopService", () => {
                     avgLatitude: 50.0818176,
                     avgLongitude: 14.4255056,
                 },
+                ...extraStops,
             ],
             Platform: [
                 {
@@ -135,18 +146,24 @@ describe("StopService", () => {
                     stopId: "U1072",
                     routeName: "176",
                 },
+                ...extraPlatforms,
             ],
             PlatformsOnRoutes: [
                 {
                     platformId: "U1072Z101P",
                     routeId: "L991",
                     routeName: "A",
+                    id: "L991",
+                    name: "A",
                 },
                 {
                     platformId: "U1072Z1P",
                     routeId: "L176",
                     routeName: "176",
+                    id: "L176",
+                    name: "176",
                 },
+                ...extraPlatformsOnRoutes,
             ],
             GtfsStationEntrance: [
                 {
@@ -156,6 +173,7 @@ describe("StopService", () => {
                     latitude: 50.08312,
                     longitude: 14.42496,
                 },
+                ...extraEntrances,
             ],
         };
 
@@ -237,5 +255,100 @@ describe("StopService", () => {
             ],
         });
         expect(stop.platforms).toHaveLength(1);
+    });
+
+    it("includes Leo platforms linked to local stops from the database", async () => {
+        const service = createService({
+            extraPlatforms: [
+                {
+                    id: "TLP:leo-1",
+                    name: "Václavské náměstí",
+                    code: null,
+                    isMetro: false,
+                    latitude: 50.0819,
+                    longitude: 14.4256,
+                    stopId: "U1072",
+                    routeName: "LE 100",
+                },
+            ],
+            extraPlatformsOnRoutes: [
+                {
+                    platformId: "TLP:leo-1",
+                    routeId: "LTL:leo-route",
+                    routeName: "LE 100",
+                    id: "LTL:leo-route",
+                    name: "LE 100",
+                },
+            ],
+        });
+
+        const stop = await service.getOneById("U1072");
+
+        expect(stop).toMatchObject({
+            id: "U1072",
+            platforms: [
+                expect.objectContaining({ id: "U1072Z101P" }),
+                expect.objectContaining({ id: "U1072Z1P" }),
+                expect.objectContaining({
+                    id: "TLP:leo-1",
+                    routes: [
+                        expect.objectContaining({
+                            id: "LTL:leo-route",
+                        }),
+                    ],
+                }),
+            ],
+        });
+    });
+
+    it("returns unmatched Leo stops from the database", async () => {
+        const service = createService({
+            extraStops: [
+                {
+                    id: "TLS:leo-standalone",
+                    name: "Praha hl.n.",
+                    avgLatitude: 50.0839,
+                    avgLongitude: 14.4359,
+                },
+            ],
+            extraPlatforms: [
+                {
+                    id: "TLP:leo-standalone",
+                    name: "Praha hl.n.",
+                    code: null,
+                    isMetro: false,
+                    latitude: 50.0839,
+                    longitude: 14.4359,
+                    stopId: "TLS:leo-standalone",
+                    routeName: "LE 100",
+                },
+            ],
+            extraPlatformsOnRoutes: [
+                {
+                    platformId: "TLP:leo-standalone",
+                    routeId: "LTL:leo-route",
+                    routeName: "LE 100",
+                    id: "LTL:leo-route",
+                    name: "LE 100",
+                },
+            ],
+        });
+
+        const stops = await service.getAll({
+            metroOnly: false,
+        });
+
+        expect(stops).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    id: "TLS:leo-standalone",
+                    platforms: [
+                        expect.objectContaining({
+                            id: "TLP:leo-standalone",
+                        }),
+                    ],
+                }),
+            ]),
+        );
     });
 });
