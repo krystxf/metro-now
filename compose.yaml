@@ -77,6 +77,25 @@ services:
             timeout: 10s
             retries: 5
 
+    dataloader:
+        image: metro-now_dataloader
+        container_name: dataloader
+        pull_policy: build
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+            target: metro-now_dataloader
+        restart: always
+        ports:
+            - 3008:3008
+        env_file:
+            - ".env.docker"
+        depends_on:
+            - postgres
+            - redis-stack
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
 volumes:
     backend-data:
     postgres-data:
