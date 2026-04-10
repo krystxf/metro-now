@@ -79,7 +79,7 @@ export interface RouteTable {
 }
 
 export interface PlatformsOnRoutesTable {
-    id: Generated<string>;
+    id: Generated<number>;
     platformId: string;
     routeId: string;
     createdAt: Generated<Date>;

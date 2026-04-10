@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import {
     type DatabaseClient,
     type DatabaseTransaction,
@@ -478,7 +477,6 @@ export class SyncRepository {
                 const timestamp = new Date();
                 const values: NewPlatformsOnRoutes[] = chunk.map(
                     (relation) => ({
-                        id: randomUUID(),
                         platformId: relation.platformId,
                         routeId: relation.routeId,
                         createdAt: timestamp,
