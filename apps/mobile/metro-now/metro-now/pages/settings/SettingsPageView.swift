@@ -7,6 +7,9 @@ struct SettingsPageView: View {
     @AppStorage(
         AppStorageKeys.showMetroOnly.rawValue
     ) var showMetroOnly = false
+    @AppStorage(
+        AppStorageKeys.showTraffic.rawValue
+    ) var showTraffic = false
 
     var body: some View {
         List {
@@ -21,6 +24,14 @@ struct SettingsPageView: View {
                 Toggle(isOn: $showMetroOnly) {
                     Label("Show only metro", systemImage: "")
                 }
+                .tint(.indigo)
+            }
+
+            Section(header: Text("Map")) {
+                Toggle(isOn: $showTraffic) {
+                    Label("Show traffic", systemImage: "car.fill")
+                }
+                .tint(.indigo)
             }
 
             Section(header: Text("More")) {

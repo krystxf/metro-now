@@ -2,6 +2,7 @@
 !.env*.example
 
 node_modules
+.turbo
 coverage
 .DS_Store
 prod

@@ -10,6 +10,7 @@ type Departure {
     delay: Int
 
     headsign: String
+    isRealtime: Boolean!
 
     platform: Platform!
     departureTime: DepartureTime!

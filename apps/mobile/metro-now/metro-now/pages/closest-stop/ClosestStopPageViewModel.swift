@@ -8,6 +8,8 @@ import WidgetKit
 
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
+private let METRO_STOPS_CACHE_KEY = "stops_metro_v2"
+private let ALL_STOPS_CACHE_KEY = "stops_all_v2"
 
 class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
@@ -29,10 +31,23 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
 
+        loadCachedStops()
         getStops(metroOnly: true)
         getStops()
 
         startPeriodicRefresh()
+    }
+
+    private func loadCachedStops() {
+        let oneDay: TimeInterval = 24 * 60 * 60
+
+        if let cached = DiskCache.load(key: METRO_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
+            metroStops = cached
+        }
+        if let cached = DiskCache.load(key: ALL_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
+            allStops = cached
+        }
+        updateClosestStop()
     }
 
     deinit {
@@ -40,6 +55,9 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     func refresh() {
+        getStops(metroOnly: true)
+        getStops()
+
         let stopIds = [closestMetroStop?.id ?? "", closestStop?.id ?? ""]
 
         getDepartures(
@@ -107,7 +125,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     private func getStops(metroOnly: Bool = false) {
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": String(metroOnly)]
@@ -121,9 +139,11 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     DispatchQueue.main.async {
                         if metroOnly {
                             self.metroStops = fetchedStops
+                            DiskCache.save(fetchedStops, key: METRO_STOPS_CACHE_KEY)
                             print("Fetched \(fetchedStops.count) metro stops")
                         } else {
                             self.allStops = fetchedStops
+                            DiskCache.save(fetchedStops, key: ALL_STOPS_CACHE_KEY)
                             print("Fetched \(fetchedStops.count) stops")
                         }
 
@@ -146,15 +166,15 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [
                 "stop": stopsIds,
                 "platform": platformsIds,
-                "limit": 4,
+                "limit": 10,
                 "minutesBefore": 1,
-                "minutesAfter": String(1 * 60),
+                "minutesAfter": String(6 * 60),
             ]
         )
 

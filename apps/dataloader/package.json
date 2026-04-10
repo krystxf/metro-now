@@ -4,13 +4,13 @@
     "description": "Metro Now background sync worker",
     "main": "dist/app.js",
     "scripts": {
-        "build": "pnpm --filter @metro-now/shared build && pnpm --filter @metro-now/database build && tsc",
+        "build": "rm -rf dist && tsc",
         "start": "node dist/app.js",
         "dev": "nodemon --watch src --ext ts --exec \"pnpm run build && pnpm run start\"",
         "lint": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json",
-        "format": "biome format --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json --write",
-        "format:check": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json",
-        "test": "pnpm run build && node --test dist/**/*.spec.js"
+        "lint:fix": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json --write",
+        "test:unit": "pnpm run build && node --test \"dist/**/*.spec.js\"",
+        "types:check": "tsc --noEmit"
     },
     "keywords": [],
     "author": "",
@@ -20,6 +20,7 @@
         "@metro-now/database": "workspace:*",
         "@metro-now/shared": "workspace:*",
         "express": "^5.2.1",
+        "ioredis": "^5.10.1",
         "node-cron": "^4.2.1",
         "radash": "^12.1.1",
         "unzipper": "^0.12.3",

@@ -27,6 +27,8 @@ const buildCacheKey = (prefix: string, value?: unknown): string => {
     return `${prefix}.${stableStringify(value)}`;
 };
 
+const STOP_CACHE_PREFIX = "stop.v4";
+
 export const uniqueStrings = <Value extends string>(
     values: readonly Value[],
 ): Value[] => {
@@ -49,6 +51,12 @@ export const CACHE_KEYS = {
         getGolemioData: (url: string) =>
             buildCacheKey("golemio.getGolemioData", url),
     },
+    transitland: {
+        get: (path: string) => buildCacheKey("transitland.get", path),
+    },
+    leo: {
+        getCatalog: "leo.getCatalog",
+    },
     platform: {
         getAllGraphQL: (params: unknown) =>
             buildCacheKey("platform.getAllGraphQL", params),
@@ -68,24 +76,49 @@ export const CACHE_KEYS = {
         getGeoFunctionsStatus: "status.getGeoFunctionsStatus",
     },
     stop: {
+        getAll: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getAll`, params),
         getAllGraphQL: (params: unknown) =>
-            buildCacheKey("stop.getAllGraphQL", params),
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getAllGraphQL`, params),
         getGraphQLById: (id: string) =>
-            buildCacheKey("stop.getGraphQLById", id),
-        getOne: (params: unknown) => buildCacheKey("stop.getOne", params),
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getGraphQLById`, id),
+        getOne: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getOne`, params),
     },
 };
 
+export const MAX_CACHE_TTL_MS = 36 * 3600 * 1000;
+
 export const ttl = ({
+    hours = 0,
     minutes = 0,
     seconds = 0,
 }: {
+    hours?: number;
     minutes?: number;
     seconds?: number;
 }) => {
-    if (seconds + minutes === 0) {
+    if (hours + minutes + seconds === 0) {
         throw new Error("ttl: cannot be 0");
     }
 
-    return (minutes * 60 + seconds) * 1000;
+    const ttlMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+
+    if (ttlMs > MAX_CACHE_TTL_MS) {
+        throw new Error("ttl: cannot exceed 36 hours");
+    }
+
+    return ttlMs;
+};
+
+export const CACHE_TTL = {
+    routeData: ttl({ hours: 36 }),
+    stopData: ttl({ hours: 36 }),
+    platformData: ttl({ hours: 36 }),
+    infotexts: ttl({ minutes: 5 }),
+    golemioDepartureBoards: ttl({ seconds: 10 }),
+    golemioDefault: ttl({ seconds: 30 }),
+    transitlandDepartures: ttl({ seconds: 30 }),
+    leoCatalog: ttl({ minutes: 30 }),
+    statusChecks: ttl({ seconds: 30 }),
 };

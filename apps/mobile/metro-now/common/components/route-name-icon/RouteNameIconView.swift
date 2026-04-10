@@ -7,18 +7,42 @@ struct RouteNameIconView: View {
     let label: String
     let background: Color
 
+    private let fontSize: CGFloat
+    private let minWidth: CGFloat
+    private let height: CGFloat
+    private let horizontalPadding: CGFloat
+    private let cornerRadius: CGFloat
+
+    init(label: String, background: Color, compact: Bool = false) {
+        self.label = label
+        self.background = background
+        if compact {
+            fontSize = 10
+            minWidth = 20
+            height = 20
+            horizontalPadding = 3
+            cornerRadius = 4
+        } else {
+            fontSize = 12
+            minWidth = 26
+            height = 26
+            horizontalPadding = 4
+            cornerRadius = 6
+        }
+    }
+
     var body: some View {
         Text(label.uppercased())
-            .font(.system(size: 12))
+            .font(.system(size: fontSize))
             .fontWeight(.bold)
             .fontDesign(.rounded)
             .foregroundStyle(.white)
-            .padding(.horizontal, 4)
-            .frame(minWidth: 26)
-            .frame(height: 26)
+            .padding(.horizontal, horizontalPadding)
+            .frame(minWidth: minWidth)
+            .frame(height: height)
             .background(Rectangle().fill(background))
             .clipShape(
-                .rect(cornerRadius: 6)
+                .rect(cornerRadius: cornerRadius)
             )
     }
 }

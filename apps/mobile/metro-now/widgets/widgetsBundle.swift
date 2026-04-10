@@ -8,5 +8,6 @@ import WidgetKit
 struct widgetsBundle: WidgetBundle {
     var body: some Widget {
         FrequencyWidget()
+        DeparturesWidget()
     }
 }

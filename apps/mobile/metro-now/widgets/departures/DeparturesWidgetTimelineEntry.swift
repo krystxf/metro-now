@@ -1,12 +1,17 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import CoreLocation
 import WidgetKit
+
+struct WidgetDepartureGroup: Hashable {
+    let routeLabel: String
+    let headsign: String
+    let departureTime: Date
+    let nextDepartureTime: Date?
+}
 
 struct DeparturesWidgetTimelineEntry: TimelineEntry {
     let date: Date
-    let closestStop: String
-    let departures: [String]
-    let location: CLLocation?
+    let stopName: String
+    let departures: [WidgetDepartureGroup]
 }

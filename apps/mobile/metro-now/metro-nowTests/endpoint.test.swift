@@ -4,15 +4,21 @@
 import Foundation
 import Testing
 
-@Test("ENDPOINT")
-func endpoint() {
-    #expect(
-        !API_URL.contains("localhost"),
-        "ENDPOINT should not contain localhost"
-    )
+@Suite(.tags(.api))
+struct EndpointTests {
+    @Test("should not contain localhost")
+    func notLocalhost() {
+        #expect(
+            !API_URL.contains("localhost"),
+            "ENDPOINT should not contain localhost"
+        )
+    }
 
-    #expect(
-        URL(string: API_URL) != nil,
-        "ENDPOINT should be valid URL"
-    )
+    @Test("should be valid URL")
+    func validURL() {
+        #expect(
+            URL(string: API_URL) != nil,
+            "ENDPOINT should be valid URL"
+        )
+    }
 }

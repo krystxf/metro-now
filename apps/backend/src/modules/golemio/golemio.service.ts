@@ -2,16 +2,16 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
 
-import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 
 const GOLEMIO_API = "https://api.golemio.cz";
 
 const getTtlForPath = (path: string): number => {
     if (path.startsWith("/v2/pid/departureboards")) {
-        return ttl({ seconds: 10 });
+        return CACHE_TTL.golemioDepartureBoards;
     }
 
-    return ttl({ seconds: 30 });
+    return CACHE_TTL.golemioDefault;
 };
 
 @Injectable()

@@ -75,7 +75,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     private func getStops() {
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v1/stop/all",
             method: .get,
             parameters: ["metroOnly": String(true)]
@@ -102,7 +102,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [

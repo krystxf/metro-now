@@ -23,6 +23,7 @@ struct SearchPageView: View {
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
+                entrances: stop.entrances,
                 platforms: stop.platforms.map {
                     platform in
                     ApiPlatform(
@@ -98,7 +99,9 @@ struct SearchPageView: View {
             if let stop = metroStops?.first(where: { $0.id == stopId }) {
                 SearchStopDetailView(
                     stop: stop,
-                    viewModel: SearchPageDetailViewModel(stopId: stop.id)
+                    viewModel: SearchPageDetailViewModel(
+                        platformIds: stop.platforms.map(\.id)
+                    )
                 )
             }
         }

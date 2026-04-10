@@ -4,9 +4,12 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
+        "lint": "biome check --config-path ../../biome.json ../../apps/database/index.ts ../../apps/database/migrate.ts ../../apps/database/seed.ts ../../apps/database/migrations ../../apps/database/package.json ../../apps/database/tsconfig.json",
+        "lint:fix": "biome check --config-path ../../biome.json ../../apps/database/index.ts ../../apps/database/migrate.ts ../../apps/database/seed.ts ../../apps/database/migrations ../../apps/database/package.json ../../apps/database/tsconfig.json --write",
         "migrate:deploy": "dotenv -e ../backend/.env.local -- ts-node migrate.ts up",
         "migrate:rollback": "dotenv -e ../backend/.env.local -- ts-node migrate.ts down",
-        "seed": "dotenv -e ../backend/.env.local -- ts-node seed.ts"
+        "seed": "dotenv -e ../backend/.env.local -- ts-node seed.ts",
+        "types:check": "tsc --noEmit"
     },
     "dependencies": {
         "kysely": "^0.28.14",

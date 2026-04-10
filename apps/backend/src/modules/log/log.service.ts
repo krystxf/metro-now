@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import {
     type BaseContext,
     type GraphQLRequestContextWillSendResponse,
@@ -62,7 +61,6 @@ export class LogService implements OnModuleDestroy {
         const level = errors.length > 0 ? "error" : "info";
         const statusCode = requestContext.response.http.status ?? 200;
         const logEntry: NewLog = {
-            id: randomUUID(),
             service: SERVICE_NAME,
             level,
             message: "GraphQL request completed",

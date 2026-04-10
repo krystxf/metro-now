@@ -1,23 +1,17 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { GraphQLError } from "src/common/graphql-error";
-import { DepartureBoardService } from "src/modules/departure/departure-board.service";
-import { PlatformService } from "src/modules/platform/platform.service";
-import { RouteService } from "src/modules/route/route.service";
+import { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
+import { RouteByIdLoader } from "src/modules/dataloader/route-by-id.loader";
+import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import type { ParentType } from "src/types/parent";
-
-const ROUTE_ID_BY_NAME = {
-    A: "L991",
-    B: "L992",
-    C: "L993",
-};
 
 @Resolver("Departure")
 export class DepartureResolver {
     constructor(
-        private readonly departureBoardService: DepartureBoardService,
-        private readonly platformService: PlatformService,
-        private readonly routeService: RouteService,
+        private readonly departureServiceV2: DepartureServiceV2,
+        private readonly platformByIdLoader: PlatformsByStopLoader,
+        private readonly routeByIdLoader: RouteByIdLoader,
     ) {}
 
     @Query("departures")
@@ -33,47 +27,36 @@ export class DepartureResolver {
             });
         }
 
-        const resolvedPlatformIds =
-            await this.departureBoardService.resolvePlatformIds({
-                platformIds,
-                stopIds,
-            });
         const normalizedLimit = Math.max(1, Math.min(limit, 100));
-        const json = await this.departureBoardService.fetchDepartureBoard({
-            platformIds: resolvedPlatformIds,
-            params: {
-                includeMetroTrains: true,
-                limit: normalizedLimit,
-                minutesBefore: 1,
-                mode: "departures",
-                order: "real",
-                skip: "canceled",
-            },
+        const departures = await this.departureServiceV2.getDepartures({
+            stopIds,
+            platformIds,
+            vehicleType: "all",
+            excludeVehicleType: null,
+            limit: normalizedLimit,
+            totalLimit: normalizedLimit,
+            minutesBefore: 1,
+            minutesAfter: 60,
         });
 
-        return json.departures.map((departure) => ({
-            ...departure,
-            route: {
-                id:
-                    ROUTE_ID_BY_NAME[departure.route.short_name] ??
-                    `L${departure.route.short_name}`,
+        return departures.map((departure) => ({
+            route: departure.routeId ? { id: departure.routeId } : null,
+            platform: {
+                id: departure.platformId,
             },
-            platform: departure.stop,
-            headsign: departure.trip.headsign,
-            delay: departure.delay.is_available
-                ? (departure.delay.minutes ?? 0) * 60 +
-                  (departure.delay.seconds ?? 0)
-                : 0,
+            headsign: departure.headsign,
+            delay: departure.delay,
+            isRealtime: departure.isRealtime,
             departureTime: {
-                predicted: departure.departure_timestamp.predicted,
-                scheduled: departure.departure_timestamp.scheduled,
+                predicted: departure.departure.predicted,
+                scheduled: departure.departure.scheduled,
             },
         }));
     }
 
     @ResolveField("platform")
     getPlatformField(@Parent() departure: ParentType<typeof this.getMultiple>) {
-        return this.platformService.getOneById(departure.platform.id);
+        return this.platformByIdLoader.load(departure.platform.id);
     }
 
     @ResolveField("route")
@@ -84,6 +67,6 @@ export class DepartureResolver {
             return null;
         }
 
-        return this.routeService.getOneGraphQL(departure.route.id);
+        return this.routeByIdLoader.load(departure.route.id);
     }
 }

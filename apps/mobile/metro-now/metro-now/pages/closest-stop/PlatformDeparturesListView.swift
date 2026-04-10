@@ -6,33 +6,24 @@ import SwiftUI
 struct PlatformDeparturesListView: View {
     let platform: ApiPlatform
     let departures: [[ApiDeparture]]?
+    let onRoutePreviewRequested: ((SheetIdItem) -> Void)?
 
-    @State private var routeIdPreview: SheetIdItem?
-
-    init(platform: ApiPlatform, departures: [ApiDeparture]?) {
+    init(
+        platform: ApiPlatform,
+        departures: [ApiDeparture]?,
+        onRoutePreviewRequested: ((SheetIdItem) -> Void)? = nil
+    ) {
         self.platform = platform
+        self.onRoutePreviewRequested = onRoutePreviewRequested
 
         guard let departures else {
             self.departures = nil
             return
         }
 
-        let filteredDepartures = departures
-            .filter {
-                platform.id == $0.platformId
-            }
-
-        let departuresByRoute = Dictionary(
-            grouping: filteredDepartures,
-            by: { $0.route }
-        )
-
-        self.departures = Array(
-            departuresByRoute
-                .map(\.value)
-                .sorted(by: {
-                    $0.first!.departure.predicted < $1.first!.departure.predicted
-                })
+        self.departures = buildPlatformDepartureGroups(
+            for: platform,
+            departures: departures
         )
     }
 
@@ -55,7 +46,14 @@ struct PlatformDeparturesListView: View {
                             )
                             .onLongPressGesture {
                                 if let routeId = departure.routeId {
-                                    routeIdPreview = SheetIdItem(id: routeId)
+                                    onRoutePreviewRequested?(
+                                        SheetIdItem(
+                                            id: routeId,
+                                            headsign: departure.headsign,
+                                            currentPlatformId: platform.id,
+                                            currentPlatformName: platform.name
+                                        )
+                                    )
                                 }
                             }
                         } else {
@@ -70,10 +68,6 @@ struct PlatformDeparturesListView: View {
                         )
                     }
                 }
-            }
-            .sheet(item: $routeIdPreview) { item in
-                RoutePreviewView(routeId: item.id)
-                    .presentationDetents([.medium, .large])
             }
         } else {
             EmptyView()

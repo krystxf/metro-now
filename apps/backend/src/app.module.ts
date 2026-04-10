@@ -33,7 +33,7 @@ import { StopModule } from "src/modules/stop/stop.module";
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             graphiql: process.env.NODE_ENV !== "production",
-            typePaths: ["./**/*.graphql"],
+            typePaths: ["./src/**/*.graphql", "./dist/**/*.graphql"],
             path: GRAPHQL_PATH,
             autoTransformHttpErrors: true,
             formatError: formatGraphQLError,

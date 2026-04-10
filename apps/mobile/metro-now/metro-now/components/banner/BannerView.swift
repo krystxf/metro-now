@@ -21,14 +21,28 @@ struct BannerView: View {
     var body: some View {
         Label(label, systemImage: systemImage)
             .font(.footnote.bold())
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(color)
-            .background(
-                .ultraThinMaterial,
-                in: RoundedRectangle(cornerRadius: 10)
-            )
-            .padding()
+            .modifier(BannerBackgroundModifier(color: color))
+    }
+}
+
+private struct BannerBackgroundModifier: ViewModifier {
+    let color: Color
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .background(color)
+                .glassEffect(.regular.tint(color), in: .rect(cornerRadius: 10))
+        } else {
+            content
+                .background(color)
+                .background(
+                    .ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: 10)
+                )
+        }
     }
 }
 

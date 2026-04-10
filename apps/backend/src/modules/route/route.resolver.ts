@@ -1,5 +1,6 @@
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
+import { toLookupRouteId } from "src/modules/route/route-id.utils";
 import { RouteService } from "src/modules/route/route.service";
 import type { VehicleType } from "src/types/graphql.generated";
 import type { ParentType } from "src/types/parent";
@@ -9,7 +10,7 @@ export class RouteResolver {
     constructor(private readonly routeService: RouteService) {}
 
     private toDatabaseRouteId(id: string): string {
-        return id.startsWith("L") ? id : `L${id}`;
+        return toLookupRouteId(id);
     }
 
     @Query("route")
@@ -36,6 +37,16 @@ export class RouteResolver {
     getVehicleType(
         @Parent() route: ParentType<typeof this.getMany>,
     ): VehicleType {
-        return this.routeService.getVehicleType(route.name);
+        return this.routeService.getVehicleTypeForRoute({
+            routeName: route.name ?? "",
+            ...((typeof route === "object" &&
+            route !== null &&
+            "type" in route &&
+            typeof route.type === "string"
+                ? {
+                      gtfsRouteType: route.type,
+                  }
+                : {}) as { gtfsRouteType?: string | null }),
+        });
     }
 }

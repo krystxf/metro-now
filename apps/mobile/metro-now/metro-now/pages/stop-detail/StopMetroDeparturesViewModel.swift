@@ -64,7 +64,7 @@ class StopMetroDeparturesViewModel: NSObject, ObservableObject {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        let request = AF.request(
+        let request = apiSession.request(
             "\(API_URL)/v2/departure",
             method: .get,
             parameters: [

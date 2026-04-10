@@ -3,7 +3,7 @@ import { sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CACHE_KEYS, ttl } from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import type { PlatformWithDistanceSchema } from "src/modules/platform/schema/platform-with-distance.schema";
 import type { PlatformSchema } from "src/modules/platform/schema/platform.schema";
@@ -24,7 +24,7 @@ type PlatformRecord = PlatformRecordBase & {
 
 type PlatformGraphQLRecord = PlatformRecordBase;
 
-const GRAPHQL_CACHE_TTL_MS = ttl({ minutes: 5 });
+const PLATFORM_DATA_CACHE_TTL_MS = CACHE_TTL.platformData;
 
 @Injectable()
 export class PlatformService {
@@ -253,7 +253,7 @@ export class PlatformService {
                 await this.loadPlatformRows({
                     metroOnly,
                 }),
-            GRAPHQL_CACHE_TTL_MS,
+            PLATFORM_DATA_CACHE_TTL_MS,
         );
     }
 
@@ -266,7 +266,7 @@ export class PlatformService {
             keys: ids,
             loadMissing: async (missingIds) =>
                 this.loadGraphQLPlatformsByIds(missingIds),
-            ttlMs: GRAPHQL_CACHE_TTL_MS,
+            ttlMs: PLATFORM_DATA_CACHE_TTL_MS,
         });
 
         return Array.from(new Set(ids))
@@ -287,7 +287,7 @@ export class PlatformService {
 
                 return platform ?? null;
             },
-            GRAPHQL_CACHE_TTL_MS,
+            PLATFORM_DATA_CACHE_TTL_MS,
         );
     }
 }

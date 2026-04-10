@@ -1,4 +1,3 @@
-import { CacheInterceptor } from "@nestjs/cache-manager";
 import {
     Controller,
     Get,
@@ -6,31 +5,33 @@ import {
     HttpStatus,
     Param,
     Query,
-    UseInterceptors,
     Version,
 } from "@nestjs/common";
 import { ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { StopService } from "src/modules/stop/stop.service";
-import { metroOnlyQuery } from "src/swagger/query.swagger";
+import { metroOnlyQuery, railOnlyQuery } from "src/swagger/query.swagger";
 
 @ApiTags("stop")
 @Controller("stop")
-@UseInterceptors(CacheInterceptor)
 export class StopController {
     constructor(private readonly stopService: StopService) {}
 
     @Get("/all")
     @Version([EndpointVersion.v1])
     @ApiQuery(metroOnlyQuery)
+    @ApiQuery(railOnlyQuery)
     async getAllStopsV1(
         @Query("metroOnly")
         metroOnlyValue: unknown,
+        @Query("railOnly")
+        railOnlyValue: unknown,
     ) {
         const metroOnly: boolean = metroOnlyValue === "true";
+        const railOnly: boolean = railOnlyValue === "true" && !metroOnly;
 
-        return this.stopService.getAll({ metroOnly });
+        return this.stopService.getAll({ metroOnly, railOnly });
     }
 
     @Get(":id")

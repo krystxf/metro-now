@@ -4,6 +4,12 @@ enum InfotextPriority {
     HIGH
 }
 
+type InfotextRelatedStop {
+    id: ID!
+    name: String!
+    platformCode: String
+}
+
 type Infotext {
     id: ID!
     text: String!
@@ -11,7 +17,7 @@ type Infotext {
     priority: InfotextPriority!
     displayType: String!
 
-    relatedPlatforms: [Platform!]!
+    relatedStops: [InfotextRelatedStop!]!
 
     validFrom: ISODateTime
     validTo: ISODateTime

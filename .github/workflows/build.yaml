@@ -1,0 +1,124 @@
+name: Build
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: build-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    backend:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build backend
+              run: pnpm turbo run build --filter=@metro-now/backend
+
+    dataloader:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build dataloader
+              run: pnpm turbo run build --filter=@metro-now/dataloader
+
+    mobile:
+        runs-on: macos-latest
+        timeout-minutes: 30
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - name: Build mobile
+              run: |
+                  xcodebuild build \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now \
+                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+                    CODE_SIGNING_ALLOWED=NO
+
+    web:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build web
+              run: pnpm turbo run build --filter=@metro-now/web
+
+    docker:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false
+            matrix:
+                target:
+                    - metro-now_web
+                    - metro-now_backend
+                    - metro-now_dataloader
+                    - metro-now_migrations
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  target: ${{ matrix.target }}
+                  load: true
+                  tags: metro-now:${{ matrix.target }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  push: false

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 
+import { LeoModule } from "src/modules/leo/leo.module";
 import { RouteController } from "src/modules/route/route.controller";
 import { RouteResolver } from "src/modules/route/route.resolver";
 import { RouteService } from "src/modules/route/route.service";
@@ -8,6 +9,6 @@ import { RouteService } from "src/modules/route/route.service";
     controllers: [RouteController],
     providers: [RouteService, RouteResolver],
     exports: [RouteService],
-    imports: [],
+    imports: [LeoModule],
 })
 export class RouteModule {}

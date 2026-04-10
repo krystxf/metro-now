@@ -1,3 +1,5 @@
 packages:
-    - "apps/*"
-    - "lib/*"
+  - "apps/*"
+  - "lib/*"
+
+minimumReleaseAge: 2880 # 48 hours

@@ -12,8 +12,10 @@ export class StopResolver {
     ) {}
 
     @Query("stop")
-    getOne(@Args("id") id: string) {
-        return this.stopService.getOneById(id);
+    async getOne(@Args("id") id: string) {
+        const [stop] = await this.stopService.getGraphQLByIds([id]);
+
+        return stop ?? null;
     }
 
     @Query("stops")
