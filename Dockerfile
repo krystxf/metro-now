@@ -11,6 +11,12 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/*
 
 FROM base AS build
+
+ARG TURBO_TOKEN=
+ARG TURBO_TEAM=
+ENV TURBO_TOKEN=$TURBO_TOKEN
+ENV TURBO_TEAM=$TURBO_TEAM
+
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -39,5 +45,6 @@ CMD [ "pnpm", "start:prod" ]
 FROM base AS metro-now_dataloader
 COPY --from=build /prod/dataloader /prod/dataloader
 WORKDIR /prod/dataloader
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 EXPOSE 3008
 CMD [ "pnpm", "start" ]
