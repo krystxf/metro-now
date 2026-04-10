@@ -1,13 +1,11 @@
 {
     "home": {
         "title": "Home",
-        "href": "/",
-        "type": "link"
-    },
-    "api": {
-        "title": "Home",
-        "type": "page",
         "href": "/"
+    },
+    "api-guide": {
+        "title": "API",
+        "type": "page"
     },
     "legal": {
         "title": "Legal",

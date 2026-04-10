@@ -41,6 +41,7 @@ export const Footer = () => {
 
                 <FooterSection>
                     <FooterSectionHeading>API</FooterSectionHeading>
+                    <FooterLink href="/api-guide">API Guide</FooterLink>
                     <FooterLink href={SWAGGER_URL} target="_blank">
                         REST API
                         <ArrowTopRightOnSquareIcon className="h-4" />
