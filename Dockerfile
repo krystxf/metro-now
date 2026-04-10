@@ -21,9 +21,9 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm exec turbo run build --filter=@metro-now/backend --filter=@metro-now/dataloader --filter=@metro-now/web
-RUN pnpm deploy --filter=@metro-now/web --prod --legacy /prod/web
-RUN pnpm deploy --filter=@metro-now/backend --prod --legacy /prod/backend
-RUN pnpm deploy --filter=@metro-now/dataloader --prod --legacy /prod/dataloader
+RUN pnpm deploy --filter=@metro-now/web --prod /prod/web
+RUN pnpm deploy --filter=@metro-now/backend --prod /prod/backend
+RUN pnpm deploy --filter=@metro-now/dataloader --prod /prod/dataloader
 COPY apps/backend/src/**.*.graphql /prod/backend/dist
 
 FROM build AS metro-now_migrations

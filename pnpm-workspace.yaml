@@ -3,3 +3,7 @@ packages:
   - "lib/*"
 
 minimumReleaseAge: 2880 # 48 hours
+
+# Required for `pnpm deploy` without --legacy: workspace deps are injected so the
+# deploy output is self-contained (see https://pnpm.io/cli/deploy).
+injectWorkspacePackages: true
