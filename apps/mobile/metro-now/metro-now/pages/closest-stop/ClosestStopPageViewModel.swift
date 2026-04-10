@@ -8,6 +8,8 @@ import WidgetKit
 
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
+private let METRO_STOPS_CACHE_KEY = "stops_metro_v2"
+private let ALL_STOPS_CACHE_KEY = "stops_all_v2"
 
 class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
@@ -39,10 +41,10 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     private func loadCachedStops() {
         let oneDay: TimeInterval = 24 * 60 * 60
 
-        if let cached = DiskCache.load(key: "stops_metro", maxAge: oneDay, as: [ApiStop].self) {
+        if let cached = DiskCache.load(key: METRO_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
             metroStops = cached
         }
-        if let cached = DiskCache.load(key: "stops_all", maxAge: oneDay, as: [ApiStop].self) {
+        if let cached = DiskCache.load(key: ALL_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
             allStops = cached
         }
         updateClosestStop()
@@ -137,11 +139,11 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     DispatchQueue.main.async {
                         if metroOnly {
                             self.metroStops = fetchedStops
-                            DiskCache.save(fetchedStops, key: "stops_metro")
+                            DiskCache.save(fetchedStops, key: METRO_STOPS_CACHE_KEY)
                             print("Fetched \(fetchedStops.count) metro stops")
                         } else {
                             self.allStops = fetchedStops
-                            DiskCache.save(fetchedStops, key: "stops_all")
+                            DiskCache.save(fetchedStops, key: ALL_STOPS_CACHE_KEY)
                             print("Fetched \(fetchedStops.count) stops")
                         }
 

@@ -6,46 +6,61 @@ import SwiftUI
 struct MetroDeparturesListView: View {
     let closestStop: ApiStop
     let departures: [ApiDeparture]?
+    let onRoutePreviewRequested: ((SheetIdItem) -> Void)?
 
-    @State private var routeIdPreview: SheetIdItem?
+    private var placeholderPlatforms: [ApiPlatform] {
+        closestStop.platforms.filter { platform in
+            platform.isMetro && !platform.routes.isEmpty
+        }
+    }
 
     var body: some View {
-        ForEach(closestStop.platforms, id: \.id) { platform in
-            let platformDepartures: [ApiDeparture]? = departures?.filter {
-                $0.platformId == platform.id
-            }
-
-            if platform.routes.count == 0 {
-                EmptyView()
-            } else if let platformDepartures, platformDepartures.count > 0 {
-                let route = platform.routes[0]
-                let nextDeparture = platformDepartures.count > 1 ? platformDepartures[1] : nil
-
-                ClosestStopPageListItemView(
-                    routeLabel: route.name,
-                    routeLabelBackground: getRouteColor(route.name),
-                    headsign: platformDepartures[0].headsign,
-                    departure: platformDepartures[0].departure.predicted,
-                    nextHeadsign: nextDeparture?.headsign,
-                    nextDeparture: nextDeparture?.departure.scheduled
-                ).onLongPressGesture {
-                    routeIdPreview = SheetIdItem(id: "L\(route.id)")
+        Group {
+            if let departureRows = buildMetroDepartureRows(
+                for: closestStop,
+                departures: departures
+            ) {
+                ForEach(departureRows) { departureRow in
+                    ClosestStopPageListItemView(
+                        routeLabel: departureRow.routeLabel,
+                        routeLabelBackground: getRouteColor(departureRow.routeLabel),
+                        headsign: departureRow.headsign,
+                        departure: departureRow.departure,
+                        nextHeadsign: departureRow.nextHeadsign,
+                        nextDeparture: departureRow.nextDeparture
+                    )
+                    .onLongPressGesture {
+                        if let previewRouteId = departureRow.previewRouteId {
+                            onRoutePreviewRequested?(
+                                SheetIdItem(
+                                    id: previewRouteId,
+                                    headsign: departureRow.headsign,
+                                    currentPlatformId: departureRow.platformId,
+                                    currentPlatformName: departureRow.platformName
+                                )
+                            )
+                        }
+                    }
                 }
             } else {
-                let route = platform.routes[0]
+                ForEach(placeholderPlatforms, id: \.id) { platform in
+                    let route = platform.routes[0]
 
-                ClosestStopPageListItemPlaceholderView(
-                    routeLabel: route.name,
-                    routeLabelBackground: getRouteColor(route.name)
-                )
-                .onLongPressGesture {
-                    routeIdPreview = SheetIdItem(id: "L\(route.id)")
+                    ClosestStopPageListItemPlaceholderView(
+                        routeLabel: route.name,
+                        routeLabelBackground: getRouteColor(route.name)
+                    )
+                    .onLongPressGesture {
+                        onRoutePreviewRequested?(
+                            SheetIdItem(
+                                id: route.backendRouteId,
+                                currentPlatformId: platform.id,
+                                currentPlatformName: platform.name
+                            )
+                        )
+                    }
                 }
             }
-        }
-        .sheet(item: $routeIdPreview) { item in
-            RoutePreviewView(routeId: item.id)
-                .presentationDetents([.medium, .large])
         }
     }
 }
