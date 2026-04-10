@@ -315,6 +315,25 @@ struct ApiRouteDetail: Decodable {
             return seenShapeKeys.insert(shape.deduplicationKey).inserted
         }
     }
+
+    func preferredMapShapes(
+        for direction: ApiRouteDirection
+    ) -> [ApiRouteShape] {
+        let directionShapes = shapes.filter { $0.directionId == direction.id }
+        let candidateShapes = directionShapes.isEmpty
+            ? preferredMapShapes
+            : directionShapes
+
+        var seenShapeKeys = Set<String>()
+
+        return candidateShapes.filter { shape in
+            guard shape.normalizedCoordinates.count > 1 else {
+                return false
+            }
+
+            return seenShapeKeys.insert(shape.deduplicationKey).inserted
+        }
+    }
 }
 
 struct ApiDepartureDate: Codable {
@@ -333,6 +352,120 @@ struct ApiDeparture: Codable {
 
     let route: String
     let routeId: String?
+    let isRealtime: Bool?
+}
+
+struct MetroDepartureRow: Identifiable {
+    let id: String
+    let routeLabel: String
+    let previewRouteId: String?
+    let headsign: String
+    let departure: Date
+    let nextHeadsign: String?
+    let nextDeparture: Date?
+    let platformId: String
+    let platformName: String
+}
+
+func buildPlatformDepartureGroups(
+    for platform: ApiPlatform,
+    departures: [ApiDeparture]?
+) -> [[ApiDeparture]]? {
+    guard let departures else {
+        return nil
+    }
+
+    let filteredDepartures = departures.filter { departure in
+        platform.supports(departure)
+    }
+
+    let departuresByRoute = Dictionary(
+        grouping: filteredDepartures,
+        by: { $0.route }
+    )
+
+    return Array(
+        departuresByRoute
+            .map(\.value)
+            .sorted(by: {
+                $0.first!.departure.predicted < $1.first!.departure.predicted
+            })
+    )
+}
+
+private struct MetroDepartureGroupKey: Hashable {
+    let routeLabel: String
+    let headsign: String
+}
+
+func buildMetroDepartureRows(
+    for stop: ApiStop,
+    departures: [ApiDeparture]?
+) -> [MetroDepartureRow]? {
+    guard let departures else {
+        return nil
+    }
+
+    let metroPlatforms = stop.platforms.filter(\.isMetro)
+    let metroPlatformsById = Dictionary(
+        uniqueKeysWithValues: metroPlatforms.map { platform in
+            (platform.id, platform)
+        }
+    )
+
+    let groupedDepartures = Dictionary(
+        grouping: departures.filter { departure in
+            guard let platform = metroPlatformsById[departure.platformId] else {
+                return false
+            }
+
+            return platform.supports(departure)
+        },
+        by: { departure in
+            MetroDepartureGroupKey(
+                routeLabel: departure.route,
+                headsign: departure.headsign.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+            )
+        }
+    )
+
+    return groupedDepartures.values
+        .compactMap { groupedDepartures -> MetroDepartureRow? in
+            let sortedDepartures = groupedDepartures.sorted { left, right in
+                left.departure.predicted < right.departure.predicted
+            }
+
+            guard
+                let departure = sortedDepartures.first,
+                let platform = metroPlatformsById[departure.platformId]
+            else {
+                return nil
+            }
+
+            let nextDeparture = sortedDepartures.dropFirst().first
+            let previewRouteId = departure.routeId
+                ?? platform.routes.first(where: { route in
+                    route.name == departure.route
+                })?.backendRouteId
+                ?? platform.routes.first?.backendRouteId
+
+            return MetroDepartureRow(
+                id: "\(departure.route)|\(departure.headsign)",
+                routeLabel: departure.route,
+                previewRouteId: previewRouteId,
+                headsign: departure.headsign,
+                departure: departure.departure.predicted,
+                nextHeadsign: nextDeparture?.headsign,
+                nextDeparture: nextDeparture?.departure.predicted,
+                platformId: platform.id,
+                platformName: platform.name
+            )
+        }
+        .sorted { left, right in
+            left.departure < right.departure
+        }
 }
 
 private extension Double {

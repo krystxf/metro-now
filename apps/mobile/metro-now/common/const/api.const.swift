@@ -4,7 +4,8 @@
 import Alamofire
 import Foundation
 
-let API_URL: String = "http://192.168.1.224:3009"
+let API_URL: String = "https://api.metronow.dev"
+let GRAPHQL_URL: String = "\(API_URL)/graphql"
 
 let apiSession: Session = {
     var headers = HTTPHeaders.default
@@ -15,11 +16,14 @@ let apiSession: Session = {
     let configuration = URLSessionConfiguration.default
     configuration.httpAdditionalHeaders = HTTPHeaders.default.dictionary
         .merging(headers.dictionary) { _, new in new }
-    configuration.urlCache = URLCache(
-        memoryCapacity: 10 * 1024 * 1024,
-        diskCapacity: 50 * 1024 * 1024
-    )
-    configuration.requestCachePolicy = .useProtocolCachePolicy
+    // TODO: re-enable caching
+//    configuration.urlCache = URLCache(
+//        memoryCapacity: 10 * 1024 * 1024,
+//        diskCapacity: 50 * 1024 * 1024
+//    )
+//    configuration.requestCachePolicy = .useProtocolCachePolicy
+    configuration.urlCache = nil
+    configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
 
     return Session(configuration: configuration)
 }()
