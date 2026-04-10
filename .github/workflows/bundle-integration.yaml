@@ -21,6 +21,11 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
+            - name: Create env files
+              run: |
+                  cp .env.docker.example .env.docker
+                  cp .env.web.docker.example .env.web.docker
+
             - name: Start bundle
               run: docker compose up -d --build
 
