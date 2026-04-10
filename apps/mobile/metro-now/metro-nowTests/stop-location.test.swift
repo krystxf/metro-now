@@ -5,7 +5,7 @@ import CoreLocation
 import Foundation
 import Testing
 
-@Suite("StopLocation", .tags(.api, .map))
+@Suite(.tags(.api, .map))
 struct StopLocationTests {
     @Test("prefers entrance centroid over averaged stop-group coordinate")
     func prefersEntranceCentroid() {
@@ -356,7 +356,7 @@ struct StopLocationTests {
     }
 }
 
-@Suite("MetroDepartureRows", .tags(.api))
+@Suite(.tags(.api))
 struct MetroDepartureRowsTests {
     private let baseDate = Date(timeIntervalSince1970: 1000)
 
@@ -473,7 +473,7 @@ struct MetroDepartureRowsTests {
     }
 }
 
-@Suite("PlatformDepartureGroups", .tags(.api))
+@Suite(.tags(.api))
 struct PlatformDepartureGroupsTests {
     private let baseDate = Date(timeIntervalSince1970: 1000)
 

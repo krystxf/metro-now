@@ -3,7 +3,7 @@
 
 import Testing
 
-@Suite("mapTransportMode", .tags(.routes, .map))
+@Suite(.tags(.routes, .map))
 struct MapTransportModeTests {
     @Test("train routes", arguments: ["S1", "R2", "S22"])
     func trainRoutes(routeName: String) {
@@ -51,7 +51,7 @@ struct MapTransportModeTests {
     }
 }
 
-@Suite("isMapVisibleRoute", .tags(.routes, .map))
+@Suite(.tags(.routes, .map))
 struct IsMapVisibleRouteTests {
     @Test("visible routes", arguments: ["S1", "1", "100", "P3", "LD", "LE 100", "95", "950"])
     func visibleRoutes(routeName: String) {

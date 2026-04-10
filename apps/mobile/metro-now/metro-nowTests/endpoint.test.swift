@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@Suite("endpoint", .tags(.api))
+@Suite(.tags(.api))
 struct EndpointTests {
     @Test("should not contain localhost")
     func notLocalhost() {

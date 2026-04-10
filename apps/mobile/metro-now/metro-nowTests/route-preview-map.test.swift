@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@Suite("RoutePreviewMap", .tags(.api, .map))
+@Suite(.tags(.api, .map))
 struct RoutePreviewMapTests {
     private func decodeRouteDetail(from json: String) throws -> ApiRouteDetail {
         try JSONDecoder().decode(ApiRouteDetail.self, from: Data(json.utf8))

@@ -3,7 +3,7 @@
 
 import Testing
 
-@Suite("isMetro", .tags(.routes))
+@Suite(.tags(.routes))
 struct IsMetroTests {
     @Test("metro lines", arguments: ["A", "B", "C"])
     func metroLines(routeName: String) {

@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@Suite("getRouteType", .tags(.routes))
+@Suite(.tags(.routes))
 struct GetRouteTypeTests {
     @Test("bus", arguments: ["X100", "X728", "100", "128", "245", "348", "899", "BB1", "BB2"])
     func getBusRouteType(routeName: String) {

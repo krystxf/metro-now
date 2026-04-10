@@ -3,7 +3,7 @@
 
 import Testing
 
-@Suite("uniqueBy", .tags(.utils))
+@Suite(.tags(.utils))
 struct UniqueByTests {
     @Test("removes duplicates by key selector")
     func removesDuplicatesByKey() {

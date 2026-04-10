@@ -3,7 +3,7 @@
 
 import Testing
 
-@Suite("getPlatformLabel", .tags(.utils))
+@Suite(.tags(.utils))
 struct GetPlatformLabelTests {
     @Test("includes platform code when present")
     func includesCode() {

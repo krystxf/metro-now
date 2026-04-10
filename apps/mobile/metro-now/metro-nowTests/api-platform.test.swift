@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@Suite("ApiPlatform.supports", .tags(.api))
+@Suite(.tags(.api))
 struct ApiPlatformSupportsTests {
     private let baseDate = Date(timeIntervalSince1970: 1000)
 
@@ -126,7 +126,7 @@ struct ApiPlatformSupportsTests {
     }
 }
 
-@Suite("ApiRoute.backendRouteId", .tags(.api))
+@Suite(.tags(.api))
 struct ApiRouteBackendRouteIdTests {
     @Test("adds L prefix when missing")
     func addsLPrefix() {

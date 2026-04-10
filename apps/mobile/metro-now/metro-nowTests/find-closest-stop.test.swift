@@ -4,7 +4,7 @@
 import CoreLocation
 import Testing
 
-@Suite("findClosestStop", .tags(.utils))
+@Suite(.tags(.utils))
 struct FindClosestStopTests {
     private func makeStop(
         id: String,

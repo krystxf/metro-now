@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@Suite("shortenStopName", .tags(.utils))
+@Suite(.tags(.utils))
 struct ShortenStopNameTests {
     @Test("static", arguments:
         zip([

@@ -4,7 +4,7 @@
 import SwiftUI
 import Testing
 
-@Suite("isSubstituteRoute", .tags(.routes))
+@Suite(.tags(.routes))
 struct IsSubstituteRouteTests {
     @Test("substitute routes start with X", arguments: ["X100", "X1", "XS1", "XP"])
     func substituteRoutes(routeName: String) {
@@ -22,7 +22,7 @@ struct IsSubstituteRouteTests {
     }
 }
 
-@Suite("isRailRoute", .tags(.routes))
+@Suite(.tags(.routes))
 struct IsRailRouteTests {
     @Test("metro lines are rail", arguments: ["A", "B", "C"])
     func metroIsRail(routeName: String) {
@@ -60,7 +60,7 @@ struct IsRailRouteTests {
     }
 }
 
-@Suite("getRouteColor", .tags(.routes))
+@Suite(.tags(.routes))
 struct GetRouteColorTests {
     @Test("substitute routes return orange")
     func substituteRoutesReturnOrange() {

@@ -5,7 +5,7 @@ import CoreLocation
 import MapKit
 import Testing
 
-@Suite("expandedRegion", .tags(.map))
+@Suite(.tags(.map))
 struct ExpandedRegionTests {
     @Test("expands region by padding factor")
     func expandsByFactor() {
@@ -46,7 +46,7 @@ struct ExpandedRegionTests {
     }
 }
 
-@Suite("isCoordinate(inside:)", .tags(.map))
+@Suite(.tags(.map))
 struct IsCoordinateInsideTests {
     private let region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 50.0, longitude: 14.0),
@@ -84,7 +84,7 @@ struct IsCoordinateInsideTests {
     }
 }
 
-@Suite("maximumRailAnnotationCount", .tags(.map))
+@Suite(.tags(.map))
 struct MaximumRailAnnotationCountTests {
     @Test("very close zoom returns highest count")
     func closeZoom() {
