@@ -3,7 +3,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g corepack
 RUN corepack enable
-RUN corepack prepare pnpm@9.1.0 --activate
+RUN corepack prepare pnpm@10.33.0 --activate
 
 RUN apt-get update \
     && apt-get install -y openssl \

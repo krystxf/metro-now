@@ -1,7 +1,10 @@
 {
     "name": "metro-now",
     "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
-    "packageManager": "pnpm@9.1.0",
+    "packageManager": "pnpm@10.33.0",
+    "engines": {
+        "pnpm": ">=10.16.0"
+    },
     "scripts": {
         "xcode": "xed ./apps/mobile/metro-now",
         "dev": "turbo run dev",
