@@ -56,8 +56,7 @@ func getRouteType(_ routeName: String?) -> RouteType {
     // ferry
     else if routeName.hasPrefix("P") {
         return RouteType.ferry
-    }
-    else if routeName.hasPrefix("BB") {
+    } else if routeName.hasPrefix("BB") {
         return RouteType.bus
     }
     // bus or tram

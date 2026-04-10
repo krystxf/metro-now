@@ -1,49 +1,211 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
+import AppIntents
+import Foundation
 import SwiftUI
+import WidgetKit
+
+/// Same formatting and `numericText` transition as `CountdownView`. `referenceNow` is `entry.date` from the
+/// timeline provider (staggered per-second entries) so the home screen updates without `TimelineView`.
+private struct WidgetDepartureCountdownText: View {
+    let targetDate: Date
+    var referenceNow: Date
+    var font: Font = .subheadline
+    var fontWeight: Font.Weight = .medium
+    var useSecondaryColor: Bool = false
+
+    var body: some View {
+        countdownText(remaining: targetDate.timeIntervalSince(referenceNow))
+    }
+
+    @ViewBuilder
+    private func countdownText(remaining: TimeInterval) -> some View {
+        let line = Text(getRemainingTime(remaining))
+            .font(font)
+            .fontWeight(fontWeight)
+            .monospacedDigit()
+            .contentTransition(.numericText(value: remaining))
+            .animation(.default, value: getRemainingTime(remaining))
+        if useSecondaryColor {
+            line.foregroundStyle(.secondary)
+        } else {
+            line
+        }
+    }
+}
+
+/// Single-unit age since refresh: "now", "30s ago", "20m ago", "4h ago", "3d ago".
+private func updatedAgoString(for date: Date, relativeTo now: Date) -> String {
+    let elapsed = max(0, now.timeIntervalSince(date))
+    if elapsed < 1 {
+        return "now"
+    }
+    if elapsed < 60 {
+        return "\(Int(elapsed))s ago"
+    }
+    if elapsed < 3600 {
+        return "\(Int(elapsed / 60))m ago"
+    }
+    if elapsed < 86400 {
+        return "\(Int(elapsed / 3600))h ago"
+    }
+    return "\(Int(elapsed / 86400))d ago"
+}
+
+struct DeparturesRefreshIntent: AppIntent {
+    static var title: LocalizedStringResource = "Refresh Departures"
+
+    func perform() async throws -> some IntentResult {
+        WidgetCenter.shared.reloadTimelines(ofKind: "MetroDepartures")
+        return .result()
+    }
+}
+
+/// Increments `spinToken` on tap so `symbolEffect` / rotation can replay (App Intent buttons).
+private struct DeparturesRefreshTapButtonStyle: ButtonStyle {
+    @Binding var spinToken: Int
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, pressed in
+                guard pressed else { return }
+                spinToken += 1
+            }
+    }
+}
 
 struct DeparturesWidgetView: View {
     var entry: DeparturesWidgetTimelineProvider.Entry
     @Environment(\.widgetFamily) var widgetFamily
+    @State private var refreshSpinToken: Int = 0
+
+    private var maxDepartures: Int {
+        switch widgetFamily {
+        case .systemLarge: 8
+        default: 4
+        }
+    }
+
+    private var showNextDeparture: Bool {
+        widgetFamily == .systemLarge
+    }
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Closest Metro Stop:")
-                .font(.headline)
-            Text(entry.closestStop)
-                .font(.title2)
-                .fontWeight(.bold)
+        let now = entry.date
+        VStack(alignment: .leading, spacing: 0) {
+            headerView(referenceNow: now)
 
-            if let location = entry.location {
-                Text("Current Location:")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                Text("Lat: \(location.coordinate.latitude, specifier: "%.4f"), Lon: \(location.coordinate.longitude, specifier: "%.4f")")
-                    .font(.footnote)
+            if entry.departures.isEmpty {
+                emptyStateView
             } else {
-                Text("Location not available")
-                    .font(.subheadline)
-                    .foregroundColor(.red)
+                departureListView(referenceNow: now)
             }
-
-            Divider()
-
-            Text("Next Departures:")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            ForEach(entry.departures, id: \.self) { departure in
-                Text(departure)
-                    .font(.footnote)
-            }
-
-            Spacer()
-
-            Text("Last refreshed: \(entry.date, style: .time)")
-                .foregroundStyle(.tertiary)
-                .font(.footnote)
         }
-        .padding()
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(.vertical, 1)
+        .padding(.horizontal, 1)
+    }
+
+    private func headerView(referenceNow: Date) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(entry.stopName)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(alignment: .top, spacing: 6) {
+                Text(updatedAgoString(for: entry.date, relativeTo: referenceNow))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: true, vertical: false)
+
+                refreshButton
+            }
+        }
+        .padding(.bottom, 1)
+    }
+
+    private var refreshButton: some View {
+        Button(intent: DeparturesRefreshIntent()) {
+            refreshIconImage
+        }
+        .buttonStyle(DeparturesRefreshTapButtonStyle(spinToken: $refreshSpinToken))
+    }
+
+    @ViewBuilder
+    private var refreshIconImage: some View {
+        if #available(iOS 18.0, *) {
+            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .symbolEffect(.rotate.byLayer, options: .nonRepeating, value: refreshSpinToken)
+        } else {
+            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .rotationEffect(.degrees(Double(refreshSpinToken) * 360))
+                .animation(.linear(duration: 0.55), value: refreshSpinToken)
+        }
+    }
+
+    private var emptyStateView: some View {
+        Text("No departures")
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+    }
+
+    private func departureListView(referenceNow: Date) -> some View {
+        VStack(alignment: .leading, spacing: widgetFamily == .systemLarge ? 6 : 4) {
+            ForEach(
+                Array(entry.departures.prefix(maxDepartures).enumerated()),
+                id: \.offset
+            ) { _, departure in
+                departureRow(departure, referenceNow: referenceNow)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func departureRow(_ departure: WidgetDepartureGroup, referenceNow: Date) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            RouteNameIconView(
+                label: departure.routeLabel,
+                background: getRouteColor(departure.routeLabel),
+                compact: true
+            )
+
+            Text(departure.headsign)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .trailing, spacing: 0) {
+                WidgetDepartureCountdownText(
+                    targetDate: departure.departureTime,
+                    referenceNow: referenceNow,
+                    font: .subheadline,
+                    fontWeight: .medium
+                )
+
+                if showNextDeparture, let nextTime = departure.nextDepartureTime {
+                    WidgetDepartureCountdownText(
+                        targetDate: nextTime,
+                        referenceNow: referenceNow,
+                        font: .caption2,
+                        fontWeight: .medium,
+                        useSecondaryColor: true
+                    )
+                }
+            }
+        }
     }
 }

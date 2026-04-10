@@ -49,8 +49,8 @@ class FrequencyWidgetManager: NSObject, ObservableObject, CLLocationManagerDeleg
     private func updateClosestMetroStop() {
         guard let location, let metroStops else { return }
         closestMetroStop = metroStops.min(by: {
-            let distance1 = location.distance(from: CLLocation(latitude: $0.avgLatitude, longitude: $0.avgLongitude))
-            let distance2 = location.distance(from: CLLocation(latitude: $1.avgLatitude, longitude: $1.avgLongitude))
+            let distance1 = $0.distance(to: location)
+            let distance2 = $1.distance(to: location)
             return distance1 < distance2
         })
     }

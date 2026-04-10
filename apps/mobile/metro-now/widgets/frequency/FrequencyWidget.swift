@@ -5,7 +5,7 @@ import SwiftUI
 import WidgetKit
 
 struct FrequencyWidget: Widget {
-    let kind: String = "Widgets"
+    let kind: String = "MetroFrequency"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: FrequencyWidgetTimelineProvider()) { entry in

@@ -143,8 +143,8 @@ struct RailStopSpatialIndex {
             )
         )
 
-        for x in minimumCell.x...maximumCell.x {
-            for y in minimumCell.y...maximumCell.y {
+        for x in minimumCell.x ... maximumCell.x {
+            for y in minimumCell.y ... maximumCell.y {
                 candidates.append(
                     contentsOf: buckets[RailStopGridCell(x: x, y: y)] ?? []
                 )
@@ -338,8 +338,8 @@ func isCoordinate(
     _ coordinate: CLLocationCoordinate2D,
     inside region: MKCoordinateRegion
 ) -> Bool {
-    let latitudeRange = (region.center.latitude - region.span.latitudeDelta / 2)...(region.center.latitude + region.span.latitudeDelta / 2)
-    let longitudeRange = (region.center.longitude - region.span.longitudeDelta / 2)...(region.center.longitude + region.span.longitudeDelta / 2)
+    let latitudeRange = (region.center.latitude - region.span.latitudeDelta / 2) ... (region.center.latitude + region.span.latitudeDelta / 2)
+    let longitudeRange = (region.center.longitude - region.span.longitudeDelta / 2) ... (region.center.longitude + region.span.longitudeDelta / 2)
 
     return latitudeRange.contains(coordinate.latitude)
         && longitudeRange.contains(coordinate.longitude)
