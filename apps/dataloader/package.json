@@ -9,7 +9,7 @@
         "dev": "nodemon --watch src --ext ts --exec \"pnpm run build && pnpm run start\"",
         "lint": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json",
         "lint:fix": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json --write",
-        "test:unit": "pnpm run build && node --test \"dist/**/*.spec.js\"",
+        "test:unit": "pnpm run build && node --test $(find dist -name '*.spec.js' -type f)",
         "types:check": "tsc --noEmit"
     },
     "keywords": [],
