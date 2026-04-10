@@ -4,6 +4,7 @@
 import Foundation
 import Testing
 
+@Suite("getRemainingTime", .tags(.utils))
 struct GetRemainingTimeTests {
     @Test(
         "zero",
