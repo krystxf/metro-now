@@ -6,6 +6,7 @@ import {
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
+import { buildGtfsPersistenceSnapshot } from "src/services/gtfs/gtfs-persistence.utils";
 import type {
     StopSnapshot,
     SyncedGtfsCalendar,
@@ -17,11 +18,10 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../../types/sync.types";
-import { parseCsvString } from "../../utils/csv.utils";
-import { fetchWithTimeout } from "../../utils/fetch.utils";
-import { logger } from "../../utils/logger";
-import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
+} from "src/types/sync.types";
+import { parseCsvString } from "src/utils/csv.utils";
+import { fetchWithTimeout } from "src/utils/fetch.utils";
+import { logger } from "src/utils/logger";
 
 const LEO_GTFS_ARCHIVE_URL =
     "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";

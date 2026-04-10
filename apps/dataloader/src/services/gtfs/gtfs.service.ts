@@ -3,10 +3,10 @@ import { z } from "zod";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import type { GtfsSnapshot } from "../../types/sync.types";
-import { parseCsvString } from "../../utils/csv.utils";
-import { fetchWithTimeout } from "../../utils/fetch.utils";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+import { buildGtfsPersistenceSnapshot } from "src/services/gtfs/gtfs-persistence.utils";
+import type { GtfsSnapshot } from "src/types/sync.types";
+import { parseCsvString } from "src/utils/csv.utils";
+import { fetchWithTimeout } from "src/utils/fetch.utils";
 
 const GTFS_ARCHIVE_URL = "https://data.pid.cz/PID_GTFS.zip";
 

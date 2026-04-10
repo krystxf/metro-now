@@ -1,6 +1,6 @@
 import cron, { type ScheduledTask } from "node-cron";
 
-import { logger } from "../../utils/logger";
+import { logger } from "src/utils/logger";
 
 export type CronJobState = {
     description: string;

@@ -1,8 +1,5 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
-import type { LogEntry, LogTransport } from "../../utils/logger";
-import { logger } from "../../utils/logger";
+import type { LogEntry, LogTransport } from "src/utils/logger";
+import { logger } from "src/utils/logger";
 
 class TestTransport implements LogTransport {
     readonly entries: LogEntry[] = [];
@@ -14,16 +11,18 @@ class TestTransport implements LogTransport {
     async flush(): Promise<void> {}
 }
 
-test("logger writes entries to the configured transport", async () => {
-    const transport = new TestTransport();
+describe("logger", () => {
+    it("writes entries to the configured transport", async () => {
+        const transport = new TestTransport();
 
-    logger.setTransport(transport);
-    logger.info("hello", { foo: "bar" });
-    await logger.flush();
-    logger.setTransport(null);
+        logger.setTransport(transport);
+        logger.info("hello", { foo: "bar" });
+        await logger.flush();
+        logger.setTransport(null);
 
-    assert.equal(transport.entries.length, 1);
-    assert.equal(transport.entries[0]?.level, "info");
-    assert.equal(transport.entries[0]?.message, "hello");
-    assert.deepEqual(transport.entries[0]?.context, { foo: "bar" });
+        expect(transport.entries).toHaveLength(1);
+        expect(transport.entries[0]?.level).toBe("info");
+        expect(transport.entries[0]?.message).toBe("hello");
+        expect(transport.entries[0]?.context).toEqual({ foo: "bar" });
+    });
 });

@@ -1,17 +1,14 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GtfsFeedId } from "@metro-now/database";
 
-import { buildGtfsPersistenceSnapshot } from "../../services/gtfs/gtfs-persistence.utils";
+import { buildGtfsPersistenceSnapshot } from "src/services/gtfs/gtfs-persistence.utils";
 import {
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
-} from "../../services/gtfs/gtfs.service";
-import { PidImportService } from "../../services/imports/pid-import.service";
-import { SyncSnapshotValidator } from "../../services/sync/sync-snapshot-validator.service";
-import type { SyncSnapshot } from "../../types/sync.types";
-import { parseCsvString } from "../../utils/csv.utils";
+} from "src/services/gtfs/gtfs.service";
+import { PidImportService } from "src/services/imports/pid-import.service";
+import { SyncSnapshotValidator } from "src/services/sync/sync-snapshot-validator.service";
+import type { SyncSnapshot } from "src/types/sync.types";
+import { parseCsvString } from "src/utils/csv.utils";
 
 const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
     const pidService = new PidImportService();
@@ -74,14 +71,12 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
         ],
     });
 
-    const platformIds = new Set(stopSnapshot.platforms.map((p) => p.id));
     const metroStopIds = new Set(
         stopSnapshot.platforms.flatMap((p) =>
             p.isMetro && p.stopId ? [p.stopId] : [],
         ),
     );
 
-    // GTFS shape data
     const { gtfsRouteShapes } = buildGtfsShapeDatasets({
         feedId: GtfsFeedId.PID,
         trips: [
@@ -118,7 +113,6 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
         routeIdsWithImportedPlatforms: new Set(["L991"]),
     });
 
-    // GTFS station entrances
     const { gtfsStationEntrances } = buildGtfsStationEntranceDataset({
         feedId: GtfsFeedId.PID,
         stops: [
@@ -150,7 +144,6 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
         importedMetroStopIds: metroStopIds,
     });
 
-    // GTFS persistence data from CSV
     const tripsCsv = [
         "trip_id,route_id,service_id,direction_id,shape_id",
         "T1,L991,SVC1,0,sh-a-0",
@@ -244,133 +237,102 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
     };
 };
 
-test("integration: full snapshot from PID import + GTFS builders passes validation", async () => {
-    const snapshot = await buildTestSnapshot();
-    const validator = new SyncSnapshotValidator();
+describe("full sync snapshot (integration)", () => {
+    it("passes SyncSnapshotValidator after PID import + GTFS builders", async () => {
+        const snapshot = await buildTestSnapshot();
+        const validator = new SyncSnapshotValidator();
 
-    assert.doesNotThrow(() => {
-        validator.validate(snapshot);
+        expect(() => {
+            validator.validate(snapshot);
+        }).not.toThrow();
     });
-});
 
-test("integration: full snapshot has consistent cross-references", async () => {
-    const snapshot = await buildTestSnapshot();
+    it("has consistent cross-references", async () => {
+        const snapshot = await buildTestSnapshot();
 
-    const stopIds = new Set(snapshot.stops.map((s) => s.id));
-    const platformIds = new Set(snapshot.platforms.map((p) => p.id));
-    const routeIds = new Set(snapshot.routes.map((r) => r.id));
-    const gtfsRouteIds = new Set(snapshot.gtfsRoutes.map((r) => r.id));
+        const stopIds = new Set(snapshot.stops.map((s) => s.id));
+        const platformIds = new Set(snapshot.platforms.map((p) => p.id));
+        const routeIds = new Set(snapshot.routes.map((r) => r.id));
+        const gtfsRouteIds = new Set(snapshot.gtfsRoutes.map((r) => r.id));
 
-    // all platforms reference valid stops
-    for (const platform of snapshot.platforms) {
-        if (platform.stopId) {
-            assert.ok(
-                stopIds.has(platform.stopId),
-                `Platform ${platform.id} → stop ${platform.stopId}`,
-            );
-        }
-    }
-
-    // all platform routes reference valid platforms and routes
-    for (const pr of snapshot.platformRoutes) {
-        assert.ok(
-            platformIds.has(pr.platformId),
-            `PlatformRoute → platform ${pr.platformId}`,
-        );
-        assert.ok(
-            routeIds.has(pr.routeId),
-            `PlatformRoute → route ${pr.routeId}`,
-        );
-    }
-
-    // all GTFS route stops reference valid GTFS routes and platforms
-    for (const rs of snapshot.gtfsRouteStops) {
-        assert.ok(
-            gtfsRouteIds.has(rs.routeId),
-            `GtfsRouteStop → route ${rs.routeId}`,
-        );
-        assert.ok(
-            platformIds.has(rs.platformId),
-            `GtfsRouteStop → platform ${rs.platformId}`,
-        );
-    }
-
-    // all GTFS route shapes reference valid GTFS routes
-    for (const shape of snapshot.gtfsRouteShapes) {
-        assert.ok(
-            gtfsRouteIds.has(shape.routeId),
-            `GtfsRouteShape → route ${shape.routeId}`,
-        );
-    }
-
-    // all GTFS station entrances reference valid stops
-    for (const entrance of snapshot.gtfsStationEntrances) {
-        assert.ok(
-            stopIds.has(entrance.stopId),
-            `GtfsStationEntrance → stop ${entrance.stopId}`,
-        );
-    }
-
-    // all GTFS trips reference valid GTFS routes
-    for (const trip of snapshot.gtfsTrips) {
-        assert.ok(
-            gtfsRouteIds.has(trip.routeId),
-            `GtfsTrip → route ${trip.routeId}`,
-        );
-    }
-});
-
-test("integration: full snapshot entity counts are correct", async () => {
-    const snapshot = await buildTestSnapshot();
-
-    assert.equal(snapshot.stops.length, 2);
-    assert.equal(snapshot.platforms.length, 4);
-    assert.equal(snapshot.routes.length, 1);
-    assert.equal(snapshot.gtfsRoutes.length, 1);
-    assert.equal(snapshot.gtfsRouteStops.length, 4);
-    assert.equal(snapshot.gtfsRouteShapes.length, 2);
-    assert.equal(snapshot.gtfsStationEntrances.length, 2);
-    assert.equal(snapshot.gtfsTrips.length, 2);
-    assert.equal(snapshot.gtfsStopTimes.length, 4);
-    assert.equal(snapshot.gtfsCalendars.length, 1);
-    assert.equal(snapshot.gtfsCalendarDates.length, 1);
-    assert.equal(snapshot.gtfsTransfers.length, 0);
-});
-
-test("integration: each route direction has exactly one primary shape", async () => {
-    const snapshot = await buildTestSnapshot();
-
-    const primaryByDirection = new Map<string, number>();
-
-    for (const shape of snapshot.gtfsRouteShapes) {
-        if (!shape.isPrimary) {
-            continue;
+        for (const platform of snapshot.platforms) {
+            if (platform.stopId) {
+                expect(stopIds.has(platform.stopId)).toBe(true);
+            }
         }
 
-        const key = `${shape.routeId}::${shape.directionId}`;
-        const count = (primaryByDirection.get(key) ?? 0) + 1;
+        for (const pr of snapshot.platformRoutes) {
+            expect(platformIds.has(pr.platformId)).toBe(true);
+            expect(routeIds.has(pr.routeId)).toBe(true);
+        }
 
-        primaryByDirection.set(key, count);
-    }
+        for (const rs of snapshot.gtfsRouteStops) {
+            expect(gtfsRouteIds.has(rs.routeId)).toBe(true);
+            expect(platformIds.has(rs.platformId)).toBe(true);
+        }
 
-    for (const [key, count] of primaryByDirection) {
-        assert.equal(count, 1, `Direction ${key} has ${count} primary shapes`);
-    }
-});
+        for (const shape of snapshot.gtfsRouteShapes) {
+            expect(gtfsRouteIds.has(shape.routeId)).toBe(true);
+        }
 
-test("integration: GTFS station entrances are only for metro stops", async () => {
-    const snapshot = await buildTestSnapshot();
+        for (const entrance of snapshot.gtfsStationEntrances) {
+            expect(stopIds.has(entrance.stopId)).toBe(true);
+        }
 
-    const metroStopIds = new Set(
-        snapshot.platforms.flatMap((p) =>
-            p.isMetro && p.stopId ? [p.stopId] : [],
-        ),
-    );
+        for (const trip of snapshot.gtfsTrips) {
+            expect(gtfsRouteIds.has(trip.routeId)).toBe(true);
+        }
+    });
 
-    for (const entrance of snapshot.gtfsStationEntrances) {
-        assert.ok(
-            metroStopIds.has(entrance.stopId),
-            `Entrance ${entrance.id} references non-metro stop ${entrance.stopId}`,
+    it("has the expected entity counts", async () => {
+        const snapshot = await buildTestSnapshot();
+
+        expect(snapshot.stops).toHaveLength(2);
+        expect(snapshot.platforms).toHaveLength(4);
+        expect(snapshot.routes).toHaveLength(1);
+        expect(snapshot.gtfsRoutes).toHaveLength(1);
+        expect(snapshot.gtfsRouteStops).toHaveLength(4);
+        expect(snapshot.gtfsRouteShapes).toHaveLength(2);
+        expect(snapshot.gtfsStationEntrances).toHaveLength(2);
+        expect(snapshot.gtfsTrips).toHaveLength(2);
+        expect(snapshot.gtfsStopTimes).toHaveLength(4);
+        expect(snapshot.gtfsCalendars).toHaveLength(1);
+        expect(snapshot.gtfsCalendarDates).toHaveLength(1);
+        expect(snapshot.gtfsTransfers).toHaveLength(0);
+    });
+
+    it("has exactly one primary shape per route direction", async () => {
+        const snapshot = await buildTestSnapshot();
+
+        const primaryByDirection = new Map<string, number>();
+
+        for (const shape of snapshot.gtfsRouteShapes) {
+            if (!shape.isPrimary) {
+                continue;
+            }
+
+            const key = `${shape.routeId}::${shape.directionId}`;
+            const count = (primaryByDirection.get(key) ?? 0) + 1;
+
+            primaryByDirection.set(key, count);
+        }
+
+        for (const [key, count] of primaryByDirection) {
+            expect(count).toBe(1);
+        }
+    });
+
+    it("only attaches GTFS station entrances to metro stops", async () => {
+        const snapshot = await buildTestSnapshot();
+
+        const metroStopIds = new Set(
+            snapshot.platforms.flatMap((p) =>
+                p.isMetro && p.stopId ? [p.stopId] : [],
+            ),
         );
-    }
+
+        for (const entrance of snapshot.gtfsStationEntrances) {
+            expect(metroStopIds.has(entrance.stopId)).toBe(true);
+        }
+    });
 });

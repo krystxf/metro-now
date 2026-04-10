@@ -33,9 +33,9 @@ import type {
     SyncedPlatformRoute,
     SyncedRoute,
     SyncedStop,
-} from "../../types/sync.types";
-import { getSyncCounts } from "../../types/sync.types";
-import { logger } from "../../utils/logger";
+} from "src/types/sync.types";
+import { getSyncCounts } from "src/types/sync.types";
+import { logger } from "src/utils/logger";
 
 const LOCK_KEY = BigInt(4_241_001);
 const ENTITY_BATCH_SIZE = 100;

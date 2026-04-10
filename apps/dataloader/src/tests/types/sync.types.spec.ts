@@ -1,10 +1,7 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GtfsFeedId } from "@metro-now/database";
 
-import type { SyncSnapshot } from "../../types/sync.types";
-import { getSyncCounts } from "../../types/sync.types";
+import type { SyncSnapshot } from "src/types/sync.types";
+import { getSyncCounts } from "src/types/sync.types";
 
 const createMinimalSnapshot = (): SyncSnapshot => ({
     stops: [{ id: "S1", name: "Stop", avgLatitude: 50, avgLongitude: 14 }],
@@ -67,36 +64,38 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
     gtfsTransfers: [],
 });
 
-test("getSyncCounts returns the correct count for each entity type", () => {
-    const snapshot = createMinimalSnapshot();
-    const counts = getSyncCounts(snapshot);
+describe("getSyncCounts", () => {
+    it("returns the correct count for each entity type", () => {
+        const snapshot = createMinimalSnapshot();
+        const counts = getSyncCounts(snapshot);
 
-    assert.equal(counts.stops, 1);
-    assert.equal(counts.platforms, 1);
-    assert.equal(counts.routes, 1);
-    assert.equal(counts.platformRoutes, 1);
-    assert.equal(counts.gtfsRoutes, 1);
-    assert.equal(counts.gtfsRouteStops, 1);
-    assert.equal(counts.gtfsRouteShapes, 1);
-    assert.equal(counts.gtfsStationEntrances, 0);
-    assert.equal(counts.gtfsTrips, 0);
-    assert.equal(counts.gtfsStopTimes, 0);
-    assert.equal(counts.gtfsCalendars, 0);
-    assert.equal(counts.gtfsCalendarDates, 0);
-    assert.equal(counts.gtfsTransfers, 0);
-});
-
-test("getSyncCounts reflects multiple items per entity", () => {
-    const snapshot = createMinimalSnapshot();
-
-    snapshot.stops.push({
-        id: "S2",
-        name: "Stop 2",
-        avgLatitude: 50.1,
-        avgLongitude: 14.1,
+        expect(counts.stops).toBe(1);
+        expect(counts.platforms).toBe(1);
+        expect(counts.routes).toBe(1);
+        expect(counts.platformRoutes).toBe(1);
+        expect(counts.gtfsRoutes).toBe(1);
+        expect(counts.gtfsRouteStops).toBe(1);
+        expect(counts.gtfsRouteShapes).toBe(1);
+        expect(counts.gtfsStationEntrances).toBe(0);
+        expect(counts.gtfsTrips).toBe(0);
+        expect(counts.gtfsStopTimes).toBe(0);
+        expect(counts.gtfsCalendars).toBe(0);
+        expect(counts.gtfsCalendarDates).toBe(0);
+        expect(counts.gtfsTransfers).toBe(0);
     });
 
-    const counts = getSyncCounts(snapshot);
+    it("reflects multiple items per entity", () => {
+        const snapshot = createMinimalSnapshot();
 
-    assert.equal(counts.stops, 2);
+        snapshot.stops.push({
+            id: "S2",
+            name: "Stop 2",
+            avgLatitude: 50.1,
+            avgLongitude: 14.1,
+        });
+
+        const counts = getSyncCounts(snapshot);
+
+        expect(counts.stops).toBe(2);
+    });
 });

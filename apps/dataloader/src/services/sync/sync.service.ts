@@ -1,25 +1,25 @@
 import type { DatabaseClient } from "@metro-now/database";
 
+import type { CacheInvalidationService } from "src/services/core/cache-invalidation.service";
+import { GtfsService } from "src/services/gtfs/gtfs.service";
+import { BratislavaImportService } from "src/services/imports/bratislava-import.service";
+import { BrnoImportService } from "src/services/imports/brno-import.service";
+import { LeoImportService } from "src/services/imports/leo-import.service";
+import { LiberecImportService } from "src/services/imports/liberec-import.service";
+import { PidImportService } from "src/services/imports/pid-import.service";
+import { PmdpImportService } from "src/services/imports/pmdp-import.service";
+import { UstiImportService } from "src/services/imports/usti-import.service";
+import { ZsrImportService } from "src/services/imports/zsr-import.service";
+import { SyncRepository } from "src/services/sync/sync-repository.service";
+import { SyncSnapshotValidator } from "src/services/sync/sync-snapshot-validator.service";
 import type {
     GtfsSnapshot,
     StopSnapshot,
     SyncRunResult,
     SyncSnapshot,
     SyncTrigger,
-} from "../../types/sync.types";
-import { logger } from "../../utils/logger";
-import type { CacheInvalidationService } from "../core/cache-invalidation.service";
-import { GtfsService } from "../gtfs/gtfs.service";
-import { BratislavaImportService } from "../imports/bratislava-import.service";
-import { BrnoImportService } from "../imports/brno-import.service";
-import { LeoImportService } from "../imports/leo-import.service";
-import { LiberecImportService } from "../imports/liberec-import.service";
-import { PidImportService } from "../imports/pid-import.service";
-import { PmdpImportService } from "../imports/pmdp-import.service";
-import { UstiImportService } from "../imports/usti-import.service";
-import { ZsrImportService } from "../imports/zsr-import.service";
-import { SyncRepository } from "./sync-repository.service";
-import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
+} from "src/types/sync.types";
+import { logger } from "src/utils/logger";
 
 export class SyncService {
     private readonly importService = new PidImportService();

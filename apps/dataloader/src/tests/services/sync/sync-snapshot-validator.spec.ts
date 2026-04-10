@@ -1,10 +1,7 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GtfsFeedId } from "@metro-now/database";
 
-import { SyncSnapshotValidator } from "../../../services/sync/sync-snapshot-validator.service";
-import type { SyncSnapshot } from "../../../types/sync.types";
+import { SyncSnapshotValidator } from "src/services/sync/sync-snapshot-validator.service";
+import type { SyncSnapshot } from "src/types/sync.types";
 
 const createSnapshot = (): SyncSnapshot => ({
     stops: [
@@ -164,336 +161,338 @@ const createSnapshot = (): SyncSnapshot => ({
     gtfsTransfers: [],
 });
 
-test("SyncSnapshotValidator accepts a consistent snapshot", () => {
-    const validator = new SyncSnapshotValidator();
+describe("SyncSnapshotValidator", () => {
+    it("accepts a consistent snapshot", () => {
+        const validator = new SyncSnapshotValidator();
 
-    assert.doesNotThrow(() => {
-        validator.validate(createSnapshot());
-    });
-});
-
-test("SyncSnapshotValidator rejects missing platform references", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteStops[0] = {
-        ...snapshot.gtfsRouteStops[0],
-        platformId: "missing-platform",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing platform 'missing-platform'/);
-});
-
-test("SyncSnapshotValidator rejects missing GTFS route shape references", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        routeId: "missing-route",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing route 'missing-route'/);
-});
-
-test("SyncSnapshotValidator rejects invalid GTFS route shape GeoJSON", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        geoJson: {
-            ...snapshot.gtfsRouteShapes[0].geoJson,
-            coordinates: [
-                [14.4, 95],
-                [14.5, 50.2],
-            ] as [number, number][],
-        },
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid latitude '95'/);
-});
-
-test("SyncSnapshotValidator rejects missing GTFS station entrance stop references", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsStationEntrances[0] = {
-        ...snapshot.gtfsStationEntrances[0],
-        stopId: "missing-stop",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing stop 'missing-stop'/);
-});
-
-test("SyncSnapshotValidator rejects empty stops dataset", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.stops = [];
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /empty stops dataset/);
-});
-
-test("SyncSnapshotValidator rejects empty platforms dataset", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.platforms = [];
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /empty platforms dataset/);
-});
-
-test("SyncSnapshotValidator rejects duplicate stop IDs", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.stops.push({ ...snapshot.stops[0] });
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /Duplicate stops record/);
-});
-
-test("SyncSnapshotValidator rejects duplicate platform IDs", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.platforms.push({ ...snapshot.platforms[0] });
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /Duplicate platforms record/);
-});
-
-test("SyncSnapshotValidator rejects platform referencing missing stop", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.platforms[0] = {
-        ...snapshot.platforms[0],
-        stopId: "missing-stop",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing stop 'missing-stop'/);
-});
-
-test("SyncSnapshotValidator rejects platform route referencing missing platform", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.platformRoutes[0] = {
-        ...snapshot.platformRoutes[0],
-        platformId: "missing-platform",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing platform 'missing-platform'/);
-});
-
-test("SyncSnapshotValidator rejects platform route referencing missing route", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.platformRoutes[0] = {
-        ...snapshot.platformRoutes[0],
-        routeId: "missing-route",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing route 'missing-route'/);
-});
-
-test("SyncSnapshotValidator rejects GTFS route stop with negative stop sequence", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteStops[0] = {
-        ...snapshot.gtfsRouteStops[0],
-        stopSequence: -1,
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid stop sequence/);
-});
-
-test("SyncSnapshotValidator rejects GTFS route shape with invalid trip count", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        tripCount: 0,
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid trip count/);
-});
-
-test("SyncSnapshotValidator rejects GTFS route shape with insufficient coordinates", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        geoJson: {
-            type: "LineString" as const,
-            coordinates: [[14.4, 50.1]],
-        },
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /insufficient coordinates/);
-});
-
-test("SyncSnapshotValidator rejects GTFS route shape with invalid longitude", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        geoJson: {
-            type: "LineString" as const,
-            coordinates: [
-                [200, 50.1],
-                [14.5, 50.2],
-            ] as [number, number][],
-        },
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid longitude '200'/);
-});
-
-test("SyncSnapshotValidator rejects GTFS trip referencing missing route", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsTrips[0] = {
-        ...snapshot.gtfsTrips[0],
-        routeId: "missing-route",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing route 'missing-route'/);
-});
-
-test("SyncSnapshotValidator rejects GTFS stop time referencing missing trip", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsStopTimes[0] = {
-        ...snapshot.gtfsStopTimes[0],
-        tripId: "missing-trip",
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing trip 'missing-trip'/);
-});
-
-test("SyncSnapshotValidator rejects GTFS stop time with negative stop sequence", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsStopTimes[0] = {
-        ...snapshot.gtfsStopTimes[0],
-        stopSequence: -1,
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid stop sequence/);
-});
-
-test("SyncSnapshotValidator rejects GTFS calendar date with invalid exception type", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsCalendarDates[0] = {
-        ...snapshot.gtfsCalendarDates[0],
-        exceptionType: 0,
-    };
-
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid exception type/);
-});
-
-test("SyncSnapshotValidator rejects multiple primary shapes for same route direction", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
-
-    snapshot.gtfsRouteShapes.push({
-        ...snapshot.gtfsRouteShapes[0],
-        shapeId: "shape-2",
-        isPrimary: true,
+        expect(() => {
+            validator.validate(createSnapshot());
+        }).not.toThrow();
     });
 
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /multiple primary shapes/);
-});
+    it("rejects missing platform references", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
 
-test("SyncSnapshotValidator rejects missing primary shape for a route direction", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
+        snapshot.gtfsRouteStops[0] = {
+            ...snapshot.gtfsRouteStops[0],
+            platformId: "missing-platform",
+        };
 
-    snapshot.gtfsRouteShapes[0] = {
-        ...snapshot.gtfsRouteShapes[0],
-        isPrimary: false,
-    };
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing platform 'missing-platform'/);
+    });
 
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /missing primary shape/);
-});
+    it("rejects missing GTFS route shape references", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
 
-test("SyncSnapshotValidator rejects GTFS station entrance with invalid latitude", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            routeId: "missing-route",
+        };
 
-    snapshot.gtfsStationEntrances[0] = {
-        ...snapshot.gtfsStationEntrances[0],
-        latitude: -91,
-    };
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing route 'missing-route'/);
+    });
 
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid latitude/);
-});
+    it("rejects invalid GTFS route shape GeoJSON", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
 
-test("SyncSnapshotValidator rejects GTFS station entrance with invalid longitude", () => {
-    const validator = new SyncSnapshotValidator();
-    const snapshot = createSnapshot();
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            geoJson: {
+                ...snapshot.gtfsRouteShapes[0].geoJson,
+                coordinates: [
+                    [14.4, 95],
+                    [14.5, 50.2],
+                ] as [number, number][],
+            },
+        };
 
-    snapshot.gtfsStationEntrances[0] = {
-        ...snapshot.gtfsStationEntrances[0],
-        longitude: 181,
-    };
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid latitude '95'/);
+    });
 
-    assert.throws(() => {
-        validator.validate(snapshot);
-    }, /invalid longitude/);
+    it("rejects missing GTFS station entrance stop references", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsStationEntrances[0] = {
+            ...snapshot.gtfsStationEntrances[0],
+            stopId: "missing-stop",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing stop 'missing-stop'/);
+    });
+
+    it("rejects empty stops dataset", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.stops = [];
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/empty stops dataset/);
+    });
+
+    it("rejects empty platforms dataset", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.platforms = [];
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/empty platforms dataset/);
+    });
+
+    it("rejects duplicate stop IDs", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.stops.push({ ...snapshot.stops[0] });
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/Duplicate stops record/);
+    });
+
+    it("rejects duplicate platform IDs", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.platforms.push({ ...snapshot.platforms[0] });
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/Duplicate platforms record/);
+    });
+
+    it("rejects platform referencing missing stop", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.platforms[0] = {
+            ...snapshot.platforms[0],
+            stopId: "missing-stop",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing stop 'missing-stop'/);
+    });
+
+    it("rejects platform route referencing missing platform", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.platformRoutes[0] = {
+            ...snapshot.platformRoutes[0],
+            platformId: "missing-platform",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing platform 'missing-platform'/);
+    });
+
+    it("rejects platform route referencing missing route", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.platformRoutes[0] = {
+            ...snapshot.platformRoutes[0],
+            routeId: "missing-route",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing route 'missing-route'/);
+    });
+
+    it("rejects GTFS route stop with negative stop sequence", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteStops[0] = {
+            ...snapshot.gtfsRouteStops[0],
+            stopSequence: -1,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid stop sequence/);
+    });
+
+    it("rejects GTFS route shape with invalid trip count", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            tripCount: 0,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid trip count/);
+    });
+
+    it("rejects GTFS route shape with insufficient coordinates", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            geoJson: {
+                type: "LineString" as const,
+                coordinates: [[14.4, 50.1]],
+            },
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/insufficient coordinates/);
+    });
+
+    it("rejects GTFS route shape with invalid longitude", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            geoJson: {
+                type: "LineString" as const,
+                coordinates: [
+                    [200, 50.1],
+                    [14.5, 50.2],
+                ] as [number, number][],
+            },
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid longitude '200'/);
+    });
+
+    it("rejects GTFS trip referencing missing route", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsTrips[0] = {
+            ...snapshot.gtfsTrips[0],
+            routeId: "missing-route",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing route 'missing-route'/);
+    });
+
+    it("rejects GTFS stop time referencing missing trip", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsStopTimes[0] = {
+            ...snapshot.gtfsStopTimes[0],
+            tripId: "missing-trip",
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing trip 'missing-trip'/);
+    });
+
+    it("rejects GTFS stop time with negative stop sequence", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsStopTimes[0] = {
+            ...snapshot.gtfsStopTimes[0],
+            stopSequence: -1,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid stop sequence/);
+    });
+
+    it("rejects GTFS calendar date with invalid exception type", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsCalendarDates[0] = {
+            ...snapshot.gtfsCalendarDates[0],
+            exceptionType: 0,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid exception type/);
+    });
+
+    it("rejects multiple primary shapes for same route direction", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteShapes.push({
+            ...snapshot.gtfsRouteShapes[0],
+            shapeId: "shape-2",
+            isPrimary: true,
+        });
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/multiple primary shapes/);
+    });
+
+    it("rejects missing primary shape for a route direction", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsRouteShapes[0] = {
+            ...snapshot.gtfsRouteShapes[0],
+            isPrimary: false,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/missing primary shape/);
+    });
+
+    it("rejects GTFS station entrance with invalid latitude", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsStationEntrances[0] = {
+            ...snapshot.gtfsStationEntrances[0],
+            latitude: -91,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid latitude/);
+    });
+
+    it("rejects GTFS station entrance with invalid longitude", () => {
+        const validator = new SyncSnapshotValidator();
+        const snapshot = createSnapshot();
+
+        snapshot.gtfsStationEntrances[0] = {
+            ...snapshot.gtfsStationEntrances[0],
+            longitude: 181,
+        };
+
+        expect(() => {
+            validator.validate(snapshot);
+        }).toThrow(/invalid longitude/);
+    });
 });
