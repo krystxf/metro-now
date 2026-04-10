@@ -111,60 +111,63 @@ describe("Route Module (e2e)", () => {
                 },
             },
         };
+        const leoRouteLtl252 = {
+            id: "LTL:252",
+            shortName: "LE 1215",
+            longName: "Leo Express",
+            color: "000000",
+            url: null,
+            type: "100",
+            directions: [
+                {
+                    id: "0",
+                    platforms: [
+                        {
+                            id: "TLP:5457076",
+                            latitude: 50.083875,
+                            longitude: 14.435949,
+                            name: "Praha hl.n.",
+                            isMetro: false,
+                            code: null,
+                        },
+                    ],
+                },
+            ],
+            shapes: [
+                {
+                    id: "generated:252:0",
+                    directionId: "0",
+                    tripCount: 2,
+                    geoJson: JSON.stringify({
+                        type: "LineString",
+                        coordinates: [
+                            [14.435949, 50.083875],
+                            [17.185, 49.593],
+                        ],
+                    }),
+                    points: [
+                        {
+                            latitude: 50.083875,
+                            longitude: 14.435949,
+                        },
+                        {
+                            latitude: 49.593,
+                            longitude: 17.185,
+                        },
+                    ],
+                },
+            ],
+        };
+
         const mockLeoGtfsService = {
+            getRouteById(id: string) {
+                return Promise.resolve(
+                    id === "LTL:252" ? leoRouteLtl252 : null,
+                );
+            },
             getRoutesByIds(ids: readonly string[]) {
                 return Promise.resolve(
-                    ids.includes("LTL:252")
-                        ? [
-                              {
-                                  id: "LTL:252",
-                                  shortName: "LE 1215",
-                                  longName: "Leo Express",
-                                  color: "000000",
-                                  url: null,
-                                  type: "100",
-                                  directions: [
-                                      {
-                                          id: "0",
-                                          platforms: [
-                                              {
-                                                  id: "TLP:5457076",
-                                                  latitude: 50.083875,
-                                                  longitude: 14.435949,
-                                                  name: "Praha hl.n.",
-                                                  isMetro: false,
-                                                  code: null,
-                                              },
-                                          ],
-                                      },
-                                  ],
-                                  shapes: [
-                                      {
-                                          id: "generated:252:0",
-                                          directionId: "0",
-                                          tripCount: 2,
-                                          geoJson: JSON.stringify({
-                                              type: "LineString",
-                                              coordinates: [
-                                                  [14.435949, 50.083875],
-                                                  [17.185, 49.593],
-                                              ],
-                                          }),
-                                          points: [
-                                              {
-                                                  latitude: 50.083875,
-                                                  longitude: 14.435949,
-                                              },
-                                              {
-                                                  latitude: 49.593,
-                                                  longitude: 17.185,
-                                              },
-                                          ],
-                                      },
-                                  ],
-                              },
-                          ]
-                        : [],
+                    ids.includes("LTL:252") ? [leoRouteLtl252] : [],
                 );
             },
             getRoutes() {

@@ -9,6 +9,9 @@ import {
     uniqueSortedStrings,
 } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
+import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
+import { isLeoRouteId } from "src/modules/leo/leo-id.utils";
+import type { LeoRoute } from "src/modules/leo/leo.types";
 import {
     toLookupRouteId,
     toPublicRouteId,
@@ -95,6 +98,28 @@ const processRoute = (
 
 type GraphQLRouteRecord = ReturnType<typeof processRoute>;
 
+const leoRouteToGraphQLRecord = (leo: LeoRoute): GraphQLRouteRecord => ({
+    id: leo.id,
+    shortName: leo.shortName,
+    longName: leo.longName ?? "",
+    isNight: false,
+    color: leo.color ?? "",
+    url: leo.url,
+    type: leo.type,
+    name: leo.shortName,
+    directions: leo.directions.map((direction) => ({
+        id: direction.id,
+        platforms: direction.platforms.map((platform) => ({ ...platform })),
+    })),
+    shapes: leo.shapes.map((shape) => ({
+        id: shape.id,
+        directionId: shape.directionId,
+        tripCount: shape.tripCount,
+        geoJson: shape.geoJson,
+        points: shape.points.map((point) => ({ ...point })),
+    })),
+});
+
 const ROUTE_DATA_CACHE_TTL_MS = CACHE_TTL.routeData;
 
 @Injectable()
@@ -103,6 +128,7 @@ export class RouteService {
 
     constructor(
         private readonly database: DatabaseService,
+        private readonly leoGtfsService: LeoGtfsService,
         @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     ) {}
 
@@ -329,9 +355,21 @@ export class RouteService {
         return this.cacheManager.wrap(
             CACHE_KEYS.route.getOneGraphQL(id),
             async () => {
-                const [route] = await this.loadGraphQLRoutesByIds([id]);
+                const lookupId = toLookupRouteId(id);
+                const [route] = await this.loadGraphQLRoutesByIds([lookupId]);
 
-                return route ?? null;
+                if (route) {
+                    return route;
+                }
+
+                if (isLeoRouteId(lookupId)) {
+                    const leoRoute =
+                        await this.leoGtfsService.getRouteById(lookupId);
+
+                    return leoRoute ? leoRouteToGraphQLRecord(leoRoute) : null;
+                }
+
+                return null;
             },
             ROUTE_DATA_CACHE_TTL_MS,
         );
@@ -345,13 +383,26 @@ export class RouteService {
             getCacheKey: CACHE_KEYS.route.getOneGraphQL,
             keys: ids,
             loadMissing: async (missingIds) => {
-                const routes = await this.loadGraphQLRoutesByIds(missingIds);
+                const dbIds = missingIds.filter((key) => !isLeoRouteId(key));
+                const leoIds = missingIds.filter((key) => isLeoRouteId(key));
+
+                const [dbRoutes, leoRoutes] = await Promise.all([
+                    this.loadGraphQLRoutesByIds(dbIds),
+                    leoIds.length > 0
+                        ? this.leoGtfsService.getRoutesByIds(leoIds)
+                        : Promise.resolve([] as LeoRoute[]),
+                ]);
+
                 const result = new Map<string, GraphQLRouteRecord | null>(
-                    missingIds.map((id) => [id, null]),
+                    missingIds.map((key) => [key, null]),
                 );
 
-                for (const route of routes) {
+                for (const route of dbRoutes) {
                     result.set(toLookupRouteId(route.id), route);
+                }
+
+                for (const leoRoute of leoRoutes) {
+                    result.set(leoRoute.id, leoRouteToGraphQLRecord(leoRoute));
                 }
 
                 return result;

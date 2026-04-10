@@ -2,6 +2,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Test, type TestingModule } from "@nestjs/testing";
 
 import { DatabaseService } from "src/modules/database/database.service";
+import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import { RouteService } from "src/modules/route/route.service";
 import { VehicleType } from "src/types/graphql.generated";
 
@@ -22,6 +23,13 @@ describe("RouteService", () => {
                         get: jest.fn(),
                         set: jest.fn(),
                         wrap: jest.fn(),
+                    },
+                },
+                {
+                    provide: LeoGtfsService,
+                    useValue: {
+                        getRouteById: jest.fn(),
+                        getRoutesByIds: jest.fn(),
                     },
                 },
             ],
