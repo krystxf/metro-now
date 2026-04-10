@@ -8,6 +8,8 @@ import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import { DepartureController } from "src/modules/departure/departure.controller";
 import { DepartureResolver } from "src/modules/departure/departure.resolver";
 import { GolemioModule } from "src/modules/golemio/golemio.module";
+import { LeoModule } from "src/modules/leo/leo.module";
+import { StopDataModule } from "src/modules/stop/stop-data.module";
 
 @Module({
     controllers: [DepartureController],
@@ -17,6 +19,12 @@ import { GolemioModule } from "src/modules/golemio/golemio.module";
         DepartureServiceV2,
         DepartureResolver,
     ],
-    imports: [GolemioModule, DataloaderModule, RoutesByPlatformIdLoaderModule],
+    imports: [
+        GolemioModule,
+        DataloaderModule,
+        RoutesByPlatformIdLoaderModule,
+        LeoModule,
+        StopDataModule,
+    ],
 })
 export class DepartureModule {}

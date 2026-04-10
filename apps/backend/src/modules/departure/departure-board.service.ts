@@ -35,8 +35,8 @@ export class DepartureBoardService {
                       .selectFrom("Platform")
                       .select("id")
                       .where("id", "in", [...platformIds])
-                      .$if(Boolean(metroOnly), (query) =>
-                          query.where("isMetro", "=", true),
+                      .$if(metroOnly !== undefined, (query) =>
+                          query.where("isMetro", "=", metroOnly!),
                       )
                       .execute();
         const stopPlatforms =
@@ -46,8 +46,8 @@ export class DepartureBoardService {
                       .selectFrom("Platform")
                       .select("id")
                       .where("stopId", "in", [...stopIds])
-                      .$if(Boolean(metroOnly), (query) =>
-                          query.where("isMetro", "=", true),
+                      .$if(metroOnly !== undefined, (query) =>
+                          query.where("isMetro", "=", metroOnly!),
                       )
                       .execute();
 

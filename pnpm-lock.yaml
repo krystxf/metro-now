@@ -23,6 +23,9 @@ importers:
       '@as-integrations/express5':
         specifier: ^1.1.2
         version: 1.1.2(@apollo/server@5.5.0(graphql@16.13.2))(express@5.2.1)
+      '@fast-csv/parse':
+        specifier: ^5.0.5
+        version: 5.0.5
       '@keyv/redis':
         specifier: ^5.1.6
         version: 5.1.6(keyv@5.6.0)
@@ -83,6 +86,9 @@ importers:
       ts-morph:
         specifier: ^25.0.1
         version: 25.0.1
+      unzipper:
+        specifier: ^0.12.3
+        version: 0.12.3
       zod:
         specifier: ^3.24.2
         version: 3.24.2

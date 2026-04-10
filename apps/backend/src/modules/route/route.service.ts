@@ -10,6 +10,11 @@ import {
 } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import {
+    toLookupRouteId,
+    toPublicRouteId,
+} from "src/modules/route/route-id.utils";
+import { getVehicleTypeFromGtfsType } from "src/modules/route/route-vehicle-type.utils";
+import {
     BUS_PREFIXES,
     METRO_LINES,
     TRAIN_PREFIXES,
@@ -62,8 +67,9 @@ const processRoute = (
 
     return {
         ...route,
-        id: route.id.slice(1),
+        id: toPublicRouteId(route.id),
         name: route.shortName,
+        isNight: route.isNight ?? false,
         directions: Object.entries(
             group(routeStops, ({ directionId }) => directionId),
         ).map(([key, value]) => ({
@@ -291,7 +297,7 @@ export class RouteService {
         );
         const routes = await this.loadGraphQLRoutesByIds(routeIds);
         const routeById = new Map<string, GraphQLRouteRecord>(
-            routes.map((route) => [`L${route.id}` as const, route]),
+            routes.map((route) => [toLookupRouteId(route.id), route] as const),
         );
 
         for (const { platformId, routeId } of routeLinks) {
@@ -345,7 +351,7 @@ export class RouteService {
                 );
 
                 for (const route of routes) {
-                    result.set(`L${route.id}`, route);
+                    result.set(toLookupRouteId(route.id), route);
                 }
 
                 return result;
@@ -398,6 +404,24 @@ export class RouteService {
     }
 
     getVehicleType(routeName: string): VehicleType {
+        return this.getVehicleTypeForRoute({
+            routeName,
+        });
+    }
+
+    getVehicleTypeForRoute({
+        routeName,
+        gtfsRouteType,
+    }: {
+        routeName: string;
+        gtfsRouteType?: string | null;
+    }): VehicleType {
+        const gtfsVehicleType = getVehicleTypeFromGtfsType(gtfsRouteType);
+
+        if (gtfsVehicleType) {
+            return gtfsVehicleType;
+        }
+
         const routeNameParsed = this.getNameWithoutSubstitute(routeName);
         const routeNumber = Number.parseInt(routeNameParsed);
 

@@ -51,6 +51,12 @@ export const CACHE_KEYS = {
         getGolemioData: (url: string) =>
             buildCacheKey("golemio.getGolemioData", url),
     },
+    transitland: {
+        get: (path: string) => buildCacheKey("transitland.get", path),
+    },
+    leo: {
+        getCatalog: "leo.getCatalog",
+    },
     platform: {
         getAllGraphQL: (params: unknown) =>
             buildCacheKey("platform.getAllGraphQL", params),
@@ -112,5 +118,7 @@ export const CACHE_TTL = {
     infotexts: ttl({ minutes: 5 }),
     golemioDepartureBoards: ttl({ seconds: 10 }),
     golemioDefault: ttl({ seconds: 30 }),
+    transitlandDepartures: ttl({ seconds: 30 }),
+    leoCatalog: ttl({ minutes: 30 }),
     statusChecks: ttl({ seconds: 30 }),
 };

@@ -1,6 +1,7 @@
 import { Injectable, Scope } from "@nestjs/common";
 import * as DataLoader from "dataloader";
 
+import { toLookupRouteId } from "src/modules/route/route-id.utils";
 import { RouteService } from "src/modules/route/route.service";
 
 type Route = Awaited<ReturnType<RouteService["getGraphQLByIds"]>>[number];
@@ -13,9 +14,7 @@ export class RouteByIdLoader extends DataLoader<string, Route | null> {
 
     private async batchLoadFn(routeIds: readonly string[]) {
         const routes = await this.routeService.getGraphQLByIds(routeIds);
-        const routeMap = new Map(
-            routes.map((route) => [`L${route.id}`, route]),
-        );
+        const routeMap = new Map(routes.map((route) => [toLookupRouteId(route.id), route]));
 
         return routeIds.map((id) => routeMap.get(id) ?? null);
     }

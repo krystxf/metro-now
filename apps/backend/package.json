@@ -22,6 +22,7 @@
     "dependencies": {
         "@apollo/server": "^5.5.0",
         "@as-integrations/express5": "^1.1.2",
+        "@fast-csv/parse": "^5.0.5",
         "@keyv/redis": "^5.1.6",
         "@metro-now/database": "workspace:*",
         "@metro-now/shared": "workspace:*",
@@ -33,8 +34,8 @@
         "@nestjs/graphql": "^13.2.4",
         "@nestjs/platform-express": "^11.1.17",
         "@nestjs/swagger": "^11.2.6",
-        "cacheable": "^2.3.4",
         "cache-manager": "^7.2.8",
+        "cacheable": "^2.3.4",
         "dataloader": "^2.2.3",
         "graphql": "^16.13.2",
         "keyv": "^5.6.0",
@@ -42,6 +43,7 @@
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.2",
         "ts-morph": "^25.0.1",
+        "unzipper": "^0.12.3",
         "zod": "^3.24.2"
     },
     "devDependencies": {
@@ -63,14 +65,22 @@
         "typescript": "^5.8.3"
     },
     "jest": {
-        "moduleFileExtensions": ["js", "json", "ts"],
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
         "rootDir": "./",
-        "modulePaths": ["<rootDir>"],
+        "modulePaths": [
+            "<rootDir>"
+        ],
         "testRegex": ".*\\.spec\\.ts$",
         "transform": {
             "^.+\\.ts$": "ts-jest"
         },
-        "collectCoverageFrom": ["**/*.(t|j)s"],
+        "collectCoverageFrom": [
+            "**/*.(t|j)s"
+        ],
         "coverageDirectory": "../coverage",
         "testEnvironment": "node"
     }
