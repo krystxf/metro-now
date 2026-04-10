@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { LogEntry, LogTransport } from "./logger";
-import { logger } from "./logger";
+import type { LogEntry, LogTransport } from "../../utils/logger";
+import { logger } from "../../utils/logger";
 
 class TestTransport implements LogTransport {
     readonly entries: LogEntry[] = [];

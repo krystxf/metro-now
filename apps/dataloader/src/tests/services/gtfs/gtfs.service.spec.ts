@@ -7,7 +7,7 @@ import {
     GtfsService,
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
-} from "./gtfs.service";
+} from "../../../services/gtfs/gtfs.service";
 
 test("buildGtfsShapeDatasets derives route geometries and primary shapes", () => {
     const datasets = buildGtfsShapeDatasets({

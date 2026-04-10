@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PidImportService } from "./pid-import.service";
+import { PidImportService } from "../../../services/imports/pid-import.service";
 
 test("PidImportService prefers the metro platform name for metro stop groups", () => {
     const service = new PidImportService();

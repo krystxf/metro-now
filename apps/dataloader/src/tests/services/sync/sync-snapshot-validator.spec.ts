@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import type { SyncSnapshot } from "../../types/sync.types";
-import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
+import { SyncSnapshotValidator } from "../../../services/sync/sync-snapshot-validator.service";
+import type { SyncSnapshot } from "../../../types/sync.types";
 
 const createSnapshot = (): SyncSnapshot => ({
     stops: [

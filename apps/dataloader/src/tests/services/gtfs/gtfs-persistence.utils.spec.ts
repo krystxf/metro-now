@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+import { buildGtfsPersistenceSnapshot } from "../../../services/gtfs/gtfs-persistence.utils";
 
 test("buildGtfsPersistenceSnapshot parses trips with all optional fields", () => {
     const result = buildGtfsPersistenceSnapshot({

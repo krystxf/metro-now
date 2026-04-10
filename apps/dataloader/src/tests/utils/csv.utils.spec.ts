@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseCsvString } from "./csv.utils";
+import { parseCsvString } from "../../utils/csv.utils";
 
 test("parseCsvString parses a basic CSV with headers", async () => {
     const csv = "name,value\nfoo,1\nbar,2";

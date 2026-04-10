@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { fetchWithTimeout } from "./fetch.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
 
 test("fetchWithTimeout wraps network errors with the URL", async () => {
     await assert.rejects(

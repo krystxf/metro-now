@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import type { SyncSnapshot } from "./sync.types";
-import { getSyncCounts } from "./sync.types";
+import type { SyncSnapshot } from "../../types/sync.types";
+import { getSyncCounts } from "../../types/sync.types";
 
 const createMinimalSnapshot = (): SyncSnapshot => ({
     stops: [{ id: "S1", name: "Stop", avgLatitude: 50, avgLongitude: 14 }],
