@@ -54,15 +54,15 @@ enum PidZoneBorderLoader {
     private static func loadSynchronously() -> [PidZoneBorderPolyline] {
         guard
             let fileURL =
-                Bundle.main.url(
-                    forResource: "PID-zones",
-                    withExtension: "geojson",
-                    subdirectory: "geojson"
-                )
-                ?? Bundle.main.url(
-                    forResource: "PID-zones",
-                    withExtension: "geojson"
-                )
+            Bundle.main.url(
+                forResource: "PID-zones",
+                withExtension: "geojson",
+                subdirectory: "geojson"
+            )
+            ?? Bundle.main.url(
+                forResource: "PID-zones",
+                withExtension: "geojson"
+            )
         else {
             print("PID zones GeoJSON is missing from the app bundle")
             return []

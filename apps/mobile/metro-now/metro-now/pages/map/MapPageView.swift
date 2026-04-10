@@ -117,7 +117,6 @@ private enum MapStyleOption {
             .satelliteStreets
         }
     }
-
 }
 
 @MainActor
@@ -212,6 +211,7 @@ struct MapPageView: View {
     }
 
     @EnvironmentObject var stopsViewModel: StopsViewModel
+    @EnvironmentObject var favoritesViewModel: FavoritesViewModel
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage(AppStorageKeys.mapStyle.rawValue)
     private var isSatelliteMode = false
@@ -231,6 +231,7 @@ struct MapPageView: View {
         FeatureCollection(features: [])
     )
     @State private var cachedRoutePolylines: [FlatRoutePolyline] = []
+    @State private var selectedStop: ApiStop?
     @State private var hasConfiguredInitialCamera = false
     @State private var hasLoadedPidZoneBorders = false
     @State private var currentZoom: CGFloat = 11
@@ -591,6 +592,9 @@ struct MapPageView: View {
                                     )
                                 }
                             }
+                            .onTapGesture {
+                                selectedStop = annotation.stop
+                            }
 
                             if shouldShowLabel(for: annotation) {
                                 Text(annotation.stopName)
@@ -719,5 +723,41 @@ struct MapPageView: View {
             hasConfiguredInitialCamera = true
         }
         .ignoresSafeArea(edges: [.top, .bottom])
+        .sheet(item: $selectedStop) { stop in
+            let originalStopId = stopsViewModel.stops?.first { original in
+                stop.platforms.contains { platform in
+                    original.platforms.contains { $0.id == platform.id }
+                }
+            }?.id ?? stop.id
+
+            NavigationView {
+                SearchStopDetailView(
+                    stop: stop,
+                    viewModel: SearchPageDetailViewModel(
+                        platformIds: stop.platforms.map(\.id)
+                    )
+                )
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            favoritesViewModel.toggleFavorite(originalStopId)
+                        } label: {
+                            Image(
+                                systemName: favoritesViewModel.isFavorite(originalStopId)
+                                    ? "star.fill"
+                                    : "star"
+                            )
+                            .foregroundStyle(
+                                favoritesViewModel.isFavorite(originalStopId)
+                                    ? .yellow
+                                    : .gray
+                            )
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 }
