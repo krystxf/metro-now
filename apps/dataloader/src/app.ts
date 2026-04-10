@@ -22,8 +22,6 @@ const cacheInvalidation = new CacheInvalidationService(redisHost, redisPort);
 const syncService = new SyncService(databaseService.db, {
     entityBatchSize: env.entityBatchSize,
     relationBatchSize: env.relationBatchSize,
-    batchDelayMs: env.batchDelayMs,
-    phaseDelayMs: env.phaseDelayMs,
     cacheInvalidation,
 });
 const cronService = new CronService();
@@ -158,12 +156,8 @@ const bootstrap = async (): Promise<void> => {
         logger.info("Dataloader listening", {
             port: env.port,
             syncSchedule: env.syncSchedule,
-            throttle: {
-                entityBatchSize: env.entityBatchSize,
-                relationBatchSize: env.relationBatchSize,
-                batchDelayMs: env.batchDelayMs,
-                phaseDelayMs: env.phaseDelayMs,
-            },
+            entityBatchSize: env.entityBatchSize,
+            relationBatchSize: env.relationBatchSize,
         });
     });
 };

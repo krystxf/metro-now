@@ -8,8 +8,6 @@ type DataloaderEnv = {
     syncSchedule: string;
     entityBatchSize: number;
     relationBatchSize: number;
-    batchDelayMs: number;
-    phaseDelayMs: number;
 };
 
 const dataloaderEnvSchema = commonServerEnvSchema.extend({
@@ -25,8 +23,6 @@ const dataloaderEnvSchema = commonServerEnvSchema.extend({
         .int()
         .positive()
         .default(500),
-    DATALOADER_BATCH_DELAY_MS: z.coerce.number().int().min(0).default(0),
-    DATALOADER_PHASE_DELAY_MS: z.coerce.number().int().min(0).default(0),
 });
 
 const ENV_FILES = [
@@ -64,7 +60,5 @@ export const getDataloaderEnv = (): DataloaderEnv => {
         syncSchedule: env.SYNC_CRON,
         entityBatchSize: env.DATALOADER_ENTITY_BATCH_SIZE,
         relationBatchSize: env.DATALOADER_RELATION_BATCH_SIZE,
-        batchDelayMs: env.DATALOADER_BATCH_DELAY_MS,
-        phaseDelayMs: env.DATALOADER_PHASE_DELAY_MS,
     };
 };

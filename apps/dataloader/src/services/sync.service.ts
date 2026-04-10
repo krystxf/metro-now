@@ -34,7 +34,6 @@ export class SyncService {
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
     private readonly cacheInvalidation: CacheInvalidationService | null;
-    private readonly phaseDelayMs: number;
     private activeSync: Promise<SyncRunResult> | undefined;
     private lastRun: SyncRunResult | undefined;
 
@@ -43,14 +42,11 @@ export class SyncService {
         options: {
             entityBatchSize?: number;
             relationBatchSize?: number;
-            batchDelayMs?: number;
-            phaseDelayMs?: number;
             cacheInvalidation?: CacheInvalidationService;
         } = {},
     ) {
         this.repository = new SyncRepository(db, options);
         this.cacheInvalidation = options.cacheInvalidation ?? null;
-        this.phaseDelayMs = options.phaseDelayMs ?? 0;
     }
 
     async syncEverything(trigger: SyncTrigger): Promise<SyncRunResult> {
@@ -93,10 +89,6 @@ export class SyncService {
         this.logGtfsStationEntranceSnapshot(snapshot);
 
         this.validator.validate(snapshot);
-        await this.pauseBetweenPhases(
-            "snapshot validation",
-            "database persistence",
-        );
 
         const persistenceResult = await this.repository.persist(snapshot);
         const finishedAt = new Date();
@@ -155,11 +147,8 @@ export class SyncService {
 
     private async createSnapshot(): Promise<SyncSnapshot> {
         const stopSnapshot = await this.importService.getStopSnapshot();
-        await this.pauseBetweenPhases("PID snapshot", "Leo snapshot");
 
         const citySnapshots = await this.loadCitySnapshots(stopSnapshot.stops);
-
-        await this.pauseBetweenPhases("city snapshots", "GTFS snapshot");
 
         const allPlatforms = stopSnapshot.platforms.concat(
             citySnapshots.flatMap((snapshot) => snapshot.platforms),
@@ -249,11 +238,6 @@ export class SyncService {
                     },
                 );
             }
-
-            await this.pauseBetweenPhases(
-                `${loader.name} snapshot`,
-                "next snapshot",
-            );
         }
 
         return results;
@@ -327,22 +311,5 @@ export class SyncService {
             gtfsStationEntranceStops: gtfsStationEntranceStopIds.size,
             metroStops: metroStopIds.size,
         });
-    }
-
-    private async pauseBetweenPhases(
-        completedPhase: string,
-        nextPhase: string,
-    ): Promise<void> {
-        if (this.phaseDelayMs <= 0) {
-            return;
-        }
-
-        logger.info("Throttling sync phase transition", {
-            completedPhase,
-            nextPhase,
-            delayMs: this.phaseDelayMs,
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, this.phaseDelayMs));
     }
 }

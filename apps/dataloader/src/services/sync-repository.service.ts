@@ -44,7 +44,6 @@ const RELATION_BATCH_SIZE = 500;
 type SyncRepositoryOptions = {
     entityBatchSize?: number;
     relationBatchSize?: number;
-    batchDelayMs?: number;
 };
 
 type IdTableName =
@@ -62,7 +61,6 @@ type IdTableName =
 export class SyncRepository {
     private readonly entityBatchSize: number;
     private readonly relationBatchSize: number;
-    private readonly batchDelayMs: number;
 
     constructor(
         private readonly db: DatabaseClient,
@@ -71,7 +69,6 @@ export class SyncRepository {
         this.entityBatchSize = options.entityBatchSize ?? ENTITY_BATCH_SIZE;
         this.relationBatchSize =
             options.relationBatchSize ?? RELATION_BATCH_SIZE;
-        this.batchDelayMs = options.batchDelayMs ?? 0;
     }
 
     async persist(snapshot: SyncSnapshot): Promise<SyncPersistenceResult> {
@@ -1270,16 +1267,6 @@ export class SyncRepository {
     ): Promise<void> {
         for (let index = 0; index < items.length; index += batchSize) {
             await callback(items.slice(index, index + batchSize));
-
-            const hasMoreBatches = index + batchSize < items.length;
-
-            if (hasMoreBatches && this.batchDelayMs > 0) {
-                await this.sleep(this.batchDelayMs);
-            }
         }
-    }
-
-    private async sleep(durationMs: number): Promise<void> {
-        await new Promise((resolve) => setTimeout(resolve, durationMs));
     }
 }
