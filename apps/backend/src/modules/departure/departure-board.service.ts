@@ -28,28 +28,34 @@ export class DepartureBoardService {
         metroOnly?: boolean;
         limit?: number;
     }): Promise<string[]> {
+        let directPlatformQuery = this.database.db
+            .selectFrom("Platform")
+            .select("id")
+            .where("id", "in", [...platformIds]);
+        if (metroOnly !== undefined) {
+            directPlatformQuery = directPlatformQuery.where(
+                "isMetro",
+                "=",
+                metroOnly,
+            );
+        }
+
+        let stopPlatformQuery = this.database.db
+            .selectFrom("Platform")
+            .select("id")
+            .where("stopId", "in", [...stopIds]);
+        if (metroOnly !== undefined) {
+            stopPlatformQuery = stopPlatformQuery.where(
+                "isMetro",
+                "=",
+                metroOnly,
+            );
+        }
+
         const directPlatforms =
-            platformIds.length === 0
-                ? []
-                : await this.database.db
-                      .selectFrom("Platform")
-                      .select("id")
-                      .where("id", "in", [...platformIds])
-                      .$if(metroOnly !== undefined, (query) =>
-                          query.where("isMetro", "=", metroOnly!),
-                      )
-                      .execute();
+            platformIds.length === 0 ? [] : await directPlatformQuery.execute();
         const stopPlatforms =
-            stopIds.length === 0
-                ? []
-                : await this.database.db
-                      .selectFrom("Platform")
-                      .select("id")
-                      .where("stopId", "in", [...stopIds])
-                      .$if(metroOnly !== undefined, (query) =>
-                          query.where("isMetro", "=", metroOnly!),
-                      )
-                      .execute();
+            stopIds.length === 0 ? [] : await stopPlatformQuery.execute();
 
         return uniqueSortedStrings([
             ...directPlatforms.map((platform) => platform.id),

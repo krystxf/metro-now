@@ -1,7 +1,7 @@
 import type { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
 import type { RouteByIdLoader } from "src/modules/dataloader/route-by-id.loader";
-import { DepartureResolver } from "src/modules/departure/departure.resolver";
 import type { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
+import { DepartureResolver } from "src/modules/departure/departure.resolver";
 
 describe("DepartureResolver", () => {
     it("maps Leo departures into GraphQL route and platform references", async () => {

@@ -8,19 +8,19 @@ import { z } from "zod";
 
 import type {
     StopSnapshot,
-    SyncedGtfsRoute,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
-    SyncedGtfsStopTime,
     SyncedGtfsStationEntrance,
+    SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
 } from "../types/sync.types";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 import { parseCsvString } from "../utils/csv.utils";
 import { fetchWithTimeout } from "../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 
 const USTI_GTFS_ARCHIVE_URL =
     "https://tabule.portabo.cz/api/v1-tabule/cis/GetGtfs/gtfs_google_all";

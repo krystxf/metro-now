@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
-import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
+import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 
 @Injectable()
 export class DepartureServiceV1 {

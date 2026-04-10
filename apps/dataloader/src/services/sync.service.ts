@@ -8,9 +8,9 @@ import type {
     SyncTrigger,
 } from "../types/sync.types";
 import { logger } from "../utils/logger";
-import type { CacheInvalidationService } from "./cache-invalidation.service";
 import { BratislavaImportService } from "./bratislava-import.service";
 import { BrnoImportService } from "./brno-import.service";
+import type { CacheInvalidationService } from "./cache-invalidation.service";
 import { GtfsService } from "./gtfs.service";
 import { LeoImportService } from "./leo-import.service";
 import { LiberecImportService } from "./liberec-import.service";

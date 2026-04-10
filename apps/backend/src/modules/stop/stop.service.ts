@@ -417,29 +417,40 @@ export class StopService {
                 offset,
             }),
             async () => {
-                const stopIds = railOnly
-                    ? await this.loadRailStopIds({
-                          ...(typeof limit === "number" ? { limit } : {}),
-                          ...(typeof offset === "number" ? { offset } : {}),
-                      })
-                    : (
-                          await this.database.db
-                              .selectFrom("Platform")
-                              .select("stopId")
-                              .distinct()
-                              .where("stopId", "is not", null)
-                              .$if(metroOnly, (qb) =>
-                                  qb.where("isMetro", "=", true),
-                              )
-                              .$if(typeof offset === "number", (qb) =>
-                                  qb.offset(offset!),
-                              )
-                              .$if(typeof limit === "number", (qb) =>
-                                  qb.limit(limit!),
-                              )
-                              .orderBy("stopId", "asc")
-                              .execute()
-                      ).flatMap(({ stopId }) => (stopId ? [stopId] : []));
+                let stopIds: string[];
+                if (railOnly) {
+                    stopIds = await this.loadRailStopIds({
+                        ...(typeof limit === "number" ? { limit } : {}),
+                        ...(typeof offset === "number" ? { offset } : {}),
+                    });
+                } else {
+                    let platformStopIdsQuery = this.database.db
+                        .selectFrom("Platform")
+                        .select("stopId")
+                        .distinct()
+                        .where("stopId", "is not", null);
+                    if (metroOnly) {
+                        platformStopIdsQuery = platformStopIdsQuery.where(
+                            "isMetro",
+                            "=",
+                            true,
+                        );
+                    }
+                    if (typeof offset === "number") {
+                        platformStopIdsQuery =
+                            platformStopIdsQuery.offset(offset);
+                    }
+                    if (typeof limit === "number") {
+                        platformStopIdsQuery =
+                            platformStopIdsQuery.limit(limit);
+                    }
+                    const platformStopIdRows = await platformStopIdsQuery
+                        .orderBy("stopId", "asc")
+                        .execute();
+                    stopIds = platformStopIdRows.flatMap(({ stopId }) =>
+                        stopId ? [stopId] : [],
+                    );
+                }
                 const stops = await this.loadStopRows({
                     ids: stopIds,
                 });

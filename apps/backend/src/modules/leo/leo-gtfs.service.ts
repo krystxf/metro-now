@@ -1,7 +1,7 @@
-import { Open as unzipperOpen } from "unzipper";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
+import { Open as unzipperOpen } from "unzipper";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { buildLeoCatalogFromCsv } from "src/modules/leo/leo-gtfs.parser";

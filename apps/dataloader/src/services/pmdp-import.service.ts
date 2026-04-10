@@ -8,19 +8,19 @@ import { z } from "zod";
 
 import type {
     StopSnapshot,
-    SyncedGtfsRoute,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
-    SyncedGtfsStopTime,
     SyncedGtfsStationEntrance,
+    SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
 } from "../types/sync.types";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 import { parseCsvString } from "../utils/csv.utils";
 import { fetchWithTimeout } from "../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 
 const PMDP_GTFS_ARCHIVE_URL = "https://jizdnirady.pmdp.cz/jr/gtfs";
 

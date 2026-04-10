@@ -354,7 +354,7 @@ const chooseDominantPattern = (
         return null;
     }
 
-    return values.sort((left, right) => {
+    values.sort((left, right) => {
         return (
             right.tripCount - left.tripCount ||
             right.platformIds.length - left.platformIds.length ||
@@ -362,7 +362,9 @@ const chooseDominantPattern = (
                 .join(">")
                 .localeCompare(right.platformIds.join(">"))
         );
-    })[0]!;
+    });
+
+    return values.at(0) ?? null;
 };
 
 export const buildLeoCatalogFromCsv = ({

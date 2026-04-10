@@ -4,8 +4,8 @@ import type { Cache } from "cache-manager";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import {
-    transitlandStopDeparturesSchema,
     type TransitlandStopDeparturesSchema,
+    transitlandStopDeparturesSchema,
 } from "src/modules/transitland/schema/transitland-stop-departures.schema";
 
 const TRANSITLAND_API_URL = "https://transit.land/api/v2/rest";

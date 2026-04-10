@@ -8,20 +8,20 @@ import { z } from "zod";
 
 import type {
     StopSnapshot,
-    SyncedGtfsRoute,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
-    SyncedGtfsStopTime,
     SyncedGtfsStationEntrance,
+    SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
 } from "../types/sync.types";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 import { parseCsvString } from "../utils/csv.utils";
 import { fetchWithTimeout } from "../utils/fetch.utils";
 import { logger } from "../utils/logger";
+import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 
 const LEO_GTFS_ARCHIVE_URL =
     "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";

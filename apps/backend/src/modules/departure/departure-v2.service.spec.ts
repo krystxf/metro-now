@@ -1,6 +1,6 @@
 import type { DatabaseService } from "src/modules/database/database.service";
-import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import type { DepartureBoardService } from "src/modules/departure/departure-board.service";
+import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import type { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import type { LeoStopMatcherService } from "src/modules/leo/leo-stop-matcher.service";
 

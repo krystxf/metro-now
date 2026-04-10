@@ -1,4 +1,4 @@
-import { type Stop, GtfsFeedId } from "@metro-now/database";
+import { GtfsFeedId, type Stop } from "@metro-now/database";
 import { Injectable } from "@nestjs/common";
 import { group } from "radash";
 
