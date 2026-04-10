@@ -49,6 +49,7 @@
         "overrides": {
             "sha.js": ">=2.4.12",
             "form-data": ">=4.0.4"
-        }
+        },
+        "onlyBuiltDependencies": ["@nestjs/core"]
     }
 }
