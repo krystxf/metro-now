@@ -1,43 +1,36 @@
 {
-    "name": "metro-now",
-    "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
-    "packageManager": "pnpm@9.1.0",
-    "scripts": {
-        "xcode": "xed ./apps/mobile/metro-now",
-        "dev": "turbo run dev",
-        "build": "turbo run build",
-        "graphql:test": "node graphql-test/index.js",
-        "lint": "turbo run lint",
-        "lint:fix": "pnpm biome:write && pnpm app:format && pnpm --filter @metro-now/web lint:fix",
-        "test": "turbo run test",
-        "types:check": "turbo run types:check",
-        "typegen": "turbo run typegen",
-        "biome:check": "turbo run format:check --filter=@metro-now/backend --filter=@metro-now/database --filter=@metro-now/dataloader --filter=@metro-now/shared",
-        "biome:write": "turbo run format --filter=@metro-now/backend --filter=@metro-now/database --filter=@metro-now/dataloader --filter=@metro-now/shared",
-        "precommit": "pnpm format",
-        "format": "turbo run format --filter=@metro-now/backend --filter=@metro-now/database --filter=@metro-now/dataloader --filter=@metro-now/shared",
-        "app:format": "turbo run format --filter=@metro-now/mobile",
-        "app:format:check": "turbo run format:check --filter=@metro-now/mobile",
-        "format:check": "turbo run format:check --filter=@metro-now/backend --filter=@metro-now/database --filter=@metro-now/dataloader --filter=@metro-now/shared",
-        "docker:up:dev": "docker compose up postgres redis-stack",
-        "docker:up": "docker compose up -d --build",
-        "docker:down": "docker compose down --remove-orphans --volumes"
-    },
-    "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "turbo": "^2.5.0"
-    },
-    "homepage": "https://metro-now.vercel.app/",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/krystxf/metro-now"
-    },
-    "bugs": {
-        "url": "https://github.com/krystxf/metro-now/issues/new"
-    },
-    "author": {
-        "name": "Krystof Kratky",
-        "url": "https://github.com/krystxf",
-        "email": "krystof.kratky2003@gmail.com"
-    }
+  "name": "metro-now",
+  "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
+  "packageManager": "pnpm@9.1.0",
+  "scripts": {
+    "xcode": "xed ./apps/mobile/metro-now",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "graphql:test": "node graphql-test/index.js",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "test:unit": "turbo run test:unit",
+    "types:check": "turbo run types:check",
+    "typegen": "turbo run typegen",
+    "docker:up:dev": "docker compose up postgres redis-stack",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down --remove-orphans --volumes"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.5.0"
+  },
+  "homepage": "https://metro-now.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krystxf/metro-now"
+  },
+  "bugs": {
+    "url": "https://github.com/krystxf/metro-now/issues/new"
+  },
+  "author": {
+    "name": "Krystof Kratky",
+    "url": "https://github.com/krystxf",
+    "email": "krystof.kratky2003@gmail.com"
+  }
 }

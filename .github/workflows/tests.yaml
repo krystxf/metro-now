@@ -1,0 +1,110 @@
+name: Tests
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: tests-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    js:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run unit tests
+              run: pnpm test:unit
+
+    backend-e2e:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: postgres_user
+                    POSTGRES_PASSWORD: postgres_password
+                    POSTGRES_DB: metro-now
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+            redis:
+                image: redis:7
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 6379:6379
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Setup environment
+              run: |
+                  cp apps/backend/.env.local.example apps/backend/.env.local
+                  {
+                      echo ""
+                      echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_API_KEY }}"
+                  } >> apps/backend/.env.local
+
+            - name: Run migrations
+              run: pnpm turbo run migrate:deploy --filter=@metro-now/database
+
+            - name: Run seeds
+              run: pnpm turbo run seed --filter=@metro-now/database
+
+            - name: Run backend e2e tests
+              run: pnpm turbo run test:e2e --filter=@metro-now/backend
+
+    swift:
+        runs-on: macos-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - name: Run Swift unit tests
+              run: |
+                  xcodebuild test \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now \
+                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+                    -only-testing:metro-nowTests
