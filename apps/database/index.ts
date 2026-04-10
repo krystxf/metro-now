@@ -28,6 +28,19 @@ export const LogLevel = {
 
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
+export const GtfsFeedId = {
+    PID: "PID",
+    BRNO: "BRNO",
+    BRATISLAVA: "BRATISLAVA",
+    LEO: "LEO",
+    LIBEREC: "LIBEREC",
+    PMDP: "PMDP",
+    USTI: "USTI",
+    ZSR: "ZSR",
+} as const;
+
+export type GtfsFeedId = (typeof GtfsFeedId)[keyof typeof GtfsFeedId];
+
 export type GeoJsonPosition = [number, number];
 
 export type GeoJsonLineString = {
@@ -75,6 +88,7 @@ export interface PlatformsOnRoutesTable {
 
 export interface GtfsRouteTable {
     id: string;
+    feedId: GtfsFeedId;
     type: string;
     shortName: string;
     longName: string | null;
@@ -86,7 +100,8 @@ export interface GtfsRouteTable {
 }
 
 export interface GtfsRouteStopTable {
-    id: Generated<string>;
+    id: Generated<number>;
+    feedId: GtfsFeedId;
     routeId: string;
     directionId: string;
     stopId: string;
@@ -96,7 +111,8 @@ export interface GtfsRouteStopTable {
 }
 
 export interface GtfsRouteShapeTable {
-    id: Generated<string>;
+    id: Generated<number>;
+    feedId: GtfsFeedId;
     routeId: string;
     directionId: string;
     shapeId: string;
@@ -109,6 +125,7 @@ export interface GtfsRouteShapeTable {
 
 export interface GtfsStationEntranceTable {
     id: string;
+    feedId: GtfsFeedId;
     stopId: string;
     parentStationId: string;
     name: string;
@@ -118,9 +135,83 @@ export interface GtfsStationEntranceTable {
     updatedAt: Generated<Date>;
 }
 
+export interface GtfsTripTable {
+    id: string;
+    feedId: GtfsFeedId;
+    tripId: string;
+    routeId: string;
+    serviceId: string | null;
+    directionId: string | null;
+    shapeId: string | null;
+    tripHeadsign: string | null;
+    blockId: string | null;
+    wheelchairAccessible: string | null;
+    bikesAllowed: string | null;
+    rawData: Record<string, string>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
 export interface GtfsStopTimeTable {
-    id: Generated<string>;
+    id: string;
+    feedId: GtfsFeedId;
+    tripId: string;
+    stopId: string;
     platformId: string | null;
+    stopSequence: number;
+    arrivalTime: string | null;
+    departureTime: string | null;
+    pickupType: string | null;
+    dropOffType: string | null;
+    timepoint: string | null;
+    rawData: Record<string, string>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
+export interface GtfsCalendarTable {
+    id: string;
+    feedId: GtfsFeedId;
+    serviceId: string;
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+    startDate: string | null;
+    endDate: string | null;
+    rawData: Record<string, string>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
+export interface GtfsCalendarDateTable {
+    id: string;
+    feedId: GtfsFeedId;
+    serviceId: string;
+    date: string;
+    exceptionType: number;
+    rawData: Record<string, string>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
+export interface GtfsTransferTable {
+    id: string;
+    feedId: GtfsFeedId;
+    fromStopId: string | null;
+    toStopId: string | null;
+    fromRouteId: string | null;
+    toRouteId: string | null;
+    fromTripId: string | null;
+    toTripId: string | null;
+    transferType: number | null;
+    minTransferTime: number | null;
+    rawData: Record<string, string>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
 }
 
 export interface LogTable {
@@ -154,7 +245,11 @@ export interface MetroNowDatabase {
     GtfsRouteStop: GtfsRouteStopTable;
     GtfsRouteShape: GtfsRouteShapeTable;
     GtfsStationEntrance: GtfsStationEntranceTable;
+    GtfsTrip: GtfsTripTable;
     GtfsStopTime: GtfsStopTimeTable;
+    GtfsCalendar: GtfsCalendarTable;
+    GtfsCalendarDate: GtfsCalendarDateTable;
+    GtfsTransfer: GtfsTransferTable;
     Log: LogTable;
     RequestLog: RequestLogTable;
 }
@@ -170,7 +265,11 @@ export type GtfsRoute = Selectable<GtfsRouteTable>;
 export type GtfsRouteStop = Selectable<GtfsRouteStopTable>;
 export type GtfsRouteShape = Selectable<GtfsRouteShapeTable>;
 export type GtfsStationEntrance = Selectable<GtfsStationEntranceTable>;
+export type GtfsTrip = Selectable<GtfsTripTable>;
 export type GtfsStopTime = Selectable<GtfsStopTimeTable>;
+export type GtfsCalendar = Selectable<GtfsCalendarTable>;
+export type GtfsCalendarDate = Selectable<GtfsCalendarDateTable>;
+export type GtfsTransfer = Selectable<GtfsTransferTable>;
 export type Log = Selectable<LogTable>;
 export type RequestLog = Selectable<RequestLogTable>;
 
@@ -186,5 +285,10 @@ export type GtfsRouteUpdate = Updateable<GtfsRouteTable>;
 export type NewGtfsRouteStop = Insertable<GtfsRouteStopTable>;
 export type NewGtfsRouteShape = Insertable<GtfsRouteShapeTable>;
 export type NewGtfsStationEntrance = Insertable<GtfsStationEntranceTable>;
+export type NewGtfsTrip = Insertable<GtfsTripTable>;
+export type NewGtfsStopTime = Insertable<GtfsStopTimeTable>;
+export type NewGtfsCalendar = Insertable<GtfsCalendarTable>;
+export type NewGtfsCalendarDate = Insertable<GtfsCalendarDateTable>;
+export type NewGtfsTransfer = Insertable<GtfsTransferTable>;
 export type NewLog = Insertable<LogTable>;
 export type NewRequestLog = Insertable<RequestLogTable>;
