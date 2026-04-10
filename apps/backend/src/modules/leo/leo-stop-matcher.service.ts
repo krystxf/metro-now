@@ -41,7 +41,11 @@ export class LeoStopMatcherService {
 
         for (const localStop of localStops) {
             const matchedLeoStop = leoStops
-                .filter((leoStop) => leoStop.normalizedName === this.normalize(localStop.name))
+                .filter(
+                    (leoStop) =>
+                        leoStop.normalizedName ===
+                        this.normalize(localStop.name),
+                )
                 .filter(
                     (leoStop) =>
                         distanceInMeters(

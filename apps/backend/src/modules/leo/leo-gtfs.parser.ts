@@ -155,7 +155,8 @@ const parseStop = (row: StopRow): ParsedStop => {
         name: parsed.stop_name.trim(),
         latitude,
         longitude,
-        locationType: toOptionalString(parsed.location_type) ?? EMPTY_LOCATION_TYPE,
+        locationType:
+            toOptionalString(parsed.location_type) ?? EMPTY_LOCATION_TYPE,
         parentStationId: toOptionalString(parsed.parent_station),
         platformCode: toOptionalString(parsed.platform_code),
     };
@@ -357,7 +358,9 @@ const chooseDominantPattern = (
         return (
             right.tripCount - left.tripCount ||
             right.platformIds.length - left.platformIds.length ||
-            left.platformIds.join(">").localeCompare(right.platformIds.join(">"))
+            left.platformIds
+                .join(">")
+                .localeCompare(right.platformIds.join(">"))
         );
     })[0]!;
 };
@@ -386,7 +389,9 @@ export const buildLeoCatalogFromCsv = ({
         const leoAgencyIds = new Set(
             agencies
                 .map((row) => agencyRowSchema.parse(row))
-                .filter((agency) => TARGET_AGENCY_NAMES.has(agency.agency_name.trim()))
+                .filter((agency) =>
+                    TARGET_AGENCY_NAMES.has(agency.agency_name.trim()),
+                )
                 .map((agency) => agency.agency_id),
         );
         const leoRoutes = routes
@@ -404,17 +409,20 @@ export const buildLeoCatalogFromCsv = ({
                 continue;
             }
 
-            const tripStopTimes = leoStopTimesByTripId.get(stopTime.tripId) ?? [];
+            const tripStopTimes =
+                leoStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
             leoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
-        const stopsById = new Map(stops.map((row) => {
-            const stop = parseStop(row);
+        const stopsById = new Map(
+            stops.map((row) => {
+                const stop = parseStop(row);
 
-            return [stop.id, stop] as const;
-        }));
+                return [stop.id, stop] as const;
+            }),
+        );
         const referencedStopIds = new Set<string>();
 
         for (const tripStopTimes of leoStopTimesByTripId.values()) {
@@ -434,9 +442,9 @@ export const buildLeoCatalogFromCsv = ({
         >();
 
         for (const trip of leoTrips) {
-            const tripStopTimes = (leoStopTimesByTripId.get(trip.id) ?? []).sort(
-                (left, right) => left.stopSequence - right.stopSequence,
-            );
+            const tripStopTimes = (
+                leoStopTimesByTripId.get(trip.id) ?? []
+            ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
                 .map((stopTime) => toLeoPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
@@ -446,7 +454,8 @@ export const buildLeoCatalogFromCsv = ({
             }
 
             for (const platformId of platformIds) {
-                const routeIds = routeIdsByPlatformId.get(platformId) ?? new Set<string>();
+                const routeIds =
+                    routeIdsByPlatformId.get(platformId) ?? new Set<string>();
 
                 routeIds.add(toLeoRouteId(trip.routeId));
                 routeIdsByPlatformId.set(platformId, routeIds);
@@ -473,11 +482,14 @@ export const buildLeoCatalogFromCsv = ({
 
         for (const logicalStop of logicalStops) {
             for (const platform of logicalStop.platforms) {
-                const routeIds = [...(routeIdsByPlatformId.get(platform.id) ?? new Set())]
+                const routeIds = [
+                    ...(routeIdsByPlatformId.get(platform.id) ?? new Set()),
+                ]
                     .sort((left, right) => left.localeCompare(right))
                     .map((routeId) => {
                         const route = leoRoutes.find(
-                            (candidate) => toLeoRouteId(candidate.id) === routeId,
+                            (candidate) =>
+                                toLeoRouteId(candidate.id) === routeId,
                         );
 
                         return route
@@ -497,7 +509,9 @@ export const buildLeoCatalogFromCsv = ({
 
         const catalogRoutes = leoRoutes
             .map<LeoRoute>((route) => {
-                const dominantPatterns = [...patternsByRouteAndDirection.entries()]
+                const dominantPatterns = [
+                    ...patternsByRouteAndDirection.entries(),
+                ]
                     .filter(([key]) => key.startsWith(`${route.id}::`))
                     .map(([key, patterns]) => {
                         const dominantPattern = chooseDominantPattern(patterns);
@@ -523,9 +537,7 @@ export const buildLeoCatalogFromCsv = ({
                     platforms: value.platformIds
                         .map((platformId) => platformById.get(platformId))
                         .filter(
-                            (
-                                platform,
-                            ): platform is LeoPlatform =>
+                            (platform): platform is LeoPlatform =>
                                 platform !== undefined,
                         )
                         .map((platform) => ({
@@ -541,9 +553,7 @@ export const buildLeoCatalogFromCsv = ({
                     const points = value.platformIds
                         .map((platformId) => platformById.get(platformId))
                         .filter(
-                            (
-                                platform,
-                            ): platform is LeoPlatform =>
+                            (platform): platform is LeoPlatform =>
                                 platform !== undefined,
                         )
                         .map((platform) => ({

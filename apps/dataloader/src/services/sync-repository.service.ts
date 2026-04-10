@@ -85,8 +85,10 @@ export class SyncRepository {
                 };
             }
 
-            const changedEntities =
-                await this.persistSnapshot(transaction, snapshot);
+            const changedEntities = await this.persistSnapshot(
+                transaction,
+                snapshot,
+            );
 
             return {
                 status: "success",
@@ -145,19 +147,13 @@ export class SyncRepository {
         }
 
         if (
-            await this.syncPlatformRoutes(
-                transaction,
-                snapshot.platformRoutes,
-            )
+            await this.syncPlatformRoutes(transaction, snapshot.platformRoutes)
         ) {
             changed.add("platformRoutes");
         }
 
         if (
-            await this.syncGtfsRouteStops(
-                transaction,
-                snapshot.gtfsRouteStops,
-            )
+            await this.syncGtfsRouteStops(transaction, snapshot.gtfsRouteStops)
         ) {
             changed.add("gtfsRouteStops");
         }
@@ -180,9 +176,7 @@ export class SyncRepository {
             changed.add("gtfsStationEntrances");
         }
 
-        if (
-            await this.deleteStalePlatforms(transaction, snapshot.platforms)
-        ) {
+        if (await this.deleteStalePlatforms(transaction, snapshot.platforms)) {
             changed.add("platforms");
         }
 
@@ -789,7 +783,10 @@ export class SyncRepository {
                 }));
 
                 if (values.length > 0) {
-                    await transaction.insertInto("GtfsTrip").values(values).execute();
+                    await transaction
+                        .insertInto("GtfsTrip")
+                        .values(values)
+                        .execute();
                 }
             },
         );
@@ -1033,9 +1030,7 @@ export class SyncRepository {
                 .selectFrom("GtfsRoute")
                 .select(["feedId", "id"])
                 .execute()
-        ).filter(
-            (route) => !incomingKeys.has(`${route.feedId}::${route.id}`),
-        );
+        ).filter((route) => !incomingKeys.has(`${route.feedId}::${route.id}`));
 
         await this.processInBatches(
             staleRouteKeys,
@@ -1083,7 +1078,8 @@ export class SyncRepository {
                 .select(["feedId", "id"])
                 .execute()
         ).filter(
-            (entrance) => !incomingIds.has(`${entrance.feedId}::${entrance.id}`),
+            (entrance) =>
+                !incomingIds.has(`${entrance.feedId}::${entrance.id}`),
         );
 
         await this.processInBatches(

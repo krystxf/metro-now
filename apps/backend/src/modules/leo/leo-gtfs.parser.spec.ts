@@ -59,15 +59,11 @@ describe("buildLeoCatalogFromCsv", () => {
                 expect.objectContaining({ id: "TLP:station-a-p1" }),
                 expect.objectContaining({ id: "TLP:station-a-p2" }),
             ],
-            entrances: [
-                expect.objectContaining({ id: "station-a-e1" }),
-            ],
+            entrances: [expect.objectContaining({ id: "station-a-e1" })],
         });
         expect(catalog.stops[1]).toMatchObject({
             id: "TLS:station-b",
-            platforms: [
-                expect.objectContaining({ id: "TLP:station-b" }),
-            ],
+            platforms: [expect.objectContaining({ id: "TLP:station-b" })],
         });
         expect(catalog.routes[0]).toMatchObject({
             id: "LTL:r-leo",

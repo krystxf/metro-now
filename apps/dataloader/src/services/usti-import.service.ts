@@ -1,4 +1,8 @@
-import { type GeoJsonLineString, GtfsFeedId, VehicleType } from "@metro-now/database";
+import {
+    type GeoJsonLineString,
+    GtfsFeedId,
+    VehicleType,
+} from "@metro-now/database";
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
@@ -24,7 +28,6 @@ const USTI_GTFS_ARCHIVE_URL =
 const USTI_STOP_PREFIX = "USS:";
 const USTI_PLATFORM_PREFIX = "USP:";
 const USTI_ROUTE_PREFIX = "USR:";
-
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
@@ -195,7 +198,9 @@ export class UstiImportService {
 
             return file.buffer().then((buffer) => buffer.toString());
         };
-        const getOptionalFile = async (path: string): Promise<string | null> => {
+        const getOptionalFile = async (
+            path: string,
+        ): Promise<string | null> => {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
@@ -214,14 +219,14 @@ export class UstiImportService {
             calendarDatesCsv,
             transfersCsv,
         ] = await Promise.all([
-                getFile("routes.txt"),
-                getFile("stops.txt"),
-                getFile("stop_times.txt"),
-                getFile("trips.txt"),
-                getOptionalFile("calendar.txt"),
-                getOptionalFile("calendar_dates.txt"),
-                getOptionalFile("transfers.txt"),
-            ]);
+            getFile("routes.txt"),
+            getFile("stops.txt"),
+            getFile("stop_times.txt"),
+            getFile("trips.txt"),
+            getOptionalFile("calendar.txt"),
+            getOptionalFile("calendar_dates.txt"),
+            getOptionalFile("transfers.txt"),
+        ]);
 
         return this.buildSnapshot({
             routesCsv,
@@ -251,12 +256,14 @@ export class UstiImportService {
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
     }): Promise<UstiSnapshot> {
-        const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all([
+        const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
+            [
                 parseCsvString<Record<string, string>>(routesCsv),
                 parseCsvString<Record<string, string>>(stopsCsv),
                 parseCsvString<Record<string, string>>(stopTimesCsv),
                 parseCsvString<Record<string, string>>(tripsCsv),
-            ]);
+            ],
+        );
         const [rawCalendars, rawCalendarDates, rawTransfers] =
             await Promise.all([
                 calendarCsv

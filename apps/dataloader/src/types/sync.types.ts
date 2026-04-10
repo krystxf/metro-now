@@ -1,4 +1,8 @@
-import { type GeoJsonLineString, type GtfsFeedId, VehicleType } from "@metro-now/database";
+import {
+    type GeoJsonLineString,
+    type GtfsFeedId,
+    VehicleType,
+} from "@metro-now/database";
 
 export type SyncTrigger = "startup" | "cron" | "manual";
 

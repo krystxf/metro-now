@@ -35,7 +35,11 @@ describe("DepartureResolver", () => {
             routeByIdLoader,
         );
 
-        const [departure] = await resolver.getMultiple([], ["TLS:station-a"], 5);
+        const [departure] = await resolver.getMultiple(
+            [],
+            ["TLS:station-a"],
+            5,
+        );
 
         expect(departure).toMatchObject({
             route: { id: "LTL:route-a" },
@@ -45,7 +49,9 @@ describe("DepartureResolver", () => {
             isRealtime: false,
         });
         await expect(
-            resolver.getPlatformField({ platform: { id: "TLP:platform-a" } } as never),
+            resolver.getPlatformField({
+                platform: { id: "TLP:platform-a" },
+            } as never),
         ).resolves.toEqual({ id: "TLP:platform-a" });
         await expect(
             resolver.getRouteField({ route: { id: "LTL:route-a" } } as never),

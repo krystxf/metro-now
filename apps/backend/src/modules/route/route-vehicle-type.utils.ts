@@ -13,7 +13,10 @@ export const getVehicleTypeFromGtfsType = (
         return null;
     }
 
-    if (numericRouteType === 0 || (numericRouteType >= 900 && numericRouteType < 1000)) {
+    if (
+        numericRouteType === 0 ||
+        (numericRouteType >= 900 && numericRouteType < 1000)
+    ) {
         return VehicleType.TRAM;
     }
 
@@ -33,10 +36,15 @@ export const getVehicleTypeFromGtfsType = (
         numericRouteType === 11 ||
         (numericRouteType >= 200 && numericRouteType < 800)
     ) {
-        return numericRouteType === 11 ? VehicleType.TROLLEYBUS : VehicleType.BUS;
+        return numericRouteType === 11
+            ? VehicleType.TROLLEYBUS
+            : VehicleType.BUS;
     }
 
-    if (numericRouteType === 4 || (numericRouteType >= 1000 && numericRouteType < 1100)) {
+    if (
+        numericRouteType === 4 ||
+        (numericRouteType >= 1000 && numericRouteType < 1100)
+    ) {
         return VehicleType.FERRY;
     }
 

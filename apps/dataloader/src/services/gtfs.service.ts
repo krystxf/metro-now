@@ -398,14 +398,12 @@ export class GtfsService {
         const rawRouteStops = await parseCsvString<Record<string, string>>(
             (await routeStopsEntry.buffer()).toString(),
         );
-        let rawStops: Record<string, string>[] | null =
-            await parseCsvString<Record<string, string>>(
-                (await stopsEntry.buffer()).toString(),
-            );
-        let rawTrips: Record<string, string>[] | null =
-            await parseCsvString<Record<string, string>>(
-                (await tripsEntry.buffer()).toString(),
-            );
+        let rawStops: Record<string, string>[] | null = await parseCsvString<
+            Record<string, string>
+        >((await stopsEntry.buffer()).toString());
+        let rawTrips: Record<string, string>[] | null = await parseCsvString<
+            Record<string, string>
+        >((await tripsEntry.buffer()).toString());
         let rawShapePoints: Record<string, string>[] | null =
             await parseCsvString<Record<string, string>>(
                 (await shapesEntry.buffer()).toString(),

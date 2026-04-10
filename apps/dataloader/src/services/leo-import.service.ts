@@ -1,4 +1,8 @@
-import { type GeoJsonLineString, GtfsFeedId, VehicleType } from "@metro-now/database";
+import {
+    type GeoJsonLineString,
+    GtfsFeedId,
+    VehicleType,
+} from "@metro-now/database";
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
@@ -25,7 +29,6 @@ const LEO_GTFS_ARCHIVE_URL =
 const LEO_STOP_PREFIX = "TLS:";
 const LEO_PLATFORM_PREFIX = "TLP:";
 const LEO_ROUTE_PREFIX = "LTL:";
-
 
 const toLeoStopId = (gtfsStopId: string): string =>
     `${LEO_STOP_PREFIX}${gtfsStopId}`;
@@ -221,7 +224,9 @@ export class LeoImportService {
 
             return file.buffer().then((buffer) => buffer.toString());
         };
-        const getOptionalFile = async (path: string): Promise<string | null> => {
+        const getOptionalFile = async (
+            path: string,
+        ): Promise<string | null> => {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
@@ -241,15 +246,15 @@ export class LeoImportService {
             calendarDatesCsv,
             transfersCsv,
         ] = await Promise.all([
-                getFile("agency.txt"),
-                getFile("routes.txt"),
-                getFile("stops.txt"),
-                getFile("stop_times.txt"),
-                getFile("trips.txt"),
-                getOptionalFile("calendar.txt"),
-                getOptionalFile("calendar_dates.txt"),
-                getOptionalFile("transfers.txt"),
-            ]);
+            getFile("agency.txt"),
+            getFile("routes.txt"),
+            getFile("stops.txt"),
+            getFile("stop_times.txt"),
+            getFile("trips.txt"),
+            getOptionalFile("calendar.txt"),
+            getOptionalFile("calendar_dates.txt"),
+            getOptionalFile("transfers.txt"),
+        ]);
 
         return this.buildSnapshot({
             agenciesCsv,

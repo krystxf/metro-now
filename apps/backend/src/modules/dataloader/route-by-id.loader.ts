@@ -14,7 +14,9 @@ export class RouteByIdLoader extends DataLoader<string, Route | null> {
 
     private async batchLoadFn(routeIds: readonly string[]) {
         const routes = await this.routeService.getGraphQLByIds(routeIds);
-        const routeMap = new Map(routes.map((route) => [toLookupRouteId(route.id), route]));
+        const routeMap = new Map(
+            routes.map((route) => [toLookupRouteId(route.id), route]),
+        );
 
         return routeIds.map((id) => routeMap.get(id) ?? null);
     }

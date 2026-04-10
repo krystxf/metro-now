@@ -1,4 +1,8 @@
-import { type GeoJsonLineString, GtfsFeedId, VehicleType } from "@metro-now/database";
+import {
+    type GeoJsonLineString,
+    GtfsFeedId,
+    VehicleType,
+} from "@metro-now/database";
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
@@ -220,7 +224,9 @@ export class ZsrImportService {
 
             return file.buffer().then((buffer) => buffer.toString());
         };
-        const getOptionalFile = async (path: string): Promise<string | null> => {
+        const getOptionalFile = async (
+            path: string,
+        ): Promise<string | null> => {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {

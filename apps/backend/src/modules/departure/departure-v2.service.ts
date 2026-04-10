@@ -8,10 +8,7 @@ import { DepartureBoardService } from "src/modules/departure/departure-board.ser
 import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 import { departureSchema } from "src/modules/departure/schema/departure.schema";
 import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
-import {
-    isLeoPlatformId,
-    isLeoStopId,
-} from "src/modules/leo/leo-id.utils";
+import { isLeoPlatformId, isLeoStopId } from "src/modules/leo/leo-id.utils";
 import { LeoStopMatcherService } from "src/modules/leo/leo-stop-matcher.service";
 import type { VehicleTypeSchema } from "src/schema/metro-only.schema";
 import { getDelayInSeconds } from "src/utils/delay";
@@ -110,9 +107,7 @@ const parseGtfsTimeToSeconds = (value: string): number | null => {
         return null;
     }
 
-    return (
-        Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3])
-    );
+    return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
 };
 
 const parseTimezoneOffsetMs = (offset: string): number => {
@@ -164,7 +159,10 @@ const toPragueDateFromGtfs = ({
     let utcGuess = localMillis;
 
     for (let index = 0; index < 3; index += 1) {
-        const offsetMs = getTimezoneOffsetMs(new Date(utcGuess), PRAGUE_TIME_ZONE);
+        const offsetMs = getTimezoneOffsetMs(
+            new Date(utcGuess),
+            PRAGUE_TIME_ZONE,
+        );
         const candidate = localMillis - offsetMs;
 
         if (candidate === utcGuess) {
@@ -255,7 +253,9 @@ export class DepartureServiceV2 {
         minutesBefore: number;
         minutesAfter: number;
     }): Promise<DepartureSchema[]> {
-        const localStopIds = args.stopIds.filter((stopId) => !isLeoStopId(stopId));
+        const localStopIds = args.stopIds.filter(
+            (stopId) => !isLeoStopId(stopId),
+        );
         const leoStopIds = args.stopIds.filter((stopId) => isLeoStopId(stopId));
         const localPlatformIds = args.platformIds.filter(
             (platformId) => !isLeoPlatformId(platformId),
@@ -449,7 +449,9 @@ export class DepartureServiceV2 {
         minutesAfter: number;
     }): Promise<DepartureSchema[]> {
         const leoStops = await this.leoGtfsService.getStops();
-        const leoStopsById = new Map(leoStops.map((stop) => [stop.id, stop] as const));
+        const leoStopsById = new Map(
+            leoStops.map((stop) => [stop.id, stop] as const),
+        );
         const matchedLeoStopIdByLocalStopId =
             args.localStopIds.length === 0
                 ? new Map<string, string>()
@@ -464,10 +466,11 @@ export class DepartureServiceV2 {
         );
         const matchedLeoPlatformIds = uniqueSortedStrings(
             args.localStopIds
-                .flatMap((stopId) =>
-                    leoStopsById.get(
-                        matchedLeoStopIdByLocalStopId.get(stopId) ?? "",
-                    )?.platforms ?? [],
+                .flatMap(
+                    (stopId) =>
+                        leoStopsById.get(
+                            matchedLeoStopIdByLocalStopId.get(stopId) ?? "",
+                        )?.platforms ?? [],
                 )
                 .map((platform) => platform.id),
         );
@@ -489,7 +492,9 @@ export class DepartureServiceV2 {
         });
     }
 
-    private async loadLocalStopsByIds(ids: readonly string[]): Promise<
+    private async loadLocalStopsByIds(
+        ids: readonly string[],
+    ): Promise<
         Array<Pick<Stop, "avgLatitude" | "avgLongitude" | "id" | "name">>
     > {
         if (ids.length === 0) {
@@ -539,7 +544,9 @@ export class DepartureServiceV2 {
             const windowStart = new Date(
                 now.getTime() - args.minutesBefore * 60_000,
             );
-            const windowEnd = new Date(now.getTime() + args.minutesAfter * 60_000);
+            const windowEnd = new Date(
+                now.getTime() + args.minutesAfter * 60_000,
+            );
             const serviceDates = getGtfsServiceDatesForWindow({
                 start: windowStart,
                 end: windowEnd,
@@ -788,4 +795,3 @@ const getLimitedRes = (
         (grouped ?? []).slice(0, limit),
     );
 };
-

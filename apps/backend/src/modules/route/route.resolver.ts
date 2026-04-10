@@ -40,9 +40,9 @@ export class RouteResolver {
         return this.routeService.getVehicleTypeForRoute({
             routeName: route.name ?? "",
             ...((typeof route === "object" &&
-                route !== null &&
-                "type" in route &&
-                typeof route.type === "string"
+            route !== null &&
+            "type" in route &&
+            typeof route.type === "string"
                 ? {
                       gtfsRouteType: route.type,
                   }

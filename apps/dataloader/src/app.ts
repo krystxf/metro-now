@@ -132,9 +132,12 @@ const bootstrap = async (): Promise<void> => {
             port: redisPort,
         });
     } catch (error) {
-        logger.warn("Failed to connect to Redis for cache invalidation, continuing without it", {
-            error: error instanceof Error ? error.message : String(error),
-        });
+        logger.warn(
+            "Failed to connect to Redis for cache invalidation, continuing without it",
+            {
+                error: error instanceof Error ? error.message : String(error),
+            },
+        );
     }
 
     cronService.addJob(

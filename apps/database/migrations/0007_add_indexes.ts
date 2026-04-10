@@ -52,7 +52,9 @@ export async function down(
 ): Promise<void> {
     await sql`DROP INDEX IF EXISTS "Log_createdAt_idx"`.execute(db);
     await sql`DROP INDEX IF EXISTS "RequestLog_appVersion_idx"`.execute(db);
-    await sql`DROP INDEX IF EXISTS "GtfsRouteShape_routeId_isPrimary_idx"`.execute(db);
+    await sql`DROP INDEX IF EXISTS "GtfsRouteShape_routeId_isPrimary_idx"`.execute(
+        db,
+    );
     await sql`DROP INDEX IF EXISTS "GtfsRouteStop_stopId_idx"`.execute(db);
     await sql`DROP INDEX IF EXISTS "GtfsRoute_shortName_idx"`.execute(db);
     await sql`DROP INDEX IF EXISTS "PlatformsOnRoutes_routeId_idx"`.execute(db);

@@ -99,7 +99,9 @@ const toRequiredBinaryFlag = (
     throw new Error(`Invalid GTFS binary flag '${key}' with value '${value}'`);
 };
 
-const normalizeRawRow = (row: Record<string, string>): Record<string, string> => {
+const normalizeRawRow = (
+    row: Record<string, string>,
+): Record<string, string> => {
     for (const key of Object.keys(row)) {
         if (row[key] === undefined) {
             row[key] = "";

@@ -34,9 +34,7 @@ export class TransitlandService {
                 apikey: apiKey,
                 ...params,
             })
-                .filter(
-                    ([, value]) => value !== null && value !== undefined,
-                )
+                .filter(([, value]) => value !== null && value !== undefined)
                 .map(([key, value]) => [key, String(value)]),
         );
         const path = `/stops/${encodeURIComponent(stopKey)}/departures?${searchParams.toString()}`;

@@ -55,8 +55,12 @@ export async function up(
         db,
     );
 
-    await sql`ALTER TABLE "GtfsRoute" ALTER COLUMN "feedId" SET NOT NULL`.execute(db);
-    await sql`ALTER TABLE "GtfsRouteStop" ALTER COLUMN "feedId" SET NOT NULL`.execute(db);
+    await sql`ALTER TABLE "GtfsRoute" ALTER COLUMN "feedId" SET NOT NULL`.execute(
+        db,
+    );
+    await sql`ALTER TABLE "GtfsRouteStop" ALTER COLUMN "feedId" SET NOT NULL`.execute(
+        db,
+    );
     await sql`ALTER TABLE "GtfsRouteShape" ALTER COLUMN "feedId" SET NOT NULL`.execute(
         db,
     );
@@ -210,11 +214,19 @@ export async function down(
     await sql`DROP INDEX IF EXISTS "GtfsRoute_feedId_idx"`.execute(db);
     await sql`DROP INDEX IF EXISTS "GtfsRouteStop_feedId_idx"`.execute(db);
     await sql`DROP INDEX IF EXISTS "GtfsRouteShape_feedId_idx"`.execute(db);
-    await sql`DROP INDEX IF EXISTS "GtfsStationEntrance_feedId_idx"`.execute(db);
+    await sql`DROP INDEX IF EXISTS "GtfsStationEntrance_feedId_idx"`.execute(
+        db,
+    );
 
-    await sql`ALTER TABLE "GtfsRoute" DROP COLUMN IF EXISTS "feedId"`.execute(db);
-    await sql`ALTER TABLE "GtfsRouteStop" DROP COLUMN IF EXISTS "feedId"`.execute(db);
-    await sql`ALTER TABLE "GtfsRouteShape" DROP COLUMN IF EXISTS "feedId"`.execute(db);
+    await sql`ALTER TABLE "GtfsRoute" DROP COLUMN IF EXISTS "feedId"`.execute(
+        db,
+    );
+    await sql`ALTER TABLE "GtfsRouteStop" DROP COLUMN IF EXISTS "feedId"`.execute(
+        db,
+    );
+    await sql`ALTER TABLE "GtfsRouteShape" DROP COLUMN IF EXISTS "feedId"`.execute(
+        db,
+    );
     await sql`ALTER TABLE "GtfsStationEntrance" DROP COLUMN IF EXISTS "feedId"`.execute(
         db,
     );

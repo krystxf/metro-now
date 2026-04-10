@@ -5,7 +5,12 @@ import type { Cache } from "cache-manager";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { buildLeoCatalogFromCsv } from "src/modules/leo/leo-gtfs.parser";
-import type { LeoCatalog, LeoPlatform, LeoRoute, LeoStop } from "src/modules/leo/leo.types";
+import type {
+    LeoCatalog,
+    LeoPlatform,
+    LeoRoute,
+    LeoStop,
+} from "src/modules/leo/leo.types";
 
 const LEO_GTFS_ARCHIVE_URL =
     "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
@@ -30,10 +35,14 @@ export class LeoGtfsService {
                     Buffer.from(await response.arrayBuffer()),
                 );
                 const getFile = (path: string): Promise<string> => {
-                    const file = directory.files.find((entry) => entry.path === path);
+                    const file = directory.files.find(
+                        (entry) => entry.path === path,
+                    );
 
                     if (!file) {
-                        throw new Error(`Leo GTFS archive is missing '${path}'`);
+                        throw new Error(
+                            `Leo GTFS archive is missing '${path}'`,
+                        );
                     }
 
                     return file.buffer().then((buffer) => buffer.toString());
@@ -56,7 +65,10 @@ export class LeoGtfsService {
     }
 
     async getStopById(id: string): Promise<LeoStop | null> {
-        return (await this.getCatalog()).stops.find((stop) => stop.id === id) ?? null;
+        return (
+            (await this.getCatalog()).stops.find((stop) => stop.id === id) ??
+            null
+        );
     }
 
     async getPlatformsByIds(ids: readonly string[]): Promise<LeoPlatform[]> {
@@ -80,13 +92,18 @@ export class LeoGtfsService {
     }
 
     async getRouteById(id: string): Promise<LeoRoute | null> {
-        return (await this.getCatalog()).routes.find((route) => route.id === id) ?? null;
+        return (
+            (await this.getCatalog()).routes.find((route) => route.id === id) ??
+            null
+        );
     }
 
     async getRoutesByIds(ids: readonly string[]): Promise<LeoRoute[]> {
         const idSet = new Set(ids);
 
-        return (await this.getCatalog()).routes.filter((route) => idSet.has(route.id));
+        return (await this.getCatalog()).routes.filter((route) =>
+            idSet.has(route.id),
+        );
     }
 
     async getRoutesByPlatformIds(
@@ -94,8 +111,12 @@ export class LeoGtfsService {
     ): Promise<Map<string, LeoRoute[]>> {
         const platformIdSet = new Set(platformIds);
         const routes = await this.getRoutes();
-        const routeById = new Map(routes.map((route) => [route.id, route] as const));
-        const result = new Map<string, LeoRoute[]>(platformIds.map((platformId) => [platformId, []]));
+        const routeById = new Map(
+            routes.map((route) => [route.id, route] as const),
+        );
+        const result = new Map<string, LeoRoute[]>(
+            platformIds.map((platformId) => [platformId, []]),
+        );
 
         for (const stop of await this.getStops()) {
             for (const platform of stop.platforms) {
@@ -107,7 +128,9 @@ export class LeoGtfsService {
                     platform.id,
                     platform.routes
                         .map((route) => routeById.get(route.id))
-                        .filter((route): route is LeoRoute => route !== undefined),
+                        .filter(
+                            (route): route is LeoRoute => route !== undefined,
+                        ),
                 );
             }
         }
