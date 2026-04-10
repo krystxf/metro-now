@@ -27,7 +27,7 @@ export class InfotextsService {
             ...infotext,
             textEn: infotext.text_en,
             displayType: infotext.display_type,
-            relatedPlatforms: infotext.related_stops.map((stop) => ({
+            relatedStops: infotext.related_stops.map((stop) => ({
                 ...stop,
                 platformCode: stop.platform_code,
             })),
