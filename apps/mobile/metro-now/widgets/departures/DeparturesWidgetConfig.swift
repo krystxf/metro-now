@@ -10,7 +10,6 @@ struct MetroStationAppEntity: AppEntity {
 
     var id: String
 
-    @Property(title: "Name")
     var name: String
 
     var displayRepresentation: DisplayRepresentation {

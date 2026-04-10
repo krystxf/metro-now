@@ -9,15 +9,18 @@
     "graphql:test": "node graphql-test/index.js",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
+    "app:format": "swiftformat apps/mobile",
     "test:unit": "turbo run test:unit",
     "types:check": "turbo run types:check",
     "typegen": "turbo run typegen",
     "docker:up:dev": "docker compose up postgres redis-stack",
     "docker:up": "docker compose up -d --build",
-    "docker:down": "docker compose down --remove-orphans --volumes"
+    "docker:down": "docker compose down --remove-orphans --volumes",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "husky": "^9.1.7",
     "turbo": "^2.5.0"
   },
   "homepage": "https://metro-now.vercel.app/",

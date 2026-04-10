@@ -1,6 +1,9 @@
 <a href="https://apps.apple.com/cz/app/metro-now/id6504659402?platform=appleWatch">
   <img alt="App store link" src="https://raw.githubusercontent.com/krystxf/metro-now/refs/heads/main/apps/web/public/download-on-appstore-dark.svg" />
 </a>
+<a href="https://play.google.com/store/apps/details?id=dev.metronow.android&hl=en">
+  <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="54" />
+</a>
 
 <br/>
 
