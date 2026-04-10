@@ -37,7 +37,10 @@ const ENTITY_TO_CACHE_GROUPS: Record<string, CachePrefixGroup[]> = {
     routes: ["stop", "platform", "route"],
     platformRoutes: ["stop", "platform", "route"],
     gtfsRoutes: ["route"],
-    gtfsRouteStops: ["route"],
+
+
+
+                gtfsRouteStops: ["route"],
     gtfsRouteShapes: ["route"],
     gtfsStationEntrances: ["stop"],
     gtfsTrips: ["route"],
@@ -62,7 +65,7 @@ export class CacheInvalidationService {
             host: this.redisHost,
             port: this.redisPort,
             lazyConnect: true,
-            maxRetriesPerRequest: 3,
+            maxRetriesPerRequest: 3
         });
 
         await this.redis.connect();
