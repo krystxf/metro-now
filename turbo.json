@@ -24,7 +24,7 @@
       "outputs": []
     },
     "test:unit": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["typegen", "^build"],
       "outputs": []
     },
     "test:e2e": {
