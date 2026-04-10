@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { GtfsFeedId } from "@metro-now/database";
+
 import {
     GtfsService,
     buildGtfsShapeDatasets,
@@ -9,6 +11,7 @@ import {
 
 test("buildGtfsShapeDatasets derives route geometries and primary shapes", () => {
     const datasets = buildGtfsShapeDatasets({
+        feedId: GtfsFeedId.PID,
         trips: [
             {
                 routeId: "L1",
@@ -84,6 +87,7 @@ test("buildGtfsShapeDatasets derives route geometries and primary shapes", () =>
 
     assert.deepEqual(datasets.gtfsRouteShapes, [
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L1",
             directionId: "0",
             shapeId: "shape-a",
@@ -98,6 +102,7 @@ test("buildGtfsShapeDatasets derives route geometries and primary shapes", () =>
             },
         },
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L1",
             directionId: "0",
             shapeId: "shape-b",
@@ -112,6 +117,7 @@ test("buildGtfsShapeDatasets derives route geometries and primary shapes", () =>
             },
         },
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L1",
             directionId: "1",
             shapeId: "shape-c",
@@ -126,6 +132,7 @@ test("buildGtfsShapeDatasets derives route geometries and primary shapes", () =>
             },
         },
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L2",
             directionId: "0",
             shapeId: "shape-a",
@@ -146,6 +153,7 @@ test("buildGtfsShapeDatasets rejects trip shapes missing from shapes.txt", () =>
     assert.throws(
         () =>
             buildGtfsShapeDatasets({
+                feedId: GtfsFeedId.PID,
                 trips: [
                     {
                         routeId: "L1",
@@ -162,6 +170,7 @@ test("buildGtfsShapeDatasets rejects trip shapes missing from shapes.txt", () =>
 
 test("buildGtfsStationEntranceDataset derives metro station entrances from GTFS stops", () => {
     const datasets = buildGtfsStationEntranceDataset({
+        feedId: GtfsFeedId.PID,
         stops: [
             {
                 id: "U1072S1",
@@ -202,6 +211,7 @@ test("buildGtfsStationEntranceDataset derives metro station entrances from GTFS 
     assert.deepEqual(datasets.gtfsStationEntrances, [
         {
             id: "U1072E1",
+            feedId: GtfsFeedId.PID,
             stopId: "U1072",
             parentStationId: "U1072S1",
             name: "Mustek entrance A",
@@ -210,6 +220,7 @@ test("buildGtfsStationEntranceDataset derives metro station entrances from GTFS 
         },
         {
             id: "U1072E2",
+            feedId: GtfsFeedId.PID,
             stopId: "U1072",
             parentStationId: "U1072S1",
             name: "Mustek entrance B",

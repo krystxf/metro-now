@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { GtfsFeedId } from "@metro-now/database";
+
 import type { SyncSnapshot } from "../types/sync.types";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
 
@@ -41,6 +43,7 @@ const createSnapshot = (): SyncSnapshot => ({
     gtfsRoutes: [
         {
             id: "L1",
+            feedId: GtfsFeedId.PID,
             shortName: "C",
             longName: "Line C",
             type: "metro",
@@ -51,6 +54,7 @@ const createSnapshot = (): SyncSnapshot => ({
     ],
     gtfsRouteStops: [
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L1",
             directionId: "0",
             platformId: "P1",
@@ -59,6 +63,7 @@ const createSnapshot = (): SyncSnapshot => ({
     ],
     gtfsRouteShapes: [
         {
+            feedId: GtfsFeedId.PID,
             routeId: "L1",
             directionId: "0",
             shapeId: "shape-1",
@@ -76,6 +81,7 @@ const createSnapshot = (): SyncSnapshot => ({
     gtfsStationEntrances: [
         {
             id: "U1E1",
+            feedId: GtfsFeedId.PID,
             stopId: "U1",
             parentStationId: "U1S1",
             name: "Entrance 1",
@@ -83,6 +89,79 @@ const createSnapshot = (): SyncSnapshot => ({
             longitude: 14.4005,
         },
     ],
+    gtfsTrips: [
+        {
+            id: "PID::T1",
+            feedId: GtfsFeedId.PID,
+            tripId: "T1",
+            routeId: "L1",
+            serviceId: "S1",
+            directionId: "0",
+            shapeId: "shape-1",
+            tripHeadsign: null,
+            blockId: null,
+            wheelchairAccessible: null,
+            bikesAllowed: null,
+            rawData: {
+                trip_id: "T1",
+                route_id: "L1",
+            },
+        },
+    ],
+    gtfsStopTimes: [
+        {
+            id: "PID::T1::1::P1",
+            feedId: GtfsFeedId.PID,
+            tripId: "T1",
+            stopId: "P1",
+            platformId: "P1",
+            stopSequence: 1,
+            arrivalTime: "08:00:00",
+            departureTime: "08:00:00",
+            pickupType: null,
+            dropOffType: null,
+            timepoint: null,
+            rawData: {
+                trip_id: "T1",
+                stop_id: "P1",
+                stop_sequence: "1",
+            },
+        },
+    ],
+    gtfsCalendars: [
+        {
+            id: "PID::S1",
+            feedId: GtfsFeedId.PID,
+            serviceId: "S1",
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: false,
+            sunday: false,
+            startDate: "20260101",
+            endDate: "20261231",
+            rawData: {
+                service_id: "S1",
+            },
+        },
+    ],
+    gtfsCalendarDates: [
+        {
+            id: "PID::S1::20260101::1",
+            feedId: GtfsFeedId.PID,
+            serviceId: "S1",
+            date: "20260101",
+            exceptionType: 1,
+            rawData: {
+                service_id: "S1",
+                date: "20260101",
+                exception_type: "1",
+            },
+        },
+    ],
+    gtfsTransfers: [],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {

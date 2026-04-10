@@ -1,7 +1,10 @@
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
+import { GtfsFeedId } from "@metro-now/database";
+
 import type { GtfsSnapshot } from "../types/sync.types";
+import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
 import { parseCsvString } from "../utils/csv.utils";
 import { fetchWithTimeout } from "../utils/fetch.utils";
 
@@ -115,10 +118,12 @@ const sortShapePoints = (
     [...shapePoints].sort((left, right) => left.sequence - right.sequence);
 
 export const buildGtfsShapeDatasets = ({
+    feedId,
     trips,
     shapePoints,
     routeIdsWithImportedPlatforms,
 }: {
+    feedId: GtfsFeedId;
     trips: ParsedGtfsTripRecord[];
     shapePoints: ParsedGtfsShapePointRecord[];
     routeIdsWithImportedPlatforms: Set<string>;
@@ -185,6 +190,7 @@ export const buildGtfsShapeDatasets = ({
             const sortedShapePoints = sortShapePoints(unsortedShapePoints);
 
             return {
+                feedId,
                 routeId: routeShape.routeId,
                 directionId: routeShape.directionId,
                 shapeId: routeShape.shapeId,
@@ -243,9 +249,11 @@ export const buildGtfsShapeDatasets = ({
 };
 
 export const buildGtfsStationEntranceDataset = ({
+    feedId,
     stops,
     importedMetroStopIds,
 }: {
+    feedId: GtfsFeedId;
     stops: ParsedGtfsStopRecord[];
     importedMetroStopIds: Set<string>;
 }): Pick<GtfsSnapshot, "gtfsStationEntrances"> => {
@@ -275,6 +283,7 @@ export const buildGtfsStationEntranceDataset = ({
 
         gtfsStationEntrancesById.set(stop.id, {
             id: stop.id,
+            feedId,
             stopId,
             parentStationId: stop.parentStationId,
             name: stop.name,
@@ -346,6 +355,18 @@ export class GtfsService {
         const shapesEntry = directory.files.find(
             (file) => file.path === "shapes.txt",
         );
+        const stopTimesEntry = directory.files.find(
+            (file) => file.path === "stop_times.txt",
+        );
+        const calendarEntry = directory.files.find(
+            (file) => file.path === "calendar.txt",
+        );
+        const calendarDatesEntry = directory.files.find(
+            (file) => file.path === "calendar_dates.txt",
+        );
+        const transfersEntry = directory.files.find(
+            (file) => file.path === "transfers.txt",
+        );
 
         if (!routesEntry) {
             throw new Error("routes.txt not found in GTFS archive");
@@ -367,21 +388,48 @@ export class GtfsService {
             throw new Error("shapes.txt not found in GTFS archive");
         }
 
+        if (!stopTimesEntry) {
+            throw new Error("stop_times.txt not found in GTFS archive");
+        }
+
         const rawRoutes = await parseCsvString<Record<string, string>>(
             (await routesEntry.buffer()).toString(),
         );
         const rawRouteStops = await parseCsvString<Record<string, string>>(
             (await routeStopsEntry.buffer()).toString(),
         );
-        const rawStops = await parseCsvString<Record<string, string>>(
-            (await stopsEntry.buffer()).toString(),
-        );
-        const rawTrips = await parseCsvString<Record<string, string>>(
-            (await tripsEntry.buffer()).toString(),
-        );
-        const rawShapePoints = await parseCsvString<Record<string, string>>(
-            (await shapesEntry.buffer()).toString(),
-        );
+        let rawStops: Record<string, string>[] | null =
+            await parseCsvString<Record<string, string>>(
+                (await stopsEntry.buffer()).toString(),
+            );
+        let rawTrips: Record<string, string>[] | null =
+            await parseCsvString<Record<string, string>>(
+                (await tripsEntry.buffer()).toString(),
+            );
+        let rawShapePoints: Record<string, string>[] | null =
+            await parseCsvString<Record<string, string>>(
+                (await shapesEntry.buffer()).toString(),
+            );
+        let rawStopTimes: Record<string, string>[] | null =
+            await parseCsvString<Record<string, string>>(
+                (await stopTimesEntry.buffer()).toString(),
+            );
+        let rawCalendars: Record<string, string>[] | null = calendarEntry
+            ? await parseCsvString<Record<string, string>>(
+                  (await calendarEntry.buffer()).toString(),
+              )
+            : [];
+        let rawCalendarDates: Record<string, string>[] | null =
+            calendarDatesEntry
+                ? await parseCsvString<Record<string, string>>(
+                      (await calendarDatesEntry.buffer()).toString(),
+                  )
+                : [];
+        let rawTransfers: Record<string, string>[] | null = transfersEntry
+            ? await parseCsvString<Record<string, string>>(
+                  (await transfersEntry.buffer()).toString(),
+              )
+            : [];
 
         const gtfsRoutes = rawRoutes.map((route) =>
             this.parseGtfsRouteRecord(route),
@@ -393,24 +441,49 @@ export class GtfsService {
             gtfsRouteStops.map((routeStop) => routeStop.routeId),
         );
         const { gtfsRouteShapes } = buildGtfsShapeDatasets({
+            feedId: GtfsFeedId.PID,
             trips: rawTrips.map((record) => this.parseGtfsTripRecord(record)),
             shapePoints: rawShapePoints.map((shapePointRecord) =>
                 this.parseGtfsShapePointRecord(shapePointRecord),
             ),
             routeIdsWithImportedPlatforms,
         });
+        rawShapePoints = null;
+
         const { gtfsStationEntrances } = buildGtfsStationEntranceDataset({
+            feedId: GtfsFeedId.PID,
             stops: rawStops.map((stopRecord) =>
                 this.parseGtfsStopRecord(stopRecord),
             ),
             importedMetroStopIds,
         });
+        rawStops = null;
+
+        const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
+            feedId: GtfsFeedId.PID,
+            trips: rawTrips,
+            stopTimes: rawStopTimes,
+            calendars: rawCalendars,
+            calendarDates: rawCalendarDates,
+            transfers: rawTransfers,
+            mapStopId: (stopId) => this.normalizePlatformId(stopId),
+        });
+        rawTrips = null;
+        rawStopTimes = null;
+        rawCalendars = null;
+        rawCalendarDates = null;
+        rawTransfers = null;
 
         return {
             gtfsRoutes,
             gtfsRouteStops,
             gtfsRouteShapes,
             gtfsStationEntrances,
+            gtfsTrips: gtfsPersistenceSnapshot.gtfsTrips,
+            gtfsStopTimes: gtfsPersistenceSnapshot.gtfsStopTimes,
+            gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
+            gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
+            gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
         };
     }
 
@@ -425,6 +498,7 @@ export class GtfsService {
 
         return {
             id: parsed.data.route_id,
+            feedId: GtfsFeedId.PID,
             shortName: parsed.data.route_short_name,
             longName: this.toOptionalString(parsed.data.route_long_name),
             type: parsed.data.route_type,
@@ -452,6 +526,7 @@ export class GtfsService {
         }
 
         return {
+            feedId: GtfsFeedId.PID,
             routeId: parsed.data.route_id,
             directionId: parsed.data.direction_id,
             platformId: this.normalizePlatformId(parsed.data.stop_id),

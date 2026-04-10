@@ -21,6 +21,7 @@
         "@metro-now/database": "workspace:*",
         "@metro-now/shared": "workspace:*",
         "express": "^5.2.1",
+        "ioredis": "^5.10.1",
         "node-cron": "^4.2.1",
         "radash": "^12.1.1",
         "unzipper": "^0.12.3",

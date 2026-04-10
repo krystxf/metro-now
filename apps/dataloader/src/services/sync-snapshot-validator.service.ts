@@ -57,6 +57,26 @@ export class SyncSnapshotValidator {
             "gtfsStationEntrances",
             snapshot.gtfsStationEntrances.map((entrance) => entrance.id),
         );
+        this.assertUniqueKeys(
+            "gtfsTrips",
+            snapshot.gtfsTrips.map((trip) => trip.id),
+        );
+        this.assertUniqueKeys(
+            "gtfsStopTimes",
+            snapshot.gtfsStopTimes.map((stopTime) => stopTime.id),
+        );
+        this.assertUniqueKeys(
+            "gtfsCalendars",
+            snapshot.gtfsCalendars.map((calendar) => calendar.id),
+        );
+        this.assertUniqueKeys(
+            "gtfsCalendarDates",
+            snapshot.gtfsCalendarDates.map((calendarDate) => calendarDate.id),
+        );
+        this.assertUniqueKeys(
+            "gtfsTransfers",
+            snapshot.gtfsTransfers.map((transfer) => transfer.id),
+        );
 
         const stopIds = new Set(snapshot.stops.map((stop) => stop.id));
         const platformIds = new Set(
@@ -66,6 +86,7 @@ export class SyncSnapshotValidator {
         const gtfsRouteIds = new Set(
             snapshot.gtfsRoutes.map((route) => route.id),
         );
+        const gtfsTripIds = new Set(snapshot.gtfsTrips.map((trip) => trip.id));
 
         for (const platform of snapshot.platforms) {
             if (platform.stopId && !stopIds.has(platform.stopId)) {
@@ -133,6 +154,36 @@ export class SyncSnapshotValidator {
             ) {
                 throw new Error(
                     `GTFS station entrance has invalid longitude '${entrance.longitude}'`,
+                );
+            }
+        }
+
+        for (const trip of snapshot.gtfsTrips) {
+            if (!gtfsRouteIds.has(trip.routeId)) {
+                throw new Error(
+                    `GTFS trip references missing route '${trip.routeId}'`,
+                );
+            }
+        }
+
+        for (const stopTime of snapshot.gtfsStopTimes) {
+            if (!gtfsTripIds.has(`${stopTime.feedId}::${stopTime.tripId}`)) {
+                throw new Error(
+                    `GTFS stop time references missing trip '${stopTime.tripId}' in feed '${stopTime.feedId}'`,
+                );
+            }
+
+            if (stopTime.stopSequence < 0) {
+                throw new Error(
+                    `GTFS stop time has invalid stop sequence '${stopTime.stopSequence}'`,
+                );
+            }
+        }
+
+        for (const calendarDate of snapshot.gtfsCalendarDates) {
+            if (calendarDate.exceptionType < 1) {
+                throw new Error(
+                    `GTFS calendar date has invalid exception type '${calendarDate.exceptionType}'`,
                 );
             }
         }
