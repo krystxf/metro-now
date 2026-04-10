@@ -17,27 +17,28 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const BRNO_GTFS_ARCHIVE_URL = "https://kordis-jmk.cz/gtfs/gtfs.zip";
+const USTI_GTFS_ARCHIVE_URL =
+    "https://tabule.portabo.cz/api/v1-tabule/cis/GetGtfs/gtfs_google_all";
 
-const BRNO_STOP_PREFIX = "BRS:";
-const BRNO_PLATFORM_PREFIX = "BRP:";
-const BRNO_ROUTE_PREFIX = "BRR:";
+const USTI_STOP_PREFIX = "USS:";
+const USTI_PLATFORM_PREFIX = "USP:";
+const USTI_ROUTE_PREFIX = "USR:";
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
 
-const toBrnoStopId = (gtfsStopId: string): string =>
-    `${BRNO_STOP_PREFIX}${gtfsStopId}`;
-const toBrnoPlatformId = (gtfsStopId: string): string =>
-    `${BRNO_PLATFORM_PREFIX}${gtfsStopId}`;
-const toBrnoRouteId = (gtfsRouteId: string): string =>
-    `${BRNO_ROUTE_PREFIX}${gtfsRouteId}`;
+const toUstiStopId = (gtfsStopId: string): string =>
+    `${USTI_STOP_PREFIX}${gtfsStopId}`;
+const toUstiPlatformId = (gtfsStopId: string): string =>
+    `${USTI_PLATFORM_PREFIX}${gtfsStopId}`;
+const toUstiRouteId = (gtfsRouteId: string): string =>
+    `${USTI_ROUTE_PREFIX}${gtfsRouteId}`;
 
 const routeRowSchema = z.object({
     route_id: z.string().min(1),
@@ -134,7 +135,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type BrnoSnapshot = StopSnapshot & {
+export type UstiSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -175,13 +176,13 @@ const toVehicleType = (routeType: string): VehicleType | null => {
     }
 };
 
-export class BrnoImportService {
-    async getBrnoSnapshot(): Promise<BrnoSnapshot> {
-        const response = await fetchWithTimeout(BRNO_GTFS_ARCHIVE_URL);
+export class UstiImportService {
+    async getUstiSnapshot(): Promise<UstiSnapshot> {
+        const response = await fetchWithTimeout(USTI_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch Brno GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch Usti GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -192,7 +193,7 @@ export class BrnoImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`Brno GTFS archive is missing '${path}'`);
+                throw new Error(`Usti GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -254,7 +255,7 @@ export class BrnoImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
-    }): Promise<BrnoSnapshot> {
+    }): Promise<UstiSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
                 parseCsvString<Record<string, string>>(routesCsv),
@@ -276,28 +277,28 @@ export class BrnoImportService {
                     : Promise.resolve([]),
             ]);
 
-        const brnoRoutes = rawRoutes.map((row) => this.parseRoute(row));
-        const brnoRouteIds = new Set(brnoRoutes.map((route) => route.id));
-        const brnoTrips = rawTrips
+        const ustiRoutes = rawRoutes.map((row) => this.parseRoute(row));
+        const ustiRouteIds = new Set(ustiRoutes.map((route) => route.id));
+        const ustiTrips = rawTrips
             .map((row) => this.parseTrip(row))
-            .filter((trip) => brnoRouteIds.has(trip.routeId));
-        const brnoTripById = new Map(
-            brnoTrips.map((trip) => [trip.id, trip] as const),
+            .filter((trip) => ustiRouteIds.has(trip.routeId));
+        const ustiTripById = new Map(
+            ustiTrips.map((trip) => [trip.id, trip] as const),
         );
-        const brnoStopTimesByTripId = new Map<string, ParsedStopTime[]>();
+        const ustiStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
         for (const stopTime of rawStopTimes.map((row) =>
             this.parseStopTime(row),
         )) {
-            if (!brnoTripById.has(stopTime.tripId)) {
+            if (!ustiTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                brnoStopTimesByTripId.get(stopTime.tripId) ?? [];
+                ustiStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            brnoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            ustiStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -309,7 +310,7 @@ export class BrnoImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of brnoStopTimesByTripId.values()) {
+        for (const tripStopTimes of ustiStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -332,12 +333,12 @@ export class BrnoImportService {
             Map<string, DominantPattern>
         >();
 
-        for (const trip of brnoTrips) {
+        for (const trip of ustiTrips) {
             const tripStopTimes = (
-                brnoStopTimesByTripId.get(trip.id) ?? []
+                ustiStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toBrnoPlatformId(stopTime.stopId))
+                .map((stopTime) => toUstiPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -347,7 +348,7 @@ export class BrnoImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toBrnoRouteId(trip.routeId));
+                    ?.routeIds.add(toUstiRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -388,8 +389,8 @@ export class BrnoImportService {
             })),
         );
 
-        const routes = brnoRoutes.map((route) => ({
-            id: toBrnoRouteId(route.id),
+        const routes = ustiRoutes.map((route) => ({
+            id: toUstiRouteId(route.id),
             name: route.shortName,
             vehicleType: toVehicleType(route.type),
             isNight: null,
@@ -404,9 +405,9 @@ export class BrnoImportService {
             ),
         );
 
-        const gtfsRoutes = brnoRoutes.map((route) => ({
-            id: toBrnoRouteId(route.id),
-            feedId: GtfsFeedId.BRNO,
+        const gtfsRoutes = ustiRoutes.map((route) => ({
+            id: toUstiRouteId(route.id),
+            feedId: GtfsFeedId.USTI,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
@@ -416,21 +417,21 @@ export class BrnoImportService {
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            brnoRoutes,
+            ustiRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            brnoRoutes,
+            ustiRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: `${BRNO_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.BRNO,
+                id: `${USTI_STOP_PREFIX}entrance:${entrance.id}`,
+                feedId: GtfsFeedId.USTI,
                 stopId: stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
@@ -439,14 +440,14 @@ export class BrnoImportService {
             })),
         );
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.BRNO,
+            feedId: GtfsFeedId.USTI,
             trips: rawTrips,
             stopTimes: rawStopTimes,
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toBrnoRouteId,
-            mapStopId: toBrnoPlatformId,
+            mapRouteId: toUstiRouteId,
+            mapStopId: toUstiPlatformId,
         });
 
         return {
@@ -518,7 +519,7 @@ export class BrnoImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toBrnoStopId(logicalStopSourceId);
+            const logicalStopId = toUstiStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -528,7 +529,7 @@ export class BrnoImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toBrnoPlatformId(platformStop.id),
+                    id: toUstiPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -577,13 +578,13 @@ export class BrnoImportService {
     }
 
     private buildGtfsRouteStops(
-        brnoRoutes: ParsedRoute[],
+        ustiRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of brnoRoutes) {
+        for (const route of ustiRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -599,8 +600,8 @@ export class BrnoImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.BRNO,
-                        routeId: toBrnoRouteId(route.id),
+                        feedId: GtfsFeedId.USTI,
+                        routeId: toUstiRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -613,13 +614,13 @@ export class BrnoImportService {
     }
 
     private buildGtfsRouteShapes(
-        brnoRoutes: ParsedRoute[],
+        ustiRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of brnoRoutes) {
+        for (const route of ustiRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -654,8 +655,8 @@ export class BrnoImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.BRNO,
-                    routeId: toBrnoRouteId(route.id),
+                    feedId: GtfsFeedId.USTI,
+                    routeId: toUstiRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
@@ -714,7 +715,7 @@ export class BrnoImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid Brno GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid Usti GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -759,7 +760,7 @@ export class BrnoImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid Brno GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid Usti GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import { buildGtfsPersistenceSnapshot } from "../services/gtfs-persistence.utils";
+import { buildGtfsPersistenceSnapshot } from "../services/gtfs/gtfs-persistence.utils";
 import { parseCsvString } from "../utils/csv.utils";
 
 test("integration: CSV trips + stop_times → buildGtfsPersistenceSnapshot produces a valid snapshot", async () => {

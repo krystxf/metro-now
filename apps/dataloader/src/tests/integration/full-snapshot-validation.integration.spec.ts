@@ -3,13 +3,13 @@ import test from "node:test";
 
 import { GtfsFeedId } from "@metro-now/database";
 
-import { buildGtfsPersistenceSnapshot } from "../services/gtfs-persistence.utils";
+import { buildGtfsPersistenceSnapshot } from "../services/gtfs/gtfs-persistence.utils";
 import {
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
-} from "../services/gtfs.service";
-import { PidImportService } from "../services/pid-import.service";
-import { SyncSnapshotValidator } from "../services/sync-snapshot-validator.service";
+} from "../services/gtfs/gtfs.service";
+import { PidImportService } from "../services/imports/pid-import.service";
+import { SyncSnapshotValidator } from "../services/sync/sync-snapshot-validator.service";
 import type { SyncSnapshot } from "../types/sync.types";
 import { parseCsvString } from "../utils/csv.utils";
 

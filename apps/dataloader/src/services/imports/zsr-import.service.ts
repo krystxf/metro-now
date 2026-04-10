@@ -17,31 +17,43 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { logger } from "../../utils/logger";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const USTI_GTFS_ARCHIVE_URL =
-    "https://tabule.portabo.cz/api/v1-tabule/cis/GetGtfs/gtfs_google_all";
+const ZSR_GTFS_ARCHIVE_URL =
+    "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
 
-const USTI_STOP_PREFIX = "USS:";
-const USTI_PLATFORM_PREFIX = "USP:";
-const USTI_ROUTE_PREFIX = "USR:";
+const ZSR_STOP_PREFIX = "ZRS:";
+const ZSR_PLATFORM_PREFIX = "ZRP:";
+const ZSR_ROUTE_PREFIX = "ZRR:";
+
+const LEO_AGENCY_NAMES = new Set([
+    "Leo Express s.r.o.",
+    "Leo Express Slovensko s.r.o.",
+]);
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
 
-const toUstiStopId = (gtfsStopId: string): string =>
-    `${USTI_STOP_PREFIX}${gtfsStopId}`;
-const toUstiPlatformId = (gtfsStopId: string): string =>
-    `${USTI_PLATFORM_PREFIX}${gtfsStopId}`;
-const toUstiRouteId = (gtfsRouteId: string): string =>
-    `${USTI_ROUTE_PREFIX}${gtfsRouteId}`;
+const toZsrStopId = (gtfsStopId: string): string =>
+    `${ZSR_STOP_PREFIX}${gtfsStopId}`;
+const toZsrPlatformId = (gtfsStopId: string): string =>
+    `${ZSR_PLATFORM_PREFIX}${gtfsStopId}`;
+const toZsrRouteId = (gtfsRouteId: string): string =>
+    `${ZSR_ROUTE_PREFIX}${gtfsRouteId}`;
+
+const agencyRowSchema = z.object({
+    agency_id: z.string().min(1),
+    agency_name: z.string().min(1),
+});
 
 const routeRowSchema = z.object({
     route_id: z.string().min(1),
+    agency_id: z.string().min(1),
     route_short_name: z.string().min(1),
     route_long_name: z.string().optional(),
     route_type: z.string().min(1),
@@ -83,6 +95,7 @@ type ParsedStop = {
 
 type ParsedRoute = {
     id: string;
+    agencyId: string;
     shortName: string;
     longName: string | null;
     type: string;
@@ -106,6 +119,7 @@ type LogicalStop = {
     id: string;
     gtfsStopId: string;
     name: string;
+    normalizedName: string;
     avgLatitude: number;
     avgLongitude: number;
     platforms: LogicalPlatform[];
@@ -135,7 +149,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type UstiSnapshot = StopSnapshot & {
+export type ZsrSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -157,32 +171,44 @@ const toOptionalString = (value?: string): string | null => {
     return trimmed.length > 0 ? trimmed : null;
 };
 
-const toVehicleType = (routeType: string): VehicleType | null => {
-    switch (routeType.trim()) {
-        case "0":
-            return VehicleType.TRAM;
-        case "3":
-            return VehicleType.BUS;
-        case "11":
-            return VehicleType.BUS;
-        case "1":
-            return VehicleType.METRO;
-        case "2":
-            return VehicleType.TRAIN;
-        case "4":
-            return VehicleType.FERRY;
-        default:
-            return null;
-    }
+const normalizeStopName = (name: string): string =>
+    name
+        .normalize("NFD")
+        .replace(/\p{Diacritic}+/gu, "")
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+
+const distanceInMeters = (
+    leftLatitude: number,
+    leftLongitude: number,
+    rightLatitude: number,
+    rightLongitude: number,
+): number => {
+    const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
+    const earthRadiusMeters = 6_371_000;
+    const latitudeDelta = toRadians(rightLatitude - leftLatitude);
+    const longitudeDelta = toRadians(rightLongitude - leftLongitude);
+    const a =
+        Math.sin(latitudeDelta / 2) ** 2 +
+        Math.cos(toRadians(leftLatitude)) *
+            Math.cos(toRadians(rightLatitude)) *
+            Math.sin(longitudeDelta / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return earthRadiusMeters * c;
 };
 
-export class UstiImportService {
-    async getUstiSnapshot(): Promise<UstiSnapshot> {
-        const response = await fetchWithTimeout(USTI_GTFS_ARCHIVE_URL);
+export class ZsrImportService {
+    async getZsrSnapshot(
+        pidStops: StopSnapshot["stops"],
+    ): Promise<ZsrSnapshot> {
+        const response = await fetchWithTimeout(ZSR_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch Usti GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch ZSR GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -193,7 +219,7 @@ export class UstiImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`Usti GTFS archive is missing '${path}'`);
+                throw new Error(`ZSR GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -211,6 +237,7 @@ export class UstiImportService {
         };
 
         const [
+            agenciesCsv,
             routesCsv,
             stopsCsv,
             stopTimesCsv,
@@ -219,6 +246,7 @@ export class UstiImportService {
             calendarDatesCsv,
             transfersCsv,
         ] = await Promise.all([
+            getFile("agency.txt"),
             getFile("routes.txt"),
             getFile("stops.txt"),
             getFile("stop_times.txt"),
@@ -229,6 +257,7 @@ export class UstiImportService {
         ]);
 
         return this.buildSnapshot({
+            agenciesCsv,
             routesCsv,
             stopsCsv,
             stopTimesCsv,
@@ -236,10 +265,12 @@ export class UstiImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            pidStops,
         });
     }
 
     private async buildSnapshot({
+        agenciesCsv,
         routesCsv,
         stopsCsv,
         stopTimesCsv,
@@ -247,7 +278,9 @@ export class UstiImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        pidStops,
     }: {
+        agenciesCsv: string;
         routesCsv: string;
         stopsCsv: string;
         stopTimesCsv: string;
@@ -255,15 +288,16 @@ export class UstiImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
-    }): Promise<UstiSnapshot> {
-        const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
-            [
+        pidStops: StopSnapshot["stops"];
+    }): Promise<ZsrSnapshot> {
+        const [rawAgencies, rawRoutes, rawStops, rawStopTimes, rawTrips] =
+            await Promise.all([
+                parseCsvString<Record<string, string>>(agenciesCsv),
                 parseCsvString<Record<string, string>>(routesCsv),
                 parseCsvString<Record<string, string>>(stopsCsv),
                 parseCsvString<Record<string, string>>(stopTimesCsv),
                 parseCsvString<Record<string, string>>(tripsCsv),
-            ],
-        );
+            ]);
         const [rawCalendars, rawCalendarDates, rawTransfers] =
             await Promise.all([
                 calendarCsv
@@ -277,28 +311,50 @@ export class UstiImportService {
                     : Promise.resolve([]),
             ]);
 
-        const ustiRoutes = rawRoutes.map((row) => this.parseRoute(row));
-        const ustiRouteIds = new Set(ustiRoutes.map((route) => route.id));
-        const ustiTrips = rawTrips
-            .map((row) => this.parseTrip(row))
-            .filter((trip) => ustiRouteIds.has(trip.routeId));
-        const ustiTripById = new Map(
-            ustiTrips.map((trip) => [trip.id, trip] as const),
+        const nonLeoAgencyIds = new Set(
+            rawAgencies
+                .map((row) => agencyRowSchema.parse(row))
+                .filter(
+                    (agency) =>
+                        !LEO_AGENCY_NAMES.has(agency.agency_name.trim()),
+                )
+                .map((agency) => agency.agency_id),
         );
-        const ustiStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
-        for (const stopTime of rawStopTimes.map((row) =>
-            this.parseStopTime(row),
-        )) {
-            if (!ustiTripById.has(stopTime.tripId)) {
+        logger.info("ZSR agency filtering", {
+            totalAgencies: rawAgencies.length,
+            nonLeoAgencies: nonLeoAgencyIds.size,
+        });
+
+        const zsrRoutes = rawRoutes
+            .map((row) => this.parseRoute(row))
+            .filter((route) => nonLeoAgencyIds.has(route.agencyId));
+        const zsrRouteIds = new Set(zsrRoutes.map((route) => route.id));
+        const zsrTrips = rawTrips
+            .map((row) => this.parseTrip(row))
+            .filter((trip) => zsrRouteIds.has(trip.routeId));
+        const zsrTripById = new Map(
+            zsrTrips.map((trip) => [trip.id, trip] as const),
+        );
+        const zsrRawTrips = rawTrips.filter((row) => {
+            const routeId = toOptionalString(row.route_id);
+
+            return routeId !== null && zsrRouteIds.has(routeId);
+        });
+        const zsrStopTimesByTripId = new Map<string, ParsedStopTime[]>();
+
+        for (const rawStopTime of rawStopTimes) {
+            const stopTime = this.parseStopTime(rawStopTime);
+
+            if (!zsrTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                ustiStopTimesByTripId.get(stopTime.tripId) ?? [];
+                zsrStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            ustiStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            zsrStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -310,7 +366,7 @@ export class UstiImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of ustiStopTimesByTripId.values()) {
+        for (const tripStopTimes of zsrStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -333,12 +389,12 @@ export class UstiImportService {
             Map<string, DominantPattern>
         >();
 
-        for (const trip of ustiTrips) {
+        for (const trip of zsrTrips) {
             const tripStopTimes = (
-                ustiStopTimesByTripId.get(trip.id) ?? []
+                zsrStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toUstiPlatformId(stopTime.stopId))
+                .map((stopTime) => toZsrPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -348,7 +404,7 @@ export class UstiImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toUstiRouteId(trip.routeId));
+                    ?.routeIds.add(toZsrRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -370,12 +426,23 @@ export class UstiImportService {
             patternsByRouteAndDirection.set(routeDirectionKey, patterns);
         }
 
-        const stops = logicalStops.map((stop) => ({
-            id: stop.id,
-            name: stop.name,
-            avgLatitude: stop.avgLatitude,
-            avgLongitude: stop.avgLongitude,
-        }));
+        const localStopIdByZsrStopId = this.matchStops(pidStops, logicalStops);
+        const matchedZsrStopIds = new Set(localStopIdByZsrStopId.keys());
+
+        logger.info("ZSR stop matching results", {
+            totalZsrStops: logicalStops.length,
+            matchedToLocal: matchedZsrStopIds.size,
+            unmatched: logicalStops.length - matchedZsrStopIds.size,
+        });
+
+        const stops = logicalStops
+            .filter((stop) => !matchedZsrStopIds.has(stop.id))
+            .map((stop) => ({
+                id: stop.id,
+                name: stop.name,
+                avgLatitude: stop.avgLatitude,
+                avgLongitude: stop.avgLongitude,
+            }));
 
         const platforms = logicalStops.flatMap((stop) =>
             stop.platforms.map((platform) => ({
@@ -385,15 +452,15 @@ export class UstiImportService {
                 isMetro: false,
                 latitude: platform.latitude,
                 longitude: platform.longitude,
-                stopId: stop.id,
+                stopId: localStopIdByZsrStopId.get(stop.id) ?? stop.id,
             })),
         );
 
-        const routes = ustiRoutes.map((route) => ({
-            id: toUstiRouteId(route.id),
+        const routes = zsrRoutes.map((route) => ({
+            id: toZsrRouteId(route.id),
             name: route.shortName,
-            vehicleType: toVehicleType(route.type),
-            isNight: null,
+            vehicleType: VehicleType.TRAIN,
+            isNight: false as const,
         }));
 
         const platformRoutes = logicalStops.flatMap((stop) =>
@@ -405,49 +472,64 @@ export class UstiImportService {
             ),
         );
 
-        const gtfsRoutes = ustiRoutes.map((route) => ({
-            id: toUstiRouteId(route.id),
-            feedId: GtfsFeedId.USTI,
+        const gtfsRoutes = zsrRoutes.map((route) => ({
+            id: toZsrRouteId(route.id),
+            feedId: GtfsFeedId.ZSR,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
             color: route.color,
-            isNight: null,
+            isNight: false as const,
             url: route.url,
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            ustiRoutes,
+            zsrRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            ustiRoutes,
+            zsrRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: `${USTI_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.USTI,
-                stopId: stop.id,
+                id: `${ZSR_STOP_PREFIX}entrance:${entrance.id}`,
+                feedId: GtfsFeedId.ZSR,
+                stopId: localStopIdByZsrStopId.get(stop.id) ?? stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
                 latitude: entrance.latitude,
                 longitude: entrance.longitude,
             })),
         );
+
+        const zsrRawStopTimes = rawStopTimes.filter((row) => {
+            const tripId = row.trip_id;
+
+            return tripId !== undefined && zsrTripById.has(tripId);
+        });
+
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.USTI,
-            trips: rawTrips,
-            stopTimes: rawStopTimes,
+            feedId: GtfsFeedId.ZSR,
+            trips: zsrRawTrips,
+            stopTimes: zsrRawStopTimes,
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toUstiRouteId,
-            mapStopId: toUstiPlatformId,
+            mapRouteId: toZsrRouteId,
+            mapStopId: toZsrPlatformId,
+        });
+
+        logger.info("ZSR snapshot built", {
+            routes: zsrRoutes.length,
+            stops: stops.length,
+            platforms: platforms.length,
+            trips: gtfsPersistenceSnapshot.gtfsTrips.length,
+            stopTimes: gtfsPersistenceSnapshot.gtfsStopTimes.length,
         });
 
         return {
@@ -465,6 +547,51 @@ export class UstiImportService {
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
         };
+    }
+
+    private matchStops(
+        pidStops: StopSnapshot["stops"],
+        zsrStops: LogicalStop[],
+    ): Map<string, string> {
+        const localStopIdByZsrStopId = new Map<string, string>();
+
+        for (const pidStop of pidStops) {
+            const normalizedPidName = normalizeStopName(pidStop.name);
+            const matchedZsrStop = zsrStops
+                .filter(
+                    (zsrStop) => zsrStop.normalizedName === normalizedPidName,
+                )
+                .filter(
+                    (zsrStop) =>
+                        distanceInMeters(
+                            pidStop.avgLatitude,
+                            pidStop.avgLongitude,
+                            zsrStop.avgLatitude,
+                            zsrStop.avgLongitude,
+                        ) <= 250,
+                )
+                .sort(
+                    (left, right) =>
+                        distanceInMeters(
+                            pidStop.avgLatitude,
+                            pidStop.avgLongitude,
+                            left.avgLatitude,
+                            left.avgLongitude,
+                        ) -
+                            distanceInMeters(
+                                pidStop.avgLatitude,
+                                pidStop.avgLongitude,
+                                right.avgLatitude,
+                                right.avgLongitude,
+                            ) || left.id.localeCompare(right.id),
+                )[0];
+
+            if (matchedZsrStop) {
+                localStopIdByZsrStopId.set(matchedZsrStop.id, pidStop.id);
+            }
+        }
+
+        return localStopIdByZsrStopId;
     }
 
     private buildLogicalStops({
@@ -519,7 +646,7 @@ export class UstiImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toUstiStopId(logicalStopSourceId);
+            const logicalStopId = toZsrStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -529,7 +656,7 @@ export class UstiImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toUstiPlatformId(platformStop.id),
+                    id: toZsrPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -567,6 +694,7 @@ export class UstiImportService {
                 id: logicalStopId,
                 gtfsStopId: logicalStopSourceId,
                 name: sourceStop.name,
+                normalizedName: normalizeStopName(sourceStop.name),
                 avgLatitude,
                 avgLongitude,
                 platforms,
@@ -578,13 +706,13 @@ export class UstiImportService {
     }
 
     private buildGtfsRouteStops(
-        ustiRoutes: ParsedRoute[],
+        routes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of ustiRoutes) {
+        for (const route of routes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -600,8 +728,8 @@ export class UstiImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.USTI,
-                        routeId: toUstiRouteId(route.id),
+                        feedId: GtfsFeedId.ZSR,
+                        routeId: toZsrRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -614,13 +742,13 @@ export class UstiImportService {
     }
 
     private buildGtfsRouteShapes(
-        ustiRoutes: ParsedRoute[],
+        routes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of ustiRoutes) {
+        for (const route of routes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -655,8 +783,8 @@ export class UstiImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.USTI,
-                    routeId: toUstiRouteId(route.id),
+                    feedId: GtfsFeedId.ZSR,
+                    routeId: toZsrRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
@@ -715,7 +843,7 @@ export class UstiImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid Usti GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid ZSR GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -736,6 +864,7 @@ export class UstiImportService {
 
         return {
             id: parsed.route_id,
+            agencyId: parsed.agency_id,
             shortName: parsed.route_short_name.trim(),
             longName: toOptionalString(parsed.route_long_name),
             type: parsed.route_type,
@@ -760,7 +889,7 @@ export class UstiImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid Usti GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid ZSR GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

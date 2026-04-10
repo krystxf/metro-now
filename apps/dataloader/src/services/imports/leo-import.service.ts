@@ -17,20 +17,27 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { logger } from "../utils/logger";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { logger } from "../../utils/logger";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const ZSR_GTFS_ARCHIVE_URL =
+const LEO_GTFS_ARCHIVE_URL =
     "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
 
-const ZSR_STOP_PREFIX = "ZRS:";
-const ZSR_PLATFORM_PREFIX = "ZRP:";
-const ZSR_ROUTE_PREFIX = "ZRR:";
+const LEO_STOP_PREFIX = "TLS:";
+const LEO_PLATFORM_PREFIX = "TLP:";
+const LEO_ROUTE_PREFIX = "LTL:";
 
-const LEO_AGENCY_NAMES = new Set([
+const toLeoStopId = (gtfsStopId: string): string =>
+    `${LEO_STOP_PREFIX}${gtfsStopId}`;
+const toLeoPlatformId = (gtfsStopId: string): string =>
+    `${LEO_PLATFORM_PREFIX}${gtfsStopId}`;
+const toLeoRouteId = (gtfsRouteId: string): string =>
+    `${LEO_ROUTE_PREFIX}${gtfsRouteId}`;
+
+const TARGET_AGENCY_NAMES = new Set([
     "Leo Express s.r.o.",
     "Leo Express Slovensko s.r.o.",
 ]);
@@ -38,13 +45,6 @@ const LEO_AGENCY_NAMES = new Set([
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
-
-const toZsrStopId = (gtfsStopId: string): string =>
-    `${ZSR_STOP_PREFIX}${gtfsStopId}`;
-const toZsrPlatformId = (gtfsStopId: string): string =>
-    `${ZSR_PLATFORM_PREFIX}${gtfsStopId}`;
-const toZsrRouteId = (gtfsRouteId: string): string =>
-    `${ZSR_ROUTE_PREFIX}${gtfsRouteId}`;
 
 const agencyRowSchema = z.object({
     agency_id: z.string().min(1),
@@ -149,7 +149,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type ZsrSnapshot = StopSnapshot & {
+export type LeoSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -200,15 +200,15 @@ const distanceInMeters = (
     return earthRadiusMeters * c;
 };
 
-export class ZsrImportService {
-    async getZsrSnapshot(
+export class LeoImportService {
+    async getLeoSnapshot(
         pidStops: StopSnapshot["stops"],
-    ): Promise<ZsrSnapshot> {
-        const response = await fetchWithTimeout(ZSR_GTFS_ARCHIVE_URL);
+    ): Promise<LeoSnapshot> {
+        const response = await fetchWithTimeout(LEO_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch ZSR GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch Leo GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -219,7 +219,7 @@ export class ZsrImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`ZSR GTFS archive is missing '${path}'`);
+                throw new Error(`Leo GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -289,7 +289,7 @@ export class ZsrImportService {
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
         pidStops: StopSnapshot["stops"];
-    }): Promise<ZsrSnapshot> {
+    }): Promise<LeoSnapshot> {
         const [rawAgencies, rawRoutes, rawStops, rawStopTimes, rawTrips] =
             await Promise.all([
                 parseCsvString<Record<string, string>>(agenciesCsv),
@@ -311,50 +311,43 @@ export class ZsrImportService {
                     : Promise.resolve([]),
             ]);
 
-        const nonLeoAgencyIds = new Set(
+        const leoAgencyIds = new Set(
             rawAgencies
                 .map((row) => agencyRowSchema.parse(row))
-                .filter(
-                    (agency) =>
-                        !LEO_AGENCY_NAMES.has(agency.agency_name.trim()),
+                .filter((agency) =>
+                    TARGET_AGENCY_NAMES.has(agency.agency_name.trim()),
                 )
                 .map((agency) => agency.agency_id),
         );
-
-        logger.info("ZSR agency filtering", {
-            totalAgencies: rawAgencies.length,
-            nonLeoAgencies: nonLeoAgencyIds.size,
-        });
-
-        const zsrRoutes = rawRoutes
+        const leoRoutes = rawRoutes
             .map((row) => this.parseRoute(row))
-            .filter((route) => nonLeoAgencyIds.has(route.agencyId));
-        const zsrRouteIds = new Set(zsrRoutes.map((route) => route.id));
-        const zsrTrips = rawTrips
+            .filter((route) => leoAgencyIds.has(route.agencyId));
+        const leoRouteIds = new Set(leoRoutes.map((route) => route.id));
+        const leoTrips = rawTrips
             .map((row) => this.parseTrip(row))
-            .filter((trip) => zsrRouteIds.has(trip.routeId));
-        const zsrTripById = new Map(
-            zsrTrips.map((trip) => [trip.id, trip] as const),
+            .filter((trip) => leoRouteIds.has(trip.routeId));
+        const leoTripById = new Map(
+            leoTrips.map((trip) => [trip.id, trip] as const),
         );
-        const zsrRawTrips = rawTrips.filter((row) => {
+        const leoRawTrips = rawTrips.filter((row) => {
             const routeId = toOptionalString(row.route_id);
 
-            return routeId !== null && zsrRouteIds.has(routeId);
+            return routeId !== null && leoRouteIds.has(routeId);
         });
-        const zsrStopTimesByTripId = new Map<string, ParsedStopTime[]>();
+        const leoStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
         for (const rawStopTime of rawStopTimes) {
             const stopTime = this.parseStopTime(rawStopTime);
 
-            if (!zsrTripById.has(stopTime.tripId)) {
+            if (!leoTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                zsrStopTimesByTripId.get(stopTime.tripId) ?? [];
+                leoStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            zsrStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            leoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -366,7 +359,7 @@ export class ZsrImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of zsrStopTimesByTripId.values()) {
+        for (const tripStopTimes of leoStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -384,17 +377,18 @@ export class ZsrImportService {
             ),
         );
 
+        // Assign routes to platforms and build direction patterns
         const patternsByRouteAndDirection = new Map<
             string,
             Map<string, DominantPattern>
         >();
 
-        for (const trip of zsrTrips) {
+        for (const trip of leoTrips) {
             const tripStopTimes = (
-                zsrStopTimesByTripId.get(trip.id) ?? []
+                leoStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toZsrPlatformId(stopTime.stopId))
+                .map((stopTime) => toLeoPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -404,7 +398,7 @@ export class ZsrImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toZsrRouteId(trip.routeId));
+                    ?.routeIds.add(toLeoRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -426,17 +420,19 @@ export class ZsrImportService {
             patternsByRouteAndDirection.set(routeDirectionKey, patterns);
         }
 
-        const localStopIdByZsrStopId = this.matchStops(pidStops, logicalStops);
-        const matchedZsrStopIds = new Set(localStopIdByZsrStopId.keys());
+        // Match Leo stops to PID stops
+        const localStopIdByLeoStopId = this.matchStops(pidStops, logicalStops);
+        const matchedLeoStopIds = new Set(localStopIdByLeoStopId.keys());
 
-        logger.info("ZSR stop matching results", {
-            totalZsrStops: logicalStops.length,
-            matchedToLocal: matchedZsrStopIds.size,
-            unmatched: logicalStops.length - matchedZsrStopIds.size,
+        logger.info("Leo stop matching results", {
+            totalLeoStops: logicalStops.length,
+            matchedToLocal: matchedLeoStopIds.size,
+            unmatched: logicalStops.length - matchedLeoStopIds.size,
         });
 
+        // Build snapshot entities
         const stops = logicalStops
-            .filter((stop) => !matchedZsrStopIds.has(stop.id))
+            .filter((stop) => !matchedLeoStopIds.has(stop.id))
             .map((stop) => ({
                 id: stop.id,
                 name: stop.name,
@@ -452,12 +448,15 @@ export class ZsrImportService {
                 isMetro: false,
                 latitude: platform.latitude,
                 longitude: platform.longitude,
-                stopId: localStopIdByZsrStopId.get(stop.id) ?? stop.id,
+                stopId: localStopIdByLeoStopId.get(stop.id) ?? stop.id,
             })),
         );
 
-        const routes = zsrRoutes.map((route) => ({
-            id: toZsrRouteId(route.id),
+        const leoRouteById = new Map(
+            leoRoutes.map((route) => [route.id, route] as const),
+        );
+        const routes = leoRoutes.map((route) => ({
+            id: toLeoRouteId(route.id),
             name: route.shortName,
             vehicleType: VehicleType.TRAIN,
             isNight: false as const,
@@ -472,9 +471,9 @@ export class ZsrImportService {
             ),
         );
 
-        const gtfsRoutes = zsrRoutes.map((route) => ({
-            id: toZsrRouteId(route.id),
-            feedId: GtfsFeedId.ZSR,
+        const gtfsRoutes = leoRoutes.map((route) => ({
+            id: toLeoRouteId(route.id),
+            feedId: GtfsFeedId.LEO,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
@@ -484,52 +483,41 @@ export class ZsrImportService {
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            zsrRoutes,
+            leoRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            zsrRoutes,
+            leoRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: `${ZSR_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.ZSR,
-                stopId: localStopIdByZsrStopId.get(stop.id) ?? stop.id,
+                id: entrance.id,
+                feedId: GtfsFeedId.LEO,
+                stopId: localStopIdByLeoStopId.get(stop.id) ?? stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
                 latitude: entrance.latitude,
                 longitude: entrance.longitude,
             })),
         );
-
-        const zsrRawStopTimes = rawStopTimes.filter((row) => {
-            const tripId = row.trip_id;
-
-            return tripId !== undefined && zsrTripById.has(tripId);
-        });
-
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.ZSR,
-            trips: zsrRawTrips,
-            stopTimes: zsrRawStopTimes,
+            feedId: GtfsFeedId.LEO,
+            trips: leoRawTrips,
+            stopTimes: rawStopTimes.filter((row) => {
+                const tripId = row.trip_id;
+
+                return tripId !== undefined && leoTripById.has(tripId);
+            }),
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toZsrRouteId,
-            mapStopId: toZsrPlatformId,
-        });
-
-        logger.info("ZSR snapshot built", {
-            routes: zsrRoutes.length,
-            stops: stops.length,
-            platforms: platforms.length,
-            trips: gtfsPersistenceSnapshot.gtfsTrips.length,
-            stopTimes: gtfsPersistenceSnapshot.gtfsStopTimes.length,
+            mapRouteId: toLeoRouteId,
+            mapStopId: toLeoPlatformId,
         });
 
         return {
@@ -547,51 +535,6 @@ export class ZsrImportService {
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
         };
-    }
-
-    private matchStops(
-        pidStops: StopSnapshot["stops"],
-        zsrStops: LogicalStop[],
-    ): Map<string, string> {
-        const localStopIdByZsrStopId = new Map<string, string>();
-
-        for (const pidStop of pidStops) {
-            const normalizedPidName = normalizeStopName(pidStop.name);
-            const matchedZsrStop = zsrStops
-                .filter(
-                    (zsrStop) => zsrStop.normalizedName === normalizedPidName,
-                )
-                .filter(
-                    (zsrStop) =>
-                        distanceInMeters(
-                            pidStop.avgLatitude,
-                            pidStop.avgLongitude,
-                            zsrStop.avgLatitude,
-                            zsrStop.avgLongitude,
-                        ) <= 250,
-                )
-                .sort(
-                    (left, right) =>
-                        distanceInMeters(
-                            pidStop.avgLatitude,
-                            pidStop.avgLongitude,
-                            left.avgLatitude,
-                            left.avgLongitude,
-                        ) -
-                            distanceInMeters(
-                                pidStop.avgLatitude,
-                                pidStop.avgLongitude,
-                                right.avgLatitude,
-                                right.avgLongitude,
-                            ) || left.id.localeCompare(right.id),
-                )[0];
-
-            if (matchedZsrStop) {
-                localStopIdByZsrStopId.set(matchedZsrStop.id, pidStop.id);
-            }
-        }
-
-        return localStopIdByZsrStopId;
     }
 
     private buildLogicalStops({
@@ -646,7 +589,7 @@ export class ZsrImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toZsrStopId(logicalStopSourceId);
+            const logicalStopId = toLeoStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -656,7 +599,7 @@ export class ZsrImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toZsrPlatformId(platformStop.id),
+                    id: toLeoPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -705,14 +648,59 @@ export class ZsrImportService {
         return logicalStops;
     }
 
+    private matchStops(
+        pidStops: StopSnapshot["stops"],
+        leoStops: LogicalStop[],
+    ): Map<string, string> {
+        const localStopIdByLeoStopId = new Map<string, string>();
+
+        for (const pidStop of pidStops) {
+            const normalizedPidName = normalizeStopName(pidStop.name);
+            const matchedLeoStop = leoStops
+                .filter(
+                    (leoStop) => leoStop.normalizedName === normalizedPidName,
+                )
+                .filter(
+                    (leoStop) =>
+                        distanceInMeters(
+                            pidStop.avgLatitude,
+                            pidStop.avgLongitude,
+                            leoStop.avgLatitude,
+                            leoStop.avgLongitude,
+                        ) <= 250,
+                )
+                .sort(
+                    (left, right) =>
+                        distanceInMeters(
+                            pidStop.avgLatitude,
+                            pidStop.avgLongitude,
+                            left.avgLatitude,
+                            left.avgLongitude,
+                        ) -
+                            distanceInMeters(
+                                pidStop.avgLatitude,
+                                pidStop.avgLongitude,
+                                right.avgLatitude,
+                                right.avgLongitude,
+                            ) || left.id.localeCompare(right.id),
+                )[0];
+
+            if (matchedLeoStop) {
+                localStopIdByLeoStopId.set(matchedLeoStop.id, pidStop.id);
+            }
+        }
+
+        return localStopIdByLeoStopId;
+    }
+
     private buildGtfsRouteStops(
-        routes: ParsedRoute[],
+        leoRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of routes) {
+        for (const route of leoRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -728,8 +716,8 @@ export class ZsrImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.ZSR,
-                        routeId: toZsrRouteId(route.id),
+                        feedId: GtfsFeedId.LEO,
+                        routeId: toLeoRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -742,13 +730,13 @@ export class ZsrImportService {
     }
 
     private buildGtfsRouteShapes(
-        routes: ParsedRoute[],
+        leoRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of routes) {
+        for (const route of leoRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -770,11 +758,11 @@ export class ZsrImportService {
                         return true;
                     }
 
-                    const previousPoint = points[index - 1];
+                    const prev = points[index - 1];
 
                     return (
-                        previousPoint?.latitude !== point.latitude ||
-                        previousPoint.longitude !== point.longitude
+                        prev?.latitude !== point.latitude ||
+                        prev.longitude !== point.longitude
                     );
                 });
 
@@ -783,22 +771,18 @@ export class ZsrImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.ZSR,
-                    routeId: toZsrRouteId(route.id),
+                    feedId: GtfsFeedId.LEO,
+                    routeId: toLeoRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
                     isPrimary: true,
                     geoJson: {
                         type: "LineString",
-                        coordinates: dedupedPoints.map(
-                            (
-                                point,
-                            ): GeoJsonLineString["coordinates"][number] => [
-                                point.longitude,
-                                point.latitude,
-                            ],
-                        ),
+                        coordinates: dedupedPoints.map((point) => [
+                            point.longitude,
+                            point.latitude,
+                        ]),
                     },
                 });
             }
@@ -843,7 +827,7 @@ export class ZsrImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid ZSR GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid Leo GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -889,7 +873,7 @@ export class ZsrImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid ZSR GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid Leo GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

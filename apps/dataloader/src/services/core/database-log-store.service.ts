@@ -1,6 +1,6 @@
 import type { DatabaseClient, NewLog } from "@metro-now/database";
 
-import type { LogEntry, LogTransport } from "../utils/logger";
+import type { LogEntry, LogTransport } from "../../utils/logger";
 
 const SERVICE_NAME = "dataloader";
 

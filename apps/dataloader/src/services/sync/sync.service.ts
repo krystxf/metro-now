@@ -6,20 +6,20 @@ import type {
     SyncRunResult,
     SyncSnapshot,
     SyncTrigger,
-} from "../types/sync.types";
-import { logger } from "../utils/logger";
-import { BratislavaImportService } from "./bratislava-import.service";
-import { BrnoImportService } from "./brno-import.service";
-import type { CacheInvalidationService } from "./cache-invalidation.service";
-import { GtfsService } from "./gtfs.service";
-import { LeoImportService } from "./leo-import.service";
-import { LiberecImportService } from "./liberec-import.service";
-import { PidImportService } from "./pid-import.service";
-import { PmdpImportService } from "./pmdp-import.service";
+} from "../../types/sync.types";
+import { logger } from "../../utils/logger";
+import type { CacheInvalidationService } from "../core/cache-invalidation.service";
+import { GtfsService } from "../gtfs/gtfs.service";
+import { BratislavaImportService } from "../imports/bratislava-import.service";
+import { BrnoImportService } from "../imports/brno-import.service";
+import { LeoImportService } from "../imports/leo-import.service";
+import { LiberecImportService } from "../imports/liberec-import.service";
+import { PidImportService } from "../imports/pid-import.service";
+import { PmdpImportService } from "../imports/pmdp-import.service";
+import { UstiImportService } from "../imports/usti-import.service";
+import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
-import { UstiImportService } from "./usti-import.service";
-import { ZsrImportService } from "./zsr-import.service";
 
 export class SyncService {
     private readonly importService = new PidImportService();

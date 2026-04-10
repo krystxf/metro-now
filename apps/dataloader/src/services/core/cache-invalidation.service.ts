@@ -1,6 +1,6 @@
 import Redis from "ioredis";
 
-import { logger } from "../utils/logger";
+import { logger } from "../../utils/logger";
 
 /**
  * Cache key prefix groups that correspond to backend service caches.

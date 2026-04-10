@@ -3,9 +3,9 @@ import { VehicleType } from "@metro-now/database";
 import {
     type PidStopsSchema,
     pidStopsSchema,
-} from "../schema/pid-stops.schema";
-import type { StopSnapshot, SyncedRoute } from "../types/sync.types";
-import { fetchWithTimeout } from "../utils/fetch.utils";
+} from "../../schema/pid-stops.schema";
+import type { StopSnapshot, SyncedRoute } from "../../types/sync.types";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
 
 const PID_STOPS_URL = "https://data.pid.cz/stops/json/stops.json";
 

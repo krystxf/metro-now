@@ -1,4 +1,4 @@
-import type { SyncSnapshot } from "../types/sync.types";
+import type { SyncSnapshot } from "../../types/sync.types";
 
 export class SyncSnapshotValidator {
     validate(snapshot: SyncSnapshot): void {

@@ -17,27 +17,28 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const LIBEREC_GTFS_ARCHIVE_URL = "https://www.dpmlj.cz/gtfs.zip";
+const BRATISLAVA_GTFS_ARCHIVE_URL =
+    "https://www.arcgis.com/sharing/rest/content/items/aba12fd2cbac4843bc7406151bc66106/data";
 
-const LIBEREC_STOP_PREFIX = "LBS:";
-const LIBEREC_PLATFORM_PREFIX = "LBP:";
-const LIBEREC_ROUTE_PREFIX = "LBR:";
+const BRATISLAVA_STOP_PREFIX = "BTS:";
+const BRATISLAVA_PLATFORM_PREFIX = "BTP:";
+const BRATISLAVA_ROUTE_PREFIX = "BTR:";
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
 
-const toLiberecStopId = (gtfsStopId: string): string =>
-    `${LIBEREC_STOP_PREFIX}${gtfsStopId}`;
-const toLiberecPlatformId = (gtfsStopId: string): string =>
-    `${LIBEREC_PLATFORM_PREFIX}${gtfsStopId}`;
-const toLiberecRouteId = (gtfsRouteId: string): string =>
-    `${LIBEREC_ROUTE_PREFIX}${gtfsRouteId}`;
+const toBratislavaStopId = (gtfsStopId: string): string =>
+    `${BRATISLAVA_STOP_PREFIX}${gtfsStopId}`;
+const toBratislavaPlatformId = (gtfsStopId: string): string =>
+    `${BRATISLAVA_PLATFORM_PREFIX}${gtfsStopId}`;
+const toBratislavaRouteId = (gtfsRouteId: string): string =>
+    `${BRATISLAVA_ROUTE_PREFIX}${gtfsRouteId}`;
 
 const routeRowSchema = z.object({
     route_id: z.string().min(1),
@@ -134,7 +135,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type LiberecSnapshot = StopSnapshot & {
+export type BratislavaSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -175,13 +176,13 @@ const toVehicleType = (routeType: string): VehicleType | null => {
     }
 };
 
-export class LiberecImportService {
-    async getLiberecSnapshot(): Promise<LiberecSnapshot> {
-        const response = await fetchWithTimeout(LIBEREC_GTFS_ARCHIVE_URL);
+export class BratislavaImportService {
+    async getBratislavaSnapshot(): Promise<BratislavaSnapshot> {
+        const response = await fetchWithTimeout(BRATISLAVA_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch Liberec GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch Bratislava GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -192,7 +193,7 @@ export class LiberecImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`Liberec GTFS archive is missing '${path}'`);
+                throw new Error(`Bratislava GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -254,7 +255,7 @@ export class LiberecImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
-    }): Promise<LiberecSnapshot> {
+    }): Promise<BratislavaSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
                 parseCsvString<Record<string, string>>(routesCsv),
@@ -276,28 +277,30 @@ export class LiberecImportService {
                     : Promise.resolve([]),
             ]);
 
-        const liberecRoutes = rawRoutes.map((row) => this.parseRoute(row));
-        const liberecRouteIds = new Set(liberecRoutes.map((route) => route.id));
-        const liberecTrips = rawTrips
-            .map((row) => this.parseTrip(row))
-            .filter((trip) => liberecRouteIds.has(trip.routeId));
-        const liberecTripById = new Map(
-            liberecTrips.map((trip) => [trip.id, trip] as const),
+        const bratislavaRoutes = rawRoutes.map((row) => this.parseRoute(row));
+        const bratislavaRouteIds = new Set(
+            bratislavaRoutes.map((route) => route.id),
         );
-        const liberecStopTimesByTripId = new Map<string, ParsedStopTime[]>();
+        const bratislavaTrips = rawTrips
+            .map((row) => this.parseTrip(row))
+            .filter((trip) => bratislavaRouteIds.has(trip.routeId));
+        const bratislavaTripById = new Map(
+            bratislavaTrips.map((trip) => [trip.id, trip] as const),
+        );
+        const bratislavaStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
         for (const stopTime of rawStopTimes.map((row) =>
             this.parseStopTime(row),
         )) {
-            if (!liberecTripById.has(stopTime.tripId)) {
+            if (!bratislavaTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                liberecStopTimesByTripId.get(stopTime.tripId) ?? [];
+                bratislavaStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            liberecStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            bratislavaStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -309,7 +312,7 @@ export class LiberecImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of liberecStopTimesByTripId.values()) {
+        for (const tripStopTimes of bratislavaStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -332,12 +335,12 @@ export class LiberecImportService {
             Map<string, DominantPattern>
         >();
 
-        for (const trip of liberecTrips) {
+        for (const trip of bratislavaTrips) {
             const tripStopTimes = (
-                liberecStopTimesByTripId.get(trip.id) ?? []
+                bratislavaStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toLiberecPlatformId(stopTime.stopId))
+                .map((stopTime) => toBratislavaPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -347,7 +350,7 @@ export class LiberecImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toLiberecRouteId(trip.routeId));
+                    ?.routeIds.add(toBratislavaRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -388,8 +391,8 @@ export class LiberecImportService {
             })),
         );
 
-        const routes = liberecRoutes.map((route) => ({
-            id: toLiberecRouteId(route.id),
+        const routes = bratislavaRoutes.map((route) => ({
+            id: toBratislavaRouteId(route.id),
             name: route.shortName,
             vehicleType: toVehicleType(route.type),
             isNight: null,
@@ -404,9 +407,9 @@ export class LiberecImportService {
             ),
         );
 
-        const gtfsRoutes = liberecRoutes.map((route) => ({
-            id: toLiberecRouteId(route.id),
-            feedId: GtfsFeedId.LIBEREC,
+        const gtfsRoutes = bratislavaRoutes.map((route) => ({
+            id: toBratislavaRouteId(route.id),
+            feedId: GtfsFeedId.BRATISLAVA,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
@@ -416,21 +419,21 @@ export class LiberecImportService {
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            liberecRoutes,
+            bratislavaRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            liberecRoutes,
+            bratislavaRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: `${LIBEREC_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.LIBEREC,
+                id: `${BRATISLAVA_STOP_PREFIX}entrance:${entrance.id}`,
+                feedId: GtfsFeedId.BRATISLAVA,
                 stopId: stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
@@ -439,14 +442,14 @@ export class LiberecImportService {
             })),
         );
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.LIBEREC,
+            feedId: GtfsFeedId.BRATISLAVA,
             trips: rawTrips,
             stopTimes: rawStopTimes,
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toLiberecRouteId,
-            mapStopId: toLiberecPlatformId,
+            mapRouteId: toBratislavaRouteId,
+            mapStopId: toBratislavaPlatformId,
         });
 
         return {
@@ -518,7 +521,7 @@ export class LiberecImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toLiberecStopId(logicalStopSourceId);
+            const logicalStopId = toBratislavaStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -528,7 +531,7 @@ export class LiberecImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toLiberecPlatformId(platformStop.id),
+                    id: toBratislavaPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -577,13 +580,13 @@ export class LiberecImportService {
     }
 
     private buildGtfsRouteStops(
-        liberecRoutes: ParsedRoute[],
+        bratislavaRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of liberecRoutes) {
+        for (const route of bratislavaRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -599,8 +602,8 @@ export class LiberecImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.LIBEREC,
-                        routeId: toLiberecRouteId(route.id),
+                        feedId: GtfsFeedId.BRATISLAVA,
+                        routeId: toBratislavaRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -613,13 +616,13 @@ export class LiberecImportService {
     }
 
     private buildGtfsRouteShapes(
-        liberecRoutes: ParsedRoute[],
+        bratislavaRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of liberecRoutes) {
+        for (const route of bratislavaRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -654,8 +657,8 @@ export class LiberecImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.LIBEREC,
-                    routeId: toLiberecRouteId(route.id),
+                    feedId: GtfsFeedId.BRATISLAVA,
+                    routeId: toBratislavaRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
@@ -714,7 +717,7 @@ export class LiberecImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid Liberec GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid Bratislava GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -759,7 +762,7 @@ export class LiberecImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid Liberec GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid Bratislava GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

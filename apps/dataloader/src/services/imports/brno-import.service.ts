@@ -17,27 +17,27 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const PMDP_GTFS_ARCHIVE_URL = "https://jizdnirady.pmdp.cz/jr/gtfs";
+const BRNO_GTFS_ARCHIVE_URL = "https://kordis-jmk.cz/gtfs/gtfs.zip";
 
-const PMDP_STOP_PREFIX = "PMS:";
-const PMDP_PLATFORM_PREFIX = "PMP:";
-const PMDP_ROUTE_PREFIX = "PMR:";
+const BRNO_STOP_PREFIX = "BRS:";
+const BRNO_PLATFORM_PREFIX = "BRP:";
+const BRNO_ROUTE_PREFIX = "BRR:";
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
 
-const toPmdpStopId = (gtfsStopId: string): string =>
-    `${PMDP_STOP_PREFIX}${gtfsStopId}`;
-const toPmdpPlatformId = (gtfsStopId: string): string =>
-    `${PMDP_PLATFORM_PREFIX}${gtfsStopId}`;
-const toPmdpRouteId = (gtfsRouteId: string): string =>
-    `${PMDP_ROUTE_PREFIX}${gtfsRouteId}`;
+const toBrnoStopId = (gtfsStopId: string): string =>
+    `${BRNO_STOP_PREFIX}${gtfsStopId}`;
+const toBrnoPlatformId = (gtfsStopId: string): string =>
+    `${BRNO_PLATFORM_PREFIX}${gtfsStopId}`;
+const toBrnoRouteId = (gtfsRouteId: string): string =>
+    `${BRNO_ROUTE_PREFIX}${gtfsRouteId}`;
 
 const routeRowSchema = z.object({
     route_id: z.string().min(1),
@@ -134,7 +134,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type PmdpSnapshot = StopSnapshot & {
+export type BrnoSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -175,13 +175,13 @@ const toVehicleType = (routeType: string): VehicleType | null => {
     }
 };
 
-export class PmdpImportService {
-    async getPmdpSnapshot(): Promise<PmdpSnapshot> {
-        const response = await fetchWithTimeout(PMDP_GTFS_ARCHIVE_URL);
+export class BrnoImportService {
+    async getBrnoSnapshot(): Promise<BrnoSnapshot> {
+        const response = await fetchWithTimeout(BRNO_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch PMDP GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch Brno GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -192,7 +192,7 @@ export class PmdpImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`PMDP GTFS archive is missing '${path}'`);
+                throw new Error(`Brno GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -254,7 +254,7 @@ export class PmdpImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
-    }): Promise<PmdpSnapshot> {
+    }): Promise<BrnoSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
                 parseCsvString<Record<string, string>>(routesCsv),
@@ -276,28 +276,28 @@ export class PmdpImportService {
                     : Promise.resolve([]),
             ]);
 
-        const pmdpRoutes = rawRoutes.map((row) => this.parseRoute(row));
-        const pmdpRouteIds = new Set(pmdpRoutes.map((route) => route.id));
-        const pmdpTrips = rawTrips
+        const brnoRoutes = rawRoutes.map((row) => this.parseRoute(row));
+        const brnoRouteIds = new Set(brnoRoutes.map((route) => route.id));
+        const brnoTrips = rawTrips
             .map((row) => this.parseTrip(row))
-            .filter((trip) => pmdpRouteIds.has(trip.routeId));
-        const pmdpTripById = new Map(
-            pmdpTrips.map((trip) => [trip.id, trip] as const),
+            .filter((trip) => brnoRouteIds.has(trip.routeId));
+        const brnoTripById = new Map(
+            brnoTrips.map((trip) => [trip.id, trip] as const),
         );
-        const pmdpStopTimesByTripId = new Map<string, ParsedStopTime[]>();
+        const brnoStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
         for (const stopTime of rawStopTimes.map((row) =>
             this.parseStopTime(row),
         )) {
-            if (!pmdpTripById.has(stopTime.tripId)) {
+            if (!brnoTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                pmdpStopTimesByTripId.get(stopTime.tripId) ?? [];
+                brnoStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            pmdpStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            brnoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -309,7 +309,7 @@ export class PmdpImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of pmdpStopTimesByTripId.values()) {
+        for (const tripStopTimes of brnoStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -332,12 +332,12 @@ export class PmdpImportService {
             Map<string, DominantPattern>
         >();
 
-        for (const trip of pmdpTrips) {
+        for (const trip of brnoTrips) {
             const tripStopTimes = (
-                pmdpStopTimesByTripId.get(trip.id) ?? []
+                brnoStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toPmdpPlatformId(stopTime.stopId))
+                .map((stopTime) => toBrnoPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -347,7 +347,7 @@ export class PmdpImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toPmdpRouteId(trip.routeId));
+                    ?.routeIds.add(toBrnoRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -388,8 +388,8 @@ export class PmdpImportService {
             })),
         );
 
-        const routes = pmdpRoutes.map((route) => ({
-            id: toPmdpRouteId(route.id),
+        const routes = brnoRoutes.map((route) => ({
+            id: toBrnoRouteId(route.id),
             name: route.shortName,
             vehicleType: toVehicleType(route.type),
             isNight: null,
@@ -404,9 +404,9 @@ export class PmdpImportService {
             ),
         );
 
-        const gtfsRoutes = pmdpRoutes.map((route) => ({
-            id: toPmdpRouteId(route.id),
-            feedId: GtfsFeedId.PMDP,
+        const gtfsRoutes = brnoRoutes.map((route) => ({
+            id: toBrnoRouteId(route.id),
+            feedId: GtfsFeedId.BRNO,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
@@ -416,21 +416,21 @@ export class PmdpImportService {
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            pmdpRoutes,
+            brnoRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            pmdpRoutes,
+            brnoRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: `${PMDP_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.PMDP,
+                id: `${BRNO_STOP_PREFIX}entrance:${entrance.id}`,
+                feedId: GtfsFeedId.BRNO,
                 stopId: stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
@@ -439,14 +439,14 @@ export class PmdpImportService {
             })),
         );
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.PMDP,
+            feedId: GtfsFeedId.BRNO,
             trips: rawTrips,
             stopTimes: rawStopTimes,
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toPmdpRouteId,
-            mapStopId: toPmdpPlatformId,
+            mapRouteId: toBrnoRouteId,
+            mapStopId: toBrnoPlatformId,
         });
 
         return {
@@ -518,7 +518,7 @@ export class PmdpImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toPmdpStopId(logicalStopSourceId);
+            const logicalStopId = toBrnoStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -528,7 +528,7 @@ export class PmdpImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toPmdpPlatformId(platformStop.id),
+                    id: toBrnoPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -577,13 +577,13 @@ export class PmdpImportService {
     }
 
     private buildGtfsRouteStops(
-        pmdpRoutes: ParsedRoute[],
+        brnoRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of pmdpRoutes) {
+        for (const route of brnoRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -599,8 +599,8 @@ export class PmdpImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.PMDP,
-                        routeId: toPmdpRouteId(route.id),
+                        feedId: GtfsFeedId.BRNO,
+                        routeId: toBrnoRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -613,13 +613,13 @@ export class PmdpImportService {
     }
 
     private buildGtfsRouteShapes(
-        pmdpRoutes: ParsedRoute[],
+        brnoRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of pmdpRoutes) {
+        for (const route of brnoRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -654,8 +654,8 @@ export class PmdpImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.PMDP,
-                    routeId: toPmdpRouteId(route.id),
+                    feedId: GtfsFeedId.BRNO,
+                    routeId: toBrnoRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
@@ -714,7 +714,7 @@ export class PmdpImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid PMDP GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid Brno GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -759,7 +759,7 @@ export class PmdpImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid PMDP GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid Brno GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

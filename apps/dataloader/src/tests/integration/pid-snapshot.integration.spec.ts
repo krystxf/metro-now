@@ -5,9 +5,9 @@ import { GtfsFeedId } from "@metro-now/database";
 import {
     buildGtfsShapeDatasets,
     buildGtfsStationEntranceDataset,
-} from "../services/gtfs.service";
-import { PidImportService } from "../services/pid-import.service";
-import { SyncSnapshotValidator } from "../services/sync-snapshot-validator.service";
+} from "../services/gtfs/gtfs.service";
+import { PidImportService } from "../services/imports/pid-import.service";
+import { SyncSnapshotValidator } from "../services/sync/sync-snapshot-validator.service";
 
 test("integration: PidImportService builds a snapshot from realistic multi-group stop data", () => {
     const service = new PidImportService();

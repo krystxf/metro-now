@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { GtfsFeedId } from "@metro-now/database";
 
-import type { GtfsSnapshot } from "../types/sync.types";
+import type { GtfsSnapshot } from "../../types/sync.types";
 
 type IdMapper = (id: string) => string;
 

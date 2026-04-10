@@ -17,43 +17,30 @@ import type {
     SyncedGtfsStopTime,
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
-} from "../types/sync.types";
-import { parseCsvString } from "../utils/csv.utils";
-import { fetchWithTimeout } from "../utils/fetch.utils";
-import { logger } from "../utils/logger";
-import { buildGtfsPersistenceSnapshot } from "./gtfs-persistence.utils";
+} from "../../types/sync.types";
+import { parseCsvString } from "../../utils/csv.utils";
+import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
-const LEO_GTFS_ARCHIVE_URL =
-    "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
+const PMDP_GTFS_ARCHIVE_URL = "https://jizdnirady.pmdp.cz/jr/gtfs";
 
-const LEO_STOP_PREFIX = "TLS:";
-const LEO_PLATFORM_PREFIX = "TLP:";
-const LEO_ROUTE_PREFIX = "LTL:";
-
-const toLeoStopId = (gtfsStopId: string): string =>
-    `${LEO_STOP_PREFIX}${gtfsStopId}`;
-const toLeoPlatformId = (gtfsStopId: string): string =>
-    `${LEO_PLATFORM_PREFIX}${gtfsStopId}`;
-const toLeoRouteId = (gtfsRouteId: string): string =>
-    `${LEO_ROUTE_PREFIX}${gtfsRouteId}`;
-
-const TARGET_AGENCY_NAMES = new Set([
-    "Leo Express s.r.o.",
-    "Leo Express Slovensko s.r.o.",
-]);
+const PMDP_STOP_PREFIX = "PMS:";
+const PMDP_PLATFORM_PREFIX = "PMP:";
+const PMDP_ROUTE_PREFIX = "PMR:";
 
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 const EMPTY_LOCATION_TYPE = "0";
 
-const agencyRowSchema = z.object({
-    agency_id: z.string().min(1),
-    agency_name: z.string().min(1),
-});
+const toPmdpStopId = (gtfsStopId: string): string =>
+    `${PMDP_STOP_PREFIX}${gtfsStopId}`;
+const toPmdpPlatformId = (gtfsStopId: string): string =>
+    `${PMDP_PLATFORM_PREFIX}${gtfsStopId}`;
+const toPmdpRouteId = (gtfsRouteId: string): string =>
+    `${PMDP_ROUTE_PREFIX}${gtfsRouteId}`;
 
 const routeRowSchema = z.object({
     route_id: z.string().min(1),
-    agency_id: z.string().min(1),
     route_short_name: z.string().min(1),
     route_long_name: z.string().optional(),
     route_type: z.string().min(1),
@@ -95,7 +82,6 @@ type ParsedStop = {
 
 type ParsedRoute = {
     id: string;
-    agencyId: string;
     shortName: string;
     longName: string | null;
     type: string;
@@ -119,7 +105,6 @@ type LogicalStop = {
     id: string;
     gtfsStopId: string;
     name: string;
-    normalizedName: string;
     avgLatitude: number;
     avgLongitude: number;
     platforms: LogicalPlatform[];
@@ -149,7 +134,7 @@ type DominantPattern = {
     tripCount: number;
 };
 
-export type LeoSnapshot = StopSnapshot & {
+export type PmdpSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
     gtfsRouteStops: SyncedGtfsRouteStop[];
     gtfsRouteShapes: SyncedGtfsRouteShape[];
@@ -171,44 +156,32 @@ const toOptionalString = (value?: string): string | null => {
     return trimmed.length > 0 ? trimmed : null;
 };
 
-const normalizeStopName = (name: string): string =>
-    name
-        .normalize("NFD")
-        .replace(/\p{Diacritic}+/gu, "")
-        .replace(/[^\p{L}\p{N}]+/gu, " ")
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLowerCase();
-
-const distanceInMeters = (
-    leftLatitude: number,
-    leftLongitude: number,
-    rightLatitude: number,
-    rightLongitude: number,
-): number => {
-    const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
-    const earthRadiusMeters = 6_371_000;
-    const latitudeDelta = toRadians(rightLatitude - leftLatitude);
-    const longitudeDelta = toRadians(rightLongitude - leftLongitude);
-    const a =
-        Math.sin(latitudeDelta / 2) ** 2 +
-        Math.cos(toRadians(leftLatitude)) *
-            Math.cos(toRadians(rightLatitude)) *
-            Math.sin(longitudeDelta / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return earthRadiusMeters * c;
+const toVehicleType = (routeType: string): VehicleType | null => {
+    switch (routeType.trim()) {
+        case "0":
+            return VehicleType.TRAM;
+        case "3":
+            return VehicleType.BUS;
+        case "11":
+            return VehicleType.BUS;
+        case "1":
+            return VehicleType.METRO;
+        case "2":
+            return VehicleType.TRAIN;
+        case "4":
+            return VehicleType.FERRY;
+        default:
+            return null;
+    }
 };
 
-export class LeoImportService {
-    async getLeoSnapshot(
-        pidStops: StopSnapshot["stops"],
-    ): Promise<LeoSnapshot> {
-        const response = await fetchWithTimeout(LEO_GTFS_ARCHIVE_URL);
+export class PmdpImportService {
+    async getPmdpSnapshot(): Promise<PmdpSnapshot> {
+        const response = await fetchWithTimeout(PMDP_GTFS_ARCHIVE_URL);
 
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch Leo GTFS archive: ${response.status} ${response.statusText}`,
+                `Failed to fetch PMDP GTFS archive: ${response.status} ${response.statusText}`,
             );
         }
 
@@ -219,7 +192,7 @@ export class LeoImportService {
             const file = directory.files.find((entry) => entry.path === path);
 
             if (!file) {
-                throw new Error(`Leo GTFS archive is missing '${path}'`);
+                throw new Error(`PMDP GTFS archive is missing '${path}'`);
             }
 
             return file.buffer().then((buffer) => buffer.toString());
@@ -237,7 +210,6 @@ export class LeoImportService {
         };
 
         const [
-            agenciesCsv,
             routesCsv,
             stopsCsv,
             stopTimesCsv,
@@ -246,7 +218,6 @@ export class LeoImportService {
             calendarDatesCsv,
             transfersCsv,
         ] = await Promise.all([
-            getFile("agency.txt"),
             getFile("routes.txt"),
             getFile("stops.txt"),
             getFile("stop_times.txt"),
@@ -257,7 +228,6 @@ export class LeoImportService {
         ]);
 
         return this.buildSnapshot({
-            agenciesCsv,
             routesCsv,
             stopsCsv,
             stopTimesCsv,
@@ -265,12 +235,10 @@ export class LeoImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
-            pidStops,
         });
     }
 
     private async buildSnapshot({
-        agenciesCsv,
         routesCsv,
         stopsCsv,
         stopTimesCsv,
@@ -278,9 +246,7 @@ export class LeoImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
-        pidStops,
     }: {
-        agenciesCsv: string;
         routesCsv: string;
         stopsCsv: string;
         stopTimesCsv: string;
@@ -288,16 +254,15 @@ export class LeoImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
-        pidStops: StopSnapshot["stops"];
-    }): Promise<LeoSnapshot> {
-        const [rawAgencies, rawRoutes, rawStops, rawStopTimes, rawTrips] =
-            await Promise.all([
-                parseCsvString<Record<string, string>>(agenciesCsv),
+    }): Promise<PmdpSnapshot> {
+        const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
+            [
                 parseCsvString<Record<string, string>>(routesCsv),
                 parseCsvString<Record<string, string>>(stopsCsv),
                 parseCsvString<Record<string, string>>(stopTimesCsv),
                 parseCsvString<Record<string, string>>(tripsCsv),
-            ]);
+            ],
+        );
         const [rawCalendars, rawCalendarDates, rawTransfers] =
             await Promise.all([
                 calendarCsv
@@ -311,43 +276,28 @@ export class LeoImportService {
                     : Promise.resolve([]),
             ]);
 
-        const leoAgencyIds = new Set(
-            rawAgencies
-                .map((row) => agencyRowSchema.parse(row))
-                .filter((agency) =>
-                    TARGET_AGENCY_NAMES.has(agency.agency_name.trim()),
-                )
-                .map((agency) => agency.agency_id),
-        );
-        const leoRoutes = rawRoutes
-            .map((row) => this.parseRoute(row))
-            .filter((route) => leoAgencyIds.has(route.agencyId));
-        const leoRouteIds = new Set(leoRoutes.map((route) => route.id));
-        const leoTrips = rawTrips
+        const pmdpRoutes = rawRoutes.map((row) => this.parseRoute(row));
+        const pmdpRouteIds = new Set(pmdpRoutes.map((route) => route.id));
+        const pmdpTrips = rawTrips
             .map((row) => this.parseTrip(row))
-            .filter((trip) => leoRouteIds.has(trip.routeId));
-        const leoTripById = new Map(
-            leoTrips.map((trip) => [trip.id, trip] as const),
+            .filter((trip) => pmdpRouteIds.has(trip.routeId));
+        const pmdpTripById = new Map(
+            pmdpTrips.map((trip) => [trip.id, trip] as const),
         );
-        const leoRawTrips = rawTrips.filter((row) => {
-            const routeId = toOptionalString(row.route_id);
+        const pmdpStopTimesByTripId = new Map<string, ParsedStopTime[]>();
 
-            return routeId !== null && leoRouteIds.has(routeId);
-        });
-        const leoStopTimesByTripId = new Map<string, ParsedStopTime[]>();
-
-        for (const rawStopTime of rawStopTimes) {
-            const stopTime = this.parseStopTime(rawStopTime);
-
-            if (!leoTripById.has(stopTime.tripId)) {
+        for (const stopTime of rawStopTimes.map((row) =>
+            this.parseStopTime(row),
+        )) {
+            if (!pmdpTripById.has(stopTime.tripId)) {
                 continue;
             }
 
             const tripStopTimes =
-                leoStopTimesByTripId.get(stopTime.tripId) ?? [];
+                pmdpStopTimesByTripId.get(stopTime.tripId) ?? [];
 
             tripStopTimes.push(stopTime);
-            leoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+            pmdpStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
         }
 
         const stopsById = new Map(
@@ -359,7 +309,7 @@ export class LeoImportService {
         );
         const referencedStopIds = new Set<string>();
 
-        for (const tripStopTimes of leoStopTimesByTripId.values()) {
+        for (const tripStopTimes of pmdpStopTimesByTripId.values()) {
             for (const stopTime of tripStopTimes) {
                 referencedStopIds.add(stopTime.stopId);
             }
@@ -377,18 +327,17 @@ export class LeoImportService {
             ),
         );
 
-        // Assign routes to platforms and build direction patterns
         const patternsByRouteAndDirection = new Map<
             string,
             Map<string, DominantPattern>
         >();
 
-        for (const trip of leoTrips) {
+        for (const trip of pmdpTrips) {
             const tripStopTimes = (
-                leoStopTimesByTripId.get(trip.id) ?? []
+                pmdpStopTimesByTripId.get(trip.id) ?? []
             ).sort((left, right) => left.stopSequence - right.stopSequence);
             const platformIds = tripStopTimes
-                .map((stopTime) => toLeoPlatformId(stopTime.stopId))
+                .map((stopTime) => toPmdpPlatformId(stopTime.stopId))
                 .filter((platformId) => platformById.has(platformId));
 
             if (platformIds.length === 0) {
@@ -398,7 +347,7 @@ export class LeoImportService {
             for (const platformId of platformIds) {
                 platformById
                     .get(platformId)
-                    ?.routeIds.add(toLeoRouteId(trip.routeId));
+                    ?.routeIds.add(toPmdpRouteId(trip.routeId));
             }
 
             const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
@@ -420,25 +369,12 @@ export class LeoImportService {
             patternsByRouteAndDirection.set(routeDirectionKey, patterns);
         }
 
-        // Match Leo stops to PID stops
-        const localStopIdByLeoStopId = this.matchStops(pidStops, logicalStops);
-        const matchedLeoStopIds = new Set(localStopIdByLeoStopId.keys());
-
-        logger.info("Leo stop matching results", {
-            totalLeoStops: logicalStops.length,
-            matchedToLocal: matchedLeoStopIds.size,
-            unmatched: logicalStops.length - matchedLeoStopIds.size,
-        });
-
-        // Build snapshot entities
-        const stops = logicalStops
-            .filter((stop) => !matchedLeoStopIds.has(stop.id))
-            .map((stop) => ({
-                id: stop.id,
-                name: stop.name,
-                avgLatitude: stop.avgLatitude,
-                avgLongitude: stop.avgLongitude,
-            }));
+        const stops = logicalStops.map((stop) => ({
+            id: stop.id,
+            name: stop.name,
+            avgLatitude: stop.avgLatitude,
+            avgLongitude: stop.avgLongitude,
+        }));
 
         const platforms = logicalStops.flatMap((stop) =>
             stop.platforms.map((platform) => ({
@@ -448,18 +384,15 @@ export class LeoImportService {
                 isMetro: false,
                 latitude: platform.latitude,
                 longitude: platform.longitude,
-                stopId: localStopIdByLeoStopId.get(stop.id) ?? stop.id,
+                stopId: stop.id,
             })),
         );
 
-        const leoRouteById = new Map(
-            leoRoutes.map((route) => [route.id, route] as const),
-        );
-        const routes = leoRoutes.map((route) => ({
-            id: toLeoRouteId(route.id),
+        const routes = pmdpRoutes.map((route) => ({
+            id: toPmdpRouteId(route.id),
             name: route.shortName,
-            vehicleType: VehicleType.TRAIN,
-            isNight: false as const,
+            vehicleType: toVehicleType(route.type),
+            isNight: null,
         }));
 
         const platformRoutes = logicalStops.flatMap((stop) =>
@@ -471,34 +404,34 @@ export class LeoImportService {
             ),
         );
 
-        const gtfsRoutes = leoRoutes.map((route) => ({
-            id: toLeoRouteId(route.id),
-            feedId: GtfsFeedId.LEO,
+        const gtfsRoutes = pmdpRoutes.map((route) => ({
+            id: toPmdpRouteId(route.id),
+            feedId: GtfsFeedId.PMDP,
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
             color: route.color,
-            isNight: false as const,
+            isNight: null,
             url: route.url,
         }));
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
-            leoRoutes,
+            pmdpRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            leoRoutes,
+            pmdpRoutes,
             patternsByRouteAndDirection,
             platformById,
         );
 
         const gtfsStationEntrances = logicalStops.flatMap((stop) =>
             stop.entrances.map((entrance) => ({
-                id: entrance.id,
-                feedId: GtfsFeedId.LEO,
-                stopId: localStopIdByLeoStopId.get(stop.id) ?? stop.id,
+                id: `${PMDP_STOP_PREFIX}entrance:${entrance.id}`,
+                feedId: GtfsFeedId.PMDP,
+                stopId: stop.id,
                 parentStationId: stop.gtfsStopId,
                 name: entrance.name,
                 latitude: entrance.latitude,
@@ -506,18 +439,14 @@ export class LeoImportService {
             })),
         );
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
-            feedId: GtfsFeedId.LEO,
-            trips: leoRawTrips,
-            stopTimes: rawStopTimes.filter((row) => {
-                const tripId = row.trip_id;
-
-                return tripId !== undefined && leoTripById.has(tripId);
-            }),
+            feedId: GtfsFeedId.PMDP,
+            trips: rawTrips,
+            stopTimes: rawStopTimes,
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
-            mapRouteId: toLeoRouteId,
-            mapStopId: toLeoPlatformId,
+            mapRouteId: toPmdpRouteId,
+            mapStopId: toPmdpPlatformId,
         });
 
         return {
@@ -589,7 +518,7 @@ export class LeoImportService {
             const entranceStops = children.filter(
                 (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
             );
-            const logicalStopId = toLeoStopId(logicalStopSourceId);
+            const logicalStopId = toPmdpStopId(logicalStopSourceId);
             const platformSeeds =
                 platformStops.length > 0
                     ? platformStops
@@ -599,7 +528,7 @@ export class LeoImportService {
 
             const platforms: LogicalPlatform[] = platformSeeds
                 .map((platformStop) => ({
-                    id: toLeoPlatformId(platformStop.id),
+                    id: toPmdpPlatformId(platformStop.id),
                     name: platformStop.name,
                     code: platformStop.platformCode,
                     latitude: platformStop.latitude,
@@ -637,7 +566,6 @@ export class LeoImportService {
                 id: logicalStopId,
                 gtfsStopId: logicalStopSourceId,
                 name: sourceStop.name,
-                normalizedName: normalizeStopName(sourceStop.name),
                 avgLatitude,
                 avgLongitude,
                 platforms,
@@ -648,59 +576,14 @@ export class LeoImportService {
         return logicalStops;
     }
 
-    private matchStops(
-        pidStops: StopSnapshot["stops"],
-        leoStops: LogicalStop[],
-    ): Map<string, string> {
-        const localStopIdByLeoStopId = new Map<string, string>();
-
-        for (const pidStop of pidStops) {
-            const normalizedPidName = normalizeStopName(pidStop.name);
-            const matchedLeoStop = leoStops
-                .filter(
-                    (leoStop) => leoStop.normalizedName === normalizedPidName,
-                )
-                .filter(
-                    (leoStop) =>
-                        distanceInMeters(
-                            pidStop.avgLatitude,
-                            pidStop.avgLongitude,
-                            leoStop.avgLatitude,
-                            leoStop.avgLongitude,
-                        ) <= 250,
-                )
-                .sort(
-                    (left, right) =>
-                        distanceInMeters(
-                            pidStop.avgLatitude,
-                            pidStop.avgLongitude,
-                            left.avgLatitude,
-                            left.avgLongitude,
-                        ) -
-                            distanceInMeters(
-                                pidStop.avgLatitude,
-                                pidStop.avgLongitude,
-                                right.avgLatitude,
-                                right.avgLongitude,
-                            ) || left.id.localeCompare(right.id),
-                )[0];
-
-            if (matchedLeoStop) {
-                localStopIdByLeoStopId.set(matchedLeoStop.id, pidStop.id);
-            }
-        }
-
-        return localStopIdByLeoStopId;
-    }
-
     private buildGtfsRouteStops(
-        leoRoutes: ParsedRoute[],
+        pmdpRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteStop[] {
         const routeStops: SyncedGtfsRouteStop[] = [];
 
-        for (const route of leoRoutes) {
+        for (const route of pmdpRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -716,8 +599,8 @@ export class LeoImportService {
                     }
 
                     routeStops.push({
-                        feedId: GtfsFeedId.LEO,
-                        routeId: toLeoRouteId(route.id),
+                        feedId: GtfsFeedId.PMDP,
+                        routeId: toPmdpRouteId(route.id),
                         directionId: pattern.directionId,
                         platformId,
                         stopSequence: index,
@@ -730,13 +613,13 @@ export class LeoImportService {
     }
 
     private buildGtfsRouteShapes(
-        leoRoutes: ParsedRoute[],
+        pmdpRoutes: ParsedRoute[],
         patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
         platformById: Map<string, LogicalPlatform>,
     ): SyncedGtfsRouteShape[] {
         const routeShapes: SyncedGtfsRouteShape[] = [];
 
-        for (const route of leoRoutes) {
+        for (const route of pmdpRoutes) {
             const dominantPattern = this.getDominantPattern(
                 route,
                 patternsByRouteAndDirection,
@@ -758,11 +641,11 @@ export class LeoImportService {
                         return true;
                     }
 
-                    const prev = points[index - 1];
+                    const previousPoint = points[index - 1];
 
                     return (
-                        prev?.latitude !== point.latitude ||
-                        prev.longitude !== point.longitude
+                        previousPoint?.latitude !== point.latitude ||
+                        previousPoint.longitude !== point.longitude
                     );
                 });
 
@@ -771,18 +654,22 @@ export class LeoImportService {
                 }
 
                 routeShapes.push({
-                    feedId: GtfsFeedId.LEO,
-                    routeId: toLeoRouteId(route.id),
+                    feedId: GtfsFeedId.PMDP,
+                    routeId: toPmdpRouteId(route.id),
                     directionId: pattern.directionId,
                     shapeId: `generated:${route.id}:${pattern.directionId}`,
                     tripCount: pattern.tripCount,
                     isPrimary: true,
                     geoJson: {
                         type: "LineString",
-                        coordinates: dedupedPoints.map((point) => [
-                            point.longitude,
-                            point.latitude,
-                        ]),
+                        coordinates: dedupedPoints.map(
+                            (
+                                point,
+                            ): GeoJsonLineString["coordinates"][number] => [
+                                point.longitude,
+                                point.latitude,
+                            ],
+                        ),
                     },
                 });
             }
@@ -827,7 +714,7 @@ export class LeoImportService {
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             throw new Error(
-                `Invalid Leo GTFS stop coordinates for '${parsed.stop_id}'`,
+                `Invalid PMDP GTFS stop coordinates for '${parsed.stop_id}'`,
             );
         }
 
@@ -848,7 +735,6 @@ export class LeoImportService {
 
         return {
             id: parsed.route_id,
-            agencyId: parsed.agency_id,
             shortName: parsed.route_short_name.trim(),
             longName: toOptionalString(parsed.route_long_name),
             type: parsed.route_type,
@@ -873,7 +759,7 @@ export class LeoImportService {
 
         if (!Number.isInteger(stopSequence)) {
             throw new Error(
-                `Invalid Leo GTFS stop sequence '${parsed.stop_sequence}'`,
+                `Invalid PMDP GTFS stop sequence '${parsed.stop_sequence}'`,
             );
         }
 

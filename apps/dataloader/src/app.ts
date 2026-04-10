@@ -1,11 +1,11 @@
 import express, { type Request, type Response } from "express";
 
 import { getDataloaderEnv, loadEnvironment } from "./config/env";
-import { CacheInvalidationService } from "./services/cache-invalidation.service";
-import { CronService } from "./services/cron.service";
-import { DatabaseLogStore } from "./services/database-log-store.service";
-import { DatabaseService } from "./services/database.service";
-import { SyncService } from "./services/sync.service";
+import { CacheInvalidationService } from "./services/core/cache-invalidation.service";
+import { CronService } from "./services/core/cron.service";
+import { DatabaseLogStore } from "./services/core/database-log-store.service";
+import { DatabaseService } from "./services/core/database.service";
+import { SyncService } from "./services/sync/sync.service";
 import { logger } from "./utils/logger";
 
 loadEnvironment();
