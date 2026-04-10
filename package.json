@@ -32,5 +32,11 @@
     "name": "Krystof Kratky",
     "url": "https://github.com/krystxf",
     "email": "krystof.kratky2003@gmail.com"
+  },
+  "pnpm": {
+    "overrides": {
+      "sha.js": ">=2.4.12",
+      "form-data": ">=4.0.4"
+    }
   }
 }

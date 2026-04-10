@@ -32,7 +32,7 @@
       "outputs": []
     },
     "types:check": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["typegen", "^build"],
       "outputs": []
     },
     "lint:fix": {
