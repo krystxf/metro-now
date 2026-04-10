@@ -2,6 +2,7 @@
 set -e
 cd "$(dirname "$0")/.." || exit 1
 
+pnpm lint:fix
 pnpm exec lint-staged
 
 if command -v swiftformat >/dev/null 2>&1; then
