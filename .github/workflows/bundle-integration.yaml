@@ -24,6 +24,7 @@ jobs:
             - name: Create env files
               run: |
                   cp .env.docker.example .env.docker
+                  echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_API_KEY }}" >> .env.docker
                   cp .env.web.docker.example .env.web.docker
 
             - name: Start bundle
