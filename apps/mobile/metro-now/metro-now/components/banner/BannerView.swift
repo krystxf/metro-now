@@ -31,18 +31,12 @@ private struct BannerBackgroundModifier: ViewModifier {
     let color: Color
 
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content
-                .background(color)
-                .glassEffect(.regular.tint(color), in: .rect(cornerRadius: 10))
-        } else {
-            content
-                .background(color)
-                .background(
-                    .ultraThinMaterial,
-                    in: RoundedRectangle(cornerRadius: 10)
-                )
-        }
+        content
+            .background(color)
+            .background(
+                .ultraThinMaterial,
+                in: RoundedRectangle(cornerRadius: 10)
+            )
     }
 }
 
