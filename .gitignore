@@ -6,3 +6,6 @@ node_modules
 coverage
 .DS_Store
 prod
+
+.swift-module-cache
+.swift-module-cache-tests
