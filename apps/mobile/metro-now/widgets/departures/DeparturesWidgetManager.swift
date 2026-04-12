@@ -27,23 +27,17 @@ enum DeparturesWidgetManager {
     static func fetchDepartures(platformIds: [String]) async -> [ApiDeparture] {
         guard !platformIds.isEmpty else { return [] }
 
-        let platformQuery = platformIds.map { "platform[]=\($0)" }.joined(separator: "&")
-        let url = "\(API_URL)/v2/departure?\(platformQuery)&limit=8&minutesBefore=1&minutesAfter=120"
-
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-
-        return await withCheckedContinuation { continuation in
-            apiSession.request(url, method: .get)
-                .validate()
-                .responseDecodable(of: [ApiDeparture].self, decoder: decoder) { response in
-                    switch response.result {
-                    case let .success(departures):
-                        continuation.resume(returning: departures)
-                    case .failure:
-                        continuation.resume(returning: [])
-                    }
-                }
+        do {
+            return try await fetchDeparturesGraphQL(
+                stopIds: [],
+                platformIds: platformIds,
+                limit: 8,
+                metroOnly: nil,
+                minutesBefore: 1,
+                minutesAfter: 120
+            )
+        } catch {
+            return []
         }
     }
 

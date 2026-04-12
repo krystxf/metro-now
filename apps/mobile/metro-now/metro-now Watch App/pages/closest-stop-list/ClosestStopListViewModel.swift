@@ -99,46 +99,38 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     private func getDepartures(stopsIds: [String]) {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        Task {
+            do {
+                let fetchedDepartures = try await fetchDeparturesGraphQL(
+                    stopIds: stopsIds,
+                    platformIds: [],
+                    limit: 20,
+                    metroOnly: nil,
+                    minutesBefore: 1,
+                    minutesAfter: 1 * 60
+                )
 
-        let request = apiSession.request(
-            "\(API_URL)/v2/departure",
-            method: .get,
-            parameters: [
-                "stop": stopsIds,
-                "limit": 20,
-                "minutesBefore": 1,
-                "minutesAfter": String(1 * 60),
-            ]
-        )
-
-        request
-            .validate()
-            .responseDecodable(of: [ApiDeparture].self, decoder: decoder) { response in
-                switch response.result {
-                case let .success(fetchedDepartures):
-                    DispatchQueue.main.async {
-                        if let oldDepartures = self.departures {
-                            self.departures = uniqueBy(
-                                array: oldDepartures + fetchedDepartures,
-                                by: \.id
-                            )
-                            .filter {
-                                $0.departure.predicted > Date.now - SECONDS_BEFORE
-                            }
-                            .sorted(by: {
-                                $0.departure.scheduled < $1.departure.scheduled
-                            })
-                        } else {
-                            self.departures = fetchedDepartures
+                await MainActor.run {
+                    if let oldDepartures = self.departures {
+                        self.departures = uniqueBy(
+                            array: oldDepartures + fetchedDepartures,
+                            by: \.id
+                        )
+                        .filter {
+                            $0.departure.predicted > Date.now - SECONDS_BEFORE
                         }
-
-                        print("Fetched \(fetchedDepartures.count) departures")
+                        .sorted(by: {
+                            $0.departure.scheduled < $1.departure.scheduled
+                        })
+                    } else {
+                        self.departures = fetchedDepartures
                     }
-                case let .failure(error):
-                    print("Error fetching stops: \(error)")
+
+                    print("Fetched \(fetchedDepartures.count) departures")
                 }
+            } catch {
+                print("Error fetching departures: \(error)")
             }
+        }
     }
 }

@@ -34,7 +34,13 @@ struct PlatformDetailNextDepartureView: View {
                     CountdownView(
                         targetDate: nextDeparture
                     ) {
-                        "Also in \($0)"
+                        String.localizedStringWithFormat(
+                            NSLocalizedString(
+                                "Also in %@",
+                                comment: "Watch countdown label for the next departure on the same line"
+                            ),
+                            $0
+                        )
                     }.foregroundStyle(.tertiary)
                 } else {
                     VStack {

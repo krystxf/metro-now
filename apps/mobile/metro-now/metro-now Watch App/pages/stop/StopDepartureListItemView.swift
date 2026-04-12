@@ -42,7 +42,17 @@ struct StopDepartureListItemView: View {
                     }
                     Spacer()
                     CountdownView(targetDate: nextDeparture) {
-                        nextHeadsign == headsign ? "also in \($0)" : $0
+                        if nextHeadsign == headsign {
+                            return String.localizedStringWithFormat(
+                                NSLocalizedString(
+                                    "also in %@",
+                                    comment: "Watch countdown label for another departure on the same line"
+                                ),
+                                $0
+                            )
+                        }
+
+                        return $0
                     }
                     .fontWeight(.semibold)
                 }.font(.system(size: 12))

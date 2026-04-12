@@ -13,9 +13,15 @@ struct StopDepartureListItemPlaceholderView: View {
     var body: some View {
         StopDepartureListItemView(
             color: color,
-            headsign: "Loading",
+            headsign: NSLocalizedString(
+                "Loading",
+                comment: "Placeholder text shown while departures are loading"
+            ),
             departure: .now,
-            nextHeadsign: "Loading",
+            nextHeadsign: NSLocalizedString(
+                "Loading",
+                comment: "Placeholder text shown while departures are loading"
+            ),
             nextDeparture: .now
         )
         .redacted(reason: .placeholder)

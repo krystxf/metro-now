@@ -8,6 +8,12 @@ import WidgetKit
 
 /// Same formatting and `numericText` transition as `CountdownView`. `referenceNow` is `entry.date` from the
 /// timeline provider (staggered per-second entries) so the home screen updates without `TimelineView`.
+private let widgetUpdatedAgoFormatter: RelativeDateTimeFormatter = {
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .abbreviated
+    return formatter
+}()
+
 private struct WidgetDepartureCountdownText: View {
     let targetDate: Date
     var referenceNow: Date
@@ -37,20 +43,14 @@ private struct WidgetDepartureCountdownText: View {
 
 /// Single-unit age since refresh: "now", "30s ago", "20m ago", "4h ago", "3d ago".
 private func updatedAgoString(for date: Date, relativeTo now: Date) -> String {
-    let elapsed = max(0, now.timeIntervalSince(date))
-    if elapsed < 1 {
-        return "now"
+    if abs(now.timeIntervalSince(date)) < 1 {
+        return NSLocalizedString(
+            "now",
+            comment: "Widget status label when content was just refreshed"
+        )
     }
-    if elapsed < 60 {
-        return "\(Int(elapsed))s ago"
-    }
-    if elapsed < 3600 {
-        return "\(Int(elapsed / 60))m ago"
-    }
-    if elapsed < 86400 {
-        return "\(Int(elapsed / 3600))h ago"
-    }
-    return "\(Int(elapsed / 86400))d ago"
+
+    return widgetUpdatedAgoFormatter.localizedString(for: date, relativeTo: now)
 }
 
 struct DeparturesRefreshIntent: AppIntent {
@@ -208,4 +208,28 @@ struct DeparturesWidgetView: View {
             }
         }
     }
+}
+
+#Preview {
+    DeparturesWidgetView(
+        entry: DeparturesWidgetTimelineEntry(
+            date: .now,
+            stopName: "Mustek",
+            departures: [
+                WidgetDepartureGroup(
+                    routeLabel: "A",
+                    headsign: "Depo Hostivar",
+                    departureTime: .now + 2 * 60,
+                    nextDepartureTime: .now + 6 * 60
+                ),
+                WidgetDepartureGroup(
+                    routeLabel: "B",
+                    headsign: "Cerny Most",
+                    departureTime: .now + 4 * 60,
+                    nextDepartureTime: .now + 8 * 60
+                ),
+            ]
+        )
+    )
+    .previewContext(WidgetPreviewContext(family: .systemMedium))
 }

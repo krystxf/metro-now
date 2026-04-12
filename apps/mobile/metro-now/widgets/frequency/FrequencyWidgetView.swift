@@ -2,6 +2,7 @@
 // https://github.com/krystxf/metro-now
 
 import SwiftUI
+import WidgetKit
 
 struct FrequencyWidgetView: View {
     private var entry: FrequencyWidgetTimelineProvider.Entry
@@ -38,4 +39,15 @@ struct FrequencyWidgetView: View {
             Spacer()
         }
     }
+}
+
+#Preview {
+    FrequencyWidgetView(
+        entry: FrequencyWidgetTimelineEntry(
+            date: .now,
+            stopName: "Muzeum",
+            frequency: 2 * 60
+        )
+    )
+    .previewContext(WidgetPreviewContext(family: .systemSmall))
 }

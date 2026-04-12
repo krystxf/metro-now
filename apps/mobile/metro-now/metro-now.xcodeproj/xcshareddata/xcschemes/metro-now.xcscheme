@@ -41,6 +41,16 @@
                ReferencedContainer = "container:metro-now.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8A88A0132E00000100000013"
+               BuildableName = "metro-nowUITests.xctest"
+               BlueprintName = "metro-nowUITests"
+               ReferencedContainer = "container:metro-now.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -1,6 +1,7 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
+import CoreGraphics
 import CoreLocation
 import MapKit
 import Testing
@@ -111,5 +112,104 @@ struct MaximumRailAnnotationCountTests {
             span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
         )
         #expect(maximumRailAnnotationCount(for: region) == 120)
+    }
+
+    @Test("compact viewport lowers the detailed annotation budget")
+    func compactViewportLowersBudget() {
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 14.0),
+            span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+        )
+
+        let count = maximumRailAnnotationCount(
+            for: region,
+            viewportSize: CGSize(width: 320, height: 568),
+            minimumSpacingPoints: 64
+        )
+
+        #expect(count == 40)
+    }
+
+    @Test("viewport-aware budget falls back to span-only limits without size")
+    func zeroViewportFallsBackToSpanLimit() {
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 14.0),
+            span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+        )
+
+        let count = maximumRailAnnotationCount(
+            for: region,
+            viewportSize: .zero,
+            minimumSpacingPoints: 64
+        )
+
+        #expect(count == maximumRailAnnotationCount(for: region))
+    }
+}
+
+@Suite(.tags(.map))
+struct RailStopSpatialIndexSamplingTests {
+    @Test("samples one detailed annotation per screen-space bucket")
+    func samplesUsingViewportSpacing() {
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 14.0),
+            span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)
+        )
+        let annotations = stride(from: 0, to: 6, by: 1).flatMap { row in
+            stride(from: 0, to: 6, by: 1).map { column in
+                makeAnnotation(
+                    id: "annotation-\(row)-\(column)",
+                    latitude: 49.975 + Double(row) * 0.01,
+                    longitude: 13.975 + Double(column) * 0.01
+                )
+            }
+        }
+        let index = RailStopSpatialIndex(annotations: annotations)
+
+        let visible = index.visibleAnnotations(
+            in: region,
+            paddingFactor: 0,
+            maximumCount: annotations.count,
+            viewportSize: CGSize(width: 240, height: 240),
+            minimumSpacingPoints: 120
+        )
+
+        #expect(visible.count == 4)
+    }
+
+    private func makeAnnotation(
+        id: String,
+        latitude: Double,
+        longitude: Double
+    ) -> RailStopMapAnnotation {
+        let platform = ApiPlatform(
+            id: "\(id)-platform",
+            latitude: latitude,
+            longitude: longitude,
+            name: "Platform \(id)",
+            code: nil,
+            isMetro: false,
+            routes: [ApiRoute(id: "22", name: "22")]
+        )
+        let stop = ApiStop(
+            id: "\(id)-stop",
+            name: "Stop \(id)",
+            avgLatitude: latitude,
+            avgLongitude: longitude,
+            entrances: [],
+            platforms: [platform]
+        )
+
+        return RailStopMapAnnotation(
+            id: id,
+            stop: stop,
+            platform: platform,
+            coordinate: CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude
+            ),
+            metroLineNames: [],
+            transportModes: [.tram]
+        )
     }
 }
