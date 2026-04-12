@@ -19,6 +19,9 @@ export class DepartureResolver {
         @Args("platformIds") platformIds: string[] = [],
         @Args("stopIds") stopIds: string[] = [],
         @Args("limit") limit = 100,
+        @Args("metroOnly") metroOnly: boolean | null = null,
+        @Args("minutesBefore") minutesBefore: number | null = null,
+        @Args("minutesAfter") minutesAfter: number | null = null,
     ) {
         if (platformIds.length === 0 && stopIds.length === 0) {
             throw GraphQLError({
@@ -31,15 +34,16 @@ export class DepartureResolver {
         const departures = await this.departureServiceV2.getDepartures({
             stopIds,
             platformIds,
-            vehicleType: "all",
+            vehicleType: metroOnly ? "metro" : "all",
             excludeVehicleType: null,
             limit: normalizedLimit,
             totalLimit: normalizedLimit,
-            minutesBefore: 1,
-            minutesAfter: 60,
+            minutesBefore: minutesBefore ?? 1,
+            minutesAfter: minutesAfter ?? 60,
         });
 
         return departures.map((departure) => ({
+            id: departure.id ?? null,
             route: departure.routeId ? { id: departure.routeId } : null,
             platform: {
                 id: departure.platformId,
@@ -47,6 +51,7 @@ export class DepartureResolver {
             headsign: departure.headsign,
             delay: departure.delay,
             isRealtime: departure.isRealtime,
+            platformCode: departure.platformCode ?? null,
             departureTime: {
                 predicted: departure.departure.predicted,
                 scheduled: departure.departure.scheduled,

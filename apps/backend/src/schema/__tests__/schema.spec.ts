@@ -104,6 +104,8 @@ describe("GraphQL schema", () => {
             "hello",
             "stops",
             "stop",
+            "searchStops",
+            "stopDataLastUpdatedAt",
             "platforms",
             "platform",
             "routes",
@@ -158,6 +160,17 @@ describe("GraphQL schema", () => {
             ).toBe(true);
         });
 
+        it("searchStops returns non-null list of non-null Stop", () => {
+            const field = getQueryFields(schema).searchStops;
+
+            expect(isNonNullType(field.type)).toBe(true);
+            expect(
+                isListType(
+                    ofType(field.type as GraphQLNonNull<GraphQLNullableType>),
+                ),
+            ).toBe(true);
+        });
+
         it("route returns nullable Route", () => {
             const field = getQueryFields(schema).route;
 
@@ -181,6 +194,9 @@ describe("GraphQL schema", () => {
             expect(argNames).toContain("stopIds");
             expect(argNames).toContain("platformIds");
             expect(argNames).toContain("limit");
+            expect(argNames).toContain("metroOnly");
+            expect(argNames).toContain("minutesBefore");
+            expect(argNames).toContain("minutesAfter");
         });
 
         it("stop query takes required id argument", () => {
@@ -203,6 +219,33 @@ describe("GraphQL schema", () => {
             for (const arg of field.args) {
                 expect(isNonNullType(arg.type)).toBe(false);
             }
+        });
+
+        it("searchStops query requires query and accepts optional limit, offset", () => {
+            const field = getQueryFields(schema).searchStops;
+            const argNames = field.args.map((a) => a.name);
+            const queryArg = field.args.find((a) => a.name === "query");
+
+            expect(argNames).toEqual(["query", "limit", "offset"]);
+
+            if (!queryArg) {
+                throw new Error("Expected query argument on searchStops query");
+            }
+
+            expect(isNonNullType(queryArg.type)).toBe(true);
+
+            for (const arg of field.args.filter((a) => a.name !== "query")) {
+                expect(isNonNullType(arg.type)).toBe(false);
+            }
+        });
+
+        it("stopDataLastUpdatedAt returns nullable ISODateTime with no arguments", () => {
+            const field = getQueryFields(schema).stopDataLastUpdatedAt;
+
+            expect(field.args).toHaveLength(0);
+            expect(isNonNullType(field.type)).toBe(false);
+            expect(isScalarType(field.type)).toBe(true);
+            expect(field.type.toString()).toBe("ISODateTime");
         });
     });
 
@@ -286,6 +329,7 @@ describe("GraphQL schema", () => {
                 expect.arrayContaining([
                     "id",
                     "name",
+                    "color",
                     "directions",
                     "shapes",
                     "isSubstitute",
@@ -299,6 +343,12 @@ describe("GraphQL schema", () => {
             const fields = getObjectType(schema, "Route").getFields();
 
             expect(isNonNullType(fields.name.type)).toBe(false);
+        });
+
+        it("color is nullable", () => {
+            const fields = getObjectType(schema, "Route").getFields();
+
+            expect(isNonNullType(fields.color.type)).toBe(false);
         });
 
         it("vehicleType is non-null VehicleType enum", () => {
@@ -324,9 +374,11 @@ describe("GraphQL schema", () => {
 
             expect(fieldNames).toEqual(
                 expect.arrayContaining([
+                    "id",
                     "delay",
                     "headsign",
                     "isRealtime",
+                    "platformCode",
                     "platform",
                     "departureTime",
                     "route",

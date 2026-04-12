@@ -39,14 +39,19 @@ describe("DepartureResolver", () => {
             [],
             ["TLS:station-a"],
             5,
+            null,
+            null,
+            null,
         );
 
         expect(departure).toMatchObject({
+            id: "leo-1",
             route: { id: "LTL:route-a" },
             platform: { id: "TLP:platform-a" },
             headsign: "Praha hl.n.",
             delay: 0,
             isRealtime: false,
+            platformCode: null,
         });
         await expect(
             resolver.getPlatformField({

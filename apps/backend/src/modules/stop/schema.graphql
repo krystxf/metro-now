@@ -17,4 +17,6 @@ type Stop {
 type Query {
     stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
     stop(id: ID!): Stop
+    searchStops(query: String!, limit: Int, offset: Int): [Stop!]!
+    stopDataLastUpdatedAt: ISODateTime
 }

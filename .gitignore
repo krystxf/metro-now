@@ -9,3 +9,5 @@ prod
 
 .swift-module-cache
 .swift-module-cache-tests
+
+dist

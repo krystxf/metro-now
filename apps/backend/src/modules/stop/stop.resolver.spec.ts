@@ -6,6 +6,8 @@ const createMocks = () => {
     const stopService = {
         getGraphQLByIds: jest.fn(),
         getAllGraphQL: jest.fn(),
+        searchGraphQL: jest.fn(),
+        getDataLastUpdatedAt: jest.fn(),
     } as unknown as jest.Mocked<StopService>;
 
     const platformsByStopLoader = {
@@ -163,6 +165,48 @@ describe("StopResolver", () => {
                 "P1",
                 "P2",
             ]);
+        });
+    });
+
+    describe("search", () => {
+        it("delegates stop-name search to the service", async () => {
+            const { resolver, stopService } = createMocks();
+            const stops = [
+                {
+                    id: "U1072",
+                    name: "Václavské náměstí",
+                    avgLatitude: 50.08,
+                    avgLongitude: 14.42,
+                    platforms: [],
+                    entrances: [],
+                },
+            ];
+
+            stopService.searchGraphQL.mockResolvedValue(stops);
+
+            const result = await resolver.search("václav", 10, 5);
+
+            expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                query: "václav",
+                limit: 10,
+                offset: 5,
+            });
+            expect(result).toEqual(stops);
+        });
+    });
+
+    describe("getDataLastUpdatedAt", () => {
+        it("delegates stop/platform freshness lookup to the service", async () => {
+            const { resolver, stopService } = createMocks();
+
+            stopService.getDataLastUpdatedAt.mockResolvedValue(
+                "2026-04-11T09:30:00.000Z",
+            );
+
+            const result = await resolver.getDataLastUpdatedAt();
+
+            expect(stopService.getDataLastUpdatedAt).toHaveBeenCalledTimes(1);
+            expect(result).toBe("2026-04-11T09:30:00.000Z");
         });
     });
 });

@@ -1,8 +1,4 @@
-import {
-    type GeoJsonLineString,
-    GtfsFeedId,
-    VehicleType,
-} from "@metro-now/database";
+import { type GeoJsonLineString, GtfsFeedId } from "@metro-now/database";
 import { Open as unzipperOpen } from "unzipper";
 import { z } from "zod";
 
@@ -21,6 +17,7 @@ import type {
 import { parseCsvString } from "../../utils/csv.utils";
 import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
+import { classifyImportedRoute } from "./route-classification.utils";
 
 const PMDP_GTFS_ARCHIVE_URL = "https://jizdnirady.pmdp.cz/jr/gtfs";
 
@@ -154,25 +151,6 @@ const toOptionalString = (value?: string): string | null => {
     const trimmed = value.trim();
 
     return trimmed.length > 0 ? trimmed : null;
-};
-
-const toVehicleType = (routeType: string): VehicleType | null => {
-    switch (routeType.trim()) {
-        case "0":
-            return VehicleType.TRAM;
-        case "3":
-            return VehicleType.BUS;
-        case "11":
-            return VehicleType.BUS;
-        case "1":
-            return VehicleType.METRO;
-        case "2":
-            return VehicleType.TRAIN;
-        case "4":
-            return VehicleType.FERRY;
-        default:
-            return null;
-    }
 };
 
 export class PmdpImportService {
@@ -388,12 +366,20 @@ export class PmdpImportService {
             })),
         );
 
-        const routes = pmdpRoutes.map((route) => ({
-            id: toPmdpRouteId(route.id),
-            name: route.shortName,
-            vehicleType: toVehicleType(route.type),
-            isNight: null,
-        }));
+        const routes = pmdpRoutes.map((route) => {
+            const classification = classifyImportedRoute({
+                feedId: GtfsFeedId.PMDP,
+                routeShortName: route.shortName,
+                routeType: route.type,
+            });
+
+            return {
+                id: toPmdpRouteId(route.id),
+                name: route.shortName,
+                vehicleType: classification.vehicleType,
+                isNight: classification.isNight,
+            };
+        });
 
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
@@ -411,7 +397,11 @@ export class PmdpImportService {
             longName: route.longName,
             type: route.type,
             color: route.color,
-            isNight: null,
+            isNight: classifyImportedRoute({
+                feedId: GtfsFeedId.PMDP,
+                routeShortName: route.shortName,
+                routeType: route.type,
+            }).isNight,
             url: route.url,
         }));
 

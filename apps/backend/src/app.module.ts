@@ -12,6 +12,7 @@ import { DatabaseModule } from "src/modules/database/database.module";
 import { DepartureModule } from "src/modules/departure/departure.module";
 import { HelloModule } from "src/modules/hello/hello.module";
 import { InfotextsModule } from "src/modules/infotexts/infotexts.module";
+import { GraphQLQueryLoggingPlugin } from "src/modules/log/graphql-query-logging.plugin";
 import { LogModule } from "src/modules/log/log.module";
 import { PlatformModule } from "src/modules/platform/platform.module";
 import { RouteModule } from "src/modules/route/route.module";
@@ -30,13 +31,20 @@ import { StopModule } from "src/modules/stop/stop.module";
         LogModule,
         ConfigModule.forRoot(configModuleConfig),
         CacheModule.registerAsync(cacheModuleConfig),
-        GraphQLModule.forRoot<ApolloDriverConfig>({
+        GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            graphiql: process.env.NODE_ENV !== "production",
-            typePaths: ["./src/**/*.graphql", "./dist/**/*.graphql"],
-            path: GRAPHQL_PATH,
-            autoTransformHttpErrors: true,
-            formatError: formatGraphQLError,
+            imports: [LogModule],
+            useFactory: (
+                graphqlQueryLoggingPlugin: GraphQLQueryLoggingPlugin,
+            ) => ({
+                graphiql: process.env.NODE_ENV !== "production",
+                typePaths: ["./src/**/*.graphql", "./dist/**/*.graphql"],
+                path: GRAPHQL_PATH,
+                autoTransformHttpErrors: true,
+                formatError: formatGraphQLError,
+                plugins: [graphqlQueryLoggingPlugin],
+            }),
+            inject: [GraphQLQueryLoggingPlugin],
         }),
         HelloModule,
     ],

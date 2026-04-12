@@ -4,6 +4,8 @@ type DepartureTime {
 }
 
 type Departure {
+    id: ID
+
     """
     in seconds
     """
@@ -11,6 +13,7 @@ type Departure {
 
     headsign: String
     isRealtime: Boolean!
+    platformCode: String
 
     platform: Platform!
     departureTime: DepartureTime!
@@ -25,5 +28,8 @@ type Query {
         maximum number of departures to return (max: 100)
         """
         limit: Int
+        metroOnly: Boolean
+        minutesBefore: Int
+        minutesAfter: Int
     ): [Departure!]!
 }

@@ -21,7 +21,9 @@ type StopRecordBase = Pick<
     "avgLatitude" | "avgLongitude" | "id" | "name"
 >;
 
-type PlatformRouteRecord = Pick<Route, "id" | "name">;
+type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
+    color: string | null;
+};
 
 type StopPlatformRecord = Pick<
     Platform,
@@ -47,7 +49,253 @@ type StopGraphQLRecord = StopRecordBase & {
     platforms: StopGraphQLPlatformRecord[];
 };
 
+type SearchableStopTerm = {
+    normalizedTokens: string[];
+    normalizedValue: string;
+    sourceRank: number;
+};
+
+type SearchableStopRow = StopRecordBase & {
+    hasMetro: boolean;
+    normalizedStopName: string;
+    searchTerms: SearchableStopTerm[];
+};
+
 const STOP_DATA_CACHE_TTL_MS = CACHE_TTL.stopData;
+const DIACRITIC_REGEX = /\p{Diacritic}/gu;
+
+type StopSearchMatchScore = {
+    candidateLength: number;
+    distance: number;
+    lengthDelta: number;
+    matchRank: number;
+    position: number;
+    sourceRank: number;
+};
+
+const tokenizeStopSearchValue = (value: string): string[] =>
+    value
+        .normalize("NFD")
+        .replace(DIACRITIC_REGEX, "")
+        .replaceAll(".", " ")
+        .toLocaleLowerCase()
+        .split(/\s+/)
+        .filter((part) => part.length > 0);
+
+const normalizeStopSearchValue = (value: string): string =>
+    tokenizeStopSearchValue(value).join("");
+
+const maxFuzzyDistanceForQuery = (queryLength: number): number => {
+    if (queryLength <= 4) {
+        return 1;
+    }
+
+    if (queryLength <= 8) {
+        return 2;
+    }
+
+    return 3;
+};
+
+const damerauLevenshteinDistance = (left: string, right: string): number => {
+    if (left === right) {
+        return 0;
+    }
+
+    if (left.length === 0) {
+        return right.length;
+    }
+
+    if (right.length === 0) {
+        return left.length;
+    }
+
+    const matrix = Array.from({ length: left.length + 1 }, () =>
+        Array.from<number>({ length: right.length + 1 }).fill(0),
+    );
+
+    for (let leftIndex = 0; leftIndex <= left.length; leftIndex += 1) {
+        matrix[leftIndex][0] = leftIndex;
+    }
+
+    for (let rightIndex = 0; rightIndex <= right.length; rightIndex += 1) {
+        matrix[0][rightIndex] = rightIndex;
+    }
+
+    for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+        for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+            const substitutionCost =
+                left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+
+            matrix[leftIndex][rightIndex] = Math.min(
+                matrix[leftIndex - 1][rightIndex] + 1,
+                matrix[leftIndex][rightIndex - 1] + 1,
+                matrix[leftIndex - 1][rightIndex - 1] + substitutionCost,
+            );
+
+            if (
+                leftIndex > 1 &&
+                rightIndex > 1 &&
+                left[leftIndex - 1] === right[rightIndex - 2] &&
+                left[leftIndex - 2] === right[rightIndex - 1]
+            ) {
+                matrix[leftIndex][rightIndex] = Math.min(
+                    matrix[leftIndex][rightIndex],
+                    matrix[leftIndex - 2][rightIndex - 2] + 1,
+                );
+            }
+        }
+    }
+
+    return matrix[left.length][right.length];
+};
+
+const compareStopSearchMatchScores = (
+    left: StopSearchMatchScore,
+    right: StopSearchMatchScore,
+): number =>
+    left.matchRank - right.matchRank ||
+    left.distance - right.distance ||
+    left.position - right.position ||
+    left.lengthDelta - right.lengthDelta ||
+    left.sourceRank - right.sourceRank ||
+    left.candidateLength - right.candidateLength;
+
+const compareStopSearchMatchQuality = (
+    left: StopSearchMatchScore,
+    right: StopSearchMatchScore,
+): number =>
+    left.matchRank - right.matchRank ||
+    left.distance - right.distance ||
+    left.position - right.position ||
+    left.lengthDelta - right.lengthDelta ||
+    left.candidateLength - right.candidateLength;
+
+const getStopSearchMatchScoreForValue = ({
+    normalizedCandidate,
+    normalizedQuery,
+    sourceRank,
+}: {
+    normalizedCandidate: string;
+    normalizedQuery: string;
+    sourceRank: number;
+}): StopSearchMatchScore | null => {
+    if (normalizedCandidate.length === 0) {
+        return null;
+    }
+
+    if (normalizedCandidate === normalizedQuery) {
+        return {
+            candidateLength: normalizedCandidate.length,
+            distance: 0,
+            lengthDelta: 0,
+            matchRank: 0,
+            position: 0,
+            sourceRank,
+        };
+    }
+
+    if (normalizedCandidate.startsWith(normalizedQuery)) {
+        return {
+            candidateLength: normalizedCandidate.length,
+            distance: 0,
+            lengthDelta: normalizedCandidate.length - normalizedQuery.length,
+            matchRank: 1,
+            position: 0,
+            sourceRank,
+        };
+    }
+
+    const substringPosition = normalizedCandidate.indexOf(normalizedQuery);
+
+    if (substringPosition >= 0) {
+        return {
+            candidateLength: normalizedCandidate.length,
+            distance: 0,
+            lengthDelta: normalizedCandidate.length - normalizedQuery.length,
+            matchRank: 2,
+            position: substringPosition,
+            sourceRank,
+        };
+    }
+
+    const maxDistance = maxFuzzyDistanceForQuery(normalizedQuery.length);
+    const lengthDelta = Math.abs(
+        normalizedCandidate.length - normalizedQuery.length,
+    );
+
+    if (lengthDelta > maxDistance) {
+        return null;
+    }
+
+    const distance = damerauLevenshteinDistance(
+        normalizedCandidate,
+        normalizedQuery,
+    );
+
+    if (distance > maxDistance) {
+        return null;
+    }
+
+    return {
+        candidateLength: normalizedCandidate.length,
+        distance,
+        lengthDelta,
+        matchRank: 3,
+        position: 0,
+        sourceRank,
+    };
+};
+
+const getStopSearchMatchScore = ({
+    normalizedQuery,
+    searchableStop,
+}: {
+    normalizedQuery: string;
+    searchableStop: SearchableStopRow;
+}): StopSearchMatchScore | null => {
+    let bestScore: StopSearchMatchScore | null = null;
+
+    for (const term of searchableStop.searchTerms) {
+        const candidateValues = [
+            term.normalizedValue,
+            ...term.normalizedTokens,
+        ];
+
+        for (const candidateValue of candidateValues) {
+            const score = getStopSearchMatchScoreForValue({
+                normalizedCandidate: candidateValue,
+                normalizedQuery,
+                sourceRank: term.sourceRank,
+            });
+
+            if (!score) {
+                continue;
+            }
+
+            if (
+                bestScore === null ||
+                compareStopSearchMatchScores(score, bestScore) < 0
+            ) {
+                bestScore = score;
+            }
+        }
+    }
+
+    return bestScore;
+};
+
+const createSearchableStopTerm = ({
+    sourceRank,
+    value,
+}: {
+    sourceRank: number;
+    value: string;
+}): SearchableStopTerm => ({
+    normalizedTokens: tokenizeStopSearchValue(value),
+    normalizedValue: normalizeStopSearchValue(value),
+    sourceRank,
+});
 
 const normalizeRouteName = (routeName: string): string =>
     routeName.startsWith("X") ? routeName.slice(1) : routeName;
@@ -126,6 +374,19 @@ const filterRailPlatforms = (
         ];
     });
 
+const normalizeUpdatedAt = (
+    updatedAt: Date | string | null | undefined,
+): Date | null => {
+    if (!updatedAt) {
+        return null;
+    }
+
+    const parsedDate =
+        updatedAt instanceof Date ? updatedAt : new Date(updatedAt);
+
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
 @Injectable()
 export class StopService {
     constructor(
@@ -165,6 +426,63 @@ export class StopService {
         return query.orderBy("id", "asc").execute();
     }
 
+    private async loadSearchableStopRows(): Promise<SearchableStopRow[]> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.getSearchRows(),
+            async () => {
+                const [stops, platformRows] = await Promise.all([
+                    this.loadStopRows({}),
+                    this.database.db
+                        .selectFrom("Platform")
+                        .select(["stopId", "name", "isMetro"])
+                        .where("stopId", "is not", null)
+                        .orderBy("stopId", "asc")
+                        .orderBy("name", "asc")
+                        .execute(),
+                ]);
+                const platformNamesByStopId = new Map<string, Set<string>>();
+                const stopIdsWithMetroPlatforms = new Set<string>();
+
+                for (const row of platformRows) {
+                    if (!row.stopId) {
+                        continue;
+                    }
+
+                    const platformNames =
+                        platformNamesByStopId.get(row.stopId) ?? new Set();
+
+                    platformNames.add(row.name);
+                    platformNamesByStopId.set(row.stopId, platformNames);
+
+                    if (row.isMetro) {
+                        stopIdsWithMetroPlatforms.add(row.stopId);
+                    }
+                }
+
+                return stops.map((stop) => ({
+                    ...stop,
+                    hasMetro: stopIdsWithMetroPlatforms.has(stop.id),
+                    normalizedStopName: normalizeStopSearchValue(stop.name),
+                    searchTerms: [
+                        createSearchableStopTerm({
+                            sourceRank: 0,
+                            value: stop.name,
+                        }),
+                        ...Array.from(platformNamesByStopId.get(stop.id) ?? [])
+                            .sort((left, right) => left.localeCompare(right))
+                            .map((platformName) =>
+                                createSearchableStopTerm({
+                                    sourceRank: 1,
+                                    value: platformName,
+                                }),
+                            ),
+                    ],
+                }));
+            },
+            STOP_DATA_CACHE_TTL_MS,
+        );
+    }
+
     private async loadPlatformRoutesByPlatformIds(
         platformIds: readonly string[],
     ): Promise<Map<string, PlatformRouteRecord[]>> {
@@ -179,10 +497,12 @@ export class StopService {
         const rows = await this.database.db
             .selectFrom("PlatformsOnRoutes")
             .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
+            .leftJoin("GtfsRoute", "GtfsRoute.id", "PlatformsOnRoutes.routeId")
             .select([
                 "PlatformsOnRoutes.platformId as platformId",
                 "Route.id as routeId",
                 "Route.name as routeName",
+                "GtfsRoute.color as routeColor",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
@@ -193,6 +513,7 @@ export class StopService {
             routesByPlatformId.get(row.platformId)?.push({
                 id: row.routeId,
                 name: row.routeName,
+                color: row.routeColor ?? null,
             });
         }
 
@@ -371,22 +692,9 @@ export class StopService {
         const stops = await this.loadStopRows({
             ids,
         });
-        const platformIdsByStopId =
-            await this.loadStopGraphQLPlatformIdsByStopIds(
-                stops.map((stop) => stop.id),
-            );
-        const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-            stops.map((stop) => stop.id),
-        );
+        const hydratedStops = await this.hydrateGraphQLStops(stops);
         const stopsById = new Map<string, StopGraphQLRecord | null>(
-            stops.map((stop) => [
-                stop.id,
-                {
-                    ...stop,
-                    entrances: entrancesByStopId.get(stop.id) ?? [],
-                    platforms: platformIdsByStopId.get(stop.id) ?? [],
-                },
-            ]),
+            hydratedStops.map((stop) => [stop.id, stop]),
         );
 
         for (const id of ids) {
@@ -396,6 +704,47 @@ export class StopService {
         }
 
         return stopsById;
+    }
+
+    private async hydrateGraphQLStops(
+        stops: readonly StopRecordBase[],
+    ): Promise<StopGraphQLRecord[]> {
+        const platformIdsByStopId =
+            await this.loadStopGraphQLPlatformIdsByStopIds(
+                stops.map((stop) => stop.id),
+            );
+        const entrancesByStopId = await this.loadStopEntrancesByStopIds(
+            stops.map((stop) => stop.id),
+        );
+
+        return stops.map((stop) => ({
+            ...stop,
+            entrances: entrancesByStopId.get(stop.id) ?? [],
+            platforms: platformIdsByStopId.get(stop.id) ?? [],
+        }));
+    }
+
+    async getDataLastUpdatedAt(): Promise<string | null> {
+        const [stopResult, platformResult] = await Promise.all([
+            this.database.db
+                .selectFrom("Stop")
+                .select(({ fn }) => fn.max("updatedAt").as("updatedAt"))
+                .executeTakeFirstOrThrow(),
+            this.database.db
+                .selectFrom("Platform")
+                .select(({ fn }) => fn.max("updatedAt").as("updatedAt"))
+                .executeTakeFirstOrThrow(),
+        ]);
+
+        const latestUpdatedAt = [stopResult.updatedAt, platformResult.updatedAt]
+            .flatMap((updatedAt) => {
+                const parsedDate = normalizeUpdatedAt(updatedAt);
+
+                return parsedDate ? [parsedDate] : [];
+            })
+            .sort((left, right) => right.getTime() - left.getTime())[0];
+
+        return latestUpdatedAt?.toISOString() ?? null;
     }
 
     async getAll({
@@ -520,19 +869,88 @@ export class StopService {
                     ...(typeof limit === "number" ? { limit } : {}),
                     ...(typeof offset === "number" ? { offset } : {}),
                 });
-                const platformIdsByStopId =
-                    await this.loadStopGraphQLPlatformIdsByStopIds(
-                        stops.map((stop) => stop.id),
-                    );
-                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-                    stops.map((stop) => stop.id),
-                );
 
-                return stops.map((stop) => ({
-                    ...stop,
-                    entrances: entrancesByStopId.get(stop.id) ?? [],
-                    platforms: platformIdsByStopId.get(stop.id) ?? [],
-                }));
+                return this.hydrateGraphQLStops(stops);
+            },
+            STOP_DATA_CACHE_TTL_MS,
+        );
+    }
+
+    async searchGraphQL({
+        query,
+        limit,
+        offset,
+    }: {
+        query: string;
+        limit?: number;
+        offset?: number;
+    }): Promise<StopGraphQLRecord[]> {
+        const normalizedQuery = normalizeStopSearchValue(query);
+
+        if (normalizedQuery.length === 0) {
+            return [];
+        }
+
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.searchGraphQL({
+                query: normalizedQuery,
+                limit,
+                offset,
+            }),
+            async () => {
+                const matchingStops = (await this.loadSearchableStopRows())
+                    .flatMap((stop) => {
+                        const score = getStopSearchMatchScore({
+                            normalizedQuery,
+                            searchableStop: stop,
+                        });
+
+                        return score ? [{ score, stop }] : [];
+                    })
+                    .sort((left, right) => {
+                        const matchQualityOrder = compareStopSearchMatchQuality(
+                            left.score,
+                            right.score,
+                        );
+
+                        if (matchQualityOrder !== 0) {
+                            return matchQualityOrder;
+                        }
+
+                        if (left.stop.hasMetro !== right.stop.hasMetro) {
+                            return left.stop.hasMetro ? -1 : 1;
+                        }
+
+                        const scoreOrder = compareStopSearchMatchScores(
+                            left.score,
+                            right.score,
+                        );
+
+                        if (scoreOrder !== 0) {
+                            return scoreOrder;
+                        }
+
+                        const nameOrder =
+                            left.stop.normalizedStopName.localeCompare(
+                                right.stop.normalizedStopName,
+                            );
+
+                        if (nameOrder !== 0) {
+                            return nameOrder;
+                        }
+
+                        return left.stop.id.localeCompare(right.stop.id);
+                    })
+                    .map(({ stop }) => stop);
+                const normalizedOffset = offset ?? 0;
+                const end =
+                    typeof limit === "number"
+                        ? normalizedOffset + limit
+                        : undefined;
+
+                return this.hydrateGraphQLStops(
+                    matchingStops.slice(normalizedOffset, end),
+                );
             },
             STOP_DATA_CACHE_TTL_MS,
         );

@@ -40,6 +40,24 @@ export class StopResolver {
         return res;
     }
 
+    @Query("searchStops")
+    search(
+        @Args("query") query: string,
+        @Args("limit") limit: number | undefined,
+        @Args("offset") offset: number | undefined,
+    ) {
+        return this.stopService.searchGraphQL({
+            query,
+            ...(typeof limit === "number" ? { limit } : {}),
+            ...(typeof offset === "number" ? { offset } : {}),
+        });
+    }
+
+    @Query("stopDataLastUpdatedAt")
+    getDataLastUpdatedAt() {
+        return this.stopService.getDataLastUpdatedAt();
+    }
+
     @ResolveField("platforms")
     getPlatformsField(
         @Parent()

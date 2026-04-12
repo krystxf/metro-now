@@ -1,3 +1,4 @@
+import { GtfsFeedId } from "@metro-now/database";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Test, type TestingModule } from "@nestjs/testing";
 
@@ -53,19 +54,19 @@ describe("RouteService", () => {
     });
 
     describe("isNight", () => {
-        it("returns true for tram night route 91", () => {
+        it("returns true for PID tram night route 91", () => {
             expect(service.isNight("91")).toBe(true);
         });
 
-        it("returns true for tram night route 99", () => {
+        it("returns true for PID tram night route 99", () => {
             expect(service.isNight("99")).toBe(true);
         });
 
-        it("returns true for bus night route 910", () => {
+        it("returns true for PID bus night route 910", () => {
             expect(service.isNight("910")).toBe(true);
         });
 
-        it("returns true for bus night route 999", () => {
+        it("returns true for PID bus night route 999", () => {
             expect(service.isNight("999")).toBe(true);
         });
 
@@ -85,35 +86,47 @@ describe("RouteService", () => {
             expect(service.isNight("X91")).toBe(true);
         });
 
-        it("returns false for route 90 (boundary)", () => {
+        it("returns true for route 90 (boundary)", () => {
             expect(service.isNight("90")).toBe(true);
         });
 
         it("returns false for route 89", () => {
             expect(service.isNight("89")).toBe(false);
         });
+
+        it("returns true for Bratislava night route N21", () => {
+            expect(service.isNight("N21", GtfsFeedId.BRATISLAVA)).toBe(true);
+        });
+
+        it("returns true for Brno night route N89", () => {
+            expect(service.isNight("N89", GtfsFeedId.BRNO)).toBe(true);
+        });
+
+        it("returns false for non-night Brno tram route 8", () => {
+            expect(service.isNight("8", GtfsFeedId.BRNO)).toBe(false);
+        });
     });
 
     describe("getVehicleTypeForRoute", () => {
-        it("returns TRAM for numeric route under 100", () => {
+        it("returns TRAM for PID numeric route under 100", () => {
             expect(service.getVehicleTypeForRoute({ routeName: "22" })).toBe(
                 VehicleType.TRAM,
             );
         });
 
-        it("returns BUS for numeric route 100+", () => {
+        it("returns BUS for PID numeric route 100+", () => {
             expect(service.getVehicleTypeForRoute({ routeName: "119" })).toBe(
                 VehicleType.BUS,
             );
         });
 
-        it("returns TROLLEYBUS for route 58", () => {
+        it("returns TROLLEYBUS for PID route 58", () => {
             expect(service.getVehicleTypeForRoute({ routeName: "58" })).toBe(
                 VehicleType.TROLLEYBUS,
             );
         });
 
-        it("returns TROLLEYBUS for route 59", () => {
+        it("returns TROLLEYBUS for PID route 59", () => {
             expect(service.getVehicleTypeForRoute({ routeName: "59" })).toBe(
                 VehicleType.TROLLEYBUS,
             );
@@ -167,16 +180,73 @@ describe("RouteService", () => {
             );
         });
 
-        it("prefers gtfsRouteType when provided", () => {
+        it("uses feed-aware rules for Brno trams", () => {
             expect(
                 service.getVehicleTypeForRoute({
-                    routeName: "22",
+                    feedId: GtfsFeedId.BRNO,
+                    routeName: "8",
+                }),
+            ).toBe(VehicleType.TRAM);
+        });
+
+        it("uses feed-aware rules for Brno trolleybuses", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.BRNO,
+                    routeName: "25",
+                }),
+            ).toBe(VehicleType.TROLLEYBUS);
+        });
+
+        it("uses feed-aware rules for Brno rail replacements", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.BRNO,
+                    routeName: "xS3",
+                }),
+            ).toBe(VehicleType.TRAIN);
+        });
+
+        it("uses feed-aware rules for Bratislava trams", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.BRATISLAVA,
+                    routeName: "5",
+                }),
+            ).toBe(VehicleType.TRAM);
+        });
+
+        it("uses GTFS route_type to distinguish Bratislava trolleybuses", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.BRATISLAVA,
+                    routeName: "201",
+                    gtfsRouteType: "11",
+                }),
+            ).toBe(VehicleType.TROLLEYBUS);
+        });
+
+        it("uses GTFS route_type to distinguish Bratislava buses", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.BRATISLAVA,
+                    routeName: "201",
                     gtfsRouteType: "3",
                 }),
             ).toBe(VehicleType.BUS);
         });
 
-        it("falls back to route name when gtfsRouteType is null", () => {
+        it("keeps Liberec line 11 as tram even when route_type is 11", () => {
+            expect(
+                service.getVehicleTypeForRoute({
+                    feedId: GtfsFeedId.LIBEREC,
+                    routeName: "11",
+                    gtfsRouteType: "11",
+                }),
+            ).toBe(VehicleType.TRAM);
+        });
+
+        it("falls back to PID route name heuristics when gtfsRouteType is null", () => {
             expect(
                 service.getVehicleTypeForRoute({
                     routeName: "A",

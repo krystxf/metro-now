@@ -233,6 +233,7 @@ export interface RequestLogTable {
     userAgent: string | null;
     appVersion: string | null;
     headers: Record<string, unknown> | null;
+    graphqlQuery: string | null;
     createdAt: Generated<Date>;
 }
 
