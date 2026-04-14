@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { GRAPHQL_URL } from "@/constants/api";
 import { ClockIcon } from "@heroicons/react/24/outline";
 
@@ -15,6 +16,7 @@ type Departure = {
         scheduled: string;
     };
     route: {
+        id: string;
         name: string | null;
         color: string | null;
         vehicleType: string;
@@ -82,15 +84,17 @@ const DepartureGroupRow = ({ group }: { group: DepartureGroup }) => {
     return (
         <div className="py-3 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0">
             <div className="flex items-center gap-3">
-                <span
-                    className="inline-flex items-center justify-center px-2 py-1 rounded font-bold text-sm min-w-[44px] text-center"
+                <Link
+                    href={`/app/route/${encodeURIComponent(first.route?.id ?? "")}`}
+                    className="inline-flex items-center justify-center px-2 py-1 rounded font-bold text-sm min-w-[44px] text-center hover:opacity-80 transition-opacity"
                     style={{
                         backgroundColor: routeColor,
                         color: routeIsLight ? "#000" : "#fff",
                     }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     {first.route?.name ?? "?"}
-                </span>
+                </Link>
 
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
@@ -135,10 +139,32 @@ const DepartureGroupRow = ({ group }: { group: DepartureGroup }) => {
 
 const REFRESH_INTERVAL_MS = 15_000;
 
+const formatRelativeTime = (date: Date): string => {
+    const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (secs < 60) return `${secs}s ago`;
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.floor(mins / 60)}h ago`;
+};
+
+const useRelativeTime = (date: Date | null): string => {
+    const [label, setLabel] = useState(() => (date ? formatRelativeTime(date) : ""));
+
+    useEffect(() => {
+        if (!date) return;
+        setLabel(formatRelativeTime(date));
+        const interval = setInterval(() => setLabel(formatRelativeTime(date)), 1000);
+        return () => clearInterval(interval);
+    }, [date]);
+
+    return label;
+};
+
 export const DepartureBoard = ({ stopId }: { stopId: string }) => {
     const [departures, setDepartures] = useState<Departure[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const relativeTime = useRelativeTime(lastUpdated);
 
     const loadDepartures = useCallback(async () => {
         try {
@@ -158,6 +184,7 @@ export const DepartureBoard = ({ stopId }: { stopId: string }) => {
                                 scheduled
                             }
                             route {
+                                id
                                 name
                                 color
                                 vehicleType
@@ -199,7 +226,7 @@ export const DepartureBoard = ({ stopId }: { stopId: string }) => {
             {lastUpdated && (
                 <p className="text-xs text-neutral-400 dark:text-neutral-500 flex items-center gap-1 mb-4">
                     <ClockIcon className="h-3 w-3" />
-                    Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                    Updated {relativeTime}
                 </p>
             )}
 
