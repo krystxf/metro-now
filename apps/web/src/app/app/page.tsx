@@ -234,8 +234,17 @@ export default function AppPage() {
     }, []);
 
     const requestLocation = useCallback(() => {
-        if (!navigator.geolocation) {
+        if (typeof window === "undefined" || !navigator.geolocation) {
             setLocationState({ status: "error", message: "Geolocation is not supported" });
+            return;
+        }
+
+        const isSecureContext = window.isSecureContext;
+        if (!isSecureContext) {
+            setLocationState({
+                status: "error",
+                message: "Location requires HTTPS. Use search instead.",
+            });
             return;
         }
 
@@ -249,11 +258,13 @@ export default function AppPage() {
             (error) => {
                 if (error.code === error.PERMISSION_DENIED) {
                     setLocationState({ status: "denied" });
+                } else if (error.code === error.TIMEOUT) {
+                    setLocationState({ status: "error", message: "Location request timed out" });
                 } else {
                     setLocationState({ status: "error", message: "Could not get your location" });
                 }
             },
-            { enableHighAccuracy: false, timeout: 10000 },
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
         );
     }, [loadNearbyStops]);
 
