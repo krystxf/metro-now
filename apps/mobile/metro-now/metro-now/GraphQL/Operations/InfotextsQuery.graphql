@@ -1,0 +1,14 @@
+query Infotexts {
+  infotexts {
+    id
+    text
+    textEn
+    priority
+    displayType
+    validFrom
+    validTo
+    relatedStops {
+      name
+    }
+  }
+}

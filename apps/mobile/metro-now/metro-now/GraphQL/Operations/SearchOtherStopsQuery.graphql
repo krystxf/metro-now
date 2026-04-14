@@ -1,0 +1,26 @@
+query SearchOtherStops($query: String!, $limit: Int!) {
+  searchStops(query: $query, limit: $limit) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    entrances {
+      id
+      name
+      latitude
+      longitude
+    }
+    platforms {
+      id
+      latitude
+      longitude
+      name
+      code
+      isMetro
+      routes {
+        id
+        name
+      }
+    }
+  }
+}
