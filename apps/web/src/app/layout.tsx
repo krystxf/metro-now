@@ -57,7 +57,7 @@ export default function RootLayout({
             </head>
 
             <body className={poppins.className}>
-                <div className="dark:bg-black">
+                <div className="dark:bg-black min-h-screen">
                     <Navbar variant="transparent" />
 
                     {children}

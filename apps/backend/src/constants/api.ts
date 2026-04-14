@@ -1,4 +1,5 @@
-export const API_URL = "https://api.metronow.dev";
+// export const API_URL = "https://api.metronow.dev";
+export const API_URL = "http://localhost:3009";
 
 export const APPSTORE_URL =
     "https://apps.apple.com/cz/app/metro-now/id6504659402?platform=appleWatch";

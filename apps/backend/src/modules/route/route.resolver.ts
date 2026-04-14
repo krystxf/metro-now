@@ -15,8 +15,11 @@ export class RouteResolver {
     }
 
     @Query("route")
-    getOne(@Args("id") id: string) {
-        return this.routeService.getOneGraphQL(this.toDatabaseRouteId(id));
+    getOne(@Args("id") id: string, @Args("feed") feed?: GtfsFeedId) {
+        return this.routeService.getOneGraphQL(
+            this.toDatabaseRouteId(id),
+            feed,
+        );
     }
 
     @Query("routes")

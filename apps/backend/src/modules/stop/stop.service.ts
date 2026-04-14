@@ -1,4 +1,5 @@
 import type {
+    GtfsFeedId,
     GtfsStationEntrance,
     Platform,
     Route,
@@ -19,7 +20,9 @@ import { loadCachedBatch } from "src/utils/cache-batch";
 type StopRecordBase = Pick<
     Stop,
     "avgLatitude" | "avgLongitude" | "id" | "name"
->;
+> & {
+    feed?: GtfsFeedId | null;
+};
 
 type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
     color: string | null;
@@ -407,6 +410,7 @@ export class StopService {
             return [];
         }
 
+        const feedIdsByStopId = await this.loadStopFeedIdsByStopIds(ids);
         let query = this.database.db
             .selectFrom("Stop")
             .select(["id", "name", "avgLatitude", "avgLongitude"]);
@@ -423,7 +427,44 @@ export class StopService {
             query = query.limit(limit);
         }
 
-        return query.orderBy("id", "asc").execute();
+        const rows = await query.orderBy("id", "asc").execute();
+
+        return rows.map((row) => ({
+            ...row,
+            feed: feedIdsByStopId.get(row.id) ?? null,
+        }));
+    }
+
+    private async loadStopFeedIdsByStopIds(
+        stopIds?: readonly string[],
+    ): Promise<Map<string, GtfsFeedId>> {
+        const feedIdByStopId = new Map<string, GtfsFeedId>();
+
+        let query = this.database.db
+            .selectFrom("Platform")
+            .innerJoin("GtfsRouteStop", "GtfsRouteStop.stopId", "Platform.id")
+            .select([
+                "Platform.stopId as stopId",
+                "GtfsRouteStop.feedId as feedId",
+            ])
+            .distinct()
+            .where("Platform.stopId", "is not", null)
+            .orderBy("Platform.stopId", "asc")
+            .orderBy("GtfsRouteStop.feedId", "asc");
+
+        if (stopIds) {
+            query = query.where("Platform.stopId", "in", [...stopIds]);
+        }
+
+        const rows = await query.execute();
+
+        for (const row of rows) {
+            if (row.stopId && !feedIdByStopId.has(row.stopId)) {
+                feedIdByStopId.set(row.stopId, row.feedId);
+            }
+        }
+
+        return feedIdByStopId;
     }
 
     private async loadSearchableStopRows(): Promise<SearchableStopRow[]> {
