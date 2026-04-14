@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { GRAPHQL_URL } from "@/constants/api";
+import { getStopPath } from "@/utils/app-paths";
+import { graphqlFetch } from "@/utils/graphql-client";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { MapPinIcon } from "@heroicons/react/24/solid";
 
 type StopResult = {
     id: string;
+    feed: string | null;
     name: string;
     avgLatitude: number;
     avgLongitude: number;
@@ -46,18 +48,9 @@ const formatDistance = (meters: number): string => {
     return `${(meters / 1000).toFixed(1)} km`;
 };
 
-const graphqlFetch = async <T,>(query: string, variables?: Record<string, unknown>): Promise<T> => {
-    const res = await fetch(GRAPHQL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables }),
-    });
-    const json = await res.json();
-    return json.data;
-};
-
 const STOP_FIELDS = `
     id
+    feed
     name
     avgLatitude
     avgLongitude
@@ -132,7 +125,7 @@ const StopCard = ({ stop, distance }: { stop: StopResult; distance?: number }) =
 
     return (
         <Link
-            href={`/app/stop/${stop.id}`}
+            href={stop.feed ? getStopPath(stop.feed, stop.id) : "#"}
             className="block p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors bg-white dark:bg-neutral-900"
         >
             <div className="flex items-start justify-between gap-2">

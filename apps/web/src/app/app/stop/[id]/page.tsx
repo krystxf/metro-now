@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GRAPHQL_URL } from "@/constants/api";
+import { graphqlFetch } from "@/utils/graphql-client";
 import { getTitle } from "@/utils/metadata.utils";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { DepartureBoard } from "./DepartureBoard";
@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 
 type Stop = {
     id: string;
+    feed: string | null;
     name: string;
     avgLatitude: number;
     avgLongitude: number;
@@ -15,24 +16,21 @@ type Stop = {
 
 const fetchStop = async (id: string): Promise<Stop | null> => {
     try {
-        const res = await fetch(GRAPHQL_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                query: `query GetStop($id: ID!) {
-                    stop(id: $id) {
-                        id
-                        name
-                        avgLatitude
-                        avgLongitude
-                    }
-                }`,
-                variables: { id },
-            }),
-            next: { revalidate: 3600 },
-        });
-        const json = await res.json();
-        return json.data?.stop ?? null;
+        const data = await graphqlFetch<{ stop: Stop | null }>(
+            `query GetStop($id: ID!) {
+                stop(id: $id) {
+                    id
+                    feed
+                    name
+                    avgLatitude
+                    avgLongitude
+                }
+            }`,
+            { id },
+            { next: { revalidate: 3600 } },
+        );
+
+        return data.stop;
     } catch {
         return null;
     }

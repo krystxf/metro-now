@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { GRAPHQL_URL } from "@/constants/api";
+import { getStopPath } from "@/utils/app-paths";
+import { graphqlFetch } from "@/utils/graphql-client";
 
 type Platform = {
     id: string;
@@ -17,6 +18,7 @@ type Direction = {
 
 type Route = {
     id: string;
+    feed: string;
     name: string | null;
     color: string | null;
     vehicleType: string;
@@ -43,43 +45,46 @@ const dedupeStops = (platforms: Platform[]): { id: string | null; name: string }
     return stops;
 };
 
-export const RouteStopList = ({ routeId }: { routeId: string }) => {
+export const RouteStopList = ({
+    routeId,
+    feedId,
+}: {
+    routeId: string;
+    feedId?: string;
+}) => {
     const [route, setRoute] = useState<Route | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadRoute = useCallback(async () => {
         try {
-            const res = await fetch(GRAPHQL_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    query: `query GetRoute($id: ID!) {
-                        route(id: $id) {
+            const data = await graphqlFetch<{ route: Route | null }>(
+                `query GetRoute($id: ID!, $feed: Feed) {
+                    route(id: $id, feed: $feed) {
+                        id
+                        feed
+                        name
+                        color
+                        vehicleType
+                        directions {
                             id
-                            name
-                            color
-                            vehicleType
-                            directions {
+                            platforms {
                                 id
-                                platforms {
-                                    id
-                                    name
-                                    stop { id name }
-                                }
+                                name
+                                stop { id name }
                             }
                         }
-                    }`,
-                    variables: { id: routeId },
-                }),
-            });
-            const json = await res.json();
-            setRoute(json.data?.route ?? null);
+                    }
+                }`,
+                { id: routeId, feed: feedId },
+            );
+
+            setRoute(data.route ?? null);
         } catch {
             setRoute(null);
         } finally {
             setIsLoading(false);
         }
-    }, [routeId]);
+    }, [feedId, routeId]);
 
     useEffect(() => {
         loadRoute();
@@ -158,7 +163,7 @@ export const RouteStopList = ({ routeId }: { routeId: string }) => {
                                         </div>
                                         {stop.id ? (
                                             <Link
-                                                href={`/app/stop/${encodeURIComponent(stop.id)}`}
+                                                href={getStopPath(route.feed, stop.id)}
                                                 className="py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                                             >
                                                 {stop.name}

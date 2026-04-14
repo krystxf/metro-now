@@ -56,6 +56,6 @@ type Route {
 }
 
 type Query {
-    route(id: ID!): Route
+    route(id: ID!, feed: Feed): Route
     routes: [Route!]!
 }
