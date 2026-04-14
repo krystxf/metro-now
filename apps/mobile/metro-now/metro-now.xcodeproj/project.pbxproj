@@ -84,6 +84,8 @@
 		2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		8A88A0112E00000100000011 /* metro-nowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "metro-nowUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC0001012E0E000100000001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		CC0001022E0E000100000002 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -183,6 +185,8 @@
 		2D001B9F2CC8099B00C6B4F8 = {
 			isa = PBXGroup;
 			children = (
+				CC0001012E0E000100000001 /* Secrets.xcconfig */,
+				CC0001022E0E000100000002 /* Secrets.xcconfig.example */,
 				2D9601C12CC8126F000EF3D5 /* shared */,
 				2D001BAA2CC8099B00C6B4F8 /* metro-now */,
 				2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */,
@@ -686,6 +690,7 @@
 		};
 		2D001BCD2CC8099D00C6B4F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC0001012E0E000100000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -722,6 +727,7 @@
 		};
 		2D001BCE2CC8099D00C6B4F8 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC0001012E0E000100000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

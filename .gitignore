@@ -10,4 +10,7 @@ prod
 .swift-module-cache
 .swift-module-cache-tests
 
+# iOS secrets
+apps/mobile/metro-now/Secrets.xcconfig
+
 dist
