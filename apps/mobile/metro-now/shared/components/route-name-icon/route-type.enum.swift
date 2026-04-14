@@ -1,0 +1,82 @@
+// metro-now
+// https://github.com/krystxf/metro-now
+
+import SwiftUI
+
+enum MetroLine: String {
+    case A
+    case B
+    case C
+
+    var color: Color {
+        switch self {
+        case .A: .pragueMetro.a
+        case .B: .pragueMetro.b
+        case .C: .pragueMetro.c
+        }
+    }
+}
+
+let METRO_LINES = [
+    MetroLine.A.rawValue,
+    MetroLine.B.rawValue,
+    MetroLine.C.rawValue,
+]
+
+let TRAIN_ROUTE_PREFIXES = [
+    "L",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+]
+
+enum RouteType {
+    case fallback
+    case metro(MetroLine)
+    case night
+    case bus
+    case tram
+    case ferry
+    case funicular
+    case train
+    case leoExpress
+
+    var color: Color {
+        switch self {
+        case .fallback: .black
+        case let .metro(line): line.color
+        case .night: .black
+        case .bus: .blue
+        case .tram: .indigo
+        case .ferry: .cyan
+        case .funicular: .brown
+        case .train: .gray
+        case .leoExpress: .orange
+        }
+    }
+
+    var rawValue: String {
+        switch self {
+        case .fallback:
+            "Fallback"
+        case let .metro(line):
+            line.rawValue
+        case .night:
+            "Night"
+        case .bus:
+            "Bus"
+        case .tram:
+            "Tram"
+        case .ferry:
+            "Ferry"
+        case .funicular:
+            "Funicular"
+        case .train:
+            "Train"
+        case .leoExpress:
+            "Leo Express"
+        }
+    }
+}
