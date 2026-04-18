@@ -21,28 +21,16 @@ struct ContentView: View {
     @State private var infotextsPresentationDetent: PresentationDetent = .large
     @State private var showSettingsSheet = false
     @State private var showSearchSheet = false
+    @State private var displayedTab: AppTab = .departures
 
     private var shouldPresentSearchAsSheet: Bool {
         horizontalSizeClass == .compact
     }
 
-    private var tabSelection: Binding<AppTab> {
-        Binding(
-            get: { appNavigation.selectedTab },
-            set: { newTab in
-                guard shouldPresentSearchAsSheet, newTab == .search else {
-                    appNavigation.selectedTab = newTab
-                    return
-                }
-
-                showSearchSheet = true
-            }
-        )
-    }
-
-    private var searchPageView: some View {
+    private func searchPageView(showsCloseButton: Bool = false) -> some View {
         SearchPageView(
-            location: locationModel.location
+            location: locationModel.location,
+            showsCloseButton: showsCloseButton
         )
         .environmentObject(locationModel)
         .environmentObject(stopsViewModel)
@@ -57,7 +45,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            TabView(selection: tabSelection) {
+            TabView(selection: $displayedTab) {
                 Tab("Departures", systemImage: "clock", value: .departures) {
                     NavigationStack {
                         ClosestStopPageView()
@@ -82,10 +70,6 @@ struct ContentView: View {
                     .environmentObject(locationModel)
                 }
 
-                Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
-                    searchPageView
-                }
-
                 Tab("Favorites", systemImage: "star", value: .favorites) {
                     NavigationStack {
                         FavoritesPageView()
@@ -101,6 +85,14 @@ struct ContentView: View {
                         .environmentObject(stopsViewModel)
                         .environmentObject(favoritesViewModel)
                 }
+
+                Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
+                    if shouldPresentSearchAsSheet {
+                        Color.clear
+                    } else {
+                        searchPageView()
+                    }
+                }
             }
             .tint(.primary)
             .sheet(
@@ -113,7 +105,7 @@ struct ContentView: View {
                 isPresented: $showSearchSheet,
                 onDismiss: dismissSearchSheet
             ) {
-                searchPageView
+                searchPageView(showsCloseButton: true)
                     .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $showInfotexts) {
@@ -152,7 +144,29 @@ struct ContentView: View {
             guard isPresented else { return }
             infotextsPresentationDetent = .large
         }
+        .onChange(of: displayedTab) { oldTab, newTab in
+            guard shouldPresentSearchAsSheet, newTab == .search else {
+                guard appNavigation.selectedTab != newTab else {
+                    return
+                }
+
+                appNavigation.selectedTab = newTab
+                return
+            }
+
+            displayedTab = oldTab
+            presentSearchSheet()
+        }
         .onChange(of: appNavigation.selectedTab) { _, newTab in
+            if shouldPresentSearchAsSheet, newTab == .search {
+                presentSearchSheet()
+                return
+            }
+
+            if displayedTab != newTab {
+                displayedTab = newTab
+            }
+
             guard shouldPresentSearchAsSheet, showSearchSheet, newTab != .search else {
                 return
             }
@@ -187,6 +201,17 @@ struct ContentView: View {
 
     private func dismissSearchSheet() {
         showSearchSheet = false
+    }
+
+    @MainActor
+    private func presentSearchSheet() {
+        guard !showSearchSheet else {
+            return
+        }
+
+        Task { @MainActor in
+            showSearchSheet = true
+        }
     }
 }
 

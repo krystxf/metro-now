@@ -2,6 +2,7 @@
 // https://github.com/krystxf/metro-now
 
 import CoreLocation
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.utils))

@@ -55,6 +55,13 @@ struct MapPageView: View {
     @State private var initialCameraSource: InitialCameraSource?
     @State private var hasLoadedPidZoneBorders = false
 
+    // Cached derived stop data — recomputed only when stopsViewModel.stops changes
+    @State private var cachedMapStops: [ApiStop] = []
+    @State private var cachedMetroRouteIds: [String] = []
+    @State private var cachedMetroRouteRequestKey: String = ""
+    @State private var cachedMapStopsRequestKey: String = ""
+    @State private var cachedMetroEntrances: [ApiStopEntrance] = []
+
     private var selectedMapStyle: MapStyleOption {
         isSatelliteMode ? .satellite : .system(colorScheme)
     }
@@ -63,50 +70,37 @@ struct MapPageView: View {
         appNavigation.selectedTab == .map
     }
 
-    private var mapStops: [ApiStop] {
-        stopsViewModel.stops?.filter { stop in
+    private func recomputeDerivedStopData(from stops: [ApiStop]?) {
+        let mapStops = stops?.filter { stop in
             stop.platforms.contains { platform in
                 platform.isMetro || platform.routes.contains(where: { route in
                     isMapVisibleRoute(route.name)
                 })
             }
         } ?? []
-    }
 
-    private var metroStops: [ApiStop] {
-        mapStops.filter { stop in
+        let metroStops = mapStops.filter { stop in
             stop.platforms.contains(where: \.isMetro)
         }
-    }
 
-    private var metroRouteIds: [String] {
-        Array(
+        cachedMapStops = mapStops
+        cachedMetroRouteIds = Array(
             Set(
                 metroStops
                     .flatMap(\.platforms)
                     .flatMap(\.routes)
-                    .filter { route in
-                        METRO_LINES.contains(route.name.uppercased())
-                    }
+                    .filter { METRO_LINES.contains($0.name.uppercased()) }
                     .map(\.backendRouteId)
             )
-        )
-        .sorted()
-    }
-
-    private var metroRouteRequestKey: String {
-        metroRouteIds.joined(separator: ",")
-    }
-
-    private var mapStopsRequestKey: String {
-        mapStops
+        ).sorted()
+        cachedMetroRouteRequestKey = cachedMetroRouteIds.joined(separator: ",")
+        cachedMapStopsRequestKey = mapStops
             .flatMap(\.platforms)
             .map(\.id)
             .joined(separator: ",")
-    }
+        cachedMetroEntrances = metroStops.flatMap(\.entrances)
 
-    private var metroEntrances: [ApiStopEntrance] {
-        metroStops.flatMap(\.entrances)
+        renderModel.setRailAnnotations(buildRailStopMapAnnotations(from: mapStops))
     }
 
     // MARK: - Navigation
@@ -219,7 +213,7 @@ struct MapPageView: View {
             }
 
             if renderModel.zoomVisibility.showsMetroEntrances {
-                CircleAnnotationGroup(metroEntrances) { entrance in
+                CircleAnnotationGroup(cachedMetroEntrances) { entrance in
                     var circle = CircleAnnotation(centerCoordinate: entrance.coordinate)
                     circle.circleColor = StyleColor(UIColor.white)
                     circle.circleRadius = 4
@@ -289,15 +283,7 @@ struct MapPageView: View {
             renderModel.refreshVisibleContentIfNeeded()
         }
         .onReceive(stopsViewModel.$stops) { stops in
-            let railStops = stops?.filter { stop in
-                stop.platforms.contains { platform in
-                    platform.isMetro || platform.routes.contains(where: { route in
-                        isMapVisibleRoute(route.name)
-                    })
-                }
-            } ?? []
-
-            renderModel.setRailAnnotations(buildRailStopMapAnnotations(from: railStops))
+            recomputeDerivedStopData(from: stops)
         }
         .onReceive(routeViewModel.$routeDetailsById) { _ in
             cachedRoutePolylines = buildRoutePolylines(from: routeViewModel.routes)
@@ -306,7 +292,7 @@ struct MapPageView: View {
             await loadPidZoneBordersIfNeeded()
         }
         .overlay(alignment: .top) {
-            if routeViewModel.isLoading, !metroRouteIds.isEmpty {
+            if routeViewModel.isLoading, !cachedMetroRouteIds.isEmpty {
                 ProgressView("Loading metro lines")
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -323,14 +309,14 @@ struct MapPageView: View {
             .padding(.top, 52)
             .padding(.trailing, 12)
         }
-        .task(id: metroRouteRequestKey) {
-            await routeViewModel.loadRoutes(routeIds: metroRouteIds)
+        .task(id: cachedMetroRouteRequestKey) {
+            await routeViewModel.loadRoutes(routeIds: cachedMetroRouteIds)
         }
-        .task(id: mapStopsRequestKey) {
+        .task(id: cachedMapStopsRequestKey) {
             guard
                 initialCameraSource == nil,
                 let initialRegion = buildBoundingRegion(
-                    for: buildRailStopMapAnnotations(from: mapStops).map(\.coordinate),
+                    for: buildRailStopMapAnnotations(from: cachedMapStops).map(\.coordinate),
                     paddingFactor: Constants.initialCameraPaddingFactor,
                     minimumSpanDelta: Constants.minimumInitialCameraSpanDelta,
                     maximumSpanDelta: Constants.maximumInitialCameraSpanDelta

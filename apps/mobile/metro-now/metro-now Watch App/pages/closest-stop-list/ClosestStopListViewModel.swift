@@ -15,7 +15,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
     @Published var closestStop: ApiStop?
     @Published var departures: [ApiDeparture]?
 
-    private var refreshTimer: Timer?
+    private var refreshTask: Task<Void, Never>?
 
     override init() {
         super.init()
@@ -32,22 +32,23 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     private func startPeriodicRefresh() {
-        stopPeriodicRefresh() // Stop any existing timer to avoid duplication.
-        refreshTimer = Timer.scheduledTimer(
-            withTimeInterval: REFETCH_INTERVAL,
-            repeats: true
-        ) { [weak self] _ in
-            guard let self, let closestStop else {
-                return
-            }
+        stopPeriodicRefresh()
+        refreshTask = Task(priority: .utility) { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(REFETCH_INTERVAL))
+                guard !Task.isCancelled, let self else { return }
 
-            getDepartures(stopsIds: [closestStop.id])
+                let stopId: String? = await MainActor.run { self.closestStop?.id }
+                guard let stopId else { continue }
+
+                getDepartures(stopsIds: [stopId])
+            }
         }
     }
 
     private func stopPeriodicRefresh() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        refreshTask?.cancel()
+        refreshTask = nil
     }
 
     func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -64,42 +65,45 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
             return
         }
 
-        if
-            let stops,
-            let nextValue = findClosestStop(to: location, stops: stops),
-            nextValue.id != self.closestStop?.id
-        {
-            closestStop = nextValue
-            getDepartures(stopsIds: [nextValue.id])
+        let stopsCopy = stops
+        let currentStopId = closestStop?.id
+
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let stopsCopy,
+                  let nextValue = findClosestStop(to: location, stops: stopsCopy),
+                  nextValue.id != currentStopId
+            else { return }
+
+            await MainActor.run {
+                self?.closestStop = nextValue
+                self?.getDepartures(stopsIds: [nextValue.id])
+            }
         }
     }
 
     private func getStops() {
-        let request = apiSession.request(
-            "\(API_URL)/v1/stop/all",
-            method: .get,
-            parameters: ["metroOnly": String(true)]
-        )
+        Task {
+            let request = apiSession.request(
+                "\(API_URL)/v1/stop/all",
+                method: .get,
+                parameters: ["metroOnly": String(true)]
+            )
 
-        request
-            .validate()
-            .responseDecodable(of: [ApiStop].self) { response in
-                switch response.result {
-                case let .success(fetchedStops):
-                    DispatchQueue.main.async {
-                        self.stops = fetchedStops
-                        print("Fetched \(fetchedStops.count) metro stops")
-
-                        self.updateClosestStop()
-                    }
-                case let .failure(error):
-                    print("Error fetching metroStops: \(error)")
-                }
+            guard let fetchedStops = try? await fetchData(request, ofType: [ApiStop].self) else {
+                print("Error fetching metroStops")
+                return
             }
+
+            await MainActor.run {
+                self.stops = fetchedStops
+                print("Fetched \(fetchedStops.count) metro stops")
+                self.updateClosestStop()
+            }
+        }
     }
 
     private func getDepartures(stopsIds: [String]) {
-        Task {
+        Task(priority: .utility) {
             do {
                 let fetchedDepartures = try await fetchDeparturesGraphQL(
                     stopIds: stopsIds,
@@ -110,24 +114,28 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     minutesAfter: 1 * 60
                 )
 
-                await MainActor.run {
-                    if let oldDepartures = self.departures {
-                        self.departures = uniqueBy(
-                            array: oldDepartures + fetchedDepartures,
-                            by: \.id
-                        )
-                        .filter {
-                            $0.departure.predicted > Date.now - SECONDS_BEFORE
-                        }
-                        .sorted(by: {
-                            $0.departure.scheduled < $1.departure.scheduled
-                        })
-                    } else {
-                        self.departures = fetchedDepartures
-                    }
+                let oldDepartures = await MainActor.run { self.departures }
 
-                    print("Fetched \(fetchedDepartures.count) departures")
+                let newDepartures: [ApiDeparture] = if let oldDepartures {
+                    uniqueBy(
+                        array: oldDepartures + fetchedDepartures,
+                        by: \.id
+                    )
+                    .filter {
+                        $0.departure.predicted > Date.now - SECONDS_BEFORE
+                    }
+                    .sorted(by: {
+                        $0.departure.scheduled < $1.departure.scheduled
+                    })
+                } else {
+                    fetchedDepartures
                 }
+
+                await MainActor.run {
+                    self.departures = newDepartures
+                }
+
+                print("Fetched \(fetchedDepartures.count) departures")
             } catch {
                 print("Error fetching departures: \(error)")
             }

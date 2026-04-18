@@ -22,7 +22,7 @@ class StopsViewModel: NSObject, ObservableObject {
         )
     }
 
-    private var refreshTimer: Timer?
+    private var refreshTask: Task<Void, Never>?
 
     init(
         initialStops: [ApiStop]? = nil,
@@ -47,23 +47,24 @@ class StopsViewModel: NSObject, ObservableObject {
         startPeriodicRefresh()
     }
 
-    @MainActor
     private func updateStops() async {
         guard let fetched = await fetchStops() else { return }
-        stops = fetched
-        Self.saveCachedStops(fetched)
+        Task.detached(priority: .utility) {
+            Self.saveCachedStops(fetched)
+        }
+        await MainActor.run {
+            self.stops = fetched
+        }
     }
 
     private func startPeriodicRefresh() {
-        stopPeriodicRefresh() // Stop any existing timer to avoid duplication.
+        stopPeriodicRefresh()
+        refreshTask = Task(priority: .utility) { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                guard !Task.isCancelled, let self else { return }
 
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            guard let self else {
-                return
-            }
-
-            Task(priority: .low) {
-                await self.updateStops()
+                await updateStops()
             }
         }
     }
@@ -73,8 +74,8 @@ class StopsViewModel: NSObject, ObservableObject {
     }
 
     private func stopPeriodicRefresh() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        refreshTask?.cancel()
+        refreshTask = nil
     }
 
     private static var cacheFileURL: URL? {

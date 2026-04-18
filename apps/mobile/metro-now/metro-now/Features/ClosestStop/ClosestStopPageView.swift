@@ -22,7 +22,9 @@ struct ClosestStopPageView: View {
     var body: some View {
         if viewModel.metroStops != nil || viewModel.allStops != nil {
             List {
-                if let closestMetroStop = viewModel.closestMetroStop {
+                if viewModel.isMetroNearby,
+                   let closestMetroStop = viewModel.closestMetroStop
+                {
                     Section(header: Text(closestMetroStop.name)) {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
@@ -116,11 +118,8 @@ struct ClosestStopPageView: View {
                 }
             }
             .refreshable {
-                do {
-                    print("Refreshing")
-
-                    viewModel.refresh()
-                }
+                print("Refreshing")
+                await viewModel.refresh()
             }
             .sheet(item: $routePreviewItem) { item in
                 RoutePreviewView(

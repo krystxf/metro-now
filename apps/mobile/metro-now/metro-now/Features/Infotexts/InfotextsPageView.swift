@@ -2,15 +2,10 @@
 // https://github.com/krystxf/metro-now
 
 import SwiftUI
-import Translation
 
 struct InfotextsPageView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = InfotextsViewModel()
-    @State private var translationConfiguration: TranslationSession.Configuration?
-
-    private let czechLanguage = Locale.Language(identifier: "cs")
-    private let englishLanguage = Locale.Language(identifier: "en")
 
     var body: some View {
         NavigationView {
@@ -44,8 +39,7 @@ struct InfotextsPageView: View {
 
                     ForEach(viewModel.infotexts, id: \.id) { infotext in
                         InfotextsItem(
-                            infotext: infotext,
-                            englishText: viewModel.englishText(for: infotext)
+                            infotext: infotext
                         )
                     }
                 }
@@ -61,39 +55,6 @@ struct InfotextsPageView: View {
                 }
             }
         }
-        .translationTask(translationConfiguration) { session in
-            await viewModel.translateMissingInfotexts(using: session)
-        }
-        .onAppear {
-            updateTranslationConfiguration(
-                pendingAutomaticTranslationIDs: viewModel.pendingAutomaticTranslationIDs
-            )
-        }
-        .onChange(of: viewModel.pendingAutomaticTranslationIDs) { _, pendingIDs in
-            updateTranslationConfiguration(
-                pendingAutomaticTranslationIDs: pendingIDs
-            )
-        }
-    }
-
-    private func updateTranslationConfiguration(
-        pendingAutomaticTranslationIDs: [String]
-    ) {
-        guard !pendingAutomaticTranslationIDs.isEmpty else {
-            translationConfiguration = nil
-            return
-        }
-
-        if var currentConfiguration = translationConfiguration {
-            currentConfiguration.invalidate()
-            translationConfiguration = currentConfiguration
-            return
-        }
-
-        translationConfiguration = TranslationSession.Configuration(
-            source: czechLanguage,
-            target: englishLanguage
-        )
     }
 }
 
