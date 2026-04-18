@@ -1,4 +1,4 @@
-import { VehicleType } from "@metro-now/database";
+import { GtfsFeedId, VehicleType } from "@metro-now/database";
 
 import {
     type PidStopsSchema,
@@ -58,6 +58,7 @@ export class PidImportService {
             string,
             {
                 id: string;
+                feed: GtfsFeedId;
                 name: string;
                 avgLatitude: number;
                 avgLongitude: number;
@@ -66,6 +67,7 @@ export class PidImportService {
         for (const stopGroup of stopsData.stopGroups) {
             stops.set(`U${stopGroup.node}`, {
                 id: `U${stopGroup.node}`,
+                feed: GtfsFeedId.PID,
                 name: resolveStopGroupName(stopGroup),
                 avgLatitude: stopGroup.avgLat,
                 avgLongitude: stopGroup.avgLon,

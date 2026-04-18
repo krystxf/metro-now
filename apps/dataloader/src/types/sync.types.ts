@@ -8,6 +8,7 @@ export type SyncTrigger = "startup" | "cron" | "manual";
 
 export type SyncedStop = {
     id: string;
+    feed: GtfsFeedId;
     name: string;
     avgLatitude: number;
     avgLongitude: number;

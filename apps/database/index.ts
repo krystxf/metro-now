@@ -50,6 +50,7 @@ export type GeoJsonLineString = {
 
 export interface StopTable {
     id: string;
+    feed: GtfsFeedId;
     name: string;
     avgLatitude: number;
     avgLongitude: number;

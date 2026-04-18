@@ -349,6 +349,7 @@ export class BrnoImportService {
 
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
+            feed: GtfsFeedId.BRNO,
             name: stop.name,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
