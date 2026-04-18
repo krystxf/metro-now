@@ -2,20 +2,18 @@
 set -e
 cd "$(dirname "$0")/.." || exit 1
 
-pnpm lint:fix
+# Capture what was actually staged before the hook runs
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
 pnpm exec lint-staged
 
-if command -v swiftformat >/dev/null 2>&1; then
-	pnpm app:format
-else
-	STAGED_SWIFT=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/mobile/.*\.swift$' || true)
-	if [ -n "$STAGED_SWIFT" ]; then
+STAGED_SWIFT=$(printf '%s\n' "$STAGED" | grep -E '^apps/mobile/.*\.swift$' || true)
+if [ -n "$STAGED_SWIFT" ]; then
+	if command -v swiftformat >/dev/null 2>&1; then
+		printf '%s\n' "$STAGED_SWIFT" | xargs swiftformat
+		printf '%s\n' "$STAGED_SWIFT" | xargs git add
+	else
 		echo "pre-commit: swiftformat is required when committing Swift under apps/mobile. Install: brew install swiftformat" >&2
 		exit 1
 	fi
-fi
-
-# Re-stage files modified by swiftformat so the commit includes fixes
-if [ -n "$(git diff --name-only)" ]; then
-	git diff --name-only -z | xargs -0 git add
 fi
