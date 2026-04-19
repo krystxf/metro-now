@@ -35,16 +35,48 @@ struct MetroDeparturesListView: View {
                         nextHeadsign: departureRow.nextHeadsign,
                         nextDeparture: departureRow.nextDeparture
                     )
-                    .onLongPressGesture {
+                    .contextMenu {
                         if let previewRouteId = departureRow.previewRouteId {
-                            onRoutePreviewRequested?(
-                                SheetIdItem(
-                                    id: previewRouteId,
-                                    headsign: departureRow.headsign,
-                                    currentPlatformId: departureRow.platformId,
-                                    currentPlatformName: departureRow.platformName
+                            Button {
+                                onRoutePreviewRequested?(
+                                    SheetIdItem(
+                                        id: previewRouteId,
+                                        headsign: departureRow.headsign,
+                                        currentPlatformId: departureRow.platformId,
+                                        currentPlatformName: departureRow.platformName
+                                    )
                                 )
-                            )
+                            } label: {
+                                Label("Show route", systemImage: "map")
+                            }
+
+                            #if !targetEnvironment(macCatalyst)
+                                if #available(iOS 16.2, *) {
+                                    Button {
+                                        let row = departureRow
+                                        let stop = closestStop
+                                        Task { @MainActor in
+                                            await DeparturesLiveActivityManager.shared.start(
+                                                stopName: stop.name,
+                                                stopId: stop.id,
+                                                platformId: row.platformId,
+                                                platformName: row.platformName,
+                                                platformCode: nil,
+                                                routeId: previewRouteId,
+                                                routeName: row.routeLabel,
+                                                headsign: row.headsign,
+                                                initialDeparture: row.departure,
+                                                initialNextHeadsign: row.nextHeadsign,
+                                                initialNextDeparture: row.nextDeparture,
+                                                initialDelaySeconds: 0,
+                                                initialIsRealtime: true
+                                            )
+                                        }
+                                    } label: {
+                                        Label("Show live activity", systemImage: "bolt.badge.clock")
+                                    }
+                                }
+                            #endif
                         }
                     }
                 }
@@ -56,14 +88,18 @@ struct MetroDeparturesListView: View {
                         routeLabel: route.name,
                         routeLabelBackground: getRouteColor(route)
                     )
-                    .onLongPressGesture {
-                        onRoutePreviewRequested?(
-                            SheetIdItem(
-                                id: route.backendRouteId,
-                                currentPlatformId: platform.id,
-                                currentPlatformName: platform.name
+                    .contextMenu {
+                        Button {
+                            onRoutePreviewRequested?(
+                                SheetIdItem(
+                                    id: route.backendRouteId,
+                                    currentPlatformId: platform.id,
+                                    currentPlatformName: platform.name
+                                )
                             )
-                        )
+                        } label: {
+                            Label("Show route", systemImage: "map")
+                        }
                     }
                 }
             }

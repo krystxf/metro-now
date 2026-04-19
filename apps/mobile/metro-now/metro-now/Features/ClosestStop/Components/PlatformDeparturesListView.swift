@@ -48,16 +48,49 @@ struct PlatformDeparturesListView: View {
                                 nextHeadsign: nextDeparture?.headsign,
                                 nextDeparture: nextDeparture?.departure.predicted
                             )
-                            .onLongPressGesture {
+                            .contextMenu {
                                 if let routeId = departure.routeId {
-                                    onRoutePreviewRequested?(
-                                        SheetIdItem(
-                                            id: routeId,
-                                            headsign: departure.headsign,
-                                            currentPlatformId: platform.id,
-                                            currentPlatformName: platform.name
+                                    Button {
+                                        onRoutePreviewRequested?(
+                                            SheetIdItem(
+                                                id: routeId,
+                                                headsign: departure.headsign,
+                                                currentPlatformId: platform.id,
+                                                currentPlatformName: platform.name
+                                            )
                                         )
-                                    )
+                                    } label: {
+                                        Label("Show route", systemImage: "map")
+                                    }
+
+                                    #if !targetEnvironment(macCatalyst)
+                                        if #available(iOS 16.2, *) {
+                                            Button {
+                                                let dep = departure
+                                                let next = nextDeparture
+                                                let plat = platform
+                                                Task { @MainActor in
+                                                    await DeparturesLiveActivityManager.shared.start(
+                                                        stopName: plat.name,
+                                                        stopId: nil,
+                                                        platformId: plat.id,
+                                                        platformName: plat.name,
+                                                        platformCode: plat.code,
+                                                        routeId: routeId,
+                                                        routeName: dep.route,
+                                                        headsign: dep.headsign,
+                                                        initialDeparture: dep.departure.predicted,
+                                                        initialNextHeadsign: next?.headsign,
+                                                        initialNextDeparture: next?.departure.predicted,
+                                                        initialDelaySeconds: dep.delay,
+                                                        initialIsRealtime: dep.isRealtime ?? false
+                                                    )
+                                                }
+                                            } label: {
+                                                Label("Show live activity", systemImage: "bolt.badge.clock")
+                                            }
+                                        }
+                                    #endif
                                 }
                             }
                         } else {

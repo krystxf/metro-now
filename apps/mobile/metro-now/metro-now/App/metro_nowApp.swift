@@ -122,6 +122,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
 @main
 struct metro_nowApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         UITestLaunchConfiguration.applyIfNeeded()
@@ -136,6 +137,20 @@ struct metro_nowApp: App {
                 .task {
                     WidgetCenter.shared.reloadAllTimelines()
                 }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            #if !targetEnvironment(macCatalyst)
+                if #available(iOS 16.2, *) {
+                    switch newPhase {
+                    case .active:
+                        Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterForeground() }
+                    case .background:
+                        Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterBackground() }
+                    default:
+                        break
+                    }
+                }
+            #endif
         }
     }
 }
