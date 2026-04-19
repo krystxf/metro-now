@@ -30,14 +30,19 @@ export class DepartureResolver {
             });
         }
 
-        const normalizedLimit = Math.max(1, Math.min(limit, 100));
+        // `limit` is per (platform + route) so the client gets N departures
+        // for *each* line/direction instead of N total (which hides whole
+        // routes behind a few frequent ones). `totalLimit` is a safety
+        // ceiling to keep payloads bounded when many routes are involved.
+        const perRouteLimit = Math.max(1, Math.min(limit, 20));
+        const TOTAL_LIMIT = 200;
         const departures = await this.departureServiceV2.getDepartures({
             stopIds,
             platformIds,
             vehicleType: metroOnly ? "metro" : "all",
             excludeVehicleType: null,
-            limit: normalizedLimit,
-            totalLimit: normalizedLimit,
+            limit: perRouteLimit,
+            totalLimit: TOTAL_LIMIT,
             minutesBefore: minutesBefore ?? 1,
             minutesAfter: minutesAfter ?? 60,
         });
