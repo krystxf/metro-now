@@ -53,6 +53,19 @@ export class StopResolver {
         });
     }
 
+    @Query("closestStops")
+    getClosest(
+        @Args("latitude") latitude: number,
+        @Args("longitude") longitude: number,
+        @Args("limit") limit: number | undefined,
+    ) {
+        return this.stopService.getClosestStopsGraphQL({
+            latitude,
+            longitude,
+            ...(typeof limit === "number" ? { limit } : {}),
+        });
+    }
+
     @Query("stopDataLastUpdatedAt")
     getDataLastUpdatedAt() {
         return this.stopService.getDataLastUpdatedAt();

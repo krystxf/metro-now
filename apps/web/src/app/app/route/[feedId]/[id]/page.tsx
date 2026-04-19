@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { RouteStopList } from "../../[id]/RouteStopList";
+import { RouteStopList } from "../../_components/RouteStopList";
 
 type Props = {
     params: Promise<{ feedId: string; id: string }>;

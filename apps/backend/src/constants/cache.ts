@@ -89,6 +89,8 @@ export const CACHE_KEYS = {
             buildCacheKey(`${STOP_CACHE_PREFIX}.getGraphQLById`, id),
         getOne: (params: unknown) =>
             buildCacheKey(`${STOP_CACHE_PREFIX}.getOne`, params),
+        getClosestGraphQL: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getClosestGraphQL`, params),
     },
 };
 

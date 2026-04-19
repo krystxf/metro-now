@@ -5,6 +5,7 @@ import type {
     Route,
     Stop,
 } from "@metro-now/database";
+import { sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -1012,6 +1013,55 @@ export class StopService {
         return Array.from(new Set(ids))
             .map((id) => stopsById.get(id))
             .filter((stop): stop is StopGraphQLRecord => stop !== null);
+    }
+
+    async getClosestStopsGraphQL({
+        latitude,
+        longitude,
+        limit,
+    }: {
+        latitude: number;
+        longitude: number;
+        limit?: number;
+    }): Promise<{ stop: StopGraphQLRecord; distance: number }[]> {
+        return this.cacheManager.wrap(
+            CACHE_KEYS.stop.getClosestGraphQL({ latitude, longitude, limit }),
+            async () => {
+                const limitClause =
+                    typeof limit === "number" && limit > 0
+                        ? sql`LIMIT ${limit}`
+                        : sql``;
+                const result = await sql<{ distance: number; id: string }>`
+                    SELECT
+                        "Stop"."id",
+                        earth_distance(
+                            ll_to_earth("Stop"."avgLatitude", "Stop"."avgLongitude"),
+                            ll_to_earth(${latitude}, ${longitude})
+                        ) AS "distance"
+                    FROM "Stop"
+                    ORDER BY "distance"
+                    ${limitClause}
+                `.execute(this.database.db);
+
+                const orderedIds = result.rows.map(({ id }) => id);
+                const distanceById = new Map(
+                    result.rows.map(({ id, distance }) => [id, distance]),
+                );
+                const stops = await this.getGraphQLByIds(orderedIds);
+                const stopById = new Map(stops.map((stop) => [stop.id, stop]));
+
+                return orderedIds.flatMap((id) => {
+                    const stop = stopById.get(id);
+
+                    if (!stop) {
+                        return [];
+                    }
+
+                    return [{ stop, distance: distanceById.get(id) ?? 0 }];
+                });
+            },
+            STOP_DATA_CACHE_TTL_MS,
+        );
     }
 
     async getOneById(id: string): Promise<StopRecord | null> {
