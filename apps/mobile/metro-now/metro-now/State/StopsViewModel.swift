@@ -5,10 +5,15 @@ import Alamofire
 import CoreLocation
 import Foundation
 
+// Deliberately distinct from the closest-stop page's `stops_all_v2` key:
+// this cache carries extra data (metro entrances merged from GraphQL) and
+// must not be clobbered by the other view model's entrance-less writes.
+private let ALL_STOPS_WITH_ENTRANCES_CACHE_KEY = "stops_all_with_entrances_v1"
+private let STOPS_CACHE_MAX_AGE: TimeInterval = 24 * 60 * 60
+
 class StopsViewModel: NSObject, ObservableObject {
     @Published var stops: [ApiStop]?
 
-    private static let cacheFileName = "all_stops_cache.json"
     private let shouldRefresh: Bool
 
     func getClosestStop(_ location: CLLocation) -> ApiStop? {
@@ -33,8 +38,15 @@ class StopsViewModel: NSObject, ObservableObject {
 
         if let initialStops {
             stops = initialStops
-        } else if let cached = Self.loadCachedStops() {
+        } else if let cached = DiskCache.load(
+            key: ALL_STOPS_WITH_ENTRANCES_CACHE_KEY,
+            maxAge: STOPS_CACHE_MAX_AGE,
+            as: [ApiStop].self
+        ) {
             stops = cached
+        } else if let stale = DiskCache.loadStale(key: ALL_STOPS_WITH_ENTRANCES_CACHE_KEY, as: [ApiStop].self) {
+            // Expired, but better than a blank UI while we refresh.
+            stops = stale.data
         }
 
         guard shouldRefresh else {
@@ -48,10 +60,11 @@ class StopsViewModel: NSObject, ObservableObject {
     }
 
     private func updateStops() async {
-        guard let fetched = await fetchStops() else { return }
-        Task.detached(priority: .utility) {
-            Self.saveCachedStops(fetched)
+        guard let fetched = await fetchStops() else {
+            // Fetch failed — keep whatever we already have (fresh or stale).
+            return
         }
+        DiskCache.save(fetched, key: ALL_STOPS_WITH_ENTRANCES_CACHE_KEY)
         await MainActor.run {
             self.stops = fetched
         }
@@ -76,26 +89,6 @@ class StopsViewModel: NSObject, ObservableObject {
     private func stopPeriodicRefresh() {
         refreshTask?.cancel()
         refreshTask = nil
-    }
-
-    private static var cacheFileURL: URL? {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-            .first?
-            .appendingPathComponent(cacheFileName)
-    }
-
-    private static func loadCachedStops() -> [ApiStop]? {
-        guard let url = cacheFileURL,
-              let data = try? Data(contentsOf: url)
-        else { return nil }
-        return try? JSONDecoder().decode([ApiStop].self, from: data)
-    }
-
-    private static func saveCachedStops(_ stops: [ApiStop]) {
-        guard let url = cacheFileURL,
-              let data = try? JSONEncoder().encode(stops)
-        else { return }
-        try? data.write(to: url, options: .atomic)
     }
 
     private func fetchStops() async -> [ApiStop]? {

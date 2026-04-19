@@ -531,11 +531,11 @@ func buildMetroDepartureRows(
         }
 }
 
-struct ApiInfotextRelatedStop: Decodable {
+struct ApiInfotextRelatedStop: Codable {
     let name: String
 }
 
-struct ApiInfotext: Decodable {
+struct ApiInfotext: Codable {
     let id: String
     let text: String
     let textEn: String?

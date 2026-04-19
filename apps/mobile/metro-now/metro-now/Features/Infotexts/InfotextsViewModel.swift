@@ -48,12 +48,29 @@ extension ApiInfotext {
     }
 }
 
+private let INFOTEXTS_CACHE_KEY = "infotexts_v1"
+private let INFOTEXTS_CACHE_MAX_AGE: TimeInterval = 6 * 60 * 60
+
 @MainActor
 final class InfotextsViewModel: ObservableObject {
     @Published var infotexts: [ApiInfotext] = []
     @Published var isLoading = true
 
     init() {
+        if let cached = DiskCache.load(
+            key: INFOTEXTS_CACHE_KEY,
+            maxAge: INFOTEXTS_CACHE_MAX_AGE,
+            as: [ApiInfotext].self
+        ) {
+            infotexts = cached
+            isLoading = false
+        } else if let stale = DiskCache.loadStale(
+            key: INFOTEXTS_CACHE_KEY,
+            as: [ApiInfotext].self
+        ) {
+            infotexts = stale.data
+        }
+
         Task(priority: .high) {
             await loadInfotexts()
         }
@@ -64,7 +81,7 @@ final class InfotextsViewModel: ObservableObject {
             let result = try await fetchGraphQLQuery(
                 MetroNowAPI.InfotextsQuery()
             )
-            infotexts = result.infotexts.map { infotext in
+            let fetched = result.infotexts.map { infotext in
                 ApiInfotext(
                     id: infotext.id,
                     text: infotext.text,
@@ -78,8 +95,11 @@ final class InfotextsViewModel: ObservableObject {
                     }
                 )
             }
+            infotexts = fetched
+            DiskCache.save(fetched, key: INFOTEXTS_CACHE_KEY)
             print("Fetched \(infotexts.count) infotexts")
         } catch {
+            // Keep whatever we showed from cache (fresh or stale).
             print("Failed to fetch infotexts: \(error)")
         }
 
