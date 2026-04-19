@@ -54,6 +54,7 @@ export interface StopTable {
     name: string;
     avgLatitude: number;
     avgLongitude: number;
+    country: string | null;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
