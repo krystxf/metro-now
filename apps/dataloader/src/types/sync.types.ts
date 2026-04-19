@@ -12,6 +12,7 @@ export type SyncedStop = {
     name: string;
     avgLatitude: number;
     avgLongitude: number;
+    country?: string | null;
 };
 
 export type SyncedPlatform = {

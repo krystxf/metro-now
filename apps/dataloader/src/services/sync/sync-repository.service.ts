@@ -230,6 +230,7 @@ export class SyncRepository {
                     name: stop.name,
                     avgLatitude: stop.avgLatitude,
                     avgLongitude: stop.avgLongitude,
+                    country: stop.country ?? null,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -249,6 +250,8 @@ export class SyncRepository {
                                 avgLongitude: expressionBuilder.ref(
                                     "excluded.avgLongitude",
                                 ),
+                                country:
+                                    expressionBuilder.ref("excluded.country"),
                                 updatedAt: sql`now()`,
                             })),
                     )

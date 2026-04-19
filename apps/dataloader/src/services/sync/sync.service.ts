@@ -6,9 +6,11 @@ import type {
     SyncRunResult,
     SyncSnapshot,
     SyncTrigger,
+    SyncedStop,
 } from "../../types/sync.types";
 import { logger } from "../../utils/logger";
 import type { CacheInvalidationService } from "../core/cache-invalidation.service";
+import { CountryLookupService } from "../geo/country-lookup.service";
 import { GtfsService } from "../gtfs/gtfs.service";
 import { BratislavaImportService } from "../imports/bratislava-import.service";
 import { BrnoImportService } from "../imports/brno-import.service";
@@ -31,6 +33,7 @@ export class SyncService {
     private readonly liberecImportService = new LiberecImportService();
     private readonly bratislavaImportService = new BratislavaImportService();
     private readonly zsrImportService = new ZsrImportService();
+    private readonly countryLookupService = new CountryLookupService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
     private readonly cacheInvalidation: CacheInvalidationService | null;
@@ -172,7 +175,43 @@ export class SyncService {
         );
         citySnapshots.length = 0;
 
+        merged.stops = await this.enrichStopsWithCountry(merged.stops);
+
         return merged;
+    }
+
+    private async enrichStopsWithCountry(
+        stops: SyncedStop[],
+    ): Promise<SyncedStop[]> {
+        const countryCounts = new Map<string, number>();
+        let nullCount = 0;
+
+        const enriched = await Promise.all(
+            stops.map(async (stop) => {
+                const country = await this.countryLookupService.getCountry(
+                    stop.avgLatitude,
+                    stop.avgLongitude,
+                );
+
+                if (country) {
+                    countryCounts.set(
+                        country,
+                        (countryCounts.get(country) ?? 0) + 1,
+                    );
+                } else {
+                    nullCount += 1;
+                }
+
+                return { ...stop, country };
+            }),
+        );
+
+        logger.info("Resolved stop countries", {
+            byCountry: Object.fromEntries(countryCounts),
+            unresolved: nullCount,
+        });
+
+        return enriched;
     }
 
     private async loadCitySnapshots(
