@@ -1,5 +1,8 @@
 import type { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
-import { StopResolver } from "src/modules/stop/stop.resolver";
+import {
+    StopResolver,
+    StopWithDistanceResolver,
+} from "src/modules/stop/stop.resolver";
 import type { StopService } from "src/modules/stop/stop.service";
 
 const createMocks = () => {
@@ -7,6 +10,7 @@ const createMocks = () => {
         getGraphQLByIds: jest.fn(),
         getAllGraphQL: jest.fn(),
         searchGraphQL: jest.fn(),
+        getClosestStopsGraphQL: jest.fn(),
         getDataLastUpdatedAt: jest.fn(),
     } as unknown as jest.Mocked<StopService>;
 
@@ -202,6 +206,74 @@ describe("StopResolver", () => {
         });
     });
 
+    describe("getClosest", () => {
+        it("delegates to the service with the provided coordinates", async () => {
+            const { resolver, stopService } = createMocks();
+            const stops = [
+                {
+                    id: "U1072",
+                    feed: "PID" as const,
+                    name: "Můstek",
+                    avgLatitude: 50.08,
+                    avgLongitude: 14.42,
+                    platforms: [],
+                    entrances: [],
+                    distance: 120,
+                },
+            ];
+
+            stopService.getClosestStopsGraphQL.mockResolvedValue(stops);
+
+            const result = await resolver.getClosest(50.08, 14.42, 10);
+
+            expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                latitude: 50.08,
+                longitude: 14.42,
+                limit: 10,
+            });
+            expect(result).toEqual(stops);
+        });
+
+        it("defaults the limit to 100 when not provided", async () => {
+            const { resolver, stopService } = createMocks();
+            stopService.getClosestStopsGraphQL.mockResolvedValue([]);
+
+            await resolver.getClosest(50, 14, undefined);
+
+            expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                latitude: 50,
+                longitude: 14,
+                limit: 100,
+            });
+        });
+
+        it("caps the limit at 100", async () => {
+            const { resolver, stopService } = createMocks();
+            stopService.getClosestStopsGraphQL.mockResolvedValue([]);
+
+            await resolver.getClosest(50, 14, 500);
+
+            expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                latitude: 50,
+                longitude: 14,
+                limit: 100,
+            });
+        });
+
+        it("clamps non-positive limits to 1", async () => {
+            const { resolver, stopService } = createMocks();
+            stopService.getClosestStopsGraphQL.mockResolvedValue([]);
+
+            await resolver.getClosest(50, 14, 0);
+
+            expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                latitude: 50,
+                longitude: 14,
+                limit: 1,
+            });
+        });
+    });
+
     describe("getDataLastUpdatedAt", () => {
         it("delegates stop/platform freshness lookup to the service", async () => {
             const { resolver, stopService } = createMocks();
@@ -215,5 +287,27 @@ describe("StopResolver", () => {
             expect(stopService.getDataLastUpdatedAt).toHaveBeenCalledTimes(1);
             expect(result).toBe("2026-04-11T09:30:00.000Z");
         });
+    });
+});
+
+describe("StopWithDistanceResolver", () => {
+    it("loads platforms by their IDs", () => {
+        const platformsByStopLoader = {
+            loadMany: jest.fn(),
+        } as unknown as jest.Mocked<PlatformsByStopLoader>;
+        const resolver = new StopWithDistanceResolver(
+            platformsByStopLoader as unknown as PlatformsByStopLoader,
+        );
+
+        platformsByStopLoader.loadMany.mockResolvedValue([]);
+
+        resolver.getPlatformsField({
+            platforms: [{ id: "P1" }, { id: "P2" }],
+        });
+
+        expect(platformsByStopLoader.loadMany).toHaveBeenCalledWith([
+            "P1",
+            "P2",
+        ]);
     });
 });

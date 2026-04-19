@@ -15,9 +15,25 @@ type Stop {
     platforms: [Platform!]!
 }
 
+type StopWithDistance {
+    id: ID!
+    feed: Feed!
+    name: String!
+    avgLatitude: Float!
+    avgLongitude: Float!
+    entrances: [StopEntrance!]!
+    platforms: [Platform!]!
+    distance: Float!
+}
+
 type Query {
     stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
     stop(id: ID!): Stop
     searchStops(query: String!, limit: Int, offset: Int): [Stop!]!
+    closestStops(
+        latitude: Float!
+        longitude: Float!
+        limit: Int
+    ): [StopWithDistance!]!
     stopDataLastUpdatedAt: ISODateTime
 }

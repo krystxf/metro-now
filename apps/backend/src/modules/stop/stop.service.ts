@@ -5,6 +5,7 @@ import type {
     Route,
     Stop,
 } from "@metro-now/database";
+import { sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -48,6 +49,10 @@ type StopGraphQLPlatformRecord = Pick<Platform, "id">;
 type StopGraphQLRecord = StopRecordBase & {
     entrances: StopEntranceRecord[];
     platforms: StopGraphQLPlatformRecord[];
+};
+
+type StopWithDistanceGraphQLRecord = StopGraphQLRecord & {
+    distance: number;
 };
 
 type SearchableStopTerm = {
@@ -972,6 +977,44 @@ export class StopService {
         return Array.from(new Set(ids))
             .map((id) => stopsById.get(id))
             .filter((stop): stop is StopGraphQLRecord => stop !== null);
+    }
+
+    async getClosestStopsGraphQL({
+        latitude,
+        longitude,
+        limit,
+    }: {
+        latitude: number;
+        longitude: number;
+        limit: number;
+    }): Promise<StopWithDistanceGraphQLRecord[]> {
+        const result = await sql<{ distance: number; id: string }>`
+            SELECT
+                "Stop"."id",
+                earth_distance(
+                    ll_to_earth("Stop"."avgLatitude", "Stop"."avgLongitude"),
+                    ll_to_earth(${latitude}, ${longitude})
+                ) AS "distance"
+            FROM "Stop"
+            ORDER BY "distance"
+            LIMIT ${limit}
+        `.execute(this.database.db);
+
+        const orderedIds = result.rows.map(({ id }) => id);
+        const distanceById = new Map(
+            result.rows.map(({ id, distance }) => [id, distance]),
+        );
+        const stopsById = await this.loadGraphQLStopsByIds(orderedIds);
+
+        return orderedIds.flatMap((id) => {
+            const stop = stopsById.get(id);
+
+            if (!stop) {
+                return [];
+            }
+
+            return [{ ...stop, distance: distanceById.get(id) ?? 0 }];
+        });
     }
 
     async getOneById(id: string): Promise<StopRecord | null> {

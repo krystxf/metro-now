@@ -4,6 +4,8 @@ import { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.
 import { StopService } from "src/modules/stop/stop.service";
 import type { ParentType } from "src/types/parent";
 
+const MAX_CLOSEST_STOPS_LIMIT = 100;
+
 @Resolver("Stop")
 export class StopResolver {
     constructor(
@@ -53,6 +55,24 @@ export class StopResolver {
         });
     }
 
+    @Query("closestStops")
+    getClosest(
+        @Args("latitude") latitude: number,
+        @Args("longitude") longitude: number,
+        @Args("limit") limit: number | undefined,
+    ) {
+        const clampedLimit = Math.min(
+            MAX_CLOSEST_STOPS_LIMIT,
+            Math.max(1, limit ?? MAX_CLOSEST_STOPS_LIMIT),
+        );
+
+        return this.stopService.getClosestStopsGraphQL({
+            latitude,
+            longitude,
+            limit: clampedLimit,
+        });
+    }
+
     @Query("stopDataLastUpdatedAt")
     getDataLastUpdatedAt() {
         return this.stopService.getDataLastUpdatedAt();
@@ -63,6 +83,19 @@ export class StopResolver {
         @Parent()
         stop: ParentType<typeof this.getMultiple>,
     ) {
+        const platformIds = stop.platforms.map((p) => p.id);
+        return this.platformsByStopLoader.loadMany(platformIds);
+    }
+}
+
+@Resolver("StopWithDistance")
+export class StopWithDistanceResolver {
+    constructor(
+        private readonly platformsByStopLoader: PlatformsByStopLoader,
+    ) {}
+
+    @ResolveField("platforms")
+    getPlatformsField(@Parent() stop: { platforms: { id: string }[] }) {
         const platformIds = stop.platforms.map((p) => p.id);
         return this.platformsByStopLoader.loadMany(platformIds);
     }
