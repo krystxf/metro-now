@@ -4,7 +4,8 @@
 import Alamofire
 import Foundation
 
-let API_URL: String = "http://192.168.1.224"
+let API_URL: String = "https://api.metronow.dev"
+/// let API_URL: String = "http://192.168.1.224:3009"
 let GRAPHQL_URL: String = "\(API_URL)/graphql"
 
 let apiSession: Session = {
@@ -16,12 +17,8 @@ let apiSession: Session = {
     let configuration = URLSessionConfiguration.default
     configuration.httpAdditionalHeaders = HTTPHeaders.default.dictionary
         .merging(headers.dictionary) { _, new in new }
-    // TODO: re-enable caching
-//    configuration.urlCache = URLCache(
-//        memoryCapacity: 10 * 1024 * 1024,
-//        diskCapacity: 50 * 1024 * 1024
-//    )
-//    configuration.requestCachePolicy = .useProtocolCachePolicy
+    // URLCache stays off until the backend returns proper Cache-Control
+    // headers. The app-level DiskCache handles offline fallback instead.
     configuration.urlCache = nil
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
 

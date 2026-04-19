@@ -7,6 +7,8 @@ import SwiftUI
 struct MapControlButtons: View {
     @Binding var isSatelliteMode: Bool
     @Binding var viewport: Viewport
+    var bearing: CGFloat
+    var onResetNorth: () -> Void
 
     var body: some View {
         VStack {
@@ -20,6 +22,7 @@ struct MapControlButtons: View {
                             .labelStyle(.iconOnly)
                     }
                     .frame(width: 48, height: 48)
+                    .contentShape(.rect)
                     .font(.system(size: 18))
                     .glassEffect(.regular.interactive())
 
@@ -32,10 +35,25 @@ struct MapControlButtons: View {
                             .labelStyle(.iconOnly)
                     }
                     .frame(width: 48, height: 48)
+                    .contentShape(.rect)
+                    .font(.system(size: 18))
+                    .glassEffect(.regular.interactive())
+
+                    Button {
+                        onResetNorth()
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    } label: {
+                        Label("Reset North", systemImage: "location.north.line.fill")
+                            .labelStyle(.iconOnly)
+                            .rotationEffect(.degrees(-bearing))
+                    }
+                    .frame(width: 48, height: 48)
+                    .contentShape(.rect)
                     .font(.system(size: 18))
                     .glassEffect(.regular.interactive())
                 }
             }
         }
+        .contentShape(.rect)
     }
 }

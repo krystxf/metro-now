@@ -12,9 +12,14 @@ struct SettingsPageView: View {
         AppStorageKeys.showTraffic.rawValue
     ) var showTraffic = false
     let showsCloseButton: Bool
+    let onClose: (() -> Void)?
 
-    init(showsCloseButton: Bool = false) {
+    init(
+        showsCloseButton: Bool = false,
+        onClose: (() -> Void)? = nil
+    ) {
         self.showsCloseButton = showsCloseButton
+        self.onClose = onClose
     }
 
     var body: some View {
@@ -63,7 +68,11 @@ struct SettingsPageView: View {
             if showsCloseButton {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        dismiss()
+                        if let onClose {
+                            onClose()
+                        } else {
+                            dismiss()
+                        }
                     } label: {
                         Label("Close", systemImage: "xmark")
                     }

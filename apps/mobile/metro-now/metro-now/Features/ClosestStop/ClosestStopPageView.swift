@@ -7,9 +7,18 @@ import SwiftUI
 struct ClosestStopPageView: View {
     @StateObject private var viewModel: ClosestStopPageViewModel
     @State private var routePreviewItem: SheetIdItem?
+    @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
     @AppStorage(
         AppStorageKeys.showMetroOnly.rawValue
     ) var showMetroOnly = false
+
+    private func handleRoutePreview(_ item: SheetIdItem) {
+        if let sidebarRoutePreviewPresenter {
+            sidebarRoutePreviewPresenter(item)
+        } else {
+            routePreviewItem = item
+        }
+    }
 
     init(viewModel: ClosestStopPageViewModel = ClosestStopPageViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -29,7 +38,7 @@ struct ClosestStopPageView: View {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
                             departures: viewModel.departures,
-                            onRoutePreviewRequested: { routePreviewItem = $0 }
+                            onRoutePreviewRequested: handleRoutePreview
                         )
                     }
                 }
@@ -97,7 +106,7 @@ struct ClosestStopPageView: View {
                             PlatformDeparturesListView(
                                 platform: platform,
                                 departures: viewModel.departures,
-                                onRoutePreviewRequested: { routePreviewItem = $0 }
+                                onRoutePreviewRequested: handleRoutePreview
                             )
                         }
                     }

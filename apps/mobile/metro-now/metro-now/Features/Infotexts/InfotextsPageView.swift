@@ -6,6 +6,11 @@ import SwiftUI
 struct InfotextsPageView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = InfotextsViewModel()
+    let onClose: (() -> Void)?
+
+    init(onClose: (() -> Void)? = nil) {
+        self.onClose = onClose
+    }
 
     var body: some View {
         NavigationView {
@@ -47,7 +52,11 @@ struct InfotextsPageView: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
-                            dismiss()
+                            if let onClose {
+                                onClose()
+                            } else {
+                                dismiss()
+                            }
                         } label: {
                             Label("Close", systemImage: "xmark")
                         }

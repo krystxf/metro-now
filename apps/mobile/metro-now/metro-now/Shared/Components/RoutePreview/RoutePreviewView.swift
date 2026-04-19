@@ -289,17 +289,20 @@ struct RoutePreviewView: View {
     let headsign: String?
     let currentPlatformId: String?
     let currentPlatformName: String?
+    let onClose: (() -> Void)?
 
     init(
         routeId: String,
         headsign: String? = nil,
         currentPlatformId: String? = nil,
-        currentPlatformName: String? = nil
+        currentPlatformName: String? = nil,
+        onClose: (() -> Void)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: RoutePreviewViewModel(routeId: routeId))
         self.headsign = headsign
         self.currentPlatformId = currentPlatformId
         self.currentPlatformName = currentPlatformName
+        self.onClose = onClose
     }
 
     var body: some View {
@@ -405,7 +408,11 @@ struct RoutePreviewView: View {
                     }
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
-                            dismiss()
+                            if let onClose {
+                                onClose()
+                            } else {
+                                dismiss()
+                            }
                         } label: {
                             Label("Close", systemImage: "xmark")
                         }

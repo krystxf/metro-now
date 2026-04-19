@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D87C85E2CE8BACA00209DE6 /* Alamofire */; };
 		2D8EBE2E2CE93DC9004D5F5B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D8EBE2D2CE93DC9004D5F5B /* Alamofire */; };
 		2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */; };
@@ -486,6 +486,7 @@
 /* Begin PBXTargetDependency section */
 		2D001BBB2CC8099C00C6B4F8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
 			targetProxy = 2D001BBA2CC8099C00C6B4F8 /* PBXContainerItemProxy */;
 		};
@@ -722,6 +723,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -760,6 +762,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -831,6 +834,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -860,6 +864,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

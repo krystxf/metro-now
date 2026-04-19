@@ -7,11 +7,21 @@ import SwiftUI
 struct SearchStopDetailView: View {
     let stop: ApiStop
     var showsDistanceFromUser = false
+    var onClose: (() -> Void)?
 
     @StateObject var viewModel: SearchPageDetailViewModel
     @State private var routePreviewItem: SheetIdItem?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
     @EnvironmentObject private var locationModel: LocationViewModel
+
+    private func handleRoutePreview(_ item: SheetIdItem) {
+        if let sidebarRoutePreviewPresenter {
+            sidebarRoutePreviewPresenter(item)
+        } else {
+            routePreviewItem = item
+        }
+    }
 
     private var metroPlatforms: [ApiPlatform] {
         stop.platforms.filter(\.isMetro)
@@ -91,7 +101,7 @@ struct SearchStopDetailView: View {
                     MetroDeparturesListView(
                         closestStop: metroStop,
                         departures: viewModel.departures,
-                        onRoutePreviewRequested: { routePreviewItem = $0 }
+                        onRoutePreviewRequested: handleRoutePreview
                     )
                 }
             }
@@ -100,7 +110,7 @@ struct SearchStopDetailView: View {
                 PlatformDeparturesListView(
                     platform: platform,
                     departures: viewModel.departures,
-                    onRoutePreviewRequested: { routePreviewItem = $0 }
+                    onRoutePreviewRequested: handleRoutePreview
                 )
             }
         }
@@ -129,7 +139,11 @@ struct SearchStopDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(
                     action: {
-                        dismiss()
+                        if let onClose {
+                            onClose()
+                        } else {
+                            dismiss()
+                        }
                     }
                 ) {
                     Label("Close", systemImage: "xmark")

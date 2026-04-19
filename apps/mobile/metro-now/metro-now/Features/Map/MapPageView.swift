@@ -27,6 +27,10 @@ struct MapPageView: View {
         static let zoneBorderViewportPaddingFactor = 0.1
         static let unlabeledAnnotationMinimumSpacing: CGFloat = 52
         static let labeledAnnotationMinimumSpacing: CGFloat = 64
+        static let mapControlsTopPadding: CGFloat = 52
+        static let mapControlsTrailingPadding: CGFloat = 12
+        static let mapControlsButtonSize: CGFloat = 48
+        static let mapControlsButtonSpacing: CGFloat = 4
     }
 
     private enum StopLayerIds {
@@ -35,11 +39,14 @@ struct MapPageView: View {
         static let labels = "visible-stop-labels"
     }
 
+    private let isAlwaysVisible: Bool
+
     @EnvironmentObject private var locationModel: LocationViewModel
     @EnvironmentObject var stopsViewModel: StopsViewModel
     @EnvironmentObject var favoritesViewModel: FavoritesViewModel
     @EnvironmentObject private var appNavigation: AppNavigationViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.sidebarStopDetailPresenter) private var sidebarStopDetailPresenter
     @AppStorage(AppStorageKeys.mapStyle.rawValue)
     private var isSatelliteMode = false
     @AppStorage(AppStorageKeys.showTraffic.rawValue)
@@ -61,13 +68,19 @@ struct MapPageView: View {
     @State private var cachedMetroRouteRequestKey: String = ""
     @State private var cachedMapStopsRequestKey: String = ""
     @State private var cachedMetroEntrances: [ApiStopEntrance] = []
+    @State private var currentBearing: CGFloat = 0
+    @State private var currentCameraState: CameraState?
+
+    init(isAlwaysVisible: Bool = false) {
+        self.isAlwaysVisible = isAlwaysVisible
+    }
 
     private var selectedMapStyle: MapStyleOption {
         isSatelliteMode ? .satellite : .system(colorScheme)
     }
 
     private var isCurrentTabActive: Bool {
-        appNavigation.selectedTab == .map
+        isAlwaysVisible || appNavigation.selectedTab == .map
     }
 
     private func recomputeDerivedStopData(from stops: [ApiStop]?) {
@@ -120,7 +133,30 @@ struct MapPageView: View {
 
         renderModel.setCamera(center: center, zoom: zoom)
         renderModel.refreshVisibleContent()
-        selectedStop = stop
+        presentStopDetail(stop)
+    }
+
+    private func presentStopDetail(_ stop: ApiStop) {
+        if let sidebarStopDetailPresenter {
+            sidebarStopDetailPresenter(stop)
+        } else {
+            selectedStop = stop
+        }
+    }
+
+    private func resetNorth() {
+        guard let cameraState = currentCameraState else {
+            return
+        }
+
+        withViewportAnimation(.easeOut(duration: 0.3)) {
+            viewport = .camera(
+                center: cameraState.center,
+                zoom: CGFloat(cameraState.zoom),
+                bearing: 0,
+                pitch: CGFloat(cameraState.pitch)
+            )
+        }
     }
 
     private func focusOnUserLocationIfNeeded() {
@@ -176,7 +212,7 @@ struct MapPageView: View {
             return false
         }
 
-        selectedStop = stop
+        presentStopDetail(stop)
         return true
     }
 
@@ -233,7 +269,7 @@ struct MapPageView: View {
                         DetailedStopAnnotationView(annotation: annotation)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                selectedStop = annotation.stop
+                                presentStopDetail(annotation.stop)
                             }
                     }
                     .allowOverlap(true)
@@ -272,12 +308,19 @@ struct MapPageView: View {
             }
         }
         .mapStyle(selectedMapStyle.mapboxStyle)
-        .ornamentOptions(OrnamentOptions(scaleBar: ScaleBarViewOptions(visibility: .hidden)))
+        .ornamentOptions(
+            OrnamentOptions(
+                scaleBar: ScaleBarViewOptions(visibility: .hidden),
+                compass: CompassViewOptions(visibility: .hidden)
+            )
+        )
         .onCameraChanged { event in
             renderModel.setCamera(
                 center: event.cameraState.center,
                 zoom: CGFloat(event.cameraState.zoom)
             )
+            currentCameraState = event.cameraState
+            currentBearing = CGFloat(event.cameraState.bearing)
         }
         .onMapIdle { _ in
             renderModel.refreshVisibleContentIfNeeded()
@@ -290,24 +333,6 @@ struct MapPageView: View {
         }
         .task {
             await loadPidZoneBordersIfNeeded()
-        }
-        .overlay(alignment: .top) {
-            if routeViewModel.isLoading, !cachedMetroRouteIds.isEmpty {
-                ProgressView("Loading metro lines")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.thinMaterial)
-                    .clipShape(.capsule)
-                    .padding(.top, 12)
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            MapControlButtons(
-                isSatelliteMode: $isSatelliteMode,
-                viewport: $viewport
-            )
-            .padding(.top, 52)
-            .padding(.trailing, 12)
         }
         .task(id: cachedMetroRouteRequestKey) {
             await routeViewModel.loadRoutes(routeIds: cachedMetroRouteIds)
@@ -356,17 +381,43 @@ struct MapPageView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            mapContent
-                .sheet(item: $selectedStop) { stop in
-                    MapStopDetailSheet(
-                        stop: stop,
-                        allStops: stopsViewModel.stops,
-                        favoritesViewModel: favoritesViewModel
-                    )
+            ZStack(alignment: .topTrailing) {
+                mapContent
+
+                VStack {
+                    if routeViewModel.isLoading, !cachedMetroRouteIds.isEmpty {
+                        ProgressView("Loading metro lines")
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.thinMaterial)
+                            .clipShape(.capsule)
+                            .padding(.top, 12)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    Spacer()
                 }
-                .task(id: geometry.size) {
-                    renderModel.setViewportSize(geometry.size)
-                }
+
+                MapControlButtons(
+                    isSatelliteMode: $isSatelliteMode,
+                    viewport: $viewport,
+                    bearing: currentBearing,
+                    onResetNorth: resetNorth
+                )
+                .padding(.top, Constants.mapControlsTopPadding)
+                .padding(.trailing, Constants.mapControlsTrailingPadding)
+            }
+            .sheet(item: $selectedStop) { stop in
+                MapStopDetailSheet(
+                    stop: stop,
+                    allStops: stopsViewModel.stops,
+                    favoritesViewModel: favoritesViewModel
+                )
+                .presentationDetents([.medium, .large])
+            }
+            .task(id: geometry.size) {
+                renderModel.setViewportSize(geometry.size)
+            }
         }
     }
 }
