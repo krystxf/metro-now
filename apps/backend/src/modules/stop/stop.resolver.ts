@@ -47,11 +47,16 @@ export class StopResolver {
         @Args("query") query: string,
         @Args("limit") limit: number | undefined,
         @Args("offset") offset: number | undefined,
+        @Args("latitude") latitude: number | undefined,
+        @Args("longitude") longitude: number | undefined,
     ) {
         return this.stopService.searchGraphQL({
             query,
             ...(typeof limit === "number" ? { limit } : {}),
             ...(typeof offset === "number" ? { offset } : {}),
+            ...(typeof latitude === "number" && typeof longitude === "number"
+                ? { latitude, longitude }
+                : {}),
         });
     }
 

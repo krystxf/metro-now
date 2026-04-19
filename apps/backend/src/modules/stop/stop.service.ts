@@ -91,6 +91,19 @@ const tokenizeStopSearchValue = (value: string): string[] =>
 const normalizeStopSearchValue = (value: string): string =>
     tokenizeStopSearchValue(value).join("");
 
+const squaredGeoDistance = (
+    latA: number,
+    lonA: number,
+    latB: number,
+    lonB: number,
+): number => {
+    const latDiff = latA - latB;
+    const lonDiff =
+        (lonA - lonB) * Math.cos(((latA + latB) / 2) * (Math.PI / 180));
+
+    return latDiff * latDiff + lonDiff * lonDiff;
+};
+
 const maxFuzzyDistanceForQuery = (queryLength: number): number => {
     if (queryLength <= 4) {
         return 1;
@@ -886,10 +899,14 @@ export class StopService {
         query,
         limit,
         offset,
+        latitude,
+        longitude,
     }: {
         query: string;
         limit?: number;
         offset?: number;
+        latitude?: number;
+        longitude?: number;
     }): Promise<StopGraphQLRecord[]> {
         const normalizedQuery = normalizeStopSearchValue(query);
 
@@ -897,11 +914,17 @@ export class StopService {
             return [];
         }
 
+        const origin =
+            typeof latitude === "number" && typeof longitude === "number"
+                ? { latitude, longitude }
+                : undefined;
+
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.searchGraphQL({
                 query: normalizedQuery,
                 limit,
                 offset,
+                ...origin,
             }),
             async () => {
                 const matchingStops = (await this.loadSearchableStopRows())
@@ -943,6 +966,25 @@ export class StopService {
 
                         if (nameOrder !== 0) {
                             return nameOrder;
+                        }
+
+                        if (origin) {
+                            const leftDistance = squaredGeoDistance(
+                                left.stop.avgLatitude,
+                                left.stop.avgLongitude,
+                                origin.latitude,
+                                origin.longitude,
+                            );
+                            const rightDistance = squaredGeoDistance(
+                                right.stop.avgLatitude,
+                                right.stop.avgLongitude,
+                                origin.latitude,
+                                origin.longitude,
+                            );
+
+                            if (leftDistance !== rightDistance) {
+                                return leftDistance - rightDistance;
+                            }
                         }
 
                         return left.stop.id.localeCompare(right.stop.id);

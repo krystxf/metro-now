@@ -599,6 +599,47 @@ describe("StopService", () => {
         ]);
     });
 
+    it("uses provided coordinates as a tie-breaker between same-named stops", async () => {
+        const service = createService({
+            extraStops: [
+                {
+                    id: "SAME_A",
+                    name: "Duplikát",
+                    avgLatitude: 50.1,
+                    avgLongitude: 14.4,
+                },
+                {
+                    id: "SAME_B",
+                    name: "Duplikát",
+                    avgLatitude: 50.9,
+                    avgLongitude: 15.2,
+                },
+            ],
+        });
+
+        const nearerFirst = await service.searchGraphQL({
+            query: "duplikát",
+            latitude: 50.1,
+            longitude: 14.4,
+        });
+
+        expect(nearerFirst.map((stop) => stop.id).slice(0, 2)).toEqual([
+            "SAME_A",
+            "SAME_B",
+        ]);
+
+        const reversed = await service.searchGraphQL({
+            query: "duplikát",
+            latitude: 50.9,
+            longitude: 15.2,
+        });
+
+        expect(reversed.map((stop) => stop.id).slice(0, 2)).toEqual([
+            "SAME_B",
+            "SAME_A",
+        ]);
+    });
+
     it("returns no search results for blank stop-name queries", async () => {
         const service = createService();
 

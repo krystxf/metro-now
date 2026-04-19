@@ -195,7 +195,13 @@ describe("StopResolver", () => {
 
             stopService.searchGraphQL.mockResolvedValue(stops);
 
-            const result = await resolver.search("václav", 10, 5);
+            const result = await resolver.search(
+                "václav",
+                10,
+                5,
+                undefined,
+                undefined,
+            );
 
             expect(stopService.searchGraphQL).toHaveBeenCalledWith({
                 query: "václav",
@@ -203,6 +209,36 @@ describe("StopResolver", () => {
                 offset: 5,
             });
             expect(result).toEqual(stops);
+        });
+
+        it("forwards optional coordinates when both are provided", async () => {
+            const { resolver, stopService } = createMocks();
+            stopService.searchGraphQL.mockResolvedValue([]);
+
+            await resolver.search("václav", undefined, undefined, 50.08, 14.42);
+
+            expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                query: "václav",
+                latitude: 50.08,
+                longitude: 14.42,
+            });
+        });
+
+        it("ignores coordinates when only one of lat/lon is provided", async () => {
+            const { resolver, stopService } = createMocks();
+            stopService.searchGraphQL.mockResolvedValue([]);
+
+            await resolver.search(
+                "václav",
+                undefined,
+                undefined,
+                50.08,
+                undefined,
+            );
+
+            expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                query: "václav",
+            });
         });
     });
 
