@@ -19,7 +19,7 @@ struct StopDetailPageView: View {
     }
 
     var body: some View {
-        if viewModel.metroStops != nil || viewModel.allStops != nil {
+        if viewModel.nearbyStops != nil {
             List {
                 if let closestMetroStop = viewModel.closestMetroStop {
                     Section(header: Text("Metro")) {
@@ -97,8 +97,7 @@ struct StopDetailPageView: View {
         StopDetailPageView(
             viewModel: ClosestStopPageViewModel(
                 previewLocation: PreviewData.userLocation,
-                metroStops: [PreviewData.metroStop, PreviewData.transferStop],
-                allStops: PreviewData.stops,
+                nearbyStops: PreviewData.stops,
                 departures: PreviewData.departures
             )
         )

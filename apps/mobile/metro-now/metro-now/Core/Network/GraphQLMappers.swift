@@ -55,6 +55,41 @@ func mapGraphQLDeparture(
     )
 }
 
+func mapGraphQLClosestStop(
+    _ stop: MetroNowAPI.ClosestStopsQuery.Data.ClosestStop
+) -> ApiStop {
+    ApiStop(
+        id: stop.id,
+        name: stop.name,
+        avgLatitude: stop.avgLatitude,
+        avgLongitude: stop.avgLongitude,
+        entrances: stop.entrances.map { entrance in
+            ApiStopEntrance(
+                id: entrance.id,
+                name: entrance.name,
+                latitude: entrance.latitude,
+                longitude: entrance.longitude
+            )
+        },
+        platforms: stop.platforms.map { platform in
+            ApiPlatform(
+                id: platform.id,
+                latitude: platform.latitude,
+                longitude: platform.longitude,
+                name: platform.name,
+                code: platform.code,
+                isMetro: platform.isMetro,
+                routes: platform.routes.map { route in
+                    ApiRoute(
+                        id: route.id,
+                        name: route.name ?? route.id
+                    )
+                }
+            )
+        }
+    )
+}
+
 func mapGraphQLRouteDetail(
     _ route: MetroNowAPI.RouteDetailQuery.Data.Route
 ) -> ApiRouteDetail {

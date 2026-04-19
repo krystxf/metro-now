@@ -7,8 +7,7 @@ import WidgetKit
 
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
 private let SECONDS_BEFORE: TimeInterval = 3 // how many seconds after departure will it still be visible
-private let METRO_STOPS_CACHE_KEY = "stops_metro_v2"
-private let ALL_STOPS_CACHE_KEY = "stops_all_v2"
+private let CLOSEST_STOPS_LIMIT: Int32 = 20
 private let MAX_METRO_DISTANCE: CLLocationDistance = 20000 // 20 km
 
 class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -16,8 +15,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     private let shouldRefresh: Bool
     @Published var location: CLLocation?
 
-    @Published var metroStops: [ApiStop]?
-    @Published var allStops: [ApiStop]?
+    @Published var nearbyStops: [ApiStop]?
 
     @Published var closestMetroStop: ApiStop?
     @Published var closestStop: ApiStop?
@@ -33,26 +31,18 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
 
     init(
         initialLocation: CLLocation? = nil,
-        initialMetroStops: [ApiStop]? = nil,
-        initialAllStops: [ApiStop]? = nil,
+        initialNearbyStops: [ApiStop]? = nil,
         initialDepartures: [ApiDeparture]? = nil,
         shouldRefresh: Bool = true
     ) {
         self.shouldRefresh = shouldRefresh
         location = initialLocation
-        metroStops = initialMetroStops
-        allStops = initialAllStops
+        nearbyStops = initialNearbyStops
         departures = initialDepartures
         super.init()
 
-        if let initialLocation {
-            if let initialMetroStops {
-                closestMetroStop = findClosestStop(to: initialLocation, stops: initialMetroStops)
-            }
-
-            if let initialAllStops {
-                closestStop = findClosestStop(to: initialLocation, stops: initialAllStops)
-            }
+        if let initialNearbyStops {
+            deriveClosestStops(from: initialNearbyStops)
         }
 
         guard shouldRefresh else {
@@ -63,38 +53,24 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
 
-        if metroStops == nil || allStops == nil {
-            loadCachedStops()
-        }
-        if metroStops == nil {
-            Task { await self.getStops(metroOnly: true) }
-        }
-        if allStops == nil {
-            Task { await self.getStops() }
-        }
-
         startPeriodicRefresh()
-    }
-
-    private func loadCachedStops() {
-        let oneDay: TimeInterval = 24 * 60 * 60
-
-        if let cached = DiskCache.load(key: METRO_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
-            metroStops = cached
-        }
-        if let cached = DiskCache.load(key: ALL_STOPS_CACHE_KEY, maxAge: oneDay, as: [ApiStop].self) {
-            allStops = cached
-        }
-        updateClosestStop()
     }
 
     deinit {
         stopPeriodicRefresh()
     }
 
+    private func deriveClosestStops(from stops: [ApiStop]) {
+        closestStop = stops.first
+        closestMetroStop = stops.first { stop in
+            stop.platforms.contains(where: \.isMetro)
+        }
+    }
+
     func refresh() async {
-        await getStops(metroOnly: true)
-        await getStops(metroOnly: false)
+        if let location {
+            await fetchClosestStops(location: location)
+        }
 
         let stopIds = [closestMetroStop?.id, closestStop?.id].compactMap { $0 }
         guard !stopIds.isEmpty else { return }
@@ -132,66 +108,47 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         }
         self.location = location
 
-        updateClosestStop()
+        Task {
+            await fetchClosestStops(location: location)
+        }
     }
 
-    func updateClosestStop() {
-        guard let location else {
-            return
-        }
+    private func fetchClosestStops(location: CLLocation) async {
+        do {
+            let response = try await fetchGraphQLQuery(
+                MetroNowAPI.ClosestStopsQuery(
+                    latitude: location.coordinate.latitude,
+                    longitude: location.coordinate.longitude,
+                    limit: .some(CLOSEST_STOPS_LIMIT)
+                )
+            )
 
-        let metroStopsCopy = metroStops
-        let allStopsCopy = allStops
-        let currentMetroId = closestMetroStop?.id
-        let currentStopId = closestStop?.id
+            let stops = response.closestStops.map { mapGraphQLClosestStop($0) }
 
-        Task.detached(priority: .userInitiated) { [weak self] in
-            let newMetro = metroStopsCopy.flatMap { findClosestStop(to: location, stops: $0) }
-            let newAll = allStopsCopy.flatMap { findClosestStop(to: location, stops: $0) }
+            let previousMetroId = await MainActor.run { closestMetroStop?.id }
+            let previousStopId = await MainActor.run { closestStop?.id }
 
             await MainActor.run {
-                guard let self else { return }
+                nearbyStops = stops
+                deriveClosestStops(from: stops)
 
-                if let newMetro, newMetro.id != currentMetroId {
-                    self.closestMetroStop = newMetro
-                    self.getDepartures(stopsIds: [newMetro.id], platformsIds: [])
+                if closestMetroStop?.id != previousMetroId {
+                    if let id = closestMetroStop?.id {
+                        getDepartures(stopsIds: [id], platformsIds: [])
+                    }
                     WidgetCenter.shared.reloadAllTimelines()
                 }
 
-                if let newAll, newAll.id != currentStopId {
-                    self.closestStop = newAll
-                    self.getDepartures(stopsIds: [newAll.id], platformsIds: [])
+                if closestStop?.id != previousStopId {
+                    if let id = closestStop?.id {
+                        getDepartures(stopsIds: [id], platformsIds: [])
+                    }
                 }
             }
-        }
-    }
 
-    private func getStops(metroOnly: Bool = false) async {
-        let request = apiSession.request(
-            "\(API_URL)/v1/stop/all",
-            method: .get,
-            parameters: ["metroOnly": String(metroOnly)]
-        )
-
-        guard let fetchedStops = try? await fetchData(request, ofType: [ApiStop].self) else {
-            print(metroOnly ? "Error fetching metroStops" : "Error fetching stops")
-            return
-        }
-
-        let cacheKey = metroOnly ? METRO_STOPS_CACHE_KEY : ALL_STOPS_CACHE_KEY
-        Task.detached(priority: .utility) {
-            DiskCache.save(fetchedStops, key: cacheKey)
-        }
-
-        await MainActor.run {
-            if metroOnly {
-                self.metroStops = fetchedStops
-                print("Fetched \(fetchedStops.count) metro stops")
-            } else {
-                self.allStops = fetchedStops
-                print("Fetched \(fetchedStops.count) stops")
-            }
-            self.updateClosestStop()
+            print("Fetched \(stops.count) closest stops")
+        } catch {
+            print("Error fetching closest stops: \(error)")
         }
     }
 

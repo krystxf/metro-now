@@ -1,0 +1,27 @@
+query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) {
+  closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    distance
+    entrances {
+      id
+      name
+      latitude
+      longitude
+    }
+    platforms {
+      id
+      latitude
+      longitude
+      name
+      code
+      isMetro
+      routes {
+        id
+        name
+      }
+    }
+  }
+}

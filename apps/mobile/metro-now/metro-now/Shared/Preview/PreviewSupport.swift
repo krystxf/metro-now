@@ -45,14 +45,12 @@ extension SearchPageDetailViewModel {
 extension ClosestStopPageViewModel {
     convenience init(
         previewLocation: CLLocation,
-        metroStops: [ApiStop],
-        allStops: [ApiStop],
+        nearbyStops: [ApiStop],
         departures: [ApiDeparture]
     ) {
         self.init(
             initialLocation: previewLocation,
-            initialMetroStops: metroStops,
-            initialAllStops: allStops,
+            initialNearbyStops: nearbyStops,
             initialDepartures: departures,
             shouldRefresh: false
         )

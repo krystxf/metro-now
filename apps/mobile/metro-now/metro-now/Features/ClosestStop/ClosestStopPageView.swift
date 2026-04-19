@@ -20,7 +20,7 @@ struct ClosestStopPageView: View {
     }
 
     var body: some View {
-        if viewModel.metroStops != nil || viewModel.allStops != nil {
+        if viewModel.nearbyStops != nil {
             List {
                 if viewModel.isMetroNearby,
                    let closestMetroStop = viewModel.closestMetroStop
@@ -141,8 +141,7 @@ struct ClosestStopPageView: View {
         ClosestStopPageView(
             viewModel: ClosestStopPageViewModel(
                 previewLocation: PreviewData.userLocation,
-                metroStops: [PreviewData.metroStop, PreviewData.transferStop],
-                allStops: PreviewData.stops,
+                nearbyStops: PreviewData.stops,
                 departures: PreviewData.departures
             )
         )
