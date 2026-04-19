@@ -74,7 +74,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
                   nextValue.id != currentStopId
             else { return }
 
-            await MainActor.run {
+            await MainActor.run { [weak self] in
                 self?.closestStop = nextValue
                 self?.getDepartures(stopsIds: [nextValue.id])
             }

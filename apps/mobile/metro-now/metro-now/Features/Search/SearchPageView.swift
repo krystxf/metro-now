@@ -42,7 +42,7 @@ final class SearchStopsViewModel: ObservableObject {
                     return
                 }
 
-                await setLoadingState()
+                setLoadingState()
 
                 let latitude: GraphQLNullable<Double> = coordinate.map { .some($0.latitude) } ?? .none
                 let longitude: GraphQLNullable<Double> = coordinate.map { .some($0.longitude) } ?? .none
@@ -60,7 +60,7 @@ final class SearchStopsViewModel: ObservableObject {
                     return
                 }
 
-                await applyResponse(
+                applyResponse(
                     response.searchStops.map { stop in
                         ApiStop(
                             id: stop.id,
@@ -102,7 +102,7 @@ final class SearchStopsViewModel: ObservableObject {
                     return
                 }
 
-                await applyError(error, for: normalizedQuery)
+                applyError(error, for: normalizedQuery)
             }
         }
     }
