@@ -9,25 +9,33 @@ extension MetroNowAPI {
         static let operationName: String = "SearchOtherStops"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
             definition: .init(
-                #"query SearchOtherStops($query: String!, $limit: Int!) { searchStops(query: $query, limit: $limit) { __typename id name avgLatitude avgLongitude entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code isMetro routes { __typename id name } } } }"#
+                #"query SearchOtherStops($query: String!, $limit: Int!, $latitude: Float, $longitude: Float) { searchStops(query: $query, limit: $limit, latitude: $latitude, longitude: $longitude) { __typename id name avgLatitude avgLongitude entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code isMetro routes { __typename id name } } } }"#
             )
         )
 
         var query: String
         var limit: Int32
+        var latitude: GraphQLNullable<Double>
+        var longitude: GraphQLNullable<Double>
 
         init(
             query: String,
-            limit: Int32
+            limit: Int32,
+            latitude: GraphQLNullable<Double> = nil,
+            longitude: GraphQLNullable<Double> = nil
         ) {
             self.query = query
             self.limit = limit
+            self.latitude = latitude
+            self.longitude = longitude
         }
 
         @_spi(Unsafe) public var __variables: Variables? {
             [
                 "query": query,
                 "limit": limit,
+                "latitude": latitude,
+                "longitude": longitude,
             ]
         }
 
@@ -46,6 +54,8 @@ extension MetroNowAPI {
                     .field("searchStops", [SearchStop].self, arguments: [
                         "query": .variable("query"),
                         "limit": .variable("limit"),
+                        "latitude": .variable("latitude"),
+                        "longitude": .variable("longitude"),
                     ]),
                 ]
             }

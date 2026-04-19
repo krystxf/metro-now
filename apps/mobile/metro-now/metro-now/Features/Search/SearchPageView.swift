@@ -6,7 +6,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-private final class SearchPageOtherStopsViewModel: ObservableObject {
+final class SearchStopsViewModel: ObservableObject {
     @Published private(set) var stops: [ApiStop] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
@@ -20,7 +20,7 @@ private final class SearchPageOtherStopsViewModel: ObservableObject {
         searchTask?.cancel()
     }
 
-    func updateSearch(query: String) {
+    func updateSearch(query: String, coordinate: CLLocationCoordinate2D? = nil) {
         let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let resultLimit = resultLimit
 
@@ -44,10 +44,15 @@ private final class SearchPageOtherStopsViewModel: ObservableObject {
 
                 await setLoadingState()
 
+                let latitude: GraphQLNullable<Double> = coordinate.map { .some($0.latitude) } ?? .none
+                let longitude: GraphQLNullable<Double> = coordinate.map { .some($0.longitude) } ?? .none
+
                 let response = try await fetchGraphQLQuery(
                     MetroNowAPI.SearchOtherStopsQuery(
                         query: normalizedQuery,
-                        limit: Int32(resultLimit)
+                        limit: Int32(resultLimit),
+                        latitude: latitude,
+                        longitude: longitude
                     )
                 )
 
@@ -129,21 +134,21 @@ private final class SearchPageOtherStopsViewModel: ObservableObject {
 }
 
 struct SearchPageView: View {
-    let location: CLLocation?
     let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appNavigation: AppNavigationViewModel
+    @EnvironmentObject private var locationModel: LocationViewModel
     @EnvironmentObject var stopsViewModel: StopsViewModel
 
     @State private var searchText = ""
-    @StateObject private var otherStopsViewModel = SearchPageOtherStopsViewModel()
+    @StateObject private var otherStopsViewModel = SearchStopsViewModel()
 
     @State private var vehicleTypeFilter: SearchPageVehicleTypeFilter = .all
 
-    @State private var metroStopsCache: [ApiStop]?
+    @State private var nearbyStops: [ApiStop]?
+    @State private var hasFetchedNearby = false
 
-    init(location: CLLocation?, showsCloseButton: Bool = false) {
-        self.location = location
+    init(showsCloseButton: Bool = false) {
         self.showsCloseButton = showsCloseButton
     }
 
@@ -210,53 +215,47 @@ struct SearchPageView: View {
         appNavigation.openMap(for: stop)
     }
 
-    private func computeMetroStops(from stops: [ApiStop]?) async -> [ApiStop]? {
-        guard let stops else { return nil }
-        return await Task.detached(priority: .userInitiated) {
-            stops.map { stop in
-                ApiStop(
-                    id: stop.id,
-                    name: stop.name,
-                    avgLatitude: stop.avgLatitude,
-                    avgLongitude: stop.avgLongitude,
-                    entrances: stop.entrances,
-                    platforms: stop.platforms.map { platform in
-                        ApiPlatform(
-                            id: platform.id,
-                            latitude: platform.latitude,
-                            longitude: platform.longitude,
-                            name: platform.name,
-                            code: platform.code,
-                            isMetro: platform.isMetro,
-                            routes: platform.routes.filter { route in
-                                isMetro(route.name)
-                            }
-                        )
-                    }
-                    .filter(\.isMetro)
+    private var filteredNearbyStops: [ApiStop] {
+        guard let nearbyStops else { return [] }
+        return nearbyStops.filter(stopMatchesSelectedVehicleType)
+    }
+
+    private func fetchNearbyStops() async {
+        guard let location = locationModel.location else { return }
+
+        do {
+            let response = try await fetchGraphQLQuery(
+                MetroNowAPI.ClosestStopsQuery(
+                    latitude: location.coordinate.latitude,
+                    longitude: location.coordinate.longitude,
+                    limit: .some(20)
                 )
-            }.filter {
-                $0.platforms.count > 0
-            }
-        }.value
+            )
+
+            nearbyStops = response.closestStops.map { mapGraphQLClosestStop($0) }
+            hasFetchedNearby = true
+        } catch {
+            print("Error fetching nearby stops: \(error)")
+        }
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 if normalizedSearchText.isEmpty {
-                    if isMetroFilterSelected || isAllFilterSelected {
-                        if let metroStops = metroStopsCache {
-                            List {
-                                SearchPageAllStopsListView(
-                                    stops: metroStops,
-                                    onSelect: openStopOnMap
+                    if let _ = nearbyStops, !filteredNearbyStops.isEmpty {
+                        List {
+                            Section(header: Text("Nearby")) {
+                                SearchPageResults(
+                                    stops: filteredNearbyStops,
+                                    onSelect: openStopOnMap,
+                                    visibleRoutesForStop: filteredRoutes(for:)
                                 )
                             }
-                        } else {
-                            ProgressView()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
+                    } else if !hasFetchedNearby, locationModel.location != nil {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         ContentUnavailableView(
                             searchPromptTitle,
@@ -319,34 +318,33 @@ struct SearchPageView: View {
                 }
             }
             .onChange(of: searchText) { _, newValue in
-                otherStopsViewModel.updateSearch(query: newValue)
+                otherStopsViewModel.updateSearch(
+                    query: newValue,
+                    coordinate: locationModel.location?.coordinate
+                )
             }
-            .task(id: stopsViewModel.stops?.count) {
-                metroStopsCache = await computeMetroStops(from: stopsViewModel.stops)
+            .task(id: locationModel.location?.coordinate.latitude) {
+                await fetchNearbyStops()
             }
         }
     }
 }
 
 #Preview {
-    let stopsViewModel = StopsViewModel()
-
-    SearchPageView(
-        location: CLLocation(
-            latitude: 50.079056991752765,
-            longitude: 14.430325878718339
+    SearchPageView()
+        .environmentObject(AppNavigationViewModel())
+        .environmentObject(
+            LocationViewModel(previewLocation: CLLocation(
+                latitude: 50.079056991752765,
+                longitude: 14.430325878718339
+            ))
         )
-    )
-    .environmentObject(AppNavigationViewModel())
-    .environmentObject(stopsViewModel)
+        .environmentObject(StopsViewModel())
 }
 
 #Preview {
-    let stopsViewModel = StopsViewModel()
-
-    SearchPageView(
-        location: nil
-    )
-    .environmentObject(AppNavigationViewModel())
-    .environmentObject(stopsViewModel)
+    SearchPageView()
+        .environmentObject(AppNavigationViewModel())
+        .environmentObject(LocationViewModel(previewLocation: nil))
+        .environmentObject(StopsViewModel())
 }

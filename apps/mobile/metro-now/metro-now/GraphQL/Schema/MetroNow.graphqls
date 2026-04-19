@@ -122,7 +122,13 @@ type StopWithDistance {
 
 type Query {
   stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
-  searchStops(query: String!, limit: Int, offset: Int): [Stop!]!
+  searchStops(
+    query: String!
+    limit: Int
+    offset: Int
+    latitude: Float
+    longitude: Float
+  ): [Stop!]!
   closestStops(latitude: Float!, longitude: Float!, limit: Int): [StopWithDistance!]!
   infotexts: [Infotext!]!
   departures(
