@@ -28,6 +28,7 @@ describe("StopResolver", () => {
             const { resolver, stopService } = createMocks();
             const stop = {
                 id: "U1072",
+                feed: "PID" as const,
                 name: "Můstek",
                 avgLatitude: 50.08,
                 avgLongitude: 14.42,
@@ -60,6 +61,7 @@ describe("StopResolver", () => {
             const stops = [
                 {
                     id: "U1072",
+                    feed: "PID" as const,
                     name: "Můstek",
                     avgLatitude: 50.08,
                     avgLongitude: 14.42,
@@ -85,6 +87,7 @@ describe("StopResolver", () => {
             const stops = [
                 {
                     id: "S1",
+                    feed: "PID" as const,
                     name: "A",
                     avgLatitude: 50,
                     avgLongitude: 14,
@@ -93,6 +96,7 @@ describe("StopResolver", () => {
                 },
                 {
                     id: "S2",
+                    feed: "PID" as const,
                     name: "B",
                     avgLatitude: 50.1,
                     avgLongitude: 14.1,
@@ -101,6 +105,7 @@ describe("StopResolver", () => {
                 },
                 {
                     id: "S3",
+                    feed: "PID" as const,
                     name: "C",
                     avgLatitude: 50.2,
                     avgLongitude: 14.2,
@@ -121,6 +126,7 @@ describe("StopResolver", () => {
             const stops = [
                 {
                     id: "U1",
+                    feed: "PID" as const,
                     name: "Stop",
                     avgLatitude: 50,
                     avgLongitude: 14,
@@ -174,6 +180,7 @@ describe("StopResolver", () => {
             const stops = [
                 {
                     id: "U1072",
+                    feed: "PID" as const,
                     name: "Václavské náměstí",
                     avgLatitude: 50.08,
                     avgLongitude: 14.42,

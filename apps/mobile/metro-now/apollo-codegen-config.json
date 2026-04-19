@@ -1,0 +1,27 @@
+{
+  "schemaNamespace": "MetroNowAPI",
+  "input": {
+    "operationSearchPaths": [
+      "./metro-now/GraphQL/Operations/**/*.graphql"
+    ],
+    "schemaSearchPaths": [
+      "./metro-now/GraphQL/Schema/**/*.graphqls"
+    ]
+  },
+  "output": {
+    "testMocks": {
+      "none": {}
+    },
+    "schemaTypes": {
+      "path": "./metro-now/GraphQL/Generated",
+      "moduleType": {
+        "embeddedInTarget": {
+          "name": "metro-now"
+        }
+      }
+    },
+    "operations": {
+      "inSchemaModule": {}
+    }
+  }
+}

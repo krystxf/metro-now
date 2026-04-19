@@ -1,0 +1,28 @@
+query RouteDetail($id: ID!) {
+  route(id: $id) {
+    id
+    name
+    color
+    isNight
+    isSubstitute
+    vehicleType
+    feed
+    directions {
+      id
+      platforms {
+        id
+        name
+        latitude
+        longitude
+        isMetro
+        code
+      }
+    }
+    shapes {
+      id
+      directionId
+      tripCount
+      geoJson
+    }
+  }
+}

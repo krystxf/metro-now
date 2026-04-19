@@ -1,0 +1,11 @@
+query MetroStopEntrances($ids: [ID!]) {
+  stops(ids: $ids) {
+    id
+    entrances {
+      id
+      name
+      latitude
+      longitude
+    }
+  }
+}
