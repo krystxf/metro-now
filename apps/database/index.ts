@@ -94,6 +94,7 @@ export interface GtfsRouteTable {
     id: string;
     feedId: GtfsFeedId;
     type: string;
+    vehicleType: VehicleType | null;
     shortName: string;
     longName: string | null;
     url: string | null;
