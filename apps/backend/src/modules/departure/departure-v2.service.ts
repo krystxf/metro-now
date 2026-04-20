@@ -587,6 +587,30 @@ export class DepartureServiceV2 {
                 .where("GtfsStopTime.platformId", "in", fallbackPlatformIds)
                 .where("GtfsStopTime.feedId", "in", feedIds)
                 .execute();
+            const tripKeys = uniqueSortedStrings(
+                departures.map((row) => `${row.feedId}::${row.tripId}`),
+            );
+            const frequenciesByTripKey =
+                tripKeys.length === 0
+                    ? new Map<
+                          string,
+                          Array<{
+                              startTime: string;
+                              endTime: string;
+                              headwaySecs: number;
+                          }>
+                      >()
+                    : await this.loadGtfsFrequenciesByTripKey({
+                          feedIds,
+                          tripKeys,
+                      });
+            const firstStopTimeByTripKey =
+                frequenciesByTripKey.size === 0
+                    ? new Map<string, number>()
+                    : await this.loadGtfsFirstStopTimeByTripKey({
+                          feedIds,
+                          tripKeys: [...frequenciesByTripKey.keys()],
+                      });
             const fallbackDepartures = departures.flatMap((row) => {
                 const platformId = row.platformId;
                 const serviceId = row.serviceId;
@@ -607,6 +631,47 @@ export class DepartureServiceV2 {
                     return [];
                 }
 
+                const tripKey = `${row.feedId}::${row.tripId}`;
+                const frequencies = frequenciesByTripKey.get(tripKey);
+                const buildDeparture = (
+                    serviceDate: string,
+                    actualSeconds: number,
+                    suffix: string,
+                ): DepartureSchema | null => {
+                    const predictedDate = toPragueDateFromGtfs({
+                        gtfsDate: serviceDate,
+                        timeSeconds: actualSeconds,
+                    });
+                    const predictedMs = predictedDate.getTime();
+
+                    if (
+                        predictedMs < windowStart.getTime() ||
+                        predictedMs > windowEnd.getTime()
+                    ) {
+                        return null;
+                    }
+
+                    const timestamp = predictedDate.toISOString();
+
+                    return {
+                        id: `${row.stopTimeId}::${serviceDate}::${suffix}`,
+                        departure: {
+                            predicted: timestamp,
+                            scheduled: timestamp,
+                        },
+                        delay: 0,
+                        headsign:
+                            row.tripHeadsign ??
+                            row.routeLongName ??
+                            row.routeShortName,
+                        route: row.routeShortName,
+                        routeId: row.routeId,
+                        platformId,
+                        platformCode: row.platformCode,
+                        isRealtime: false,
+                    } satisfies DepartureSchema;
+                };
+
                 return serviceDates.flatMap((serviceDate) => {
                     const activeServiceIds = activeServiceIdsByFeedDate.get(
                         `${row.feedId}::${serviceDate}`,
@@ -616,40 +681,57 @@ export class DepartureServiceV2 {
                         return [];
                     }
 
-                    const predictedDate = toPragueDateFromGtfs({
-                        gtfsDate: serviceDate,
-                        timeSeconds,
-                    });
-                    const predictedMs = predictedDate.getTime();
+                    if (frequencies && frequencies.length > 0) {
+                        const firstStopSeconds =
+                            firstStopTimeByTripKey.get(tripKey) ?? 0;
+                        const offsetSeconds = timeSeconds - firstStopSeconds;
+                        const results: DepartureSchema[] = [];
 
-                    if (
-                        predictedMs < windowStart.getTime() ||
-                        predictedMs > windowEnd.getTime()
-                    ) {
-                        return [];
+                        for (const frequency of frequencies) {
+                            const startSeconds = parseGtfsTimeToSeconds(
+                                frequency.startTime,
+                            );
+                            const endSeconds = parseGtfsTimeToSeconds(
+                                frequency.endTime,
+                            );
+
+                            if (
+                                startSeconds === null ||
+                                endSeconds === null ||
+                                frequency.headwaySecs <= 0
+                            ) {
+                                continue;
+                            }
+
+                            for (
+                                let tripStartSeconds = startSeconds;
+                                tripStartSeconds < endSeconds;
+                                tripStartSeconds += frequency.headwaySecs
+                            ) {
+                                const actualSeconds =
+                                    tripStartSeconds + offsetSeconds;
+                                const departure = buildDeparture(
+                                    serviceDate,
+                                    actualSeconds,
+                                    `freq::${frequency.startTime}::${tripStartSeconds}`,
+                                );
+
+                                if (departure) {
+                                    results.push(departure);
+                                }
+                            }
+                        }
+
+                        return results;
                     }
 
-                    const timestamp = predictedDate.toISOString();
+                    const departure = buildDeparture(
+                        serviceDate,
+                        timeSeconds,
+                        "explicit",
+                    );
 
-                    return [
-                        {
-                            id: `${row.stopTimeId}::${serviceDate}`,
-                            departure: {
-                                predicted: timestamp,
-                                scheduled: timestamp,
-                            },
-                            delay: 0,
-                            headsign:
-                                row.tripHeadsign ??
-                                row.routeLongName ??
-                                row.routeShortName,
-                            route: row.routeShortName,
-                            routeId: row.routeId,
-                            platformId,
-                            platformCode: row.platformCode,
-                            isRealtime: false,
-                        } satisfies DepartureSchema,
-                    ];
+                    return departure ? [departure] : [];
                 });
             });
 
@@ -752,6 +834,117 @@ export class DepartureServiceV2 {
 
             if (calendarDate.exceptionType === 2) {
                 services.delete(calendarDate.serviceId);
+            }
+        }
+
+        return result;
+    }
+
+    private async loadGtfsFrequenciesByTripKey(args: {
+        feedIds: readonly string[];
+        tripKeys: readonly string[];
+    }): Promise<
+        Map<
+            string,
+            Array<{
+                startTime: string;
+                endTime: string;
+                headwaySecs: number;
+            }>
+        >
+    > {
+        const result = new Map<
+            string,
+            Array<{
+                startTime: string;
+                endTime: string;
+                headwaySecs: number;
+            }>
+        >();
+        const tripIds = uniqueSortedStrings(
+            args.tripKeys.map((key) => key.split("::").slice(1).join("::")),
+        );
+
+        if (tripIds.length === 0 || args.feedIds.length === 0) {
+            return result;
+        }
+
+        const tripKeySet = new Set(args.tripKeys);
+        const rows = await this.database.db
+            .selectFrom("GtfsFrequency")
+            .select(["feedId", "tripId", "startTime", "endTime", "headwaySecs"])
+            .where("feedId", "in", [...args.feedIds] as GtfsFeedId[])
+            .where("tripId", "in", [...tripIds])
+            .execute();
+
+        for (const row of rows) {
+            const key = `${row.feedId}::${row.tripId}`;
+
+            if (!tripKeySet.has(key)) {
+                continue;
+            }
+
+            const list = result.get(key) ?? [];
+
+            list.push({
+                startTime: row.startTime,
+                endTime: row.endTime,
+                headwaySecs: row.headwaySecs,
+            });
+            result.set(key, list);
+        }
+
+        return result;
+    }
+
+    private async loadGtfsFirstStopTimeByTripKey(args: {
+        feedIds: readonly string[];
+        tripKeys: readonly string[];
+    }): Promise<Map<string, number>> {
+        const result = new Map<string, number>();
+        const tripIds = uniqueSortedStrings(
+            args.tripKeys.map((key) => key.split("::").slice(1).join("::")),
+        );
+
+        if (tripIds.length === 0 || args.feedIds.length === 0) {
+            return result;
+        }
+
+        const tripKeySet = new Set(args.tripKeys);
+        const rows = await this.database.db
+            .selectFrom("GtfsStopTime")
+            .select([
+                "feedId",
+                "tripId",
+                "stopSequence",
+                "arrivalTime",
+                "departureTime",
+            ])
+            .where("feedId", "in", [...args.feedIds] as GtfsFeedId[])
+            .where("tripId", "in", [...tripIds])
+            .execute();
+
+        const minSeqByTripKey = new Map<string, number>();
+
+        for (const row of rows) {
+            const key = `${row.feedId}::${row.tripId}`;
+
+            if (!tripKeySet.has(key)) {
+                continue;
+            }
+
+            const currentMin = minSeqByTripKey.get(key);
+
+            if (currentMin === undefined || row.stopSequence < currentMin) {
+                minSeqByTripKey.set(key, row.stopSequence);
+
+                const time = row.departureTime ?? row.arrivalTime;
+                const seconds =
+                    time !== null ? parseGtfsTimeToSeconds(time) : null;
+
+                if (seconds !== null) {
+                    result.set(key, seconds);
+                }
             }
         }
 
