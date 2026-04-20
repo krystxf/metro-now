@@ -4,9 +4,9 @@
 import ApolloAPI
 
 extension MetroNowAPI.Objects {
-    nonisolated static let Platform = ApolloAPI.Object(
-        typename: "Platform",
-        implementedInterfaces: [],
-        keyFields: nil
-    )
+  nonisolated static let Platform = ApolloAPI.Object(
+    typename: "Platform",
+    implementedInterfaces: [],
+    keyFields: nil
+  )
 }

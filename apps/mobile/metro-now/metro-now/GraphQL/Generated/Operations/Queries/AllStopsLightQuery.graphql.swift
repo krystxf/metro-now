@@ -5,31 +5,27 @@
 @_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 extension MetroNowAPI {
-  nonisolated struct ClosestStopsQuery: GraphQLQuery {
-    static let operationName: String = "ClosestStops"
+  nonisolated struct AllStopsLightQuery: GraphQLQuery {
+    static let operationName: String = "AllStopsLight"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) { closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) { __typename id name avgLatitude avgLongitude distance entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color } } } }"#
+        #"query AllStopsLight($limit: Int, $offset: Int) { stops(limit: $limit, offset: $offset) { __typename id name avgLatitude avgLongitude platforms { __typename id latitude longitude name code isMetro routes { __typename id name color } } } }"#
       ))
 
-    public var latitude: Double
-    public var longitude: Double
     public var limit: GraphQLNullable<Int32>
+    public var offset: GraphQLNullable<Int32>
 
     public init(
-      latitude: Double,
-      longitude: Double,
-      limit: GraphQLNullable<Int32>
+      limit: GraphQLNullable<Int32>,
+      offset: GraphQLNullable<Int32>
     ) {
-      self.latitude = latitude
-      self.longitude = longitude
       self.limit = limit
+      self.offset = offset
     }
 
     @_spi(Unsafe) public var __variables: Variables? { [
-      "latitude": latitude,
-      "longitude": longitude,
-      "limit": limit
+      "limit": limit,
+      "offset": offset
     ] }
 
     nonisolated struct Data: MetroNowAPI.SelectionSet {
@@ -38,74 +34,44 @@ extension MetroNowAPI {
 
       static var __parentType: any ApolloAPI.ParentType { MetroNowAPI.Objects.Query }
       static var __selections: [ApolloAPI.Selection] { [
-        .field("closestStops", [ClosestStop].self, arguments: [
-          "latitude": .variable("latitude"),
-          "longitude": .variable("longitude"),
-          "limit": .variable("limit")
+        .field("stops", [Stop].self, arguments: [
+          "limit": .variable("limit"),
+          "offset": .variable("offset")
         ]),
       ] }
       static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
-        ClosestStopsQuery.Data.self
+        AllStopsLightQuery.Data.self
       ] }
 
-      var closestStops: [ClosestStop] { __data["closestStops"] }
+      var stops: [Stop] { __data["stops"] }
 
-      /// ClosestStop
+      /// Stop
       ///
-      /// Parent Type: `StopWithDistance`
-      nonisolated struct ClosestStop: MetroNowAPI.SelectionSet {
+      /// Parent Type: `Stop`
+      nonisolated struct Stop: MetroNowAPI.SelectionSet {
         let __data: DataDict
         init(_dataDict: DataDict) { __data = _dataDict }
 
-        static var __parentType: any ApolloAPI.ParentType { MetroNowAPI.Objects.StopWithDistance }
+        static var __parentType: any ApolloAPI.ParentType { MetroNowAPI.Objects.Stop }
         static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("id", MetroNowAPI.ID.self),
           .field("name", String.self),
           .field("avgLatitude", Double.self),
           .field("avgLongitude", Double.self),
-          .field("distance", Double.self),
-          .field("entrances", [Entrance].self),
           .field("platforms", [Platform].self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
-          ClosestStopsQuery.Data.ClosestStop.self
+          AllStopsLightQuery.Data.Stop.self
         ] }
 
         var id: MetroNowAPI.ID { __data["id"] }
         var name: String { __data["name"] }
         var avgLatitude: Double { __data["avgLatitude"] }
         var avgLongitude: Double { __data["avgLongitude"] }
-        var distance: Double { __data["distance"] }
-        var entrances: [Entrance] { __data["entrances"] }
         var platforms: [Platform] { __data["platforms"] }
 
-        /// ClosestStop.Entrance
-        ///
-        /// Parent Type: `StopEntrance`
-        nonisolated struct Entrance: MetroNowAPI.SelectionSet {
-          let __data: DataDict
-          init(_dataDict: DataDict) { __data = _dataDict }
-
-          static var __parentType: any ApolloAPI.ParentType { MetroNowAPI.Objects.StopEntrance }
-          static var __selections: [ApolloAPI.Selection] { [
-            .field("__typename", String.self),
-            .field("id", MetroNowAPI.ID.self),
-            .field("name", String.self),
-            .field("latitude", Double.self),
-            .field("longitude", Double.self),
-          ] }
-          static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
-            ClosestStopsQuery.Data.ClosestStop.Entrance.self
-          ] }
-
-          var id: MetroNowAPI.ID { __data["id"] }
-          var name: String { __data["name"] }
-          var latitude: Double { __data["latitude"] }
-          var longitude: Double { __data["longitude"] }
-        }
-
-        /// ClosestStop.Platform
+        /// Stop.Platform
         ///
         /// Parent Type: `Platform`
         nonisolated struct Platform: MetroNowAPI.SelectionSet {
@@ -120,12 +86,11 @@ extension MetroNowAPI {
             .field("longitude", Double.self),
             .field("name", String.self),
             .field("code", String?.self),
-            .field("direction", String?.self),
             .field("isMetro", Bool.self),
             .field("routes", [Route].self),
           ] }
           static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
-            ClosestStopsQuery.Data.ClosestStop.Platform.self
+            AllStopsLightQuery.Data.Stop.Platform.self
           ] }
 
           var id: MetroNowAPI.ID { __data["id"] }
@@ -133,11 +98,10 @@ extension MetroNowAPI {
           var longitude: Double { __data["longitude"] }
           var name: String { __data["name"] }
           var code: String? { __data["code"] }
-          var direction: String? { __data["direction"] }
           var isMetro: Bool { __data["isMetro"] }
           var routes: [Route] { __data["routes"] }
 
-          /// ClosestStop.Platform.Route
+          /// Stop.Platform.Route
           ///
           /// Parent Type: `Route`
           nonisolated struct Route: MetroNowAPI.SelectionSet {
@@ -152,7 +116,7 @@ extension MetroNowAPI {
               .field("color", String?.self),
             ] }
             static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
-              ClosestStopsQuery.Data.ClosestStop.Platform.Route.self
+              AllStopsLightQuery.Data.Stop.Platform.Route.self
             ] }
 
             var id: MetroNowAPI.ID { __data["id"] }

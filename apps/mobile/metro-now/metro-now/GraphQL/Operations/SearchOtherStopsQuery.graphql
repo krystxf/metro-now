@@ -26,10 +26,12 @@ query SearchOtherStops(
       longitude
       name
       code
+      direction
       isMetro
       routes {
         id
         name
+        color
       }
     }
   }

@@ -4,9 +4,9 @@
 import ApolloAPI
 
 extension MetroNowAPI.Objects {
-    nonisolated static let Route = ApolloAPI.Object(
-        typename: "Route",
-        implementedInterfaces: [],
-        keyFields: nil
-    )
+  nonisolated static let Route = ApolloAPI.Object(
+    typename: "Route",
+    implementedInterfaces: [],
+    keyFields: nil
+  )
 }

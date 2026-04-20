@@ -4,14 +4,16 @@
 @_spi(Internal) import ApolloAPI
 
 extension MetroNowAPI {
-    nonisolated enum Feed: String, EnumType {
-        case pid = "PID"
-        case brno = "BRNO"
-        case bratislava = "BRATISLAVA"
-        case leo = "LEO"
-        case liberec = "LIBEREC"
-        case pmdp = "PMDP"
-        case usti = "USTI"
-        case zsr = "ZSR"
-    }
+  nonisolated enum Feed: String, EnumType {
+    case pid = "PID"
+    case brno = "BRNO"
+    case bratislava = "BRATISLAVA"
+    case leo = "LEO"
+    case liberec = "LIBEREC"
+    case pmdp = "PMDP"
+    case usti = "USTI"
+    case zsr = "ZSR"
+    case barcelona = "BARCELONA"
+  }
+
 }

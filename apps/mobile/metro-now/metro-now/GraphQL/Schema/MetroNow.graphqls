@@ -25,6 +25,7 @@ enum Feed {
   PMDP
   USTI
   ZSR
+  BARCELONA
 }
 
 type StopEntrance {
@@ -65,16 +66,20 @@ type Platform {
   longitude: Float!
   isMetro: Boolean!
   code: String
+  direction: String
   routes: [Route!]!
 }
 
 type Stop {
   id: ID!
+  feed: Feed!
   name: String!
   avgLatitude: Float!
   avgLongitude: Float!
   entrances: [StopEntrance!]!
   platforms: [Platform!]!
+  isMetro: Boolean!
+  vehicleTypes: [VehicleType!]!
 }
 
 type DepartureTime {
@@ -112,11 +117,14 @@ type Infotext {
 
 type StopWithDistance {
   id: ID!
+  feed: Feed!
   name: String!
   avgLatitude: Float!
   avgLongitude: Float!
   entrances: [StopEntrance!]!
   platforms: [Platform!]!
+  isMetro: Boolean!
+  vehicleTypes: [VehicleType!]!
   distance: Float!
 }
 

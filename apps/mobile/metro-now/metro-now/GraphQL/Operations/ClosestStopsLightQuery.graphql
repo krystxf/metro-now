@@ -1,0 +1,9 @@
+query ClosestStopsLight($latitude: Float!, $longitude: Float!, $limit: Int) {
+  closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    distance
+  }
+}

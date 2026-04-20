@@ -17,10 +17,12 @@ query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) {
       longitude
       name
       code
+      direction
       isMetro
       routes {
         id
         name
+        color
       }
     }
   }

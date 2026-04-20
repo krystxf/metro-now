@@ -15,6 +15,7 @@ query Departures($stopIds: [ID!], $platformIds: [ID!], $limit: Int, $metroOnly: 
     route {
       id
       name
+      color
     }
   }
 }

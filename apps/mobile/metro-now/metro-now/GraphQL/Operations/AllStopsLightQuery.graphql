@@ -1,0 +1,21 @@
+query AllStopsLight($limit: Int, $offset: Int) {
+  stops(limit: $limit, offset: $offset) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    platforms {
+      id
+      latitude
+      longitude
+      name
+      code
+      isMetro
+      routes {
+        id
+        name
+        color
+      }
+    }
+  }
+}
