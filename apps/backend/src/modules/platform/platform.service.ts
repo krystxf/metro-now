@@ -17,7 +17,14 @@ type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
 
 type PlatformRecordBase = Pick<
     Platform,
-    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name" | "stopId"
+    | "code"
+    | "direction"
+    | "id"
+    | "isMetro"
+    | "latitude"
+    | "longitude"
+    | "name"
+    | "stopId"
 >;
 
 type PlatformRecord = PlatformRecordBase & {
@@ -58,6 +65,7 @@ export class PlatformService {
                 "isMetro",
                 "stopId",
                 "code",
+                "direction",
             ]);
 
         if (ids) {
@@ -186,7 +194,8 @@ export class PlatformService {
                 ) AS "distance"
             FROM "Platform"
             ${whereClause}
-            ORDER BY "distance"
+            ORDER BY ll_to_earth("Platform"."latitude", "Platform"."longitude")
+                <-> ll_to_earth(${latitude}, ${longitude})
             ${limitClause}
         `.execute(this.database.db);
 
@@ -201,25 +210,20 @@ export class PlatformService {
             platforms.map((platform) => [platform.id, platform]),
         );
 
-        return orderedPlatformIds
-            .map((id) => {
-                const platform = platformsById.get(id);
+        return orderedPlatformIds.flatMap((id) => {
+            const platform = platformsById.get(id);
 
-                if (!platform) {
-                    return null;
-                }
+            if (!platform) {
+                return [];
+            }
 
-                return {
+            return [
+                {
                     ...platform,
                     distance: distanceByPlatformId.get(id) ?? 0,
-                };
-            })
-            .filter(
-                (
-                    platform,
-                ): platform is PlatformWithDistanceSchema & PlatformRecord =>
-                    platform !== null,
-            );
+                },
+            ];
+        });
     }
 
     async getPlatformsInBoundingBox({
