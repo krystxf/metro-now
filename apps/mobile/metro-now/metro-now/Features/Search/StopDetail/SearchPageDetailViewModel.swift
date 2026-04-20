@@ -85,13 +85,13 @@ class SearchPageDetailViewModel: NSObject, ObservableObject {
 
             let newDepartures: [ApiDeparture]
             if let oldDepartures {
-                let oldStuff = oldDepartures.filter { oldDeparture in
-                    !fetchedDepartures.contains(where: { fetchedDeparture in
-                        fetchedDeparture.id == oldDeparture.id
-                    })
+                let fetchedIds = Set(fetchedDepartures.compactMap(\.id))
+                let retainedOld = oldDepartures.filter { old in
+                    guard let id = old.id else { return true }
+                    return !fetchedIds.contains(id)
                 }
                 newDepartures = uniqueBy(
-                    array: oldStuff + fetchedDepartures,
+                    array: retainedOld + fetchedDepartures,
                     by: \.id
                 )
                 .filter {

@@ -6,11 +6,9 @@ import SwiftUI
 struct SettingsPageView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(
-        AppStorageKeys.showMetroOnly.rawValue
-    ) var showMetroOnly = false
-    @AppStorage(
         AppStorageKeys.showTraffic.rawValue
     ) var showTraffic = false
+    @State private var cacheCleared = false
     let showsCloseButton: Bool
     let onClose: (() -> Void)?
 
@@ -24,25 +22,44 @@ struct SettingsPageView: View {
 
     var body: some View {
         List {
-            Section(header: Text("Customize")) {
-                if UIApplication.shared.supportsAlternateIcons {
+            if UIApplication.shared.supportsAlternateIcons {
+                Section(header: Text("Customize")) {
                     NavigationLink(
                         destination: SettingsAppIconPageView()
                     ) {
                         Label("App icon", systemImage: "app.dashed")
                     }
                 }
-                Toggle(isOn: $showMetroOnly) {
-                    Label("Show only metro", systemImage: "")
-                }
-                .tint(.brandPrimary)
             }
 
             Section(header: Text("Map")) {
                 Toggle(isOn: $showTraffic) {
                     Label("Show traffic", systemImage: "car.fill")
                 }
-                .tint(.brandPrimary)
+            }
+
+            Section(header: Text("Storage")) {
+                Button {
+                    Task {
+                        DiskCache.invalidateAll()
+                        try? await clearGraphQLCache()
+                        cacheCleared = true
+
+                        try? await Task.sleep(for: .seconds(2))
+                        cacheCleared = false
+                    }
+                } label: {
+                    HStack {
+                        Label("Clear cache", systemImage: "trash")
+                        Spacer()
+                        if cacheCleared {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(.green)
+                                .transition(.opacity)
+                        }
+                    }
+                }
+                .animation(.default, value: cacheCleared)
             }
 
             Section(header: Text("More")) {

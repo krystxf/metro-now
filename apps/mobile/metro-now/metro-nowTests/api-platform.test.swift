@@ -26,6 +26,7 @@ struct ApiPlatformSupportsTests {
             delay: 0,
             route: route,
             routeId: routeId,
+            routeColor: nil,
             isRealtime: nil
         )
     }

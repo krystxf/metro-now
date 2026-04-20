@@ -7,9 +7,6 @@ struct StopDetailPageView: View {
     @StateObject private var viewModel: ClosestStopPageViewModel
     @State private var routePreviewItem: SheetIdItem?
     @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
-    @AppStorage(
-        AppStorageKeys.showMetroOnly.rawValue
-    ) var showMetroOnly = false
 
     private func handleRoutePreview(_ item: SheetIdItem) {
         if let sidebarRoutePreviewPresenter {
@@ -40,32 +37,26 @@ struct StopDetailPageView: View {
                     }
                 }
 
-                if showMetroOnly {
-                    Button("Show all public transport departures") {
-                        showMetroOnly.toggle()
-                    }
-                } else {
-                    if let closestStop = viewModel.closestStop {
-                        let platforms = closestStop.platforms
-                            .filter { platform in
-                                platform.routes.contains(where: {
-                                    let routeName = $0.name.uppercased()
-                                    let containsMetro = METRO_LINES.contains(routeName)
+                if let closestStop = viewModel.closestStop {
+                    let platforms = closestStop.platforms
+                        .filter { platform in
+                            platform.routes.contains(where: {
+                                let routeName = $0.name.uppercased()
+                                let containsMetro = METRO_LINES.contains(routeName)
 
-                                    return !containsMetro
-                                })
-                            }
-                            .sorted(by: {
-                                getPlatformLabel($0) < getPlatformLabel($1)
+                                return !containsMetro
                             })
-
-                        ForEach(platforms, id: \.id) { platform in
-                            PlatformDeparturesListView(
-                                platform: platform,
-                                departures: viewModel.departures,
-                                onRoutePreviewRequested: handleRoutePreview
-                            )
                         }
+                        .sorted(by: {
+                            getPlatformLabel($0) < getPlatformLabel($1)
+                        })
+
+                    ForEach(platforms, id: \.id) { platform in
+                        PlatformDeparturesListView(
+                            platform: platform,
+                            departures: viewModel.departures,
+                            onRoutePreviewRequested: handleRoutePreview
+                        )
                     }
                 }
             }

@@ -851,6 +851,7 @@ private func filteredPlatform(
         longitude: platform.longitude,
         name: platform.name,
         code: platform.code,
+        direction: platform.direction,
         isMetro: false,
         routes: filteredRoutes
     )

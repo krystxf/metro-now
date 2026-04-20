@@ -78,9 +78,11 @@ private enum MacWindowTitlebar {
         }
 
         /// Reaches the underlying NSWindow on Mac Catalyst via the Objective-C
-        /// runtime so we can enable `titlebarAppearsTransparent` and add the
-        /// `.fullSizeContentView` style mask — the only combination that lets
-        /// app content flow under the traffic-light area.
+        /// runtime to enable `titlebarAppearsTransparent`. We deliberately do
+        /// NOT touch `styleMask` — read-modify-write on it races with AppKit's
+        /// fullscreen state during launch and triggers the
+        /// "NSWindowStyleMaskFullScreen set … outside of a full screen transition"
+        /// assertion.
         private static func applyNSWindowTitlebarTransparency() {
             guard let nsAppClass = NSClassFromString("NSApplication") else { return }
 
@@ -94,12 +96,7 @@ private enum MacWindowTitlebar {
                   !windows.isEmpty
             else { return }
 
-            // NSWindow.StyleMask.fullSizeContentView.rawValue = 1 << 15
-            let fullSizeContentView: UInt = 1 << 15
-
             let setTransparent = NSSelectorFromString("setTitlebarAppearsTransparent:")
-            let setStyleMask = NSSelectorFromString("setStyleMask:")
-            let styleMaskSelector = NSSelectorFromString("styleMask")
             let setTitle = NSSelectorFromString("setTitle:")
 
             for window in windows {
@@ -109,14 +106,6 @@ private enum MacWindowTitlebar {
 
                 if window.responds(to: setTransparent) {
                     _ = window.perform(setTransparent, with: NSNumber(value: true))
-                }
-
-                if window.responds(to: styleMaskSelector),
-                   window.responds(to: setStyleMask),
-                   let current = window.value(forKey: "styleMask") as? UInt
-                {
-                    let merged = current | fullSizeContentView
-                    _ = window.perform(setStyleMask, with: NSNumber(value: merged))
                 }
             }
         }
@@ -227,7 +216,6 @@ struct metro_nowApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .tint(.brandPrimary)
                 .environmentObject(appDelegate)
                 .task {
                     WidgetCenter.shared.reloadAllTimelines()

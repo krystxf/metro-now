@@ -5,6 +5,7 @@ import SwiftUI
 
 struct InfotextsItem: View {
     let infotext: ApiInfotext
+    var showsRelatedStops: Bool = true
 
     private static func parseISO8601(_ string: String) -> Date? {
         let formatter = ISO8601DateFormatter()
@@ -62,7 +63,7 @@ struct InfotextsItem: View {
                 Text(infotext.text)
                     .font(.callout)
 
-                if !infotext.relatedStopNames.isEmpty {
+                if showsRelatedStops, !infotext.relatedStopNames.isEmpty {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 4) {

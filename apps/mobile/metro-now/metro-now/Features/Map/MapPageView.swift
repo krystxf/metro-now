@@ -31,6 +31,14 @@ struct MapPageView: View {
         static let mapControlsTrailingPadding: CGFloat = 12
         static let mapControlsButtonSize: CGFloat = 48
         static let mapControlsButtonSpacing: CGFloat = 4
+        static let mapZoomControlsBottomPadding: CGFloat = 24
+    }
+
+    /// True when the iPad app runs on Apple Silicon Mac via "Designed for
+    /// iPad". `userInterfaceIdiom` stays `.pad` in that mode, so check
+    /// `isiOSAppOnMac`. Used to show mouse-friendly zoom buttons.
+    private var isRunningOnMac: Bool {
+        ProcessInfo.processInfo.isiOSAppOnMac
     }
 
     private enum StopLayerIds {
@@ -229,11 +237,12 @@ struct MapPageView: View {
             if renderModel.zoomVisibility.showsZoneBorders {
                 PolylineAnnotationGroup(renderModel.visiblePidZoneBorderPolylines) { polyline in
                     var annotation = PolylineAnnotation(lineCoordinates: polyline.coordinates)
-                    annotation.lineColor = StyleColor(UIColor(selectedMapStyle.pidZoneBorderColor))
+                    annotation.lineColor = StyleColor(selectedMapStyle.pidZoneBorderColor.resolvedUIColor())
                     annotation.lineWidth = 1.2
                     return annotation
                 }
                 .layerId("pid-zone-borders")
+                .lineEmissiveStrength(1)
             }
 
             if renderModel.zoomVisibility.showsRoutePolylines {
@@ -246,6 +255,7 @@ struct MapPageView: View {
                 .layerId("route-lines")
                 .lineCap(.round)
                 .lineJoin(.round)
+                .lineEmissiveStrength(1)
             }
 
             if renderModel.zoomVisibility.showsMetroEntrances {
@@ -258,6 +268,7 @@ struct MapPageView: View {
                     return circle
                 }
                 .layerId("metro-entrances")
+                .circleEmissiveStrength(1)
             }
 
             GeoJSONSource(id: StopLayerIds.source)
@@ -282,6 +293,7 @@ struct MapPageView: View {
                     .circleStrokeColor(StyleColor(.white))
                     .circleStrokeWidth(1.5)
                     .circleOpacity(0.88)
+                    .circleEmissiveStrength(1)
 
                 SymbolLayer(id: StopLayerIds.labels, source: StopLayerIds.source)
                     .filter(Exp(.eq) { Exp(.get) { StopFeatureKeys.showsLabel }; true })
@@ -406,6 +418,20 @@ struct MapPageView: View {
                 )
                 .padding(.top, Constants.mapControlsTopPadding)
                 .padding(.trailing, Constants.mapControlsTrailingPadding)
+
+                if isRunningOnMac {
+                    MapZoomButtons(
+                        viewport: $viewport,
+                        cameraState: currentCameraState
+                    )
+                    .padding(.bottom, Constants.mapZoomControlsBottomPadding)
+                    .padding(.trailing, Constants.mapControlsTrailingPadding)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .bottomTrailing
+                    )
+                }
             }
             .sheet(item: $selectedStop) { stop in
                 MapStopDetailSheet(

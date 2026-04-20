@@ -362,6 +362,9 @@ struct MetroDepartureRowsTests {
     private let baseDate = Date(timeIntervalSince1970: 1000)
 
     private func metroStop() -> ApiStop {
+        // Terminus — both platforms serve the same outbound direction, and
+        // have no `direction` populated because there's no "next stop" in
+        // GTFS from a terminal.
         ApiStop(
             id: "U1071",
             name: "Depo Hostivař",
@@ -391,6 +394,40 @@ struct MetroDepartureRowsTests {
         )
     }
 
+    private func regularMetroStop() -> ApiStop {
+        // Through-station — each platform has its own `direction` (the next
+        // stop along the trip), which is how the dataloader populates it.
+        ApiStop(
+            id: "U100",
+            name: "Můstek",
+            avgLatitude: 50.083,
+            avgLongitude: 14.425,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "U100Z101P",
+                    latitude: 50.083,
+                    longitude: 14.425,
+                    name: "Můstek",
+                    code: "A1",
+                    direction: "Staroměstská",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "991", name: "A")]
+                ),
+                ApiPlatform(
+                    id: "U100Z102P",
+                    latitude: 50.0831,
+                    longitude: 14.4251,
+                    name: "Můstek",
+                    code: "A2",
+                    direction: "Muzeum",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "991", name: "A")]
+                ),
+            ]
+        )
+    }
+
     private func departure(
         id: String,
         platformId: String,
@@ -411,6 +448,7 @@ struct MetroDepartureRowsTests {
             delay: 0,
             route: "A",
             routeId: "L991",
+            routeColor: nil,
             isRealtime: nil
         )
     }
@@ -451,17 +489,17 @@ struct MetroDepartureRowsTests {
     @Test("keeps opposite metro directions as separate rows")
     func keepsOppositeMetroDirectionsSeparate() {
         let rows = buildMetroDepartureRows(
-            for: metroStop(),
+            for: regularMetroStop(),
             departures: [
                 departure(
                     id: "first",
-                    platformId: "U1071Z101P",
+                    platformId: "U100Z101P",
                     headsign: "Nemocnice Motol",
                     predictedOffsetMinutes: 4
                 ),
                 departure(
                     id: "second",
-                    platformId: "U1071Z102P",
+                    platformId: "U100Z102P",
                     headsign: "Depo Hostivař",
                     predictedOffsetMinutes: 6
                 ),
@@ -469,8 +507,39 @@ struct MetroDepartureRowsTests {
         )
 
         #expect(rows?.count == 2)
-        #expect(rows?.first?.headsign == "Nemocnice Motol")
-        #expect(rows?.last?.headsign == "Depo Hostivař")
+        #expect(rows?.first?.headsign == "Depo Hostivař")
+        #expect(rows?.last?.headsign == "Nemocnice Motol")
+    }
+
+    @Test("merges short and long runs on the same direction into one row")
+    func mergesShortAndLongRunsOnSameDirection() {
+        // Both trains depart from the same platform heading the same way; the
+        // short run terminates at Skalka, the long run continues to Depo
+        // Hostivař. They should appear as a single row whose secondary line
+        // shows the next departure's headsign.
+        let rows = buildMetroDepartureRows(
+            for: regularMetroStop(),
+            departures: [
+                departure(
+                    id: "short",
+                    platformId: "U100Z102P",
+                    headsign: "Skalka",
+                    predictedOffsetMinutes: 1
+                ),
+                departure(
+                    id: "long",
+                    platformId: "U100Z102P",
+                    headsign: "Depo Hostivař",
+                    predictedOffsetMinutes: 4
+                ),
+            ]
+        )
+
+        #expect(rows?.count == 1)
+        #expect(rows?.first?.headsign == "Skalka")
+        #expect(rows?.first?.nextHeadsign == "Depo Hostivař")
+        #expect(rows?.first?.departure == baseDate.addingTimeInterval(1 * 60))
+        #expect(rows?.first?.nextDeparture == baseDate.addingTimeInterval(4 * 60))
     }
 }
 
@@ -498,6 +567,7 @@ struct PlatformDepartureGroupsTests {
             delay: 0,
             route: route,
             routeId: nil,
+            routeColor: nil,
             isRealtime: nil
         )
     }

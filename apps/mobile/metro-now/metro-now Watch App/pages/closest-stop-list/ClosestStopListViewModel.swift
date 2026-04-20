@@ -83,13 +83,7 @@ class ClosestStopListViewModel: NSObject, ObservableObject, CLLocationManagerDel
 
     private func getStops() {
         Task {
-            let request = apiSession.request(
-                "\(API_URL)/v1/stop/all",
-                method: .get,
-                parameters: ["metroOnly": String(true)]
-            )
-
-            guard let fetchedStops = try? await fetchData(request, ofType: [ApiStop].self) else {
+            guard let fetchedStops = await fetchStopsWithCache(metroOnly: true) else {
                 print("Error fetching metroStops")
                 return
             }

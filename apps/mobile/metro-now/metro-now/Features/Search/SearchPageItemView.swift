@@ -3,27 +3,73 @@
 
 import SwiftUI
 
+private enum SearchVehicleType: Int, CaseIterable {
+    case metro = 0
+    case train
+    case tram
+    case bus
+    case ferry
+    case funicular
+
+    var systemImage: String {
+        switch self {
+        case .metro: "tram.tunnel.fill"
+        case .train: "train.side.front.car"
+        case .tram: "tram.fill"
+        case .bus: "bus.fill"
+        case .ferry: "ferry.fill"
+        case .funicular: "cablecar.fill"
+        }
+    }
+
+    static func from(routeName: String) -> SearchVehicleType? {
+        if METRO_LINES.contains(routeName.uppercased()) {
+            return .metro
+        }
+        guard let mode = mapTransportMode(for: routeName) else {
+            return nil
+        }
+        switch mode {
+        case .tram: return .tram
+        case .train, .leoExpress: return .train
+        case .bus: return .bus
+        case .ferry: return .ferry
+        case .funicular: return .funicular
+        }
+    }
+}
+
 struct SearchPageItemView: View {
     let label: String
-    let routes: [ApiRoute]
+    private let vehicleTypes: [SearchVehicleType]
 
     init(label: String, routes: [ApiRoute]) {
         self.label = label
 
-        let uniqueRoutes = uniqueBy(array: routes, by: \.id).sorted {
-            $0.name < $1.name
+        var seen = Set<SearchVehicleType>()
+        var ordered: [SearchVehicleType] = []
+        for route in routes {
+            guard let type = SearchVehicleType.from(routeName: route.name) else {
+                continue
+            }
+            if seen.insert(type).inserted {
+                ordered.append(type)
+            }
         }
-        let limitedRoutes = uniqueRoutes[..<min(uniqueRoutes.count, 2)]
-        self.routes = Array(limitedRoutes)
+        vehicleTypes = ordered.sorted { $0.rawValue < $1.rawValue }
     }
 
     var body: some View {
-        HStack {
-            ForEach(routes, id: \.id) { route in
-                RouteNameIconView(
-                    label: route.name,
-                    background: getRouteColor(route)
-                )
+        HStack(spacing: 12) {
+            if !vehicleTypes.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(vehicleTypes, id: \.rawValue) { type in
+                        Image(systemName: type.systemImage)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 20)
+                    }
+                }
             }
             Text(label)
         }

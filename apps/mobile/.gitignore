@@ -89,3 +89,7 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# Apollo iOS CLI binary — extracted per-machine from the apollo-ios SPM
+# checkout in DerivedData. Platform-specific, not meant to be committed.
+apollo-ios-cli

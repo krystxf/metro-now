@@ -7,17 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2D001BB92CC8099C00C6B4F8 /* metro-now Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2D001BB82CC8099C00C6B4F8 /* metro-now Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D87C85E2CE8BACA00209DE6 /* Alamofire */; };
 		2D8EBE2E2CE93DC9004D5F5B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2D8EBE2D2CE93DC9004D5F5B /* Alamofire */; };
 		2DD9D1792CF3B8A70037CB95 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D1782CF3B8A70037CB95 /* WidgetKit.framework */; };
 		2DD9D17B2CF3B8A70037CB95 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DD9D17A2CF3B8A70037CB95 /* SwiftUI.framework */; };
-		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DD9D1862CF3B8A90037CB95 /* widgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DD9D1762CF3B8A70037CB95 /* widgetsExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DEE771C2CFF5CD000F24AAD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 2DEE771B2CFF5CD000F24AAD /* Alamofire */; };
 		8A88A0012E00000100000001 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = 8A88A0022E00000100000002 /* Apollo */; };
 		8A88A0202E00000100000020 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = 8A88A0212E00000100000021 /* Apollo */; };
 		8A88A0222E00000100000022 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = 8A88A0232E00000100000023 /* Apollo */; };
 		AA0001012D07A00100000001 /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = AA0001022D07A00100000002 /* MapboxMaps */; };
+		CC0002012E0E100100000001 /* ApolloSQLite in Frameworks */ = {isa = PBXBuildFile; productRef = CC0002022E0E100100000002 /* ApolloSQLite */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +97,13 @@
 			);
 			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
 		};
+		CC0001032E0E000100000003 /* Exceptions for "metro-now Watch App" folder in "metro-now Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -106,6 +114,9 @@
 		};
 		2D001BBC2CC8099C00C6B4F8 /* metro-now Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CC0001032E0E000100000003 /* Exceptions for "metro-now Watch App" folder in "metro-now Watch App" target */,
+			);
 			path = "metro-now Watch App";
 			sourceTree = "<group>";
 		};
@@ -140,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A88A0012E00000100000001 /* Apollo in Frameworks */,
+				CC0002012E0E100100000001 /* ApolloSQLite in Frameworks */,
 				AA0001012D07A00100000001 /* MapboxMaps in Frameworks */,
 				2D87C85F2CE8BACA00209DE6 /* Alamofire in Frameworks */,
 			);
@@ -245,6 +257,7 @@
 			name = "metro-now";
 			packageProductDependencies = (
 				8A88A0022E00000100000002 /* Apollo */,
+				CC0002022E0E100100000002 /* ApolloSQLite */,
 				2D87C85E2CE8BACA00209DE6 /* Alamofire */,
 				AA0001022D07A00100000002 /* MapboxMaps */,
 			);
@@ -486,7 +499,6 @@
 /* Begin PBXTargetDependency section */
 		2D001BBB2CC8099C00C6B4F8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = ios;
 			target = 2D001BB72CC8099C00C6B4F8 /* metro-now Watch App */;
 			targetProxy = 2D001BBA2CC8099C00C6B4F8 /* PBXContainerItemProxy */;
 		};
@@ -497,6 +509,7 @@
 		};
 		2DD9D1852CF3B8A90037CB95 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = 2DD9D1752CF3B8A70037CB95 /* widgetsExtension */;
 			targetProxy = 2DD9D1842CF3B8A90037CB95 /* PBXContainerItemProxy */;
 		};
@@ -510,6 +523,7 @@
 /* Begin XCBuildConfiguration section */
 		2D001BC62CC8099D00C6B4F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC0001012E0E000100000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -572,6 +586,7 @@
 		};
 		2D001BC72CC8099D00C6B4F8 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC0001012E0E000100000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -630,11 +645,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to provide live updates.";
@@ -645,7 +661,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -663,11 +679,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "metro-now Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "metro-now";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to provide live updates.";
@@ -678,7 +695,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -699,7 +716,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -719,14 +736,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SUPPORTS_MACCATALYST = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Debug;
 		};
@@ -738,7 +757,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_ASSET_PATHS = "\"metro-now/Preview Content\"";
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				ENABLE_PREVIEWS = YES;
@@ -758,14 +777,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SUPPORTS_MACCATALYST = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -817,7 +838,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = widgets/Info.plist;
@@ -829,7 +850,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -847,7 +868,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = R6WU5ABNG2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = widgets/Info.plist;
@@ -859,7 +880,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.krystof.metro-now.widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1032,6 +1053,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AA0001032D07A00100000003 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;
 			productName = MapboxMaps;
+		};
+		CC0002022E0E100100000002 /* ApolloSQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A88A0032E00000100000003 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = ApolloSQLite;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

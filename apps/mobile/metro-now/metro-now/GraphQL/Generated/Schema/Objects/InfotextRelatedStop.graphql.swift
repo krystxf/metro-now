@@ -4,9 +4,9 @@
 import ApolloAPI
 
 extension MetroNowAPI.Objects {
-  nonisolated static let InfotextRelatedStop = ApolloAPI.Object(
-    typename: "InfotextRelatedStop",
-    implementedInterfaces: [],
-    keyFields: nil
-  )
+    nonisolated static let InfotextRelatedStop = ApolloAPI.Object(
+        typename: "InfotextRelatedStop",
+        implementedInterfaces: [],
+        keyFields: nil
+    )
 }

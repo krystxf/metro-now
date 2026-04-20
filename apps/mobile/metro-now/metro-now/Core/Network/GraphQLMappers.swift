@@ -3,23 +3,6 @@
 
 import Foundation
 
-private let iso8601Formatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-}()
-
-private let iso8601FormatterNoFraction: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime]
-    return formatter
-}()
-
-private func parseISO8601(_ string: String) -> Date? {
-    iso8601Formatter.date(from: string)
-        ?? iso8601FormatterNoFraction.date(from: string)
-}
-
 private func parseRouteShapeGeoJson(_ string: String) -> ApiGeoJsonLineString {
     guard let data = string.data(using: .utf8),
           let parsed = try? JSONDecoder().decode(ApiGeoJsonLineString.self, from: data)
@@ -33,9 +16,11 @@ func mapGraphQLDeparture(
     _ dep: MetroNowAPI.DeparturesQuery.Data.Departure
 ) -> ApiDeparture? {
     guard
-        let predicted = parseISO8601(dep.departureTime.predicted),
-        let scheduled = parseISO8601(dep.departureTime.scheduled)
+        let predicted = parseBackendISO8601(dep.departureTime.predicted),
+        let scheduled = parseBackendISO8601(dep.departureTime.scheduled)
     else {
+        let idDescription = dep.id ?? "?"
+        print("[GraphQL] departure date parse failed id=\(idDescription) predicted=\(dep.departureTime.predicted) scheduled=\(dep.departureTime.scheduled)")
         return nil
     }
 
@@ -51,6 +36,7 @@ func mapGraphQLDeparture(
         delay: dep.delay ?? 0,
         route: dep.route?.name ?? "",
         routeId: dep.route?.id,
+        routeColor: dep.route?.color,
         isRealtime: dep.isRealtime
     )
 }
@@ -78,11 +64,43 @@ func mapGraphQLClosestStop(
                 longitude: platform.longitude,
                 name: platform.name,
                 code: platform.code,
+                direction: platform.direction,
                 isMetro: platform.isMetro,
                 routes: platform.routes.map { route in
                     ApiRoute(
                         id: route.id,
-                        name: route.name ?? route.id
+                        name: route.name ?? route.id,
+                        color: route.color
+                    )
+                }
+            )
+        }
+    )
+}
+
+func mapGraphQLClosestStopDetail(
+    _ stop: MetroNowAPI.ClosestStopsDetailsQuery.Data.Stop
+) -> ApiStop {
+    ApiStop(
+        id: stop.id,
+        name: stop.name,
+        avgLatitude: stop.avgLatitude,
+        avgLongitude: stop.avgLongitude,
+        entrances: [],
+        platforms: stop.platforms.map { platform in
+            ApiPlatform(
+                id: platform.id,
+                latitude: platform.latitude,
+                longitude: platform.longitude,
+                name: platform.name,
+                code: platform.code,
+                direction: platform.direction,
+                isMetro: platform.isMetro,
+                routes: platform.routes.map { route in
+                    ApiRoute(
+                        id: route.id,
+                        name: route.name ?? route.id,
+                        color: route.color
                     )
                 }
             )
@@ -112,7 +130,8 @@ func mapGraphQLRouteDetail(
                         longitude: platform.longitude,
                         name: platform.name,
                         isMetro: platform.isMetro,
-                        code: platform.code
+                        code: platform.code,
+                        direction: platform.direction
                     )
                 }
             )

@@ -4,9 +4,5 @@
 <dict>
 	<key>APIURL</key>
 	<string>$(API_URL)</string>
-	<key>MBXAccessToken</key>
-	<string>$(MAPBOX_ACCESS_TOKEN)</string>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
 </dict>
 </plist>

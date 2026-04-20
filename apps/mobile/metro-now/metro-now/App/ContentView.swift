@@ -12,7 +12,7 @@ struct ContentView: View {
         static let horizontalInset: CGFloat = 12
         static let topInset: CGFloat = 6
         static let bottomInset: CGFloat = 6
-        static let contentInset: CGFloat = 8
+        static let contentInset: CGFloat = 16
         static let cornerRadius: CGFloat = 32
 
         static func sidebarWidth(for containerWidth: CGFloat) -> CGFloat {
@@ -26,6 +26,7 @@ struct ContentView: View {
     @StateObject private var appNavigation = AppNavigationViewModel()
     @StateObject private var networkMonitor = NetworkMonitor()
     @StateObject private var locationModel = LocationViewModel()
+    @StateObject private var closestStopViewModel = ClosestStopPageViewModel()
     @State private var showNoInternetBanner = false
 
     @AppStorage(
@@ -33,6 +34,7 @@ struct ContentView: View {
     ) var hasSeenWelcomeScreen = false
     @StateObject var stopsViewModel = StopsViewModel()
     @StateObject var favoritesViewModel = FavoritesViewModel()
+    @StateObject var infotextsViewModel = InfotextsViewModel()
     @State private var showWelcomeScreen: Bool = false
     @State private var showInfotexts: Bool = false
     @State private var infotextsPresentationDetent: PresentationDetent = .large
@@ -83,7 +85,7 @@ struct ContentView: View {
 
     private var departuresPageView: some View {
         NavigationStack {
-            ClosestStopPageView()
+            ClosestStopPageView(viewModel: closestStopViewModel)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
@@ -127,27 +129,60 @@ struct ContentView: View {
 
     private var phoneLayout: some View {
         TabView(selection: $displayedPhoneTab) {
-            Tab("Departures", systemImage: "clock", value: .departures) {
+            Tab(value: AppTab.departures) {
                 departuresPageView
+            } label: {
+                tabLabel(
+                    "Departures",
+                    systemImage: "clock",
+                    isSelected: displayedPhoneTab == .departures
+                )
             }
 
-            Tab("Favorites", systemImage: "star", value: .favorites) {
+            Tab(value: AppTab.favorites) {
                 favoritesPageView
+            } label: {
+                tabLabel(
+                    "Favorites",
+                    systemImage: "star",
+                    isSelected: displayedPhoneTab == .favorites
+                )
             }
 
-            Tab("Map", systemImage: "map", value: .map) {
+            Tab(value: AppTab.map) {
                 mapPageView
+            } label: {
+                tabLabel(
+                    "Map",
+                    systemImage: "map",
+                    isSelected: displayedPhoneTab == .map
+                )
             }
 
-            Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
+            Tab(value: AppTab.search, role: .search) {
                 if shouldPresentSearchAsSheet {
                     Color.clear
                 } else {
                     searchPageView()
                 }
+            } label: {
+                tabLabel(
+                    "Search",
+                    systemImage: "magnifyingglass",
+                    isSelected: false
+                )
             }
         }
         .tint(.primary)
+    }
+
+    private func tabLabel(
+        _ titleKey: LocalizedStringKey,
+        systemImage: String,
+        isSelected: Bool
+    ) -> some View {
+        Label(titleKey, systemImage: systemImage)
+            .environment(\.symbolVariants, isSelected ? .fill : .none)
     }
 
     private var tabletLayout: some View {
@@ -188,6 +223,10 @@ struct ContentView: View {
             ) {
                 searchPageView(showsCloseButton: true)
                     .presentationDetents([.medium, .large])
+            }
+            .sheet(isPresented: $showSettingsSheet) {
+                settingsPageView
+                    .presentationDetents([.large])
             }
 
             VStack {
@@ -273,7 +312,13 @@ struct ContentView: View {
         .onReceive(networkMonitor.$isConnected) { isConnected in
             setShowNoInternetBanner(!isConnected)
         }
+        .onReceive(closestStopViewModel.$nearbyStops) { nearbyStops in
+            guard let nearbyStops else { return }
+            stopsViewModel.seedIfEmpty(with: nearbyStops)
+        }
         .environmentObject(appNavigation)
+        .environmentObject(stopsViewModel)
+        .environmentObject(infotextsViewModel)
     }
 
     private func handleQuickAction(_ action: QuickAction?) {
@@ -359,20 +404,7 @@ struct ContentView: View {
 
     private func tabletSidebar(containerWidth: CGFloat) -> some View {
         ZStack {
-            TabView(selection: $displayedTabletSidebarTab) {
-                Tab("Departures", systemImage: "clock", value: .departures) {
-                    departuresPageView
-                }
-
-                Tab("Favorites", systemImage: "star", value: .favorites) {
-                    favoritesPageView
-                }
-
-                Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
-                    searchPageView()
-                }
-            }
-            .environment(\.horizontalSizeClass, .compact)
+            sidebarTabContainer
 
             sidebarOverlays
         }
@@ -399,6 +431,67 @@ struct ContentView: View {
                 .presentationDetents([.medium])
         }
     }
+
+    @ViewBuilder
+    private var sidebarTabContainer: some View {
+        #if targetEnvironment(macCatalyst)
+            catalystSidebarTabContainer
+        #else
+            TabView(selection: $displayedTabletSidebarTab) {
+                Tab(value: AppTab.departures) {
+                    departuresPageView
+                } label: {
+                    tabLabel(
+                        "Departures",
+                        systemImage: "clock",
+                        isSelected: displayedTabletSidebarTab == .departures
+                    )
+                }
+
+                Tab(value: AppTab.favorites) {
+                    favoritesPageView
+                } label: {
+                    tabLabel(
+                        "Favorites",
+                        systemImage: "star",
+                        isSelected: displayedTabletSidebarTab == .favorites
+                    )
+                }
+
+                Tab(value: AppTab.search, role: .search) {
+                    searchPageView()
+                } label: {
+                    tabLabel(
+                        "Search",
+                        systemImage: "magnifyingglass",
+                        isSelected: false
+                    )
+                }
+            }
+            .environment(\.horizontalSizeClass, .compact)
+        #endif
+    }
+
+    #if targetEnvironment(macCatalyst)
+        private var catalystSidebarTabContainer: some View {
+            VStack(spacing: 0) {
+                Group {
+                    switch displayedTabletSidebarTab {
+                    case .favorites:
+                        favoritesPageView
+                    case .search:
+                        searchPageView()
+                    case .departures, .map:
+                        departuresPageView
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                CatalystSidebarTabBar(selection: $displayedTabletSidebarTab)
+            }
+            .environment(\.horizontalSizeClass, .compact)
+        }
+    #endif
 
     @ViewBuilder
     private func sidebarResizeHandle(containerWidth: CGFloat) -> some View {
@@ -429,23 +522,6 @@ struct ContentView: View {
 
     @ViewBuilder
     private var sidebarOverlays: some View {
-        if showSettingsSheet {
-            sidebarOverlayContainer {
-                NavigationStack {
-                    SettingsPageView(
-                        showsCloseButton: true,
-                        onClose: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                                showSettingsSheet = false
-                            }
-                        }
-                    )
-                }
-            }
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .zIndex(1)
-        }
-
         if showInfotexts {
             sidebarOverlayContainer {
                 InfotextsPageView(onClose: {
@@ -472,6 +548,10 @@ struct ContentView: View {
                 )
                 .environmentObject(locationModel)
             }
+            // Re-create the view (and its @StateObject view model) when the
+            // selected stop changes, otherwise SwiftUI reuses the view model
+            // bound to the previously selected stop's platform IDs.
+            .id(stop.id)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .zIndex(3)
         }
@@ -506,12 +586,6 @@ struct ContentView: View {
 
     private func applyingNonSearchSheets(to content: some View) -> some View {
         content
-            .sheet(
-                isPresented: $showSettingsSheet
-            ) {
-                settingsPageView
-                    .presentationDetents([.large])
-            }
             .sheet(isPresented: $showInfotexts) {
                 InfotextsPageView()
                     .presentationDetents(
@@ -559,6 +633,70 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AppDelegate())
 }
+
+#if targetEnvironment(macCatalyst)
+    private struct CatalystSidebarTabBar: View {
+        @Binding var selection: AppTab
+
+        private struct Item {
+            let tab: AppTab
+            let titleKey: LocalizedStringKey
+            let systemImage: String
+            let selectedSystemImage: String
+        }
+
+        private let items: [Item] = [
+            Item(
+                tab: .departures,
+                titleKey: "Departures",
+                systemImage: "clock",
+                selectedSystemImage: "clock.fill"
+            ),
+            Item(
+                tab: .favorites,
+                titleKey: "Favorites",
+                systemImage: "star",
+                selectedSystemImage: "star.fill"
+            ),
+            Item(
+                tab: .search,
+                titleKey: "Search",
+                systemImage: "magnifyingglass",
+                selectedSystemImage: "magnifyingglass"
+            ),
+        ]
+
+        var body: some View {
+            HStack(spacing: 0) {
+                ForEach(items, id: \.tab) { item in
+                    Button {
+                        selection = item.tab
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(
+                                systemName: selection == item.tab
+                                    ? item.selectedSystemImage
+                                    : item.systemImage
+                            )
+                            .font(.system(size: 20, weight: .regular))
+                            Text(item.titleKey)
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(
+                            selection == item.tab ? Color.primary : Color.secondary
+                        )
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+            .background(.bar)
+        }
+    }
+#endif
 
 private struct DummyQuickSearchOverlay: View {
     @Binding var isPresented: Bool

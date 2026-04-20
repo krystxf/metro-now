@@ -145,7 +145,7 @@ private struct RoutePreviewMapView: View {
         self.direction = direction
 
         let shapes = route.preferredMapShapes(for: direction)
-        let routeColor = UIColor(getRouteColor(route))
+        let routeColor = getRouteColor(route).resolvedUIColor()
         let fallbackCoordinates = direction.platforms.map(Self.coordinate(for:))
 
         var builtPolylines: [RoutePreviewPolyline] = shapes.map { shape in
@@ -201,8 +201,9 @@ private struct RoutePreviewMapView: View {
             .layerId("route-preview-lines")
             .lineCap(.round)
             .lineJoin(.round)
+            .lineEmissiveStrength(1)
         }
-        .mapStyle(colorScheme == .dark ? MapboxMaps.MapStyle.dark : MapboxMaps.MapStyle.light)
+        .mapStyle(colorScheme == .dark ? MapboxMaps.MapStyle.standard(lightPreset: .night) : MapboxMaps.MapStyle.standard(lightPreset: .day))
         .ignoresSafeArea()
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -285,11 +286,33 @@ private struct RoutePreviewMapView: View {
 struct RoutePreviewView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var locationModel: LocationViewModel
+    @EnvironmentObject private var stopsViewModel: StopsViewModel
     @StateObject private var viewModel: RoutePreviewViewModel
     let headsign: String?
     let currentPlatformId: String?
     let currentPlatformName: String?
     let onClose: (() -> Void)?
+
+    private func connectingMetroRoutes(
+        atPlatformId platformId: String,
+        excludingRouteId: String?
+    ) -> [ApiRoute] {
+        guard let stops = stopsViewModel.stops else { return [] }
+        guard let parentStop = stops.first(where: { stop in
+            stop.platforms.contains(where: { $0.id == platformId })
+        }) else { return [] }
+
+        var seen = Set<String>()
+        var result: [ApiRoute] = []
+        for platform in parentStop.platforms where platform.isMetro {
+            for route in platform.routes where route.id != excludingRouteId {
+                if seen.insert(route.id).inserted {
+                    result.append(route)
+                }
+            }
+        }
+        return result
+    }
 
     init(
         routeId: String,
@@ -363,6 +386,10 @@ struct RoutePreviewView: View {
                                 let isLast = index == previewPlatforms.count - 1
                                 let isPassed = item.state == .passed
                                 let routeColor = getRouteColor(data)
+                                let metroRoutes = connectingMetroRoutes(
+                                    atPlatformId: item.platform.id,
+                                    excludingRouteId: data.id
+                                )
 
                                 HStack(alignment: .center, spacing: 12) {
                                     ZStack {
@@ -384,6 +411,19 @@ struct RoutePreviewView: View {
                                         .font(.body)
                                         .fontWeight(item.state == .current ? .semibold : .regular)
                                         .foregroundStyle(isPassed ? .tertiary : .primary)
+
+                                    if !metroRoutes.isEmpty {
+                                        HStack(spacing: 4) {
+                                            ForEach(metroRoutes, id: \.id) { route in
+                                                RouteNameIconView(
+                                                    label: route.name,
+                                                    background: getRouteColor(route),
+                                                    compact: true
+                                                )
+                                                .opacity(isPassed ? 0.4 : 1)
+                                            }
+                                        }
+                                    }
 
                                     Spacer()
                                 }
@@ -451,4 +491,5 @@ struct RoutePreviewView: View {
         currentPlatformName: "Můstek"
     )
     .environmentObject(LocationViewModel())
+    .environmentObject(StopsViewModel(initialStops: PreviewData.stops, shouldRefresh: false))
 }

@@ -145,6 +145,7 @@ enum PreviewData {
             delay: 0,
             route: "A",
             routeId: "L991",
+            routeColor: nil,
             isRealtime: true
         ),
         ApiDeparture(
@@ -159,6 +160,7 @@ enum PreviewData {
             delay: 0,
             route: "A",
             routeId: "L991",
+            routeColor: nil,
             isRealtime: true
         ),
         ApiDeparture(
@@ -173,6 +175,7 @@ enum PreviewData {
             delay: 0,
             route: "B",
             routeId: "L992",
+            routeColor: nil,
             isRealtime: true
         ),
         ApiDeparture(
@@ -187,6 +190,7 @@ enum PreviewData {
             delay: 0,
             route: "22",
             routeId: "L22",
+            routeColor: nil,
             isRealtime: true
         ),
         ApiDeparture(
@@ -201,6 +205,7 @@ enum PreviewData {
             delay: 0,
             route: "149",
             routeId: "L149",
+            routeColor: nil,
             isRealtime: false
         ),
     ]

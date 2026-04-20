@@ -6,15 +6,21 @@ import SwiftUI
 struct PlatformDeparturesListView: View {
     let platform: ApiPlatform
     let departures: [[ApiDeparture]]?
+    let primaryLabel: String?
     let onRoutePreviewRequested: ((SheetIdItem) -> Void)?
+    let onShowAllDeparturesRequested: ((AllDeparturesRequest) -> Void)?
 
     init(
         platform: ApiPlatform,
         departures: [ApiDeparture]?,
-        onRoutePreviewRequested: ((SheetIdItem) -> Void)? = nil
+        primaryLabel: String? = nil,
+        onRoutePreviewRequested: ((SheetIdItem) -> Void)? = nil,
+        onShowAllDeparturesRequested: ((AllDeparturesRequest) -> Void)? = nil
     ) {
         self.platform = platform
+        self.primaryLabel = primaryLabel
         self.onRoutePreviewRequested = onRoutePreviewRequested
+        self.onShowAllDeparturesRequested = onShowAllDeparturesRequested
 
         guard let departures else {
             self.departures = nil
@@ -27,22 +33,48 @@ struct PlatformDeparturesListView: View {
         )
     }
 
+    @ViewBuilder
+    private var sectionHeader: some View {
+        let firstLine = primaryLabel ?? defaultFirstLine
+        let hasDirection = !(platform.direction?.isEmpty ?? true)
+
+        VStack(alignment: .leading, spacing: 2) {
+            Text(firstLine)
+
+            if hasDirection, let direction = platform.direction {
+                Label(direction, systemImage: "arrow.turn.down.right")
+                    .labelStyle(.titleAndIcon)
+                    .imageScale(.small)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var defaultFirstLine: String {
+        if let code = platform.code, !code.isEmpty {
+            return "\(platform.name) \(code)"
+        }
+        return platform.name
+    }
+
     var body: some View {
         if departures == nil || departures!.count > 0 {
-            Section(header: Text(getPlatformLabel(platform))) {
+            Section(header: sectionHeader) {
                 if let departures {
                     ForEach(departures, id: \.first?.id) { deps in
                         let departure = deps.count > 0 ? deps[0] : nil
                         let nextDeparture = deps.count > 1 ? deps[1] : nil
 
                         if let departure {
+                            let routeColor = getRouteColor(
+                                routeName: departure.route,
+                                routeId: departure.routeId,
+                                routeColor: departure.routeColor,
+                                availableRoutes: platform.routes
+                            )
                             ClosestStopPageListItemView(
                                 routeLabel: departure.route,
-                                routeLabelBackground: getRouteColor(
-                                    routeName: departure.route,
-                                    routeId: departure.routeId,
-                                    availableRoutes: platform.routes
-                                ),
+                                routeLabelBackground: routeColor,
                                 headsign: departure.headsign,
                                 departure: departure.departure.predicted,
                                 nextHeadsign: nextDeparture?.headsign,
@@ -61,6 +93,20 @@ struct PlatformDeparturesListView: View {
                                         )
                                     } label: {
                                         Label("Show route", systemImage: "map")
+                                    }
+
+                                    Button {
+                                        onShowAllDeparturesRequested?(
+                                            AllDeparturesRequest(
+                                                platform: platform,
+                                                routeFilter: AllDeparturesRequest.RouteFilter(
+                                                    routeId: routeId,
+                                                    headsign: departure.headsign
+                                                )
+                                            )
+                                        )
+                                    } label: {
+                                        Label("Show all departures", systemImage: "list.bullet.clipboard")
                                     }
 
                                     #if !targetEnvironment(macCatalyst)

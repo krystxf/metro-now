@@ -34,7 +34,7 @@ func annotationDotColor(for annotation: RailStopMapAnnotation) -> Color {
 }
 
 func colorHex(from color: Color) -> String {
-    let uiColor = UIColor(color)
+    let uiColor = color.resolvedUIColor()
     var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
     uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
     return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
@@ -81,7 +81,9 @@ func buildRoutePolylines(
     from routes: [ApiRouteDetail]
 ) -> [FlatRoutePolyline] {
     routes.flatMap { route in
-        let color = UIColor(getRouteColor(route)).withAlphaComponent(0.2)
+        let color = getRouteColor(route)
+            .resolvedUIColor()
+            .withAlphaComponent(0.2)
         return route.preferredMapShapes.map { shape in
             FlatRoutePolyline(
                 id: shape.id,

@@ -107,8 +107,29 @@ struct ApiPlatform: Codable {
     let latitude, longitude: Double
     let name: String
     let code: String?
+    let direction: String?
     let isMetro: Bool
     let routes: [ApiRoute]
+
+    init(
+        id: String,
+        latitude: Double,
+        longitude: Double,
+        name: String,
+        code: String?,
+        direction: String? = nil,
+        isMetro: Bool,
+        routes: [ApiRoute]
+    ) {
+        self.id = id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.name = name
+        self.code = code
+        self.direction = direction
+        self.isMetro = isMetro
+        self.routes = routes
+    }
 }
 
 struct ApiRoute: Codable {
@@ -283,6 +304,7 @@ struct ApiRoutePlatform: Identifiable, Decodable {
     let name: String
     let isMetro: Bool
     let code: String?
+    let direction: String?
 }
 
 extension ApiRoutePlatform {
@@ -415,6 +437,7 @@ struct ApiDeparture: Codable {
 
     let route: String
     let routeId: String?
+    let routeColor: String?
     let isRealtime: Bool?
 }
 
@@ -458,7 +481,15 @@ func buildPlatformDepartureGroups(
 
 private struct MetroDepartureGroupKey: Hashable {
     let routeLabel: String
-    let headsign: String
+    // `direction` comes from `Platform.direction` (the next stop along the
+    // trip, populated by the dataloader). Platforms serving the same
+    // direction — including short-run and long-run trains on the same
+    // platform — share a value and collapse into one row. Opposite
+    // directions always have distinct values in real data so they stay
+    // separate. At a terminus (no "next stop"), direction is `nil` and the
+    // platforms merge by route alone, which is the desired terminus
+    // behavior: one row summarizing the next outbound trains.
+    let direction: String?
 }
 
 func buildMetroDepartureRows(
@@ -484,18 +515,20 @@ func buildMetroDepartureRows(
 
             return platform.supports(departure)
         },
-        by: { departure in
-            MetroDepartureGroupKey(
+        by: { departure -> MetroDepartureGroupKey in
+            let platform = metroPlatformsById[departure.platformId]
+            let trimmed = platform?.direction?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let direction = (trimmed?.isEmpty ?? true) ? nil : trimmed
+            return MetroDepartureGroupKey(
                 routeLabel: departure.route,
-                headsign: departure.headsign.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
+                direction: direction
             )
         }
     )
 
-    return groupedDepartures.values
-        .compactMap { groupedDepartures -> MetroDepartureRow? in
+    return groupedDepartures
+        .compactMap { key, groupedDepartures -> MetroDepartureRow? in
             let sortedDepartures = groupedDepartures.sorted { left, right in
                 left.departure.predicted < right.departure.predicted
             }
@@ -515,7 +548,7 @@ func buildMetroDepartureRows(
                 ?? platform.routes.first?.backendRouteId
 
             return MetroDepartureRow(
-                id: "\(departure.route)|\(departure.headsign)",
+                id: "\(key.routeLabel)|\(key.direction ?? "")",
                 routeLabel: departure.route,
                 previewRouteId: previewRouteId,
                 headsign: departure.headsign,
@@ -527,7 +560,13 @@ func buildMetroDepartureRows(
             )
         }
         .sorted { left, right in
-            left.departure < right.departure
+            // Sort by line name first so rows don't reorder as minutes tick —
+            // metro headways are tight and a bouncing list is hard to scan.
+            // Headsign breaks ties between directions of the same line.
+            if left.routeLabel != right.routeLabel {
+                return left.routeLabel < right.routeLabel
+            }
+            return left.headsign < right.headsign
         }
 }
 

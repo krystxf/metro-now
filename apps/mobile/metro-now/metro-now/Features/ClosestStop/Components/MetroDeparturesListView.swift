@@ -7,6 +7,7 @@ struct MetroDeparturesListView: View {
     let closestStop: ApiStop
     let departures: [ApiDeparture]?
     let onRoutePreviewRequested: ((SheetIdItem) -> Void)?
+    var onShowAllDeparturesRequested: ((AllDeparturesRequest) -> Void)?
 
     private var placeholderPlatforms: [ApiPlatform] {
         closestStop.platforms.filter { platform in
@@ -21,15 +22,16 @@ struct MetroDeparturesListView: View {
                 departures: departures
             ) {
                 ForEach(departureRows) { departureRow in
+                    let routeColor = getRouteColor(
+                        routeName: departureRow.routeLabel,
+                        routeId: departureRow.previewRouteId,
+                        availableRoutes: closestStop.platforms
+                            .filter(\.isMetro)
+                            .flatMap(\.routes)
+                    )
                     ClosestStopPageListItemView(
                         routeLabel: departureRow.routeLabel,
-                        routeLabelBackground: getRouteColor(
-                            routeName: departureRow.routeLabel,
-                            routeId: departureRow.previewRouteId,
-                            availableRoutes: closestStop.platforms
-                                .filter(\.isMetro)
-                                .flatMap(\.routes)
-                        ),
+                        routeLabelBackground: routeColor,
                         headsign: departureRow.headsign,
                         departure: departureRow.departure,
                         nextHeadsign: departureRow.nextHeadsign,
@@ -48,6 +50,24 @@ struct MetroDeparturesListView: View {
                                 )
                             } label: {
                                 Label("Show route", systemImage: "map")
+                            }
+
+                            if let platform = closestStop.platforms.first(
+                                where: { $0.id == departureRow.platformId }
+                            ) {
+                                Button {
+                                    onShowAllDeparturesRequested?(
+                                        AllDeparturesRequest(
+                                            platform: platform,
+                                            routeFilter: AllDeparturesRequest.RouteFilter(
+                                                routeId: previewRouteId,
+                                                headsign: departureRow.headsign
+                                            )
+                                        )
+                                    )
+                                } label: {
+                                    Label("Show all departures", systemImage: "list.bullet.clipboard")
+                                }
                             }
 
                             #if !targetEnvironment(macCatalyst)
@@ -113,7 +133,8 @@ struct MetroDeparturesListView: View {
             MetroDeparturesListView(
                 closestStop: PreviewData.metroStop,
                 departures: PreviewData.departures,
-                onRoutePreviewRequested: nil
+                onRoutePreviewRequested: nil,
+                onShowAllDeparturesRequested: nil
             )
         }
     }

@@ -1,16 +1,13 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import MapKit
 import SwiftUI
 
 struct ClosestStopPageView: View {
-    @StateObject private var viewModel: ClosestStopPageViewModel
+    @ObservedObject private var viewModel: ClosestStopPageViewModel
     @State private var routePreviewItem: SheetIdItem?
+    @State private var allDeparturesRequest: AllDeparturesRequest?
     @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
-    @AppStorage(
-        AppStorageKeys.showMetroOnly.rawValue
-    ) var showMetroOnly = false
 
     private func handleRoutePreview(_ item: SheetIdItem) {
         if let sidebarRoutePreviewPresenter {
@@ -20,8 +17,8 @@ struct ClosestStopPageView: View {
         }
     }
 
-    init(viewModel: ClosestStopPageViewModel = ClosestStopPageViewModel()) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+    init(viewModel: ClosestStopPageViewModel) {
+        self.viewModel = viewModel
     }
 
     private var hasRealtimeData: Bool {
@@ -38,79 +35,43 @@ struct ClosestStopPageView: View {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
                             departures: viewModel.departures,
-                            onRoutePreviewRequested: handleRoutePreview
+                            onRoutePreviewRequested: handleRoutePreview,
+                            onShowAllDeparturesRequested: { allDeparturesRequest = $0 }
                         )
                     }
                 }
 
-                if showMetroOnly {
-                    Button("Show all public transport departures") {
-                        showMetroOnly.toggle()
-                    }
-                } else {
-                    if let closestStop = viewModel.closestStop {
-                        let platforms = closestStop.platforms
-                            .filter { platform in
-                                platform.routes.contains(where: {
-                                    let routeName = $0.name.uppercased()
-                                    let containsMetro = METRO_LINES.contains(routeName)
+                if let closestStop = viewModel.closestStop {
+                    let platforms = closestStop.platforms
+                        .filter { platform in
+                            platform.routes.contains(where: {
+                                let routeName = $0.name.uppercased()
+                                let containsMetro = METRO_LINES.contains(routeName)
 
-                                    return !containsMetro
-                                })
-                            }
-                            .sorted(by: {
-                                getPlatformLabel($0) < getPlatformLabel($1)
+                                return !containsMetro
                             })
-
-                        Map(interactionModes: [.zoom, .pan]) {
-                            ForEach(platforms, id: \.id) { platform in
-                                Annotation(
-                                    getPlatformLabel(platform),
-                                    coordinate: CLLocationCoordinate2D(
-                                        latitude: platform.latitude,
-                                        longitude: platform.longitude
-                                    )
-                                ) {
-                                    Text(platform.code ?? "")
-                                        .font(.system(size: 12))
-                                        .fontWeight(.bold)
-                                        .fontDesign(.rounded)
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, 4)
-                                        .frame(minWidth: 26)
-                                        .frame(height: 26)
-                                        .background(Rectangle().fill(.blue))
-                                        .clipShape(
-                                            .rect(cornerRadius: 6)
-                                        )
-                                }
-                            }
-
-                            UserAnnotation()
                         }
-                        .mapControls {
-                            MapUserLocationButton()
-                        }
-                        .mapStyle(
-                            .standard(
-                                elevation: .flat,
-                                pointsOfInterest: .excludingAll
-                            )
+                        .sorted(by: {
+                            getPlatformLabel($0) < getPlatformLabel($1)
+                        })
+
+                    ForEach(platforms, id: \.id) { platform in
+                        PlatformDeparturesListView(
+                            platform: platform,
+                            departures: viewModel.departures,
+                            onRoutePreviewRequested: handleRoutePreview,
+                            onShowAllDeparturesRequested: { allDeparturesRequest = $0 }
                         )
-                        .frame(height: 180)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-
-                        ForEach(platforms, id: \.id) { platform in
-                            PlatformDeparturesListView(
-                                platform: platform,
-                                departures: viewModel.departures,
-                                onRoutePreviewRequested: handleRoutePreview
-                            )
-                        }
                     }
                 }
+            }
+            .onAppear {
+                print(
+                    "[DeparturesPageView] showing departures list " +
+                        "closestStop=\(viewModel.closestStop?.id ?? "nil") " +
+                        "closestMetroStop=\(viewModel.closestMetroStop?.id ?? "nil") " +
+                        "departures=\(viewModel.departures?.count ?? 0)"
+                )
             }
             .navigationTitle("Departures")
             .accessibilityIdentifier("screen.departures")
@@ -139,8 +100,20 @@ struct ClosestStopPageView: View {
                 )
                 .presentationDetents([.medium, .large])
             }
+            .sheet(item: $allDeparturesRequest) { request in
+                AllDeparturesSheetView(request: request)
+                    .presentationDetents([.medium, .large])
+            }
         } else {
             ProgressView()
+                .onAppear {
+                    print(
+                        "[DeparturesPageView] showing loading spinner " +
+                            "location=\(viewModel.location != nil) " +
+                            "closestStop=\(viewModel.closestStop?.id ?? "nil") " +
+                            "closestMetroStop=\(viewModel.closestMetroStop?.id ?? "nil")"
+                    )
+                }
         }
     }
 }

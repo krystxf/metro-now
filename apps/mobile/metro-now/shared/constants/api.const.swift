@@ -4,8 +4,16 @@
 import Alamofire
 import Foundation
 
-let API_URL: String = "https://api.metronow.dev"
-/// let API_URL: String = "http://192.168.1.224:3009"
+let API_URL: String = {
+    guard let value = Bundle.main.object(forInfoDictionaryKey: "APIURL") as? String,
+          !value.isEmpty
+    else {
+        assertionFailure("APIURL not found in Info.plist. Add API_URL to Secrets.xcconfig.")
+        return ""
+    }
+    return value
+}()
+
 let GRAPHQL_URL: String = "\(API_URL)/graphql"
 
 let apiSession: Session = {

@@ -27,21 +27,14 @@ class FrequencyWidgetManager: NSObject, ObservableObject, CLLocationManagerDeleg
     }
 
     private func fetchMetroStops() {
-        let request = apiSession.request(
-            "\(API_URL)/v1/stop/all",
-            method: .get,
-            parameters: ["metroOnly": "true"]
-        )
-
-        request.validate().responseDecodable(of: [ApiStop].self) { response in
-            switch response.result {
-            case let .success(stops):
-                DispatchQueue.main.async {
-                    self.metroStops = stops
-                    self.updateClosestMetroStop()
-                }
-            case let .failure(error):
-                print("Failed to fetch metro stops: \(error)")
+        Task {
+            guard let stops = await fetchStopsWithCache(metroOnly: true) else {
+                print("Failed to fetch metro stops")
+                return
+            }
+            await MainActor.run {
+                self.metroStops = stops
+                self.updateClosestMetroStop()
             }
         }
     }

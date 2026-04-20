@@ -5,7 +5,7 @@ import SwiftUI
 
 struct InfotextsPageView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = InfotextsViewModel()
+    @EnvironmentObject private var viewModel: InfotextsViewModel
     let onClose: (() -> Void)?
 
     init(onClose: (() -> Void)? = nil) {
@@ -69,4 +69,5 @@ struct InfotextsPageView: View {
 
 #Preview {
     InfotextsPageView()
+        .environmentObject(InfotextsViewModel())
 }

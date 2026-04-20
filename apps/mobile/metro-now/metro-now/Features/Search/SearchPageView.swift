@@ -86,7 +86,8 @@ final class SearchStopsViewModel: ObservableObject {
                                     routes: platform.routes.map { route in
                                         ApiRoute(
                                             id: route.id,
-                                            name: route.name ?? route.id
+                                            name: route.name ?? route.id,
+                                            color: route.color
                                         )
                                     }
                                 )
@@ -243,7 +244,7 @@ struct SearchPageView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if normalizedSearchText.isEmpty {
-                    if let _ = nearbyStops, !filteredNearbyStops.isEmpty {
+                    if nearbyStops != nil, !filteredNearbyStops.isEmpty {
                         List {
                             Section(header: Text("Nearby")) {
                                 SearchPageResults(

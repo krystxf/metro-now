@@ -12,7 +12,7 @@ struct FavoritesPageView: View {
         guard let stops = stopsViewModel.stops else { return [] }
         return favoritesViewModel.favoriteStopIds.compactMap { id in
             stops.first { $0.id == id }
-        }
+        }.sorted { $0.name < $1.name }
     }
 
     private func openStopOnMap(_ stop: ApiStop) {
@@ -35,11 +35,7 @@ struct FavoritesPageView: View {
                         Button {
                             openStopOnMap(stop)
                         } label: {
-                            let routes = stop.platforms.flatMap(\.routes)
-                            SearchPageItemView(
-                                label: stop.name,
-                                routes: routes
-                            )
+                            FavoriteStopRowView(stop: stop)
                         }
                     }
                     .onDelete { indexSet in
