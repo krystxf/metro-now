@@ -17,6 +17,7 @@ enum Feed {
     PMDP
     USTI
     ZSR
+    BARCELONA
 }
 
 type RouteDirection {
