@@ -151,7 +151,6 @@ export interface GtfsTripTable {
     blockId: string | null;
     wheelchairAccessible: string | null;
     bikesAllowed: string | null;
-    rawData: Record<string, string>;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
@@ -168,7 +167,6 @@ export interface GtfsStopTimeTable {
     pickupType: string | null;
     dropOffType: string | null;
     timepoint: string | null;
-    rawData: Record<string, string>;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
@@ -186,7 +184,6 @@ export interface GtfsCalendarTable {
     sunday: boolean;
     startDate: string | null;
     endDate: string | null;
-    rawData: Record<string, string>;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
@@ -197,7 +194,6 @@ export interface GtfsCalendarDateTable {
     serviceId: string;
     date: string;
     exceptionType: number;
-    rawData: Record<string, string>;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
@@ -213,7 +209,6 @@ export interface GtfsTransferTable {
     toTripId: string | null;
     transferType: number | null;
     minTransferTime: number | null;
-    rawData: Record<string, string>;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
