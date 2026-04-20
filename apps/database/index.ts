@@ -213,6 +213,18 @@ export interface GtfsTransferTable {
     updatedAt: Generated<Date>;
 }
 
+export interface GtfsFrequencyTable {
+    id: string;
+    feedId: GtfsFeedId;
+    tripId: string;
+    startTime: string;
+    endTime: string;
+    headwaySecs: number;
+    exactTimes: number;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
+}
+
 export interface LogTable {
     id: Generated<number>;
     service: string;
@@ -250,6 +262,7 @@ export interface MetroNowDatabase {
     GtfsCalendar: GtfsCalendarTable;
     GtfsCalendarDate: GtfsCalendarDateTable;
     GtfsTransfer: GtfsTransferTable;
+    GtfsFrequency: GtfsFrequencyTable;
     Log: LogTable;
     RequestLog: RequestLogTable;
 }
@@ -270,6 +283,7 @@ export type GtfsStopTime = Selectable<GtfsStopTimeTable>;
 export type GtfsCalendar = Selectable<GtfsCalendarTable>;
 export type GtfsCalendarDate = Selectable<GtfsCalendarDateTable>;
 export type GtfsTransfer = Selectable<GtfsTransferTable>;
+export type GtfsFrequency = Selectable<GtfsFrequencyTable>;
 export type Log = Selectable<LogTable>;
 export type RequestLog = Selectable<RequestLogTable>;
 
@@ -290,5 +304,6 @@ export type NewGtfsStopTime = Insertable<GtfsStopTimeTable>;
 export type NewGtfsCalendar = Insertable<GtfsCalendarTable>;
 export type NewGtfsCalendarDate = Insertable<GtfsCalendarDateTable>;
 export type NewGtfsTransfer = Insertable<GtfsTransferTable>;
+export type NewGtfsFrequency = Insertable<GtfsFrequencyTable>;
 export type NewLog = Insertable<LogTable>;
 export type NewRequestLog = Insertable<RequestLogTable>;
