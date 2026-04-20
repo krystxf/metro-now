@@ -37,6 +37,7 @@ export const GtfsFeedId = {
     PMDP: "PMDP",
     USTI: "USTI",
     ZSR: "ZSR",
+    BARCELONA: "BARCELONA",
 } as const;
 
 export type GtfsFeedId = (typeof GtfsFeedId)[keyof typeof GtfsFeedId];

@@ -34,6 +34,10 @@ const runMigrations = async (direction: "up" | "down"): Promise<void> => {
             path,
             migrationFolder: path.join(__dirname, "migrations"),
         }),
+        // Kysely wraps all pending migrations in one transaction by default.
+        // That prevents enum values added via ALTER TYPE ADD VALUE from being
+        // used in later migrations within the same run (Postgres error 55P04).
+        disableTransactions: true,
     });
 
     const { error, results } =
