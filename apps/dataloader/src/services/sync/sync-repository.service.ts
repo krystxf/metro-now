@@ -191,6 +191,10 @@ export class SyncRepository {
             changed.add("platforms");
         }
 
+        if (await this.recomputePlatformDirections(transaction)) {
+            changed.add("platforms");
+        }
+
         if (await this.deleteStaleRoutes(transaction, snapshot.routes)) {
             changed.add("routes");
         }
@@ -1164,6 +1168,56 @@ export class SyncRepository {
         );
 
         return staleEntrances.length > 0;
+    }
+
+    private async recomputePlatformDirections(
+        transaction: DatabaseTransaction,
+    ): Promise<boolean> {
+        const updatedResult = await sql<{ id: string }>`
+            UPDATE "Platform" p
+            SET "direction" = bd.next_stop_name,
+                "updatedAt" = now()
+            FROM (
+                SELECT DISTINCT ON (o.platform_id)
+                    o.platform_id,
+                    s."name" AS next_stop_name
+                FROM (
+                    SELECT
+                        st."platformId" AS platform_id,
+                        st."stopId" AS current_platform_id,
+                        LEAD(st."stopId") OVER (
+                            PARTITION BY st."feedId", st."tripId"
+                            ORDER BY st."stopSequence"
+                        ) AS next_platform_id
+                    FROM "GtfsStopTime" st
+                    WHERE st."platformId" IS NOT NULL
+                ) o
+                JOIN "Platform" next_p ON next_p."id" = o.next_platform_id
+                JOIN "Stop" s ON s."id" = next_p."stopId"
+                WHERE o.next_platform_id IS NOT NULL
+                  AND o.next_platform_id <> o.current_platform_id
+                GROUP BY o.platform_id, s."name"
+                ORDER BY o.platform_id, COUNT(*) DESC, s."name" ASC
+            ) bd
+            WHERE p."id" = bd.platform_id
+              AND p."direction" IS DISTINCT FROM bd.next_stop_name
+            RETURNING p."id"
+        `.execute(transaction);
+
+        const clearedResult = await sql<{ id: string }>`
+            UPDATE "Platform" p
+            SET "direction" = NULL,
+                "updatedAt" = now()
+            WHERE p."direction" IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "GtfsStopTime" st
+                WHERE st."platformId" = p."id"
+              )
+            RETURNING p."id"
+        `.execute(transaction);
+
+        return updatedResult.rows.length > 0 || clearedResult.rows.length > 0;
     }
 
     private async selectIds(
