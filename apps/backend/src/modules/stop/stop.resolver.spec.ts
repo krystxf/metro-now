@@ -1,9 +1,34 @@
+import type { GraphQLResolveInfo } from "graphql";
 import type { PlatformsByStopLoader } from "src/modules/dataloader/platforms-by-stop.loader";
 import {
     StopResolver,
     StopWithDistanceResolver,
 } from "src/modules/stop/stop.resolver";
 import type { StopService } from "src/modules/stop/stop.service";
+
+const createInfo = (fieldNames: string[]): GraphQLResolveInfo =>
+    ({
+        fieldNodes: [
+            {
+                kind: "Field",
+                name: {
+                    kind: "Name",
+                    value: "stops",
+                },
+                selectionSet: {
+                    kind: "SelectionSet",
+                    selections: fieldNames.map((fieldName) => ({
+                        kind: "Field",
+                        name: {
+                            kind: "Name",
+                            value: fieldName,
+                        },
+                    })),
+                },
+            },
+        ],
+        fragments: {},
+    }) as unknown as GraphQLResolveInfo;
 
 const createMocks = () => {
     const stopService = {
@@ -38,13 +63,20 @@ describe("StopResolver", () => {
                 avgLongitude: 14.42,
                 platforms: [],
                 entrances: [],
+                isMetro: false,
+                vehicleTypes: [],
             };
 
             stopService.getGraphQLByIds.mockResolvedValue([stop]);
 
             const result = await resolver.getOne("U1072");
 
-            expect(stopService.getGraphQLByIds).toHaveBeenCalledWith(["U1072"]);
+            expect(stopService.getGraphQLByIds).toHaveBeenCalledWith(
+                ["U1072"],
+                {
+                    hydrateFields: true,
+                },
+            );
             expect(result).toEqual(stop);
         });
 
@@ -71,6 +103,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14.42,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
             ];
 
@@ -82,7 +116,12 @@ describe("StopResolver", () => {
                 undefined,
             );
 
-            expect(stopService.getGraphQLByIds).toHaveBeenCalledWith(["U1072"]);
+            expect(stopService.getGraphQLByIds).toHaveBeenCalledWith(
+                ["U1072"],
+                {
+                    hydrateFields: true,
+                },
+            );
             expect(result).toEqual(stops);
         });
 
@@ -97,6 +136,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
                 {
                     id: "S2",
@@ -106,6 +147,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14.1,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
                 {
                     id: "S3",
@@ -115,6 +158,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14.2,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
             ];
 
@@ -136,6 +181,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
             ];
 
@@ -144,6 +191,7 @@ describe("StopResolver", () => {
             const result = await resolver.getMultiple(undefined, 10, undefined);
 
             expect(stopService.getAllGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 limit: 10,
             });
             expect(result).toEqual(stops);
@@ -158,6 +206,24 @@ describe("StopResolver", () => {
 
             expect(stopService.getAllGraphQL).toHaveBeenCalled();
             expect(stopService.getGraphQLByIds).not.toHaveBeenCalled();
+        });
+
+        it("skips stop hydration when only base fields are requested", async () => {
+            const { resolver, stopService } = createMocks();
+
+            stopService.getAllGraphQL.mockResolvedValue([]);
+
+            await resolver.getMultiple(
+                undefined,
+                10,
+                undefined,
+                createInfo(["id", "name"]),
+            );
+
+            expect(stopService.getAllGraphQL).toHaveBeenCalledWith({
+                hydrateFields: false,
+                limit: 10,
+            });
         });
     });
 
@@ -190,6 +256,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14.42,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                 },
             ];
 
@@ -204,6 +272,7 @@ describe("StopResolver", () => {
             );
 
             expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 query: "václav",
                 limit: 10,
                 offset: 5,
@@ -218,6 +287,7 @@ describe("StopResolver", () => {
             await resolver.search("václav", undefined, undefined, 50.08, 14.42);
 
             expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 query: "václav",
                 latitude: 50.08,
                 longitude: 14.42,
@@ -237,6 +307,7 @@ describe("StopResolver", () => {
             );
 
             expect(stopService.searchGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 query: "václav",
             });
         });
@@ -254,6 +325,8 @@ describe("StopResolver", () => {
                     avgLongitude: 14.42,
                     platforms: [],
                     entrances: [],
+                    isMetro: false,
+                    vehicleTypes: [],
                     distance: 120,
                 },
             ];
@@ -263,6 +336,7 @@ describe("StopResolver", () => {
             const result = await resolver.getClosest(50.08, 14.42, 10);
 
             expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 latitude: 50.08,
                 longitude: 14.42,
                 limit: 10,
@@ -277,6 +351,7 @@ describe("StopResolver", () => {
             await resolver.getClosest(50, 14, undefined);
 
             expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 latitude: 50,
                 longitude: 14,
                 limit: 100,
@@ -290,6 +365,7 @@ describe("StopResolver", () => {
             await resolver.getClosest(50, 14, 500);
 
             expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 latitude: 50,
                 longitude: 14,
                 limit: 100,
@@ -303,6 +379,7 @@ describe("StopResolver", () => {
             await resolver.getClosest(50, 14, 0);
 
             expect(stopService.getClosestStopsGraphQL).toHaveBeenCalledWith({
+                hydrateFields: true,
                 latitude: 50,
                 longitude: 14,
                 limit: 1,

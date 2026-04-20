@@ -13,6 +13,16 @@ type Stop {
     avgLongitude: Float!
     entrances: [StopEntrance!]!
     platforms: [Platform!]!
+    """
+    True if any platform at this stop is a metro/subway platform.
+    Pre-computed so map clients don't need to fetch platforms.
+    """
+    isMetro: Boolean!
+    """
+    Distinct vehicle types across all routes serving this stop.
+    Pre-computed so map clients don't need to fetch platforms/routes.
+    """
+    vehicleTypes: [VehicleType!]!
 }
 
 type StopWithDistance {
@@ -23,6 +33,8 @@ type StopWithDistance {
     avgLongitude: Float!
     entrances: [StopEntrance!]!
     platforms: [Platform!]!
+    isMetro: Boolean!
+    vehicleTypes: [VehicleType!]!
     distance: Float!
 }
 

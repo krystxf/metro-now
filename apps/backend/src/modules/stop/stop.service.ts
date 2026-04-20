@@ -1,4 +1,5 @@
 import type {
+    VehicleType as DatabaseVehicleType,
     GtfsFeedId,
     GtfsStationEntrance,
     Platform,
@@ -16,6 +17,7 @@ import {
 } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { METRO_LINES, TRAIN_PREFIXES } from "src/modules/route/route.const";
+import { VehicleType } from "src/types/graphql.generated";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
 type StopRecordBase = Pick<
@@ -25,11 +27,19 @@ type StopRecordBase = Pick<
 
 type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
     color: string | null;
+    vehicleType: DatabaseVehicleType | null;
 };
 
 type StopPlatformRecord = Pick<
     Platform,
-    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name" | "stopId"
+    | "code"
+    | "direction"
+    | "id"
+    | "isMetro"
+    | "latitude"
+    | "longitude"
+    | "name"
+    | "stopId"
 > & {
     routes: PlatformRouteRecord[];
 };
@@ -44,16 +54,53 @@ type StopRecord = StopRecordBase & {
     platforms: StopPlatformRecord[];
 };
 
-type StopGraphQLPlatformRecord = Pick<Platform, "id">;
+type StopGraphQLPlatformRecord = Pick<Platform, "id"> &
+    Partial<
+        Pick<
+            Platform,
+            | "code"
+            | "direction"
+            | "isMetro"
+            | "latitude"
+            | "longitude"
+            | "name"
+            | "stopId"
+        >
+    > & {
+        routes?: PlatformRouteRecord[];
+    };
 
 type StopGraphQLRecord = StopRecordBase & {
     entrances: StopEntranceRecord[];
     platforms: StopGraphQLPlatformRecord[];
+    isMetro: boolean;
+    vehicleTypes: VehicleType[];
 };
 
 type StopWithDistanceGraphQLRecord = StopGraphQLRecord & {
     distance: number;
 };
+
+type StopGraphQLQueryOptions = {
+    hydrateFields?: boolean;
+};
+
+const DATABASE_VEHICLE_TYPE_TO_GRAPHQL: Record<
+    DatabaseVehicleType,
+    VehicleType
+> = {
+    BUS: VehicleType.BUS,
+    FERRY: VehicleType.FERRY,
+    FUNICULAR: VehicleType.FUNICULAR,
+    METRO: VehicleType.SUBWAY,
+    TRAIN: VehicleType.TRAIN,
+    TRAM: VehicleType.TRAM,
+};
+
+const toGraphqlVehicleType = (
+    value: DatabaseVehicleType | null | undefined,
+): VehicleType | null =>
+    value ? (DATABASE_VEHICLE_TYPE_TO_GRAPHQL[value] ?? null) : null;
 
 type SearchableStopTerm = {
     normalizedTokens: string[];
@@ -90,6 +137,42 @@ const tokenizeStopSearchValue = (value: string): string[] =>
 
 const normalizeStopSearchValue = (value: string): string =>
     tokenizeStopSearchValue(value).join("");
+
+const toLightGraphQLStop = (stop: StopRecordBase): StopGraphQLRecord => ({
+    ...stop,
+    entrances: [],
+    platforms: [],
+    isMetro: false,
+    vehicleTypes: [],
+});
+
+const toLightGraphQLStops = (
+    stops: readonly StopRecordBase[],
+): StopGraphQLRecord[] => stops.map(toLightGraphQLStop);
+
+const getStopAggregateFromPlatforms = (
+    platforms: readonly StopPlatformRecord[],
+): {
+    isMetro: boolean;
+    vehicleTypes: VehicleType[];
+} => {
+    const vehicleTypes = new Set<VehicleType>();
+
+    for (const platform of platforms) {
+        for (const route of platform.routes) {
+            const mappedVehicleType = toGraphqlVehicleType(route.vehicleType);
+
+            if (mappedVehicleType) {
+                vehicleTypes.add(mappedVehicleType);
+            }
+        }
+    }
+
+    return {
+        isMetro: platforms.some((platform) => platform.isMetro),
+        vehicleTypes: Array.from(vehicleTypes).sort(),
+    };
+};
 
 const squaredGeoDistance = (
     latA: number,
@@ -522,6 +605,7 @@ export class StopService {
                 "Route.id as routeId",
                 "Route.name as routeName",
                 "GtfsRoute.color as routeColor",
+                "Route.vehicleType as routeVehicleType",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
@@ -533,6 +617,7 @@ export class StopService {
                 id: row.routeId,
                 name: row.routeName,
                 color: row.routeColor ?? null,
+                vehicleType: row.routeVehicleType ?? null,
             });
         }
 
@@ -566,6 +651,7 @@ export class StopService {
                 "isMetro",
                 "stopId",
                 "code",
+                "direction",
             ])
             .where("stopId", "in", [...stopIds])
             .orderBy("stopId", "asc")
@@ -642,38 +728,6 @@ export class StopService {
         );
     }
 
-    private async loadStopGraphQLPlatformIdsByStopIds(
-        stopIds: readonly string[],
-    ): Promise<Map<string, StopGraphQLPlatformRecord[]>> {
-        const platformsByStopId = new Map<string, StopGraphQLPlatformRecord[]>(
-            stopIds.map((stopId) => [stopId, []]),
-        );
-
-        if (stopIds.length === 0) {
-            return platformsByStopId;
-        }
-
-        const rows = await this.database.db
-            .selectFrom("Platform")
-            .select(["id", "stopId"])
-            .where("stopId", "in", [...stopIds])
-            .orderBy("stopId", "asc")
-            .orderBy("id", "asc")
-            .execute();
-
-        for (const row of rows) {
-            if (!row.stopId) {
-                continue;
-            }
-
-            platformsByStopId.get(row.stopId)?.push({
-                id: row.id,
-            });
-        }
-
-        return platformsByStopId;
-    }
-
     private async loadStopEntrancesByStopIds(
         stopIds: readonly string[],
     ): Promise<Map<string, StopEntranceRecord[]>> {
@@ -707,11 +761,15 @@ export class StopService {
 
     private async loadGraphQLStopsByIds(
         ids: readonly string[],
+        options: StopGraphQLQueryOptions = {},
     ): Promise<Map<string, StopGraphQLRecord | null>> {
         const stops = await this.loadStopRows({
             ids,
         });
-        const hydratedStops = await this.hydrateGraphQLStops(stops);
+        const hydratedStops =
+            options.hydrateFields === false
+                ? toLightGraphQLStops(stops)
+                : await this.hydrateGraphQLStops(stops);
         const stopsById = new Map<string, StopGraphQLRecord | null>(
             hydratedStops.map((stop) => [stop.id, stop]),
         );
@@ -728,19 +786,26 @@ export class StopService {
     private async hydrateGraphQLStops(
         stops: readonly StopRecordBase[],
     ): Promise<StopGraphQLRecord[]> {
-        const platformIdsByStopId =
-            await this.loadStopGraphQLPlatformIdsByStopIds(
-                stops.map((stop) => stop.id),
-            );
-        const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-            stops.map((stop) => stop.id),
-        );
+        const stopIds = stops.map((stop) => stop.id);
+        const [platformsByStopId, entrancesByStopId] = await Promise.all([
+            this.loadPlatformsByStopIds({
+                stopIds,
+            }),
+            this.loadStopEntrancesByStopIds(stopIds),
+        ]);
 
-        return stops.map((stop) => ({
-            ...stop,
-            entrances: entrancesByStopId.get(stop.id) ?? [],
-            platforms: platformIdsByStopId.get(stop.id) ?? [],
-        }));
+        return stops.map((stop) => {
+            const platforms = platformsByStopId.get(stop.id) ?? [];
+            const aggregate = getStopAggregateFromPlatforms(platforms);
+
+            return {
+                ...stop,
+                entrances: entrancesByStopId.get(stop.id) ?? [],
+                platforms,
+                isMetro: aggregate.isMetro,
+                vehicleTypes: aggregate.vehicleTypes,
+            };
+        });
     }
 
     async getDataLastUpdatedAt(): Promise<string | null> {
@@ -874,10 +939,21 @@ export class StopService {
     async getAllGraphQL({
         limit,
         offset,
+        hydrateFields,
     }: {
         limit?: number;
         offset?: number;
+        hydrateFields?: boolean;
     }): Promise<StopGraphQLRecord[]> {
+        if (hydrateFields === false) {
+            const stops = await this.loadStopRows({
+                ...(typeof limit === "number" ? { limit } : {}),
+                ...(typeof offset === "number" ? { offset } : {}),
+            });
+
+            return toLightGraphQLStops(stops);
+        }
+
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.getAllGraphQL({
                 limit,
@@ -901,12 +977,14 @@ export class StopService {
         offset,
         latitude,
         longitude,
+        hydrateFields,
     }: {
         query: string;
         limit?: number;
         offset?: number;
         latitude?: number;
         longitude?: number;
+        hydrateFields?: boolean;
     }): Promise<StopGraphQLRecord[]> {
         const normalizedQuery = normalizeStopSearchValue(query);
 
@@ -919,100 +997,131 @@ export class StopService {
                 ? { latitude, longitude }
                 : undefined;
 
+        // Quantize coords to ~11m precision so GPS jitter doesn't thrash the cache.
+        const cacheOrigin = origin
+            ? {
+                  latitude: Math.round(origin.latitude * 10000) / 10000,
+                  longitude: Math.round(origin.longitude * 10000) / 10000,
+              }
+            : undefined;
+
+        const loadSearchResults = async (): Promise<StopGraphQLRecord[]> => {
+            const matchingStops = (await this.loadSearchableStopRows())
+                .flatMap((stop) => {
+                    const score = getStopSearchMatchScore({
+                        normalizedQuery,
+                        searchableStop: stop,
+                    });
+
+                    return score ? [{ score, stop }] : [];
+                })
+                .sort((left, right) => {
+                    const matchQualityOrder = compareStopSearchMatchQuality(
+                        left.score,
+                        right.score,
+                    );
+
+                    if (matchQualityOrder !== 0) {
+                        return matchQualityOrder;
+                    }
+
+                    if (left.stop.hasMetro !== right.stop.hasMetro) {
+                        return left.stop.hasMetro ? -1 : 1;
+                    }
+
+                    const scoreOrder = compareStopSearchMatchScores(
+                        left.score,
+                        right.score,
+                    );
+
+                    if (scoreOrder !== 0) {
+                        return scoreOrder;
+                    }
+
+                    const nameOrder =
+                        left.stop.normalizedStopName.localeCompare(
+                            right.stop.normalizedStopName,
+                        );
+
+                    if (nameOrder !== 0) {
+                        return nameOrder;
+                    }
+
+                    if (origin) {
+                        const leftDistance = squaredGeoDistance(
+                            left.stop.avgLatitude,
+                            left.stop.avgLongitude,
+                            origin.latitude,
+                            origin.longitude,
+                        );
+                        const rightDistance = squaredGeoDistance(
+                            right.stop.avgLatitude,
+                            right.stop.avgLongitude,
+                            origin.latitude,
+                            origin.longitude,
+                        );
+
+                        if (leftDistance !== rightDistance) {
+                            return leftDistance - rightDistance;
+                        }
+                    }
+
+                    return left.stop.id.localeCompare(right.stop.id);
+                })
+                .map(({ stop }) => stop);
+            const normalizedOffset = offset ?? 0;
+            const end =
+                typeof limit === "number"
+                    ? normalizedOffset + limit
+                    : undefined;
+            const pagedStops = matchingStops.slice(normalizedOffset, end);
+
+            return hydrateFields === false
+                ? toLightGraphQLStops(pagedStops)
+                : this.hydrateGraphQLStops(pagedStops);
+        };
+
+        if (hydrateFields === false) {
+            return loadSearchResults();
+        }
+
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.searchGraphQL({
                 query: normalizedQuery,
                 limit,
                 offset,
-                ...origin,
+                ...cacheOrigin,
             }),
-            async () => {
-                const matchingStops = (await this.loadSearchableStopRows())
-                    .flatMap((stop) => {
-                        const score = getStopSearchMatchScore({
-                            normalizedQuery,
-                            searchableStop: stop,
-                        });
-
-                        return score ? [{ score, stop }] : [];
-                    })
-                    .sort((left, right) => {
-                        const matchQualityOrder = compareStopSearchMatchQuality(
-                            left.score,
-                            right.score,
-                        );
-
-                        if (matchQualityOrder !== 0) {
-                            return matchQualityOrder;
-                        }
-
-                        if (left.stop.hasMetro !== right.stop.hasMetro) {
-                            return left.stop.hasMetro ? -1 : 1;
-                        }
-
-                        const scoreOrder = compareStopSearchMatchScores(
-                            left.score,
-                            right.score,
-                        );
-
-                        if (scoreOrder !== 0) {
-                            return scoreOrder;
-                        }
-
-                        const nameOrder =
-                            left.stop.normalizedStopName.localeCompare(
-                                right.stop.normalizedStopName,
-                            );
-
-                        if (nameOrder !== 0) {
-                            return nameOrder;
-                        }
-
-                        if (origin) {
-                            const leftDistance = squaredGeoDistance(
-                                left.stop.avgLatitude,
-                                left.stop.avgLongitude,
-                                origin.latitude,
-                                origin.longitude,
-                            );
-                            const rightDistance = squaredGeoDistance(
-                                right.stop.avgLatitude,
-                                right.stop.avgLongitude,
-                                origin.latitude,
-                                origin.longitude,
-                            );
-
-                            if (leftDistance !== rightDistance) {
-                                return leftDistance - rightDistance;
-                            }
-                        }
-
-                        return left.stop.id.localeCompare(right.stop.id);
-                    })
-                    .map(({ stop }) => stop);
-                const normalizedOffset = offset ?? 0;
-                const end =
-                    typeof limit === "number"
-                        ? normalizedOffset + limit
-                        : undefined;
-
-                return this.hydrateGraphQLStops(
-                    matchingStops.slice(normalizedOffset, end),
-                );
-            },
+            loadSearchResults,
             STOP_DATA_CACHE_TTL_MS,
         );
     }
 
     async getGraphQLByIds(
         ids: readonly string[],
+        options: StopGraphQLQueryOptions = {},
     ): Promise<StopGraphQLRecord[]> {
+        if (options.hydrateFields === false) {
+            const stops = await this.loadStopRows({
+                ids,
+            });
+            const lightStopsById = new Map(
+                toLightGraphQLStops(stops).map((stop) => [stop.id, stop]),
+            );
+
+            return Array.from(new Set(ids))
+                .map((id) => lightStopsById.get(id))
+                .filter(
+                    (stop): stop is StopGraphQLRecord => stop !== undefined,
+                );
+        }
+
         const stopsById = await loadCachedBatch({
             cacheManager: this.cacheManager,
             getCacheKey: CACHE_KEYS.stop.getGraphQLById,
             keys: ids,
             loadMissing: async (missingIds) =>
-                this.loadGraphQLStopsByIds(missingIds),
+                this.loadGraphQLStopsByIds(missingIds, options),
             ttlMs: STOP_DATA_CACHE_TTL_MS,
         });
 
@@ -1025,10 +1134,12 @@ export class StopService {
         latitude,
         longitude,
         limit,
+        hydrateFields,
     }: {
         latitude: number;
         longitude: number;
         limit: number;
+        hydrateFields?: boolean;
     }): Promise<StopWithDistanceGraphQLRecord[]> {
         const result = await sql<{ distance: number; id: string }>`
             SELECT
@@ -1038,7 +1149,8 @@ export class StopService {
                     ll_to_earth(${latitude}, ${longitude})
                 ) AS "distance"
             FROM "Stop"
-            ORDER BY "distance"
+            ORDER BY ll_to_earth("Stop"."avgLatitude", "Stop"."avgLongitude")
+                <-> ll_to_earth(${latitude}, ${longitude})
             LIMIT ${limit}
         `.execute(this.database.db);
 
@@ -1046,7 +1158,22 @@ export class StopService {
         const distanceById = new Map(
             result.rows.map(({ id, distance }) => [id, distance]),
         );
-        const stopsById = await this.loadGraphQLStopsByIds(orderedIds);
+        const stops =
+            hydrateFields === false
+                ? toLightGraphQLStops(
+                      await this.loadStopRows({
+                          ids: orderedIds,
+                      }),
+                  )
+                : await this.getGraphQLByIds(
+                      orderedIds,
+                      hydrateFields === undefined
+                          ? {}
+                          : {
+                                hydrateFields,
+                            },
+                  );
+        const stopsById = new Map(stops.map((stop) => [stop.id, stop]));
 
         return orderedIds.flatMap((id) => {
             const stop = stopsById.get(id);
