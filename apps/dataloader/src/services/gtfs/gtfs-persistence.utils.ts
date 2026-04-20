@@ -99,18 +99,6 @@ const toRequiredBinaryFlag = (
     throw new Error(`Invalid GTFS binary flag '${key}' with value '${value}'`);
 };
 
-const normalizeRawRow = (
-    row: Record<string, string>,
-): Record<string, string> => {
-    for (const key of Object.keys(row)) {
-        if (row[key] === undefined) {
-            row[key] = "";
-        }
-    }
-
-    return row;
-};
-
 const toStableHash = (parts: Array<string | number | null>): string => {
     const normalized = parts.map((part) => String(part ?? "")).join("\u001f");
 
@@ -155,7 +143,6 @@ export const buildGtfsPersistenceSnapshot = ({
             blockId: toOptionalString(row.block_id),
             wheelchairAccessible: toOptionalString(row.wheelchair_accessible),
             bikesAllowed: toOptionalString(row.bikes_allowed),
-            rawData: normalizeRawRow(row),
         };
     });
 
@@ -179,7 +166,6 @@ export const buildGtfsPersistenceSnapshot = ({
             pickupType: toOptionalString(row.pickup_type),
             dropOffType: toOptionalString(row.drop_off_type),
             timepoint: toOptionalString(row.timepoint),
-            rawData: normalizeRawRow(row),
         };
     });
 
@@ -201,7 +187,6 @@ export const buildGtfsPersistenceSnapshot = ({
             sunday: toRequiredBinaryFlag(row, "sunday", context),
             startDate: toOptionalString(row.start_date),
             endDate: toOptionalString(row.end_date),
-            rawData: normalizeRawRow(row),
         };
     });
 
@@ -218,7 +203,6 @@ export const buildGtfsPersistenceSnapshot = ({
             serviceId,
             date,
             exceptionType,
-            rawData: normalizeRawRow(row),
         };
     });
 
@@ -267,7 +251,6 @@ export const buildGtfsPersistenceSnapshot = ({
             toTripId,
             transferType,
             minTransferTime,
-            rawData: normalizeRawRow(row),
         };
     });
 

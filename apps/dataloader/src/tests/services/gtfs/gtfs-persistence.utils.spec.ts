@@ -37,17 +37,6 @@ test("buildGtfsPersistenceSnapshot parses trips with all optional fields", () =>
         blockId: "B1",
         wheelchairAccessible: "1",
         bikesAllowed: "2",
-        rawData: {
-            trip_id: "T1",
-            route_id: "R1",
-            service_id: "S1",
-            direction_id: "0",
-            shape_id: "SH1",
-            trip_headsign: "Terminus",
-            block_id: "B1",
-            wheelchair_accessible: "1",
-            bikes_allowed: "2",
-        },
     });
 });
 
@@ -320,20 +309,4 @@ test("buildGtfsPersistenceSnapshot generates stable transfer IDs", () => {
     const second = build();
 
     assert.equal(first.gtfsTransfers[0]?.id, second.gtfsTransfers[0]?.id);
-});
-
-test("buildGtfsPersistenceSnapshot normalizes undefined row values to empty strings in rawData", () => {
-    const result = buildGtfsPersistenceSnapshot({
-        feedId: GtfsFeedId.PID,
-        trips: [
-            {
-                trip_id: "T1",
-                route_id: "R1",
-                direction_id: undefined as unknown as string,
-            },
-        ],
-        stopTimes: [],
-    });
-
-    assert.equal(result.gtfsTrips[0]?.rawData.direction_id, "");
 });

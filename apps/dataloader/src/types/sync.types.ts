@@ -88,7 +88,6 @@ export type SyncedGtfsTrip = {
     blockId: string | null;
     wheelchairAccessible: string | null;
     bikesAllowed: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsStopTime = {
@@ -103,7 +102,6 @@ export type SyncedGtfsStopTime = {
     pickupType: string | null;
     dropOffType: string | null;
     timepoint: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsCalendar = {
@@ -119,7 +117,6 @@ export type SyncedGtfsCalendar = {
     sunday: boolean;
     startDate: string | null;
     endDate: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsCalendarDate = {
@@ -128,7 +125,6 @@ export type SyncedGtfsCalendarDate = {
     serviceId: string;
     date: string;
     exceptionType: number;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsTransfer = {
@@ -142,7 +138,6 @@ export type SyncedGtfsTransfer = {
     toTripId: string | null;
     transferType: number | null;
     minTransferTime: number | null;
-    rawData: Record<string, string>;
 };
 
 export type StopSnapshot = {

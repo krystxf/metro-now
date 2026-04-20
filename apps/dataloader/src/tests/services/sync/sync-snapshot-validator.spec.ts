@@ -103,10 +103,6 @@ const createSnapshot = (): SyncSnapshot => ({
             blockId: null,
             wheelchairAccessible: null,
             bikesAllowed: null,
-            rawData: {
-                trip_id: "T1",
-                route_id: "L1",
-            },
         },
     ],
     gtfsStopTimes: [
@@ -122,11 +118,6 @@ const createSnapshot = (): SyncSnapshot => ({
             pickupType: null,
             dropOffType: null,
             timepoint: null,
-            rawData: {
-                trip_id: "T1",
-                stop_id: "P1",
-                stop_sequence: "1",
-            },
         },
     ],
     gtfsCalendars: [
@@ -143,9 +134,6 @@ const createSnapshot = (): SyncSnapshot => ({
             sunday: false,
             startDate: "20260101",
             endDate: "20261231",
-            rawData: {
-                service_id: "S1",
-            },
         },
     ],
     gtfsCalendarDates: [
@@ -155,11 +143,6 @@ const createSnapshot = (): SyncSnapshot => ({
             serviceId: "S1",
             date: "20260101",
             exceptionType: 1,
-            rawData: {
-                service_id: "S1",
-                date: "20260101",
-                exception_type: "1",
-            },
         },
     ],
     gtfsTransfers: [],

@@ -782,7 +782,6 @@ export class SyncRepository {
                     blockId: trip.blockId,
                     wheelchairAccessible: trip.wheelchairAccessible,
                     bikesAllowed: trip.bikesAllowed,
-                    rawData: trip.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -824,7 +823,6 @@ export class SyncRepository {
                     pickupType: stopTime.pickupType,
                     dropOffType: stopTime.dropOffType,
                     timepoint: stopTime.timepoint,
-                    rawData: stopTime.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -867,7 +865,6 @@ export class SyncRepository {
                     sunday: calendar.sunday,
                     startDate: calendar.startDate,
                     endDate: calendar.endDate,
-                    rawData: calendar.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -904,7 +901,6 @@ export class SyncRepository {
                         serviceId: calendarDate.serviceId,
                         date: calendarDate.date,
                         exceptionType: calendarDate.exceptionType,
-                        rawData: calendarDate.rawData,
                         createdAt: timestamp,
                         updatedAt: timestamp,
                     }),
@@ -946,7 +942,6 @@ export class SyncRepository {
                     toTripId: transfer.toTripId,
                     transferType: transfer.transferType,
                     minTransferTime: transfer.minTransferTime,
-                    rawData: transfer.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
