@@ -314,6 +314,33 @@ const classifyBratislavaRoute = ({
     };
 };
 
+const classifyBarcelonaRoute = ({
+    routeName,
+    gtfsVehicleType,
+    isSubstitute,
+}: {
+    routeName: string;
+    gtfsVehicleType: ClassifiedVehicleType | null;
+    isSubstitute: boolean;
+}): RouteClassification => {
+    const baseRouteName = stripLeadingSubstitutePrefix(routeName);
+    const isNight = /^N\d+$/.test(baseRouteName);
+
+    if (isNight) {
+        return {
+            vehicleType: ClassifiedVehicleType.BUS,
+            isNight: true,
+            isSubstitute,
+        };
+    }
+
+    return {
+        vehicleType: gtfsVehicleType,
+        isNight: false,
+        isSubstitute,
+    };
+};
+
 const classifyLiberecRoute = ({
     routeName,
     gtfsVehicleType,
@@ -407,6 +434,12 @@ export const classifyRoute = ({
             });
         case GtfsFeedId.BRATISLAVA:
             return classifyBratislavaRoute({
+                routeName,
+                gtfsVehicleType,
+                isSubstitute,
+            });
+        case GtfsFeedId.BARCELONA:
+            return classifyBarcelonaRoute({
                 routeName,
                 gtfsVehicleType,
                 isSubstitute,
