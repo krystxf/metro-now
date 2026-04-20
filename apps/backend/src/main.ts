@@ -2,6 +2,7 @@ import { VersioningType } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import compression = require("compression");
 
 import { AppModule } from "src/app.module";
 import { SWAGGER_JSON_PATH, SWAGGER_PATH } from "src/constants/api";
@@ -16,6 +17,7 @@ async function bootstrap() {
         bufferLogs: true,
     });
 
+    app.use(compression());
     app.set("query parser", "extended");
     app.enableCors();
 
