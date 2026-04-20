@@ -36,6 +36,7 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
             shortName: "A",
             longName: null,
             type: "metro",
+            vehicleType: null,
             color: null,
             isNight: false,
             url: null,
@@ -73,6 +74,7 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
     gtfsCalendars: [],
     gtfsCalendarDates: [],
     gtfsTransfers: [],
+    gtfsFrequencies: [],
 });
 
 test("getSyncCounts returns the correct count for each entity type", () => {

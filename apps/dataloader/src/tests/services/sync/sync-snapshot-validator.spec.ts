@@ -146,6 +146,7 @@ const createSnapshot = (): SyncSnapshot => ({
         },
     ],
     gtfsTransfers: [],
+    gtfsFrequencies: [],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {

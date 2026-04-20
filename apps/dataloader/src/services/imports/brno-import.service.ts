@@ -6,6 +6,7 @@ import type {
     StopSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -141,6 +142,7 @@ export type BrnoSnapshot = StopSnapshot & {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 const toOptionalString = (value?: string): string | null => {
@@ -195,6 +197,7 @@ export class BrnoImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         ] = await Promise.all([
             getFile("routes.txt"),
             getFile("stops.txt"),
@@ -203,6 +206,7 @@ export class BrnoImportService {
             getOptionalFile("calendar.txt"),
             getOptionalFile("calendar_dates.txt"),
             getOptionalFile("transfers.txt"),
+            getOptionalFile("frequencies.txt"),
         ]);
 
         return this.buildSnapshot({
@@ -213,6 +217,7 @@ export class BrnoImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         });
     }
 
@@ -224,6 +229,7 @@ export class BrnoImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        frequenciesCsv,
     }: {
         routesCsv: string;
         stopsCsv: string;
@@ -232,6 +238,7 @@ export class BrnoImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
+        frequenciesCsv: string | null;
     }): Promise<BrnoSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
@@ -241,7 +248,7 @@ export class BrnoImportService {
                 parseCsvString<Record<string, string>>(tripsCsv),
             ],
         );
-        const [rawCalendars, rawCalendarDates, rawTransfers] =
+        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
                     ? parseCsvString<Record<string, string>>(calendarCsv)
@@ -251,6 +258,9 @@ export class BrnoImportService {
                     : Promise.resolve([]),
                 transfersCsv
                     ? parseCsvString<Record<string, string>>(transfersCsv)
+                    : Promise.resolve([]),
+                frequenciesCsv
+                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
                     : Promise.resolve([]),
             ]);
 
@@ -391,20 +401,24 @@ export class BrnoImportService {
             ),
         );
 
-        const gtfsRoutes = brnoRoutes.map((route) => ({
-            id: toBrnoRouteId(route.id),
-            feedId: GtfsFeedId.BRNO,
-            shortName: route.shortName,
-            longName: route.longName,
-            type: route.type,
-            color: route.color,
-            isNight: classifyImportedRoute({
+        const gtfsRoutes = brnoRoutes.map((route) => {
+            const { isNight, vehicleType } = classifyImportedRoute({
                 feedId: GtfsFeedId.BRNO,
                 routeShortName: route.shortName,
                 routeType: route.type,
-            }).isNight,
-            url: route.url,
-        }));
+            });
+            return {
+                id: toBrnoRouteId(route.id),
+                feedId: GtfsFeedId.BRNO,
+                shortName: route.shortName,
+                longName: route.longName,
+                type: route.type,
+                vehicleType,
+                color: route.color,
+                isNight,
+                url: route.url,
+            };
+        });
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
             brnoRoutes,
@@ -436,6 +450,7 @@ export class BrnoImportService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapRouteId: toBrnoRouteId,
             mapStopId: toBrnoPlatformId,
         });
@@ -454,6 +469,7 @@ export class BrnoImportService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 

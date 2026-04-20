@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { GtfsFeedId } from "@metro-now/database";
 
+import { classifyImportedRoute } from "../imports/route-classification.utils";
+
 import type { GtfsSnapshot } from "../../types/sync.types";
 import { parseCsvString } from "../../utils/csv.utils";
 import { fetchWithTimeout } from "../../utils/fetch.utils";
@@ -367,6 +369,9 @@ export class GtfsService {
         const transfersEntry = directory.files.find(
             (file) => file.path === "transfers.txt",
         );
+        const frequenciesEntry = directory.files.find(
+            (file) => file.path === "frequencies.txt",
+        );
 
         if (!routesEntry) {
             throw new Error("routes.txt not found in GTFS archive");
@@ -428,6 +433,11 @@ export class GtfsService {
                   (await transfersEntry.buffer()).toString(),
               )
             : [];
+        let rawFrequencies: Record<string, string>[] | null = frequenciesEntry
+            ? await parseCsvString<Record<string, string>>(
+                  (await frequenciesEntry.buffer()).toString(),
+              )
+            : [];
 
         const gtfsRoutes = rawRoutes.map((route) =>
             this.parseGtfsRouteRecord(route),
@@ -464,6 +474,7 @@ export class GtfsService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapStopId: (stopId) => this.normalizePlatformId(stopId),
         });
         rawTrips = null;
@@ -471,6 +482,7 @@ export class GtfsService {
         rawCalendars = null;
         rawCalendarDates = null;
         rawTransfers = null;
+        rawFrequencies = null;
 
         return {
             gtfsRoutes,
@@ -482,6 +494,7 @@ export class GtfsService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 
@@ -494,12 +507,19 @@ export class GtfsService {
             );
         }
 
+        const { vehicleType } = classifyImportedRoute({
+            feedId: GtfsFeedId.PID,
+            routeShortName: parsed.data.route_short_name,
+            routeType: parsed.data.route_type,
+        });
+
         return {
             id: parsed.data.route_id,
             feedId: GtfsFeedId.PID,
             shortName: parsed.data.route_short_name,
             longName: this.toOptionalString(parsed.data.route_long_name),
             type: parsed.data.route_type,
+            vehicleType,
             color: this.toOptionalString(parsed.data.route_color),
             isNight: this.parseNightFlag(parsed.data.is_night),
             url: this.toOptionalString(parsed.data.route_url),

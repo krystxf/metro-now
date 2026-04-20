@@ -13,6 +13,7 @@ type BuildGtfsPersistenceSnapshotParams = {
     calendars?: Record<string, string>[];
     calendarDates?: Record<string, string>[];
     transfers?: Record<string, string>[];
+    frequencies?: Record<string, string>[];
     mapRouteId?: IdMapper;
     mapStopId?: IdMapper;
     mapTripId?: IdMapper;
@@ -112,6 +113,7 @@ export const buildGtfsPersistenceSnapshot = ({
     calendars = [],
     calendarDates = [],
     transfers = [],
+    frequencies = [],
     mapRouteId = identity,
     mapStopId = identity,
     mapTripId = identity,
@@ -123,6 +125,7 @@ export const buildGtfsPersistenceSnapshot = ({
     | "gtfsCalendars"
     | "gtfsCalendarDates"
     | "gtfsTransfers"
+    | "gtfsFrequencies"
 > => {
     const gtfsTrips = trips.map((row) => {
         const context = `trip row '${feedId}'`;
@@ -254,11 +257,33 @@ export const buildGtfsPersistenceSnapshot = ({
         };
     });
 
+    const gtfsFrequencies = frequencies.map((row) => {
+        const context = `frequencies row '${feedId}'`;
+        const rawTripId = toRequiredString(row, "trip_id", context);
+        const tripId = mapTripId(rawTripId);
+        const startTime = toRequiredString(row, "start_time", context);
+        const endTime = toRequiredString(row, "end_time", context);
+        const headwaySecs = toRequiredInteger(row, "headway_secs", context);
+        const exactTimes =
+            toOptionalInteger(row.exact_times, "exact_times", context) ?? 0;
+
+        return {
+            id: `${feedId}::${tripId}::${startTime}::${endTime}`,
+            feedId,
+            tripId,
+            startTime,
+            endTime,
+            headwaySecs,
+            exactTimes,
+        };
+    });
+
     return {
         gtfsTrips,
         gtfsStopTimes,
         gtfsCalendars,
         gtfsCalendarDates,
         gtfsTransfers,
+        gtfsFrequencies,
     };
 };

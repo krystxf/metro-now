@@ -6,6 +6,7 @@ import type {
     StopSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -141,6 +142,7 @@ export type LiberecSnapshot = StopSnapshot & {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 const toOptionalString = (value?: string): string | null => {
@@ -195,6 +197,7 @@ export class LiberecImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         ] = await Promise.all([
             getFile("routes.txt"),
             getFile("stops.txt"),
@@ -203,6 +206,7 @@ export class LiberecImportService {
             getOptionalFile("calendar.txt"),
             getOptionalFile("calendar_dates.txt"),
             getOptionalFile("transfers.txt"),
+            getOptionalFile("frequencies.txt"),
         ]);
 
         return this.buildSnapshot({
@@ -213,6 +217,7 @@ export class LiberecImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         });
     }
 
@@ -224,6 +229,7 @@ export class LiberecImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        frequenciesCsv,
     }: {
         routesCsv: string;
         stopsCsv: string;
@@ -232,6 +238,7 @@ export class LiberecImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
+        frequenciesCsv: string | null;
     }): Promise<LiberecSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
@@ -241,7 +248,7 @@ export class LiberecImportService {
                 parseCsvString<Record<string, string>>(tripsCsv),
             ],
         );
-        const [rawCalendars, rawCalendarDates, rawTransfers] =
+        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
                     ? parseCsvString<Record<string, string>>(calendarCsv)
@@ -251,6 +258,9 @@ export class LiberecImportService {
                     : Promise.resolve([]),
                 transfersCsv
                     ? parseCsvString<Record<string, string>>(transfersCsv)
+                    : Promise.resolve([]),
+                frequenciesCsv
+                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
                     : Promise.resolve([]),
             ]);
 
@@ -391,20 +401,24 @@ export class LiberecImportService {
             ),
         );
 
-        const gtfsRoutes = liberecRoutes.map((route) => ({
-            id: toLiberecRouteId(route.id),
-            feedId: GtfsFeedId.LIBEREC,
-            shortName: route.shortName,
-            longName: route.longName,
-            type: route.type,
-            color: route.color,
-            isNight: classifyImportedRoute({
+        const gtfsRoutes = liberecRoutes.map((route) => {
+            const { isNight, vehicleType } = classifyImportedRoute({
                 feedId: GtfsFeedId.LIBEREC,
                 routeShortName: route.shortName,
                 routeType: route.type,
-            }).isNight,
-            url: route.url,
-        }));
+            });
+            return {
+                id: toLiberecRouteId(route.id),
+                feedId: GtfsFeedId.LIBEREC,
+                shortName: route.shortName,
+                longName: route.longName,
+                type: route.type,
+                vehicleType,
+                color: route.color,
+                isNight,
+                url: route.url,
+            };
+        });
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
             liberecRoutes,
@@ -436,6 +450,7 @@ export class LiberecImportService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapRouteId: toLiberecRouteId,
             mapStopId: toLiberecPlatformId,
         });
@@ -454,6 +469,7 @@ export class LiberecImportService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 

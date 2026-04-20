@@ -43,6 +43,7 @@ export type SyncedGtfsRoute = {
     shortName: string;
     longName: string | null;
     type: string;
+    vehicleType: VehicleType | null;
     color: string | null;
     isNight: boolean | null;
     url: string | null;
@@ -140,6 +141,16 @@ export type SyncedGtfsTransfer = {
     minTransferTime: number | null;
 };
 
+export type SyncedGtfsFrequency = {
+    id: string;
+    feedId: GtfsFeedId;
+    tripId: string;
+    startTime: string;
+    endTime: string;
+    headwaySecs: number;
+    exactTimes: number;
+};
+
 export type StopSnapshot = {
     stops: SyncedStop[];
     platforms: SyncedPlatform[];
@@ -157,6 +168,7 @@ export type GtfsSnapshot = {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 export type SyncSnapshot = StopSnapshot & GtfsSnapshot;
@@ -175,6 +187,7 @@ export type SyncCounts = {
     gtfsCalendars: number;
     gtfsCalendarDates: number;
     gtfsTransfers: number;
+    gtfsFrequencies: number;
 };
 
 export type SyncRunResult = {
@@ -213,4 +226,5 @@ export const getSyncCounts = (snapshot: SyncSnapshot): SyncCounts => ({
     gtfsCalendars: snapshot.gtfsCalendars.length,
     gtfsCalendarDates: snapshot.gtfsCalendarDates.length,
     gtfsTransfers: snapshot.gtfsTransfers.length,
+    gtfsFrequencies: snapshot.gtfsFrequencies.length,
 });

@@ -199,6 +199,7 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
                 shortName: "A",
                 longName: "Metro A",
                 type: "metro",
+                vehicleType: null,
                 color: "#00A651",
                 isNight: false,
                 url: null,
@@ -241,6 +242,7 @@ const buildTestSnapshot = async (): Promise<SyncSnapshot> => {
         gtfsCalendars: persistence.gtfsCalendars,
         gtfsCalendarDates: persistence.gtfsCalendarDates,
         gtfsTransfers: [],
+        gtfsFrequencies: persistence.gtfsFrequencies,
     };
 };
 

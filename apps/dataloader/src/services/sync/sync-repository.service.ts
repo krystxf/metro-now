@@ -3,6 +3,7 @@ import {
     type DatabaseTransaction,
     type NewGtfsCalendar,
     type NewGtfsCalendarDate,
+    type NewGtfsFrequency,
     type NewGtfsRoute,
     type NewGtfsRouteShape,
     type NewGtfsRouteStop,
@@ -22,6 +23,7 @@ import type {
     SyncSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -50,6 +52,7 @@ type IdTableName =
     | "GtfsRoute"
     | "GtfsCalendar"
     | "GtfsCalendarDate"
+    | "GtfsFrequency"
     | "GtfsStationEntrance"
     | "GtfsStopTime"
     | "GtfsTransfer"
@@ -145,6 +148,14 @@ export class SyncRepository {
         ) {
             changed.add("gtfsTransfers");
         }
+        if (
+            await this.replaceGtfsFrequencies(
+                transaction,
+                snapshot.gtfsFrequencies,
+            )
+        ) {
+            changed.add("gtfsFrequencies");
+        }
 
         if (
             await this.syncPlatformRoutes(transaction, snapshot.platformRoutes)
@@ -211,6 +222,7 @@ export class SyncRepository {
         if (snapshot.gtfsCalendarDates.length > 0)
             changed.add("gtfsCalendarDates");
         if (snapshot.gtfsTransfers.length > 0) changed.add("gtfsTransfers");
+        if (snapshot.gtfsFrequencies.length > 0) changed.add("gtfsFrequencies");
 
         return [...changed];
     }
@@ -361,6 +373,7 @@ export class SyncRepository {
                     shortName: gtfsRoute.shortName,
                     longName: gtfsRoute.longName,
                     type: gtfsRoute.type,
+                    vehicleType: gtfsRoute.vehicleType,
                     color: gtfsRoute.color,
                     isNight: gtfsRoute.isNight,
                     url: gtfsRoute.url,
@@ -380,6 +393,9 @@ export class SyncRepository {
                                 longName:
                                     expressionBuilder.ref("excluded.longName"),
                                 type: expressionBuilder.ref("excluded.type"),
+                                vehicleType: expressionBuilder.ref(
+                                    "excluded.vehicleType",
+                                ),
                                 color: expressionBuilder.ref("excluded.color"),
                                 isNight:
                                     expressionBuilder.ref("excluded.isNight"),
@@ -956,6 +972,43 @@ export class SyncRepository {
         );
 
         return hadRows || gtfsTransfers.length > 0;
+    }
+
+    private async replaceGtfsFrequencies(
+        transaction: DatabaseTransaction,
+        gtfsFrequencies: SyncedGtfsFrequency[],
+    ): Promise<boolean> {
+        const hadRows = await this.hasRows(transaction, "GtfsFrequency");
+
+        await transaction.deleteFrom("GtfsFrequency").execute();
+
+        await this.processInBatches(
+            gtfsFrequencies,
+            this.relationBatchSize,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewGtfsFrequency[] = chunk.map((frequency) => ({
+                    id: frequency.id,
+                    feedId: frequency.feedId,
+                    tripId: frequency.tripId,
+                    startTime: frequency.startTime,
+                    endTime: frequency.endTime,
+                    headwaySecs: frequency.headwaySecs,
+                    exactTimes: frequency.exactTimes,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                if (values.length > 0) {
+                    await transaction
+                        .insertInto("GtfsFrequency")
+                        .values(values)
+                        .execute();
+                }
+            },
+        );
+
+        return hadRows || gtfsFrequencies.length > 0;
     }
 
     private async deleteStalePlatforms(

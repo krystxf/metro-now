@@ -77,6 +77,10 @@ export class SyncSnapshotValidator {
             "gtfsTransfers",
             snapshot.gtfsTransfers.map((transfer) => transfer.id),
         );
+        this.assertUniqueKeys(
+            "gtfsFrequencies",
+            snapshot.gtfsFrequencies.map((frequency) => frequency.id),
+        );
 
         const stopIds = new Set(snapshot.stops.map((stop) => stop.id));
         const platformIds = new Set(
