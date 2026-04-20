@@ -12,12 +12,16 @@ import { logger } from "../../utils/logger";
 import type { CacheInvalidationService } from "../core/cache-invalidation.service";
 import { CountryLookupService } from "../geo/country-lookup.service";
 import { GtfsService } from "../gtfs/gtfs.service";
+import { AmbImportService } from "../imports/amb-import.service";
 import { BratislavaImportService } from "../imports/bratislava-import.service";
 import { BrnoImportService } from "../imports/brno-import.service";
+import { FgcImportService } from "../imports/fgc-import.service";
 import { LeoImportService } from "../imports/leo-import.service";
 import { LiberecImportService } from "../imports/liberec-import.service";
 import { PidImportService } from "../imports/pid-import.service";
 import { PmdpImportService } from "../imports/pmdp-import.service";
+import { TmbImportService } from "../imports/tmb-import.service";
+import { TramImportService } from "../imports/tram-import.service";
 import { UstiImportService } from "../imports/usti-import.service";
 import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
@@ -33,6 +37,10 @@ export class SyncService {
     private readonly liberecImportService = new LiberecImportService();
     private readonly bratislavaImportService = new BratislavaImportService();
     private readonly zsrImportService = new ZsrImportService();
+    private readonly tmbImportService = new TmbImportService();
+    private readonly ambImportService = new AmbImportService();
+    private readonly tramImportService = new TramImportService();
+    private readonly fgcImportService = new FgcImportService();
     private readonly countryLookupService = new CountryLookupService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
@@ -252,6 +260,22 @@ export class SyncService {
                 name: "ZSR",
                 load: () => this.zsrImportService.getZsrSnapshot(pidStops),
             },
+            {
+                name: "TMB",
+                load: () => this.tmbImportService.getTmbSnapshot(),
+            },
+            {
+                name: "AMB",
+                load: () => this.ambImportService.getAmbSnapshot(),
+            },
+            {
+                name: "TRAM",
+                load: () => this.tramImportService.getTramSnapshot(),
+            },
+            {
+                name: "FGC",
+                load: () => this.fgcImportService.getFgcSnapshot(),
+            },
         ];
 
         const results: SyncSnapshot[] = [];
@@ -300,6 +324,7 @@ export class SyncService {
         const gtfsCalendars = [gtfsSnapshot.gtfsCalendars];
         const gtfsCalendarDates = [gtfsSnapshot.gtfsCalendarDates];
         const gtfsTransfers = [gtfsSnapshot.gtfsTransfers];
+        const gtfsFrequencies = [gtfsSnapshot.gtfsFrequencies];
 
         for (const snapshot of citySnapshots) {
             stops.push(snapshot.stops);
@@ -314,6 +339,7 @@ export class SyncService {
             gtfsCalendars.push(snapshot.gtfsCalendars);
             gtfsCalendarDates.push(snapshot.gtfsCalendarDates);
             gtfsTransfers.push(snapshot.gtfsTransfers);
+            gtfsFrequencies.push(snapshot.gtfsFrequencies);
         }
 
         return {
@@ -330,6 +356,7 @@ export class SyncService {
             gtfsCalendars: gtfsCalendars.flat(),
             gtfsCalendarDates: gtfsCalendarDates.flat(),
             gtfsTransfers: gtfsTransfers.flat(),
+            gtfsFrequencies: gtfsFrequencies.flat(),
         };
     }
 

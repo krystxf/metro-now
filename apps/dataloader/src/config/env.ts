@@ -8,7 +8,14 @@ type DataloaderEnv = {
     syncSchedule: string;
     entityBatchSize: number;
     relationBatchSize: number;
+    tmbAppId: string | undefined;
+    tmbAppKey: string | undefined;
 };
+
+const optionalNonEmptyString = z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().min(1).optional(),
+);
 
 const dataloaderEnvSchema = commonServerEnvSchema.extend({
     DATALOADER_PORT: z.coerce.number().int().positive().default(3008),
@@ -23,6 +30,8 @@ const dataloaderEnvSchema = commonServerEnvSchema.extend({
         .int()
         .positive()
         .default(500),
+    TMB_APP_ID: optionalNonEmptyString,
+    TMB_APP_KEY: optionalNonEmptyString,
 });
 
 const ENV_FILES = [
@@ -60,5 +69,7 @@ export const getDataloaderEnv = (): DataloaderEnv => {
         syncSchedule: env.SYNC_CRON,
         entityBatchSize: env.DATALOADER_ENTITY_BATCH_SIZE,
         relationBatchSize: env.DATALOADER_RELATION_BATCH_SIZE,
+        tmbAppId: env.TMB_APP_ID,
+        tmbAppKey: env.TMB_APP_KEY,
     };
 };

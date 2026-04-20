@@ -48,6 +48,7 @@ const createSnapshot = (): SyncSnapshot => ({
             shortName: "C",
             longName: "Line C",
             type: "metro",
+            vehicleType: null,
             color: "#ff0000",
             isNight: false,
             url: null,
