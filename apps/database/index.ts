@@ -67,6 +67,7 @@ export interface PlatformTable {
     latitude: number;
     longitude: number;
     stopId: string | null;
+    direction: string | null;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
 }
