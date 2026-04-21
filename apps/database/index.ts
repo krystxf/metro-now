@@ -73,18 +73,10 @@ export interface PlatformTable {
     updatedAt: Generated<Date>;
 }
 
-export interface RouteTable {
-    id: string;
-    name: string;
-    vehicleType: VehicleType | null;
-    isNight: boolean | null;
-    createdAt: Generated<Date>;
-    updatedAt: Generated<Date>;
-}
-
 export interface PlatformsOnRoutesTable {
     id: Generated<number>;
     platformId: string;
+    feedId: GtfsFeedId;
     routeId: string;
     createdAt: Generated<Date>;
     updatedAt: Generated<Date>;
@@ -252,7 +244,6 @@ export interface RequestLogTable {
 export interface MetroNowDatabase {
     Stop: StopTable;
     Platform: PlatformTable;
-    Route: RouteTable;
     PlatformsOnRoutes: PlatformsOnRoutesTable;
     GtfsRoute: GtfsRouteTable;
     GtfsRouteStop: GtfsRouteStopTable;
@@ -273,7 +264,6 @@ export type DatabaseTransaction = Transaction<MetroNowDatabase>;
 
 export type Stop = Selectable<StopTable>;
 export type Platform = Selectable<PlatformTable>;
-export type Route = Selectable<RouteTable>;
 export type PlatformsOnRoutes = Selectable<PlatformsOnRoutesTable>;
 export type GtfsRoute = Selectable<GtfsRouteTable>;
 export type GtfsRouteStop = Selectable<GtfsRouteStopTable>;
@@ -292,8 +282,6 @@ export type NewStop = Insertable<StopTable>;
 export type StopUpdate = Updateable<StopTable>;
 export type NewPlatform = Insertable<PlatformTable>;
 export type PlatformUpdate = Updateable<PlatformTable>;
-export type NewRoute = Insertable<RouteTable>;
-export type RouteUpdate = Updateable<RouteTable>;
 export type NewPlatformsOnRoutes = Insertable<PlatformsOnRoutesTable>;
 export type NewGtfsRoute = Insertable<GtfsRouteTable>;
 export type GtfsRouteUpdate = Updateable<GtfsRouteTable>;

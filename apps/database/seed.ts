@@ -2,20 +2,13 @@ import * as fs from "node:fs";
 
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import type { MetroNowDatabase, NewPlatform, NewRoute, NewStop } from "./index";
+import type { MetroNowDatabase } from "./index";
 
 type Stop = {
     id: string;
     name: string;
     avgLatitude: number;
     avgLongitude: number;
-};
-
-type Route = {
-    id: string;
-    name: string;
-    isNight: boolean | null;
-    vehicleType: null;
 };
 
 type Platform = {
@@ -37,7 +30,7 @@ const parseSeedFile = <T>(path: string): T => {
 
 async function insertInBatches<T>(
     transaction: Kysely<MetroNowDatabase>,
-    table: "Stop" | "Platform" | "Route",
+    table: "Stop" | "Platform",
     values: T[],
 ): Promise<void> {
     for (let i = 0; i < values.length; i += BATCH_SIZE) {
@@ -62,12 +55,10 @@ async function main() {
     });
 
     const stops = parseSeedFile<Stop[]>("./seeds/stops.json");
-    const routes = parseSeedFile<Route[]>("./seeds/routes.json");
     const platforms = parseSeedFile<Platform[]>("./seeds/platforms.json");
 
     await db.transaction().execute(async (transaction) => {
         await transaction.deleteFrom("PlatformsOnRoutes").execute();
-        await transaction.deleteFrom("Route").execute();
         await transaction.deleteFrom("Platform").execute();
         await transaction.deleteFrom("Stop").execute();
 
@@ -97,19 +88,6 @@ async function main() {
                 longitude: platform.longitude,
                 stopId: platform.stopId ?? null,
                 code: null,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
-        );
-
-        await insertInBatches(
-            transaction,
-            "Route",
-            routes.map((route) => ({
-                id: route.id,
-                name: route.name,
-                vehicleType: null,
-                isNight: null,
                 createdAt: timestamp,
                 updatedAt: timestamp,
             })),
