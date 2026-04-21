@@ -1,12 +1,11 @@
 import type {
     VehicleType as DatabaseVehicleType,
-    GtfsFeedId,
+    GtfsRoute,
     GtfsStationEntrance,
     Platform,
-    Route,
     Stop,
 } from "@metro-now/database";
-import { sql } from "@metro-now/database";
+import { GtfsFeedId, sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -25,8 +24,10 @@ type StopRecordBase = Pick<
     "avgLatitude" | "avgLongitude" | "feed" | "id" | "name"
 >;
 
-type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
+type PlatformRouteRecord = Pick<GtfsRoute, "id"> & {
+    name: string;
     color: string | null;
+    feed: GtfsFeedId;
     vehicleType: DatabaseVehicleType | null;
 };
 
@@ -598,18 +599,22 @@ export class StopService {
 
         const rows = await this.database.db
             .selectFrom("PlatformsOnRoutes")
-            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
-            .leftJoin("GtfsRoute", "GtfsRoute.id", "PlatformsOnRoutes.routeId")
+            .innerJoin("GtfsRoute", (join) =>
+                join
+                    .onRef("GtfsRoute.id", "=", "PlatformsOnRoutes.routeId")
+                    .onRef("GtfsRoute.feedId", "=", "PlatformsOnRoutes.feedId"),
+            )
             .select([
                 "PlatformsOnRoutes.platformId as platformId",
-                "Route.id as routeId",
-                "Route.name as routeName",
+                "GtfsRoute.id as routeId",
+                "GtfsRoute.shortName as routeName",
                 "GtfsRoute.color as routeColor",
-                "Route.vehicleType as routeVehicleType",
+                "GtfsRoute.feedId as routeFeedId",
+                "GtfsRoute.vehicleType as routeVehicleType",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
-            .orderBy("Route.id", "asc")
+            .orderBy("GtfsRoute.id", "asc")
             .execute();
 
         for (const row of rows) {
@@ -617,6 +622,7 @@ export class StopService {
                 id: row.routeId,
                 name: row.routeName,
                 color: row.routeColor ?? null,
+                feed: row.routeFeedId,
                 vehicleType: row.routeVehicleType ?? null,
             });
         }
@@ -700,15 +706,19 @@ export class StopService {
                 "PlatformsOnRoutes.platformId",
                 "Platform.id",
             )
-            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
+            .innerJoin("GtfsRoute", (join) =>
+                join
+                    .onRef("GtfsRoute.id", "=", "PlatformsOnRoutes.routeId")
+                    .onRef("GtfsRoute.feedId", "=", "PlatformsOnRoutes.feedId"),
+            )
             .select([
                 "Platform.stopId as stopId",
                 "Platform.isMetro as isMetro",
-                "Route.name as routeName",
+                "GtfsRoute.shortName as routeName",
             ])
             .where("Platform.stopId", "is not", null)
             .orderBy("Platform.stopId", "asc")
-            .orderBy("Route.name", "asc")
+            .orderBy("GtfsRoute.shortName", "asc")
             .execute();
 
         const stopIds = uniqueSortedStrings(
