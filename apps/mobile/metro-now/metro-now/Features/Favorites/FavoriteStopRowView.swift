@@ -25,7 +25,7 @@ struct FavoriteStopRowView: View {
                 HStack(spacing: 8) {
                     RouteNameIconView(
                         label: dep.route,
-                        background: getRouteColor(dep.route)
+                        background: getRouteColor(dep)
                     )
                     Text(dep.headsign)
                         .foregroundStyle(.secondary)

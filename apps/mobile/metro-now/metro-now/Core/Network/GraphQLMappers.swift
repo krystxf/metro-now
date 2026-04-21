@@ -37,6 +37,9 @@ func mapGraphQLDeparture(
         route: dep.route?.name ?? "",
         routeId: dep.route?.id,
         routeColor: dep.route?.color,
+        routeFeed: dep.route?.feed.value?.rawValue,
+        routeVehicleType: dep.route?.vehicleType.value?.rawValue,
+        routeIsNight: dep.route?.isNight,
         isRealtime: dep.isRealtime
     )
 }
@@ -70,7 +73,10 @@ func mapGraphQLClosestStop(
                     ApiRoute(
                         id: route.id,
                         name: route.name ?? route.id,
-                        color: route.color
+                        color: route.color,
+                        feed: route.feed.value?.rawValue,
+                        vehicleType: route.vehicleType.value?.rawValue,
+                        isNight: route.isNight
                     )
                 }
             )
@@ -100,7 +106,10 @@ func mapGraphQLClosestStopDetail(
                     ApiRoute(
                         id: route.id,
                         name: route.name ?? route.id,
-                        color: route.color
+                        color: route.color,
+                        feed: route.feed.value?.rawValue,
+                        vehicleType: route.vehicleType.value?.rawValue,
+                        isNight: route.isNight
                     )
                 }
             )

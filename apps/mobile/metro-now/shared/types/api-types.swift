@@ -135,11 +135,17 @@ struct ApiPlatform: Codable {
 struct ApiRoute: Codable {
     let id, name: String
     let color: String?
+    let feed: String?
+    let vehicleType: String?
+    let isNight: Bool?
 
-    init(id: String, name: String, color: String? = nil) {
+    init(id: String, name: String, color: String? = nil, feed: String? = nil, vehicleType: String? = nil, isNight: Bool? = nil) {
         self.id = id
         self.name = name
         self.color = color
+        self.feed = feed
+        self.vehicleType = vehicleType
+        self.isNight = isNight
     }
 }
 
@@ -438,7 +444,40 @@ struct ApiDeparture: Codable {
     let route: String
     let routeId: String?
     let routeColor: String?
+    let routeFeed: String?
+    let routeVehicleType: String?
+    let routeIsNight: Bool?
     let isRealtime: Bool?
+
+    init(
+        id: String?,
+        platformId: String,
+        platformCode: String?,
+        headsign: String,
+        departure: ApiDepartureDate,
+        delay: Int,
+        route: String,
+        routeId: String?,
+        routeColor: String?,
+        routeFeed: String? = nil,
+        routeVehicleType: String? = nil,
+        routeIsNight: Bool? = nil,
+        isRealtime: Bool?
+    ) {
+        self.id = id
+        self.platformId = platformId
+        self.platformCode = platformCode
+        self.headsign = headsign
+        self.departure = departure
+        self.delay = delay
+        self.route = route
+        self.routeId = routeId
+        self.routeColor = routeColor
+        self.routeFeed = routeFeed
+        self.routeVehicleType = routeVehicleType
+        self.routeIsNight = routeIsNight
+        self.isRealtime = isRealtime
+    }
 }
 
 struct MetroDepartureRow: Identifiable {
@@ -479,19 +518,6 @@ func buildPlatformDepartureGroups(
     )
 }
 
-private struct MetroDepartureGroupKey: Hashable {
-    let routeLabel: String
-    // `direction` comes from `Platform.direction` (the next stop along the
-    // trip, populated by the dataloader). Platforms serving the same
-    // direction — including short-run and long-run trains on the same
-    // platform — share a value and collapse into one row. Opposite
-    // directions always have distinct values in real data so they stay
-    // separate. At a terminus (no "next stop"), direction is `nil` and the
-    // platforms merge by route alone, which is the desired terminus
-    // behavior: one row summarizing the next outbound trains.
-    let direction: String?
-}
-
 func buildMetroDepartureRows(
     for stop: ApiStop,
     departures: [ApiDeparture]?
@@ -515,27 +541,18 @@ func buildMetroDepartureRows(
 
             return platform.supports(departure)
         },
-        by: { departure -> MetroDepartureGroupKey in
-            let platform = metroPlatformsById[departure.platformId]
-            let trimmed = platform?.direction?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            let direction = (trimmed?.isEmpty ?? true) ? nil : trimmed
-            return MetroDepartureGroupKey(
-                routeLabel: departure.route,
-                direction: direction
-            )
-        }
+        by: { $0.platformId }
     )
 
     return groupedDepartures
-        .compactMap { key, groupedDepartures -> MetroDepartureRow? in
+        .compactMap { platformId, groupedDepartures -> MetroDepartureRow? in
             let sortedDepartures = groupedDepartures.sorted { left, right in
                 left.departure.predicted < right.departure.predicted
             }
 
             guard
                 let departure = sortedDepartures.first,
-                let platform = metroPlatformsById[departure.platformId]
+                let platform = metroPlatformsById[platformId]
             else {
                 return nil
             }
@@ -548,7 +565,7 @@ func buildMetroDepartureRows(
                 ?? platform.routes.first?.backendRouteId
 
             return MetroDepartureRow(
-                id: "\(key.routeLabel)|\(key.direction ?? "")",
+                id: platform.id,
                 routeLabel: departure.route,
                 previewRouteId: previewRouteId,
                 headsign: departure.headsign,

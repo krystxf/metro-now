@@ -203,7 +203,10 @@ class StopsViewModel: NSObject, ObservableObject {
                         ApiRoute(
                             id: route.id,
                             name: route.name ?? "",
-                            color: route.color
+                            color: route.color,
+                            feed: route.feed.value?.rawValue,
+                            vehicleType: route.vehicleType.value?.rawValue,
+                            isNight: route.isNight
                         )
                     }
                 )

@@ -470,7 +470,7 @@ private func stopTransportModes(
         platforms
             .flatMap(\.routes)
             .compactMap { route in
-                mapTransportMode(for: route.name)
+                mapTransportMode(for: route)
             }
     )
 
@@ -479,8 +479,8 @@ private func stopTransportModes(
     }
 }
 
-func mapTransportMode(for routeName: String) -> RailStopTransportMode? {
-    switch getRouteType(routeName) {
+func mapTransportMode(for route: ApiRoute) -> RailStopTransportMode? {
+    switch getRouteType(route) {
     case .train:
         .train
     case .leoExpress:
@@ -494,36 +494,27 @@ func mapTransportMode(for routeName: String) -> RailStopTransportMode? {
     case .bus:
         .bus
     case .night:
-        nightTransportMode(for: routeName)
+        nightTransportMode(for: route)
     default:
         nil
     }
 }
 
-func isMapVisibleRoute(_ routeName: String) -> Bool {
-    mapTransportMode(for: routeName) != nil
+func isMapVisibleRoute(_ route: ApiRoute) -> Bool {
+    mapTransportMode(for: route) != nil
 }
 
-private func nightTransportMode(for routeName: String) -> RailStopTransportMode? {
-    var normalizedRouteName = routeName
-
-    if normalizedRouteName.hasPrefix("X") {
-        normalizedRouteName.removeFirst()
+/// For night routes the backend only signals `isNight`; the physical vehicle
+/// type tells us whether a given night route runs as a tram or bus.
+private func nightTransportMode(for route: ApiRoute) -> RailStopTransportMode? {
+    switch route.vehicleType?.uppercased() {
+    case "TRAM":
+        .tram
+    case "BUS", "TROLLEYBUS":
+        .bus
+    default:
+        nil
     }
-
-    guard let routeNumber = Int(normalizedRouteName) else {
-        return nil
-    }
-
-    if routeNumber < 100 {
-        return .tram
-    }
-
-    if routeNumber < 1000 {
-        return .bus
-    }
-
-    return nil
 }
 
 private func buildRailStopMapAnnotations(for stop: ApiStop) -> [RailStopMapAnnotation] {
@@ -834,7 +825,7 @@ private func filteredPlatform(
     }
 
     let filteredRoutes = platform.routes.filter { route in
-        guard let mode = mapTransportMode(for: route.name) else {
+        guard let mode = mapTransportMode(for: route) else {
             return false
         }
 

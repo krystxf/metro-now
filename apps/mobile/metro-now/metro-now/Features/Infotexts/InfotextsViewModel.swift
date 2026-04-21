@@ -40,6 +40,14 @@ enum InfotextSeverity: String {
             .red
         }
     }
+
+    var sortOrder: Int {
+        switch self {
+        case .high: 0
+        case .normal: 1
+        case .low: 2
+        }
+    }
 }
 
 extension ApiInfotext {
@@ -53,22 +61,34 @@ private let INFOTEXTS_CACHE_MAX_AGE: TimeInterval = 6 * 60 * 60
 
 @MainActor
 final class InfotextsViewModel: ObservableObject {
+    typealias FetchInfotexts = @Sendable () async throws -> [ApiInfotext]
+    typealias LoadCachedInfotexts = @Sendable () -> [ApiInfotext]?
+    typealias SaveCachedInfotexts = @Sendable ([ApiInfotext]) -> Void
+
     @Published var infotexts: [ApiInfotext] = []
     @Published var isLoading = true
 
-    init() {
-        if let cached = DiskCache.load(
-            key: INFOTEXTS_CACHE_KEY,
-            maxAge: INFOTEXTS_CACHE_MAX_AGE,
-            as: [ApiInfotext].self
-        ) {
+    private let fetchInfotexts: FetchInfotexts
+    private let loadCachedInfotexts: LoadCachedInfotexts
+    private let loadStaleCachedInfotexts: LoadCachedInfotexts
+    private let saveCachedInfotexts: SaveCachedInfotexts
+
+    init(
+        fetchInfotexts: @escaping FetchInfotexts = defaultFetchInfotexts,
+        loadCachedInfotexts: @escaping LoadCachedInfotexts = defaultLoadCachedInfotexts,
+        loadStaleCachedInfotexts: @escaping LoadCachedInfotexts = defaultLoadStaleCachedInfotexts,
+        saveCachedInfotexts: @escaping SaveCachedInfotexts = defaultSaveCachedInfotexts
+    ) {
+        self.fetchInfotexts = fetchInfotexts
+        self.loadCachedInfotexts = loadCachedInfotexts
+        self.loadStaleCachedInfotexts = loadStaleCachedInfotexts
+        self.saveCachedInfotexts = saveCachedInfotexts
+
+        if let cached = loadCachedInfotexts() {
             infotexts = cached
             isLoading = false
-        } else if let stale = DiskCache.loadStale(
-            key: INFOTEXTS_CACHE_KEY,
-            as: [ApiInfotext].self
-        ) {
-            infotexts = stale.data
+        } else if let stale = loadStaleCachedInfotexts() {
+            infotexts = stale
         }
 
         Task(priority: .high) {
@@ -78,25 +98,9 @@ final class InfotextsViewModel: ObservableObject {
 
     private func loadInfotexts() async {
         do {
-            let result = try await fetchGraphQLQuery(
-                MetroNowAPI.InfotextsQuery()
-            )
-            let fetched = result.infotexts.map { infotext in
-                ApiInfotext(
-                    id: infotext.id,
-                    text: infotext.text,
-                    textEn: infotext.textEn,
-                    priority: infotext.priority.rawValue,
-                    displayType: infotext.displayType,
-                    validFrom: infotext.validFrom,
-                    validTo: infotext.validTo,
-                    relatedStops: infotext.relatedStops.map { relatedStop in
-                        ApiInfotextRelatedStop(name: relatedStop.name)
-                    }
-                )
-            }
+            let fetched = try await fetchInfotexts()
             infotexts = fetched
-            DiskCache.save(fetched, key: INFOTEXTS_CACHE_KEY)
+            saveCachedInfotexts(fetched)
             print("Fetched \(infotexts.count) infotexts")
         } catch {
             // Keep whatever we showed from cache (fresh or stale).
@@ -104,5 +108,45 @@ final class InfotextsViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private static func defaultLoadCachedInfotexts() -> [ApiInfotext]? {
+        DiskCache.load(
+            key: INFOTEXTS_CACHE_KEY,
+            maxAge: INFOTEXTS_CACHE_MAX_AGE,
+            as: [ApiInfotext].self
+        )
+    }
+
+    private static func defaultLoadStaleCachedInfotexts() -> [ApiInfotext]? {
+        DiskCache.loadStale(
+            key: INFOTEXTS_CACHE_KEY,
+            as: [ApiInfotext].self
+        )?.data
+    }
+
+    private static func defaultSaveCachedInfotexts(_ infotexts: [ApiInfotext]) {
+        DiskCache.save(infotexts, key: INFOTEXTS_CACHE_KEY)
+    }
+
+    private static func defaultFetchInfotexts() async throws -> [ApiInfotext] {
+        let result = try await fetchGraphQLQuery(
+            MetroNowAPI.InfotextsQuery()
+        )
+
+        return result.infotexts.map { infotext in
+            ApiInfotext(
+                id: infotext.id,
+                text: infotext.text,
+                textEn: infotext.textEn,
+                priority: infotext.priority.rawValue,
+                displayType: infotext.displayType,
+                validFrom: infotext.validFrom,
+                validTo: infotext.validTo,
+                relatedStops: infotext.relatedStops.map { relatedStop in
+                    ApiInfotextRelatedStop(name: relatedStop.name)
+                }
+            )
+        }
     }
 }

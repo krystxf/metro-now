@@ -33,6 +33,9 @@ query AllStopsLight($limit: Int, $offset: Int) {
         id
         name
         color
+        feed
+        vehicleType
+        isNight
       }
     }
   }
@@ -71,6 +74,9 @@ private struct GQLRouteRow: Decodable {
     let id: String
     let name: String
     let color: String?
+    let feed: String?
+    let vehicleType: String?
+    let isNight: Bool?
 }
 
 private func mapStops(_ rows: [GQLStopRow]) -> [ApiStop] {
@@ -90,7 +96,7 @@ private func mapStops(_ rows: [GQLStopRow]) -> [ApiStop] {
                     code: p.code,
                     direction: p.direction,
                     isMetro: p.isMetro,
-                    routes: p.routes.map { r in ApiRoute(id: r.id, name: r.name, color: r.color) }
+                    routes: p.routes.map { r in ApiRoute(id: r.id, name: r.name, color: r.color, feed: r.feed, vehicleType: r.vehicleType, isNight: r.isNight) }
                 )
             }
         )

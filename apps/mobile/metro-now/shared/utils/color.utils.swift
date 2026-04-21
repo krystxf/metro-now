@@ -56,21 +56,43 @@ public extension Color {
 
 func getRouteColor(
     _ routeName: String?,
-    apiColor: String?
+    apiColor: String?,
+    feed: String? = nil
 ) -> Color {
     if let apiColor, let parsedColor = Color(hexString: apiColor) {
         return parsedColor
     }
 
-    return getRouteColor(routeName)
+    return getRouteColor(routeName, feed: feed)
 }
 
 func getRouteColor(_ route: ApiRoute) -> Color {
-    getRouteColor(route.name, apiColor: route.color)
+    if let apiColor = route.color, let parsedColor = Color(hexString: apiColor) {
+        return parsedColor
+    }
+
+    if isSubstituteRoute(route.name, feed: route.feed) {
+        return .orange
+    }
+
+    return getRouteType(route).color
 }
 
 func getRouteColor(_ route: ApiRouteDetail) -> Color {
     getRouteColor(route.shortName, apiColor: route.color)
+}
+
+func getRouteColor(_ departure: ApiDeparture) -> Color {
+    getRouteColor(
+        ApiRoute(
+            id: departure.routeId ?? departure.route,
+            name: departure.route,
+            color: departure.routeColor,
+            feed: departure.routeFeed,
+            vehicleType: departure.routeVehicleType,
+            isNight: departure.routeIsNight
+        )
+    )
 }
 
 func getRouteColor(
