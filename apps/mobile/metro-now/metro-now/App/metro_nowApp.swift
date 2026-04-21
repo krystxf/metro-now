@@ -1,204 +1,8 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import MapboxMaps
 import SwiftUI
 import WidgetKit
-
-private enum UITestLaunchConfiguration {
-    private static let resetStateArgument = "UITEST_RESET_STATE"
-    private static let hasSeenWelcomeEnvironmentKey = "UITEST_HAS_SEEN_WELCOME"
-
-    static func applyIfNeeded() {
-        let processInfo = ProcessInfo.processInfo
-        let arguments = processInfo.arguments
-        let environment = processInfo.environment
-
-        guard arguments.contains(resetStateArgument)
-            || environment[hasSeenWelcomeEnvironmentKey] != nil
-        else {
-            return
-        }
-
-        let defaults = UserDefaults.standard
-
-        if arguments.contains(resetStateArgument),
-           let bundleIdentifier = Bundle.main.bundleIdentifier
-        {
-            defaults.removePersistentDomain(forName: bundleIdentifier)
-        }
-
-        if let hasSeenWelcome = environment[hasSeenWelcomeEnvironmentKey] {
-            defaults.set(hasSeenWelcome == "1", forKey: AppStorageKeys.hasSeenWelcomeScreen.rawValue)
-        }
-    }
-}
-
-private enum MacWindowTitlebar {
-    #if targetEnvironment(macCatalyst)
-        static func startObserving() {
-            // Apply repeatedly for the first few seconds after launch — the NSWindow
-            // isn't guaranteed to exist when the scene first activates, so a couple
-            // of delayed retries handle the race.
-            scheduleRetries()
-
-            NotificationCenter.default.addObserver(
-                forName: UIScene.didActivateNotification,
-                object: nil,
-                queue: .main
-            ) { _ in
-                scheduleRetries()
-            }
-        }
-
-        @MainActor
-        static func applyNow() {
-            for scene in UIApplication.shared.connectedScenes {
-                guard let windowScene = scene as? UIWindowScene else { continue }
-
-                windowScene.title = ""
-
-                if let titlebar = windowScene.titlebar {
-                    titlebar.titleVisibility = .hidden
-                    titlebar.toolbar = nil
-                    titlebar.separatorStyle = .none
-                }
-            }
-
-            applyNSWindowTitlebarTransparency()
-        }
-
-        private static func scheduleRetries() {
-            let delays: [TimeInterval] = [0, 0.05, 0.2, 0.5, 1.0]
-            for delay in delays {
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    applyNow()
-                }
-            }
-        }
-
-        /// Reaches the underlying NSWindow on Mac Catalyst via the Objective-C
-        /// runtime to enable `titlebarAppearsTransparent`. We deliberately do
-        /// NOT touch `styleMask` — read-modify-write on it races with AppKit's
-        /// fullscreen state during launch and triggers the
-        /// "NSWindowStyleMaskFullScreen set … outside of a full screen transition"
-        /// assertion.
-        private static func applyNSWindowTitlebarTransparency() {
-            guard let nsAppClass = NSClassFromString("NSApplication") else { return }
-
-            let sharedSelector = NSSelectorFromString("sharedApplication")
-            guard nsAppClass.responds(to: sharedSelector),
-                  let sharedApp = (nsAppClass as AnyObject).perform(sharedSelector)?
-                  .takeUnretainedValue() as? NSObject
-            else { return }
-
-            guard let windows = sharedApp.value(forKey: "windows") as? [NSObject],
-                  !windows.isEmpty
-            else { return }
-
-            let setTransparent = NSSelectorFromString("setTitlebarAppearsTransparent:")
-            let setTitle = NSSelectorFromString("setTitle:")
-
-            for window in windows {
-                if window.responds(to: setTitle) {
-                    _ = window.perform(setTitle, with: "")
-                }
-
-                if window.responds(to: setTransparent) {
-                    _ = window.perform(setTransparent, with: NSNumber(value: true))
-                }
-            }
-        }
-    #else
-        static func startObserving() {}
-        static func applyNow() {}
-    #endif
-}
-
-private enum MapboxConfiguration {
-    private static let environmentKey = "MAPBOX_ACCESS_TOKEN"
-    private static let infoPlistKeys = ["MAPBOX_ACCESS_TOKEN", "MBXAccessToken"]
-
-    static func applyAccessTokenIfAvailable() {
-        guard let token = infoPlistAccessToken ?? environmentAccessToken else {
-            assertionFailure("Mapbox access token not found. Add it to Secrets.xcconfig.")
-            return
-        }
-        MapboxOptions.accessToken = token
-    }
-
-    private static var infoPlistAccessToken: String? {
-        for key in infoPlistKeys {
-            if let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
-               !value.isEmpty
-            {
-                return value
-            }
-        }
-
-        return nil
-    }
-
-    private static var environmentAccessToken: String? {
-        guard let value = ProcessInfo.processInfo.environment[environmentKey],
-              !value.isEmpty
-        else {
-            return nil
-        }
-
-        return value
-    }
-}
-
-enum QuickAction: String {
-    case map
-    case favorites
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-    @Published var quickAction: QuickAction?
-
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-        application.shortcutItems = [
-            UIApplicationShortcutItem(
-                type: QuickAction.favorites.rawValue,
-                localizedTitle: NSLocalizedString(
-                    "Favorites",
-                    comment: "Quick action title for favorites"
-                ),
-                localizedSubtitle: nil,
-                icon: UIApplicationShortcutIcon(systemImageName: "star")
-            ),
-            UIApplicationShortcutItem(
-                type: QuickAction.map.rawValue,
-                localizedTitle: NSLocalizedString(
-                    "Map",
-                    comment: "Quick action title for map"
-                ),
-                localizedSubtitle: nil,
-                icon: UIApplicationShortcutIcon(systemImageName: "map")
-            ),
-        ]
-
-        if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
-            quickAction = QuickAction(rawValue: shortcutItem.type)
-        }
-
-        return true
-    }
-
-    func application(
-        _: UIApplication,
-        performActionFor shortcutItem: UIApplicationShortcutItem,
-        completionHandler: @escaping (Bool) -> Void
-    ) {
-        quickAction = QuickAction(rawValue: shortcutItem.type)
-        completionHandler(true)
-    }
-}
 
 @main
 struct metro_nowApp: App {
@@ -211,6 +15,11 @@ struct metro_nowApp: App {
         #if targetEnvironment(macCatalyst)
             MacWindowTitlebar.startObserving()
         #endif
+
+        // Let the map render through the translucent tablet sidebar:
+        // Lists/TableViews/ScrollViews all paint an opaque default bg in UIKit.
+        UITableView.appearance().backgroundColor = .clear
+        UICollectionView.appearance().backgroundColor = .clear
     }
 
     var body: some Scene {
@@ -225,18 +34,22 @@ struct metro_nowApp: App {
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            #if !targetEnvironment(macCatalyst)
-                if #available(iOS 16.2, *) {
-                    switch newPhase {
-                    case .active:
-                        Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterForeground() }
-                    case .background:
-                        Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterBackground() }
-                    default:
-                        break
-                    }
-                }
-            #endif
+            handleScenePhase(newPhase)
         }
+    }
+
+    private func handleScenePhase(_ newPhase: ScenePhase) {
+        #if !targetEnvironment(macCatalyst)
+            if #available(iOS 16.2, *) {
+                switch newPhase {
+                case .active:
+                    Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterForeground() }
+                case .background:
+                    Task { @MainActor in DeparturesLiveActivityManager.shared.onEnterBackground() }
+                default:
+                    break
+                }
+            }
+        #endif
     }
 }
