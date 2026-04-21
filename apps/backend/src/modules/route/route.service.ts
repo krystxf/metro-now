@@ -1,13 +1,7 @@
-import {
-    GtfsFeedId,
-    type GtfsRoute,
-    type GtfsRouteShape,
-    type Platform,
-} from "@metro-now/database";
+import { GtfsFeedId } from "@metro-now/database";
 import { classifyRoute } from "@metro-now/shared";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
-import { group } from "radash";
 
 import {
     CACHE_KEYS,
@@ -19,119 +13,29 @@ import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import { isLeoRouteId } from "src/modules/leo/leo-id.utils";
 import type { LeoRoute } from "src/modules/leo/leo.types";
 import {
-    toLookupRouteId,
-    toPublicRouteId,
-} from "src/modules/route/route-id.utils";
+    type GraphQLRouteRecord,
+    type RouteExactShapeRow,
+    type RouteRow,
+    type RouteStopRow,
+    leoRouteToGraphQLRecord,
+    processRoute,
+} from "src/modules/route/route-graphql.utils";
+import { toLookupRouteId } from "src/modules/route/route-id.utils";
 import { getVehicleTypeFromGtfsType } from "src/modules/route/route-vehicle-type.utils";
 import { VehicleType } from "src/types/graphql.generated";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
-type RouteRow = Pick<
-    GtfsRoute,
-    | "color"
-    | "feedId"
-    | "id"
-    | "isNight"
-    | "longName"
-    | "shortName"
-    | "type"
-    | "url"
->;
-
-type RoutePlatformRecord = Pick<
-    Platform,
-    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name"
->;
-
-type RouteStopRow = {
-    directionId: string;
-    platform: RoutePlatformRecord | null;
-    routeId: string;
-    stopSequence: number;
-};
-
-type RouteExactShapeRow = Pick<
-    GtfsRouteShape,
-    "directionId" | "geoJson" | "routeId" | "shapeId" | "tripCount"
->;
-
-const processRoute = (
-    route: RouteRow,
-    routeStops: RouteStopRow[],
-    routeExactShapes: RouteExactShapeRow[],
-) => {
-    const toGeoJsonString = (
-        coordinates: RouteExactShapeRow["geoJson"]["coordinates"],
-    ): string =>
-        JSON.stringify({
-            type: "LineString",
-            coordinates,
-        });
-
-    const sortedRouteShapes = [...routeExactShapes].sort((left, right) => {
-        return (
-            left.directionId.localeCompare(right.directionId) ||
-            right.tripCount - left.tripCount ||
-            left.shapeId.localeCompare(right.shapeId)
-        );
-    });
-
-    return {
-        ...route,
-        id: toPublicRouteId(route.id),
-        name: route.shortName,
-        feed: route.feedId,
-        isNight: route.isNight ?? false,
-        directions: Object.entries(
-            group(routeStops, ({ directionId }) => directionId),
-        ).map(([key, value]) => ({
-            id: key,
-            platforms: (value ?? [])
-                .sort((left, right) => left.stopSequence - right.stopSequence)
-                .flatMap((routeStop) =>
-                    routeStop.platform ? [routeStop.platform] : [],
-                ),
-        })),
-        shapes: sortedRouteShapes.map((shape) => ({
-            id: shape.shapeId,
-            directionId: shape.directionId,
-            tripCount: shape.tripCount,
-            points: shape.geoJson.coordinates.map(([longitude, latitude]) => ({
-                latitude,
-                longitude,
-            })),
-            geoJson: toGeoJsonString(shape.geoJson.coordinates),
-        })),
-    };
-};
-
-type GraphQLRouteRecord = ReturnType<typeof processRoute>;
-
-const leoRouteToGraphQLRecord = (leo: LeoRoute): GraphQLRouteRecord => ({
-    id: leo.id,
-    feedId: GtfsFeedId.LEO,
-    shortName: leo.shortName,
-    longName: leo.longName ?? "",
-    isNight: false,
-    color: leo.color,
-    url: leo.url,
-    type: leo.type,
-    name: leo.shortName,
-    feed: GtfsFeedId.LEO,
-    directions: leo.directions.map((direction) => ({
-        id: direction.id,
-        platforms: direction.platforms.map((platform) => ({ ...platform })),
-    })),
-    shapes: leo.shapes.map((shape) => ({
-        id: shape.id,
-        directionId: shape.directionId,
-        tripCount: shape.tripCount,
-        geoJson: shape.geoJson,
-        points: shape.points.map((point) => ({ ...point })),
-    })),
-});
-
 const ROUTE_DATA_CACHE_TTL_MS = CACHE_TTL.routeData;
+
+const CLASSIFIED_VEHICLE_TYPE_TO_GRAPHQL: Record<string, VehicleType> = {
+    SUBWAY: VehicleType.SUBWAY,
+    TROLLEYBUS: VehicleType.TROLLEYBUS,
+    TRAM: VehicleType.TRAM,
+    TRAIN: VehicleType.TRAIN,
+    FERRY: VehicleType.FERRY,
+    FUNICULAR: VehicleType.FUNICULAR,
+    BUS: VehicleType.BUS,
+};
 
 @Injectable()
 export class RouteService {
@@ -448,10 +352,6 @@ export class RouteService {
         return routeName.startsWith("X");
     }
 
-    private getNameWithoutSubstitute(routeName: string): string {
-        return this.isSubstitute(routeName) ? routeName.slice(1) : routeName;
-    }
-
     isNight(routeName: string, feedId: GtfsFeedId = GtfsFeedId.PID): boolean {
         return (
             classifyRoute({
@@ -482,28 +382,16 @@ export class RouteService {
             routeShortName: routeName,
             routeType: gtfsRouteType,
         });
-        const gtfsVehicleType = getVehicleTypeFromGtfsType(gtfsRouteType);
-        const classifiedVehicleType =
-            classifiedRoute.vehicleType === "SUBWAY"
-                ? VehicleType.SUBWAY
-                : classifiedRoute.vehicleType === "TROLLEYBUS"
-                  ? VehicleType.TROLLEYBUS
-                  : classifiedRoute.vehicleType === "TRAM"
-                    ? VehicleType.TRAM
-                    : classifiedRoute.vehicleType === "TRAIN"
-                      ? VehicleType.TRAIN
-                      : classifiedRoute.vehicleType === "FERRY"
-                        ? VehicleType.FERRY
-                        : classifiedRoute.vehicleType === "FUNICULAR"
-                          ? VehicleType.FUNICULAR
-                          : classifiedRoute.vehicleType === "BUS"
-                            ? VehicleType.BUS
-                            : null;
+        const classifiedVehicleType = classifiedRoute.vehicleType
+            ? (CLASSIFIED_VEHICLE_TYPE_TO_GRAPHQL[
+                  classifiedRoute.vehicleType
+              ] ?? null)
+            : null;
 
         if (classifiedVehicleType) {
             return classifiedVehicleType;
         }
 
-        return gtfsVehicleType ?? VehicleType.BUS;
+        return getVehicleTypeFromGtfsType(gtfsRouteType) ?? VehicleType.BUS;
     }
 }
