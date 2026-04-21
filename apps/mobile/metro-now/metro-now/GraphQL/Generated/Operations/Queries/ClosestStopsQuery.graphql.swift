@@ -9,7 +9,7 @@ extension MetroNowAPI {
         static let operationName: String = "ClosestStops"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
             definition: .init(
-                #"query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) { closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) { __typename id name avgLatitude avgLongitude distance entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color } } } }"#
+                #"query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) { closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) { __typename id name avgLatitude avgLongitude distance entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color feed vehicleType isNight } } } }"#
             )
         )
 
@@ -255,6 +255,9 @@ extension MetroNowAPI {
                                 .field("id", MetroNowAPI.ID.self),
                                 .field("name", String?.self),
                                 .field("color", String?.self),
+                                .field("feed", GraphQLEnum<MetroNowAPI.Feed>.self),
+                                .field("vehicleType", GraphQLEnum<MetroNowAPI.VehicleType>.self),
+                                .field("isNight", Bool.self),
                             ]
                         }
 
@@ -274,6 +277,18 @@ extension MetroNowAPI {
 
                         var color: String? {
                             __data["color"]
+                        }
+
+                        var feed: GraphQLEnum<MetroNowAPI.Feed> {
+                            __data["feed"]
+                        }
+
+                        var vehicleType: GraphQLEnum<MetroNowAPI.VehicleType> {
+                            __data["vehicleType"]
+                        }
+
+                        var isNight: Bool {
+                            __data["isNight"]
                         }
                     }
                 }

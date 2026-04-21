@@ -32,6 +32,9 @@ query SearchOtherStops(
         id
         name
         color
+        feed
+        vehicleType
+        isNight
       }
     }
   }

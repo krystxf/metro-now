@@ -23,6 +23,9 @@ query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) {
         id
         name
         color
+        feed
+        vehicleType
+        isNight
       }
     }
   }

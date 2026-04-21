@@ -16,6 +16,9 @@ query Departures($stopIds: [ID!], $platformIds: [ID!], $limit: Int, $metroOnly: 
       id
       name
       color
+      feed
+      vehicleType
+      isNight
     }
   }
 }

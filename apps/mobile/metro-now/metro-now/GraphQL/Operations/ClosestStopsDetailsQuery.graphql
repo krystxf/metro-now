@@ -16,6 +16,9 @@ query ClosestStopsDetails($ids: [ID!]) {
         id
         name
         color
+        feed
+        vehicleType
+        isNight
       }
     }
   }

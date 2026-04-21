@@ -9,7 +9,7 @@ extension MetroNowAPI {
         static let operationName: String = "ClosestStopsDetails"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
             definition: .init(
-                #"query ClosestStopsDetails($ids: [ID!]) { stops(ids: $ids) { __typename id name avgLatitude avgLongitude platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color } } } }"#
+                #"query ClosestStopsDetails($ids: [ID!]) { stops(ids: $ids) { __typename id name avgLatitude avgLongitude platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color feed vehicleType isNight } } } }"#
             )
         )
 
@@ -183,6 +183,9 @@ extension MetroNowAPI {
                                 .field("id", MetroNowAPI.ID.self),
                                 .field("name", String?.self),
                                 .field("color", String?.self),
+                                .field("feed", GraphQLEnum<MetroNowAPI.Feed>.self),
+                                .field("vehicleType", GraphQLEnum<MetroNowAPI.VehicleType>.self),
+                                .field("isNight", Bool.self),
                             ]
                         }
 
@@ -202,6 +205,18 @@ extension MetroNowAPI {
 
                         var color: String? {
                             __data["color"]
+                        }
+
+                        var feed: GraphQLEnum<MetroNowAPI.Feed> {
+                            __data["feed"]
+                        }
+
+                        var vehicleType: GraphQLEnum<MetroNowAPI.VehicleType> {
+                            __data["vehicleType"]
+                        }
+
+                        var isNight: Bool {
+                            __data["isNight"]
                         }
                     }
                 }
