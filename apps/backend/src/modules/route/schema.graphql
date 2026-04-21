@@ -58,5 +58,5 @@ type Route {
 
 type Query {
     route(id: ID!): Route
-    routes: [Route!]!
+    routes(vehicleType: [VehicleType!]): [Route!]!
 }

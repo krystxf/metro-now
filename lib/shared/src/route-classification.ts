@@ -334,6 +334,30 @@ const classifyBarcelonaRoute = ({
         };
     }
 
+    if (/^L\d+/.test(baseRouteName)) {
+        return {
+            vehicleType: ClassifiedVehicleType.SUBWAY,
+            isNight: false,
+            isSubstitute,
+        };
+    }
+
+    if (/^T\d+/.test(baseRouteName)) {
+        return {
+            vehicleType: ClassifiedVehicleType.TRAM,
+            isNight: false,
+            isSubstitute,
+        };
+    }
+
+    if (/^[VH]?\d+/.test(baseRouteName)) {
+        return {
+            vehicleType: ClassifiedVehicleType.BUS,
+            isNight: false,
+            isSubstitute,
+        };
+    }
+
     return {
         vehicleType: gtfsVehicleType,
         isNight: false,

@@ -20,8 +20,10 @@ export class RouteResolver {
     }
 
     @Query("routes")
-    getMany() {
-        return this.routeService.getManyGraphQL();
+    getMany(@Args("vehicleType") vehicleType?: VehicleType[]) {
+        return this.routeService.getManyGraphQL(
+            vehicleType ? { vehicleType } : {},
+        );
     }
 
     @ResolveField("isSubstitute")

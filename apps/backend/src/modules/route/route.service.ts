@@ -253,14 +253,38 @@ export class RouteService {
         return routesByPlatformId;
     }
 
-    async getManyGraphQL(): Promise<GraphQLRouteRecord[]> {
+    async getManyGraphQL({
+        vehicleType,
+    }: {
+        vehicleType?: VehicleType[];
+    } = {}): Promise<GraphQLRouteRecord[]> {
+        const normalizedVehicleTypes =
+            vehicleType && vehicleType.length > 0
+                ? [...new Set(vehicleType)].sort((left, right) =>
+                      left.localeCompare(right),
+                  )
+                : null;
+
         return this.cacheManager.wrap(
-            CACHE_KEYS.route.getManyGraphQL({}),
+            CACHE_KEYS.route.getManyGraphQL({
+                vehicleType: normalizedVehicleTypes,
+            }),
             async () => {
                 const routeRows = await this.loadRouteRows();
+                const filteredRouteRows = normalizedVehicleTypes
+                    ? routeRows.filter((route) =>
+                          normalizedVehicleTypes.includes(
+                              this.getVehicleTypeForRoute({
+                                  feedId: route.feedId,
+                                  routeName: route.shortName,
+                                  gtfsRouteType: route.type,
+                              }),
+                          ),
+                      )
+                    : routeRows;
 
                 return this.loadGraphQLRoutesByIds(
-                    routeRows.map((route) => route.id),
+                    filteredRouteRows.map((route) => route.id),
                 );
             },
             ROUTE_DATA_CACHE_TTL_MS,
