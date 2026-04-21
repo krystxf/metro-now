@@ -22,11 +22,11 @@ private enum SearchVehicleType: Int, CaseIterable {
         }
     }
 
-    static func from(routeName: String) -> SearchVehicleType? {
-        if METRO_LINES.contains(routeName.uppercased()) {
+    static func from(route: ApiRoute) -> SearchVehicleType? {
+        if isPidFeed(route.feed), METRO_LINES.contains(route.name.uppercased()) {
             return .metro
         }
-        guard let mode = mapTransportMode(for: routeName) else {
+        guard let mode = mapTransportMode(for: route) else {
             return nil
         }
         switch mode {
@@ -49,7 +49,7 @@ struct SearchPageItemView: View {
         var seen = Set<SearchVehicleType>()
         var ordered: [SearchVehicleType] = []
         for route in routes {
-            guard let type = SearchVehicleType.from(routeName: route.name) else {
+            guard let type = SearchVehicleType.from(route: route) else {
                 continue
             }
             if seen.insert(type).inserted {

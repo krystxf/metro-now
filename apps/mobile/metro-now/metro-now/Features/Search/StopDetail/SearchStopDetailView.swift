@@ -10,110 +10,28 @@ struct SearchStopDetailView: View {
     var onClose: (() -> Void)?
 
     @StateObject var viewModel: SearchPageDetailViewModel
-    @State private var routePreviewItem: SheetIdItem?
-    @State private var allDeparturesRequest: AllDeparturesRequest?
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
-    @EnvironmentObject private var locationModel: LocationViewModel
-    @EnvironmentObject private var infotextsViewModel: InfotextsViewModel
-
-    private var relatedInfotexts: [ApiInfotext] {
-        // Map surface-platform display stops wrap the base stop with a
-        // platform-label name (e.g., "Můstek A"), so `stop.name` doesn't
-        // match infotext `relatedStops.name` ("Můstek"). Fall back to the
-        // underlying platform names, which are the station name.
-        var candidates = Set<String>()
-        let trimmed = stop.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty {
-            candidates.insert(trimmed.lowercased())
-        }
-        for platform in stop.platforms {
-            let name = platform.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !name.isEmpty {
-                candidates.insert(name.lowercased())
-            }
-        }
-        guard !candidates.isEmpty else { return [] }
-        return infotextsViewModel.infotexts.filter { infotext in
-            infotext.relatedStops.contains { related in
-                let name = related.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                return candidates.contains(name.lowercased())
-            }
-        }
-    }
-
-    private func handleRoutePreview(_ item: SheetIdItem) {
-        if let sidebarRoutePreviewPresenter {
-            sidebarRoutePreviewPresenter(item)
-        } else {
-            routePreviewItem = item
-        }
-    }
-
-    private var metroPlatforms: [ApiPlatform] {
-        stop.platforms.filter(\.isMetro)
-    }
-
-    private var nonMetroPlatforms: [ApiPlatform] {
-        stop.platforms
-            .filter { platform in
-                !platform.isMetro
-            }
-            .sorted { left, right in
-                getPlatformLabel(left) < getPlatformLabel(right)
-            }
-    }
-
-    private var hasRealtimeData: Bool {
-        viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
-    }
-
-    private var stopDistanceFromUser: CLLocationDistance? {
-        guard showsDistanceFromUser,
-              let location = locationModel.location
-        else {
-            return nil
-        }
-
-        return stop.distance(to: location)
-    }
-
-    private var formattedStopDistanceFromUser: String? {
-        guard let stopDistanceFromUser else {
-            return nil
-        }
-
-        return Measurement(value: stopDistanceFromUser, unit: UnitLength.meters).formatted(
-            .measurement(
-                width: .abbreviated,
-                usage: .road,
-                numberFormatStyle: .number.precision(.fractionLength(0))
-            )
-        )
-    }
-
-    private func platformPrimaryLabel(_ platform: ApiPlatform) -> String {
-        if let code = platform.code, !code.isEmpty {
-            return "Platform \(code)"
-        }
-        return platform.name
-    }
-
-    private var metroStop: ApiStop {
-        ApiStop(
-            id: stop.id,
-            name: stop.name,
-            avgLatitude: stop.avgLatitude,
-            avgLongitude: stop.avgLongitude,
-            entrances: stop.entrances,
-            platforms: metroPlatforms
-        )
-    }
+    @State var routePreviewItem: SheetIdItem?
+    @State var allDeparturesRequest: AllDeparturesRequest?
+    @State var showingAllInfotexts = false
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.sidebarRoutePreviewPresenter) var sidebarRoutePreviewPresenter
+    @EnvironmentObject var locationModel: LocationViewModel
+    @EnvironmentObject var infotextsViewModel: InfotextsViewModel
 
     var body: some View {
         List {
-            ForEach(relatedInfotexts, id: \.id) { infotext in
-                InfotextsItem(infotext: infotext, showsRelatedStops: false)
+            if let topInfotext = relatedInfotexts.first {
+                InfotextsItem(infotext: topInfotext, showsRelatedStops: false)
+
+                if relatedInfotexts.count > 1 {
+                    let remaining = relatedInfotexts.count - 1
+                    Button {
+                        showingAllInfotexts = true
+                    } label: {
+                        Text("\(remaining) more \(remaining == 1 ? "alert" : "alerts")")
+                            .font(.footnote)
+                    }
+                }
             }
 
             if !metroPlatforms.isEmpty {
@@ -138,30 +56,10 @@ struct SearchStopDetailView: View {
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
-            if formattedStopDistanceFromUser != nil || hasRealtimeData {
-                HStack(spacing: 8) {
-                    if let formattedStopDistanceFromUser {
-                        Label(
-                            formattedStopDistanceFromUser,
-                            systemImage: "figure.walk"
-                        )
-                        .foregroundStyle(.secondary)
-                    }
-
-                    if hasRealtimeData {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .symbolEffect(
-                                .variableColor.cumulative.dimInactiveLayers.nonReversing,
-                                options: .repeating
-                            )
-                            .foregroundStyle(.green)
-                    }
-                }
-                .font(.subheadline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 6)
-            }
+            SearchStopDetailHeaderBadge(
+                formattedDistance: formattedStopDistanceFromUser,
+                hasRealtimeData: hasRealtimeData
+            )
         }
         .navigationTitle(stop.name)
         .sheet(item: $routePreviewItem) { item in
@@ -176,6 +74,12 @@ struct SearchStopDetailView: View {
         .sheet(item: $allDeparturesRequest) { request in
             AllDeparturesSheetView(request: request)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showingAllInfotexts) {
+            SearchStopInfotextsSheet(
+                infotexts: relatedInfotexts,
+                onDone: { showingAllInfotexts = false }
+            )
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

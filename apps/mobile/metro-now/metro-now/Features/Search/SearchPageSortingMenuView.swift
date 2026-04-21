@@ -59,24 +59,24 @@ enum SearchPageVehicleTypeFilter: String, CaseIterable, Identifiable {
         }
     }
 
-    func matches(routeName: String) -> Bool {
+    func matches(route: ApiRoute) -> Bool {
         switch self {
         case .all:
             true
         case .metro:
-            isMetro(routeName)
+            isMetro(route.name, feed: route.feed)
         case .tram:
-            mapTransportMode(for: routeName) == .tram
+            mapTransportMode(for: route) == .tram
         case .bus:
-            mapTransportMode(for: routeName) == .bus
+            mapTransportMode(for: route) == .bus
         case .train:
-            mapTransportMode(for: routeName) == .train
+            mapTransportMode(for: route) == .train
         case .ferry:
-            mapTransportMode(for: routeName) == .ferry
+            mapTransportMode(for: route) == .ferry
         case .funicular:
-            mapTransportMode(for: routeName) == .funicular
+            mapTransportMode(for: route) == .funicular
         case .leoExpress:
-            mapTransportMode(for: routeName) == .leoExpress
+            mapTransportMode(for: route) == .leoExpress
         }
     }
 }
