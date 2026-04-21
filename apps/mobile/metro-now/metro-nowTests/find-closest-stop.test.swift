@@ -59,6 +59,6 @@ struct FindClosestStopTests {
 
         let distance = getStopDistance(location, stop)
         #expect(distance > 0)
-        #expect(distance == stop.distance(to: location))
+        #expect(abs(distance - stop.distance(to: location)) < 0.000001)
     }
 }

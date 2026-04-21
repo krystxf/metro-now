@@ -143,7 +143,7 @@ struct StopLocationTests {
                     name: "Václavské náměstí",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "3", name: "3")]
+                    routes: [ApiRoute(id: "3", name: "3", vehicleType: "TRAM")]
                 ),
             ]
         )
@@ -181,7 +181,7 @@ struct StopLocationTests {
                     name: "Praha-Smichov",
                     code: "1",
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "S7")]
+                    routes: [ApiRoute(id: "1", name: "S7", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U5000Z2P",
@@ -190,7 +190,7 @@ struct StopLocationTests {
                     name: "Praha-Smichov",
                     code: "2",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "R16")]
+                    routes: [ApiRoute(id: "2", name: "R16", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U5000Z3P",
@@ -199,7 +199,7 @@ struct StopLocationTests {
                     name: "Lihovar",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "172")]
+                    routes: [ApiRoute(id: "2", name: "172", vehicleType: "BUS")]
                 ),
             ]
         )
@@ -244,7 +244,7 @@ struct StopLocationTests {
                     name: "Praha Masarykovo n.",
                     code: nil,
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "S1")]
+                    routes: [ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U480Z3P",
@@ -253,7 +253,7 @@ struct StopLocationTests {
                     name: "Masarykovo nádraží",
                     code: "C",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "14")]
+                    routes: [ApiRoute(id: "2", name: "14", vehicleType: "TRAM")]
                 ),
                 ApiPlatform(
                     id: "U480Z1P",
@@ -262,7 +262,7 @@ struct StopLocationTests {
                     name: "Náměstí Republiky",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "3", name: "207")]
+                    routes: [ApiRoute(id: "3", name: "207", vehicleType: "BUS")]
                 ),
             ]
         )
@@ -292,7 +292,7 @@ struct StopLocationTests {
                     name: "Vyton pristav",
                     code: "P",
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "P3")]
+                    routes: [ApiRoute(id: "1", name: "P3", vehicleType: "FERRY")]
                 ),
                 ApiPlatform(
                     id: "U6000Z2P",
@@ -301,7 +301,7 @@ struct StopLocationTests {
                     name: "Vyton",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "17")]
+                    routes: [ApiRoute(id: "2", name: "17", vehicleType: "TRAM")]
                 ),
             ]
         )
@@ -336,8 +336,8 @@ struct StopLocationTests {
                     code: "1",
                     isMetro: false,
                     routes: [
-                        ApiRoute(id: "1", name: "S1"),
-                        ApiRoute(id: "2", name: "177"),
+                        ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN"),
+                        ApiRoute(id: "2", name: "177", vehicleType: "BUS"),
                     ]
                 ),
             ]
@@ -453,8 +453,8 @@ struct MetroDepartureRowsTests {
         )
     }
 
-    @Test("collapses terminal metro departures with the same headsign across platforms")
-    func collapsesTerminalMetroDepartures() {
+    @Test("keeps one row per platform even at a terminal with matching headsigns")
+    func keepsOneRowPerTerminalPlatform() {
         let rows = buildMetroDepartureRows(
             for: metroStop(),
             departures: [
@@ -479,11 +479,25 @@ struct MetroDepartureRowsTests {
             ]
         )
 
-        #expect(rows?.count == 1)
-        #expect(rows?.first?.headsign == "Nemocnice Motol")
-        #expect(rows?.first?.platformId == "U1071Z102P")
-        #expect(rows?.first?.departure == baseDate.addingTimeInterval(4 * 60))
-        #expect(rows?.first?.nextDeparture == baseDate.addingTimeInterval(12 * 60))
+        #expect(rows?.count == 2)
+
+        let rowsByPlatform = Dictionary(
+            uniqueKeysWithValues: (rows ?? []).map { ($0.platformId, $0) }
+        )
+
+        #expect(
+            rowsByPlatform["U1071Z101P"]?.departure
+                == baseDate.addingTimeInterval(12 * 60)
+        )
+        #expect(
+            rowsByPlatform["U1071Z101P"]?.nextDeparture
+                == baseDate.addingTimeInterval(20 * 60)
+        )
+        #expect(
+            rowsByPlatform["U1071Z102P"]?.departure
+                == baseDate.addingTimeInterval(4 * 60)
+        )
+        #expect(rowsByPlatform["U1071Z102P"]?.nextDeparture == nil)
     }
 
     @Test("keeps opposite metro directions as separate rows")
@@ -589,8 +603,8 @@ struct PlatformDepartureGroupsTests {
                     code: "1",
                     isMetro: false,
                     routes: [
-                        ApiRoute(id: "1", name: "S1"),
-                        ApiRoute(id: "2", name: "177"),
+                        ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN"),
+                        ApiRoute(id: "2", name: "177", vehicleType: "BUS"),
                     ]
                 ),
             ]
