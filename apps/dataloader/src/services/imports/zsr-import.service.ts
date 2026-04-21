@@ -467,17 +467,11 @@ export class ZsrImportService {
             })),
         );
 
-        const routes = zsrRoutes.map((route) => ({
-            id: toZsrRouteId(route.id),
-            name: route.shortName,
-            vehicleType: VehicleType.TRAIN,
-            isNight: false as const,
-        }));
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.ZSR,
                     routeId,
                 })),
             ),
@@ -548,7 +542,6 @@ export class ZsrImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

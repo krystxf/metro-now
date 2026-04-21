@@ -379,25 +379,11 @@ export class TramImportService {
             })),
         );
 
-        const routes = tramRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.BARCELONA,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toTramRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.BARCELONA,
                     routeId,
                 })),
             ),
@@ -460,7 +446,6 @@ export class TramImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

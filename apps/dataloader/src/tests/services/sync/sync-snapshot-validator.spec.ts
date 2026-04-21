@@ -27,18 +27,11 @@ const createSnapshot = (): SyncSnapshot => ({
             stopId: "U1",
         },
     ],
-    routes: [
-        {
-            id: "R1",
-            name: "Route 1",
-            vehicleType: null,
-            isNight: false,
-        },
-    ],
     platformRoutes: [
         {
             platformId: "P1",
-            routeId: "R1",
+            feedId: GtfsFeedId.PID,
+            routeId: "L1",
         },
     ],
     gtfsRoutes: [

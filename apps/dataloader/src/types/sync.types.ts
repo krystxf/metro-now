@@ -1,6 +1,6 @@
-import {
-    type GeoJsonLineString,
-    type GtfsFeedId,
+import type {
+    GeoJsonLineString,
+    GtfsFeedId,
     VehicleType,
 } from "@metro-now/database";
 
@@ -25,15 +25,9 @@ export type SyncedPlatform = {
     stopId: string | null;
 };
 
-export type SyncedRoute = {
-    id: string;
-    name: string;
-    vehicleType: VehicleType | null;
-    isNight: boolean | null;
-};
-
 export type SyncedPlatformRoute = {
     platformId: string;
+    feedId: GtfsFeedId;
     routeId: string;
 };
 
@@ -154,7 +148,6 @@ export type SyncedGtfsFrequency = {
 export type StopSnapshot = {
     stops: SyncedStop[];
     platforms: SyncedPlatform[];
-    routes: SyncedRoute[];
     platformRoutes: SyncedPlatformRoute[];
 };
 
@@ -176,7 +169,6 @@ export type SyncSnapshot = StopSnapshot & GtfsSnapshot;
 export type SyncCounts = {
     stops: number;
     platforms: number;
-    routes: number;
     platformRoutes: number;
     gtfsRoutes: number;
     gtfsRouteStops: number;
@@ -215,7 +207,6 @@ export type SyncPersistenceResult =
 export const getSyncCounts = (snapshot: SyncSnapshot): SyncCounts => ({
     stops: snapshot.stops.length,
     platforms: snapshot.platforms.length,
-    routes: snapshot.routes.length,
     platformRoutes: snapshot.platformRoutes.length,
     gtfsRoutes: snapshot.gtfsRoutes.length,
     gtfsRouteStops: snapshot.gtfsRouteStops.length,

@@ -13,7 +13,6 @@ import {
     type NewGtfsTrip,
     type NewPlatform,
     type NewPlatformsOnRoutes,
-    type NewRoute,
     type NewStop,
     sql,
 } from "@metro-now/database";
@@ -33,7 +32,6 @@ import type {
     SyncedGtfsTrip,
     SyncedPlatform,
     SyncedPlatformRoute,
-    SyncedRoute,
     SyncedStop,
 } from "../../types/sync.types";
 import { getSyncCounts } from "../../types/sync.types";
@@ -58,7 +56,6 @@ type IdTableName =
     | "GtfsTransfer"
     | "GtfsTrip"
     | "Platform"
-    | "Route"
     | "Stop";
 
 export class SyncRepository {
@@ -115,7 +112,6 @@ export class SyncRepository {
         const changed = new Set<string>();
 
         await this.upsertStops(transaction, snapshot.stops);
-        await this.upsertRoutes(transaction, snapshot.routes);
         await this.upsertPlatforms(transaction, snapshot.platforms);
         await this.upsertGtfsRoutes(transaction, snapshot.gtfsRoutes);
         await this.upsertGtfsStationEntrances(
@@ -195,10 +191,6 @@ export class SyncRepository {
             changed.add("platforms");
         }
 
-        if (await this.deleteStaleRoutes(transaction, snapshot.routes)) {
-            changed.add("routes");
-        }
-
         if (await this.deleteStaleStops(transaction, snapshot.stops)) {
             changed.add("stops");
         }
@@ -216,7 +208,6 @@ export class SyncRepository {
         // came from the live PID API, so any non-empty upsert is a potential change.
         if (snapshot.stops.length > 0) changed.add("stops");
         if (snapshot.platforms.length > 0) changed.add("platforms");
-        if (snapshot.routes.length > 0) changed.add("routes");
         if (snapshot.gtfsRoutes.length > 0) changed.add("gtfsRoutes");
         if (snapshot.gtfsStationEntrances.length > 0)
             changed.add("gtfsStationEntrances");
@@ -268,45 +259,6 @@ export class SyncRepository {
                                 ),
                                 country:
                                     expressionBuilder.ref("excluded.country"),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async upsertRoutes(
-        transaction: DatabaseTransaction,
-        routes: SyncedRoute[],
-    ): Promise<void> {
-        await this.processInBatches(
-            routes,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewRoute[] = chunk.map((route) => ({
-                    id: route.id,
-                    name: route.name,
-                    vehicleType: route.vehicleType,
-                    isNight: route.isNight,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("Route")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .column("id")
-                            .doUpdateSet((expressionBuilder) => ({
-                                name: expressionBuilder.ref("excluded.name"),
-                                vehicleType: expressionBuilder.ref(
-                                    "excluded.vehicleType",
-                                ),
-                                isNight:
-                                    expressionBuilder.ref("excluded.isNight"),
                                 updatedAt: sql`now()`,
                             })),
                     )
@@ -467,7 +419,7 @@ export class SyncRepository {
     ): Promise<boolean> {
         const existingRelations = await transaction
             .selectFrom("PlatformsOnRoutes")
-            .select(["platformId", "routeId"])
+            .select(["platformId", "feedId", "routeId"])
             .execute();
         const incomingKeys = new Set(
             platformRoutes.map((relation) =>
@@ -494,6 +446,7 @@ export class SyncRepository {
                 const values: NewPlatformsOnRoutes[] = chunk.map(
                     (relation) => ({
                         platformId: relation.platformId,
+                        feedId: relation.feedId,
                         routeId: relation.routeId,
                         createdAt: timestamp,
                         updatedAt: timestamp,
@@ -504,7 +457,9 @@ export class SyncRepository {
                     .insertInto("PlatformsOnRoutes")
                     .values(values)
                     .onConflict((conflict) =>
-                        conflict.columns(["platformId", "routeId"]).doNothing(),
+                        conflict
+                            .columns(["platformId", "feedId", "routeId"])
+                            .doNothing(),
                     )
                     .execute();
             },
@@ -527,6 +482,11 @@ export class SyncRepository {
                                         "platformId",
                                         "=",
                                         relation.platformId,
+                                    ),
+                                    expressionBuilder(
+                                        "feedId",
+                                        "=",
+                                        relation.feedId,
                                     ),
                                     expressionBuilder(
                                         "routeId",
@@ -1047,20 +1007,6 @@ export class SyncRepository {
         return deletableIds.length > 0;
     }
 
-    private async deleteStaleRoutes(
-        transaction: DatabaseTransaction,
-        routes: SyncedRoute[],
-    ): Promise<boolean> {
-        const incomingIds = new Set(routes.map((route) => route.id));
-        const staleIds = (await this.selectIds(transaction, "Route")).filter(
-            (id) => !incomingIds.has(id),
-        );
-
-        await this.deleteByIds(transaction, "Route", staleIds);
-
-        return staleIds.length > 0;
-    }
-
     private async deleteStaleStops(
         transaction: DatabaseTransaction,
         stops: SyncedStop[],
@@ -1336,7 +1282,7 @@ export class SyncRepository {
     }
 
     private getPlatformRouteKey(relation: SyncedPlatformRoute): string {
-        return `${relation.platformId}::${relation.routeId}`;
+        return `${relation.platformId}::${relation.feedId}::${relation.routeId}`;
     }
 
     private getGtfsRouteStopKey(routeStop: SyncedGtfsRouteStop): string {

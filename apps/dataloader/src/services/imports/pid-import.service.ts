@@ -4,10 +4,28 @@ import {
     type PidStopsSchema,
     pidStopsSchema,
 } from "../../schema/pid-stops.schema";
-import type { StopSnapshot, SyncedRoute } from "../../types/sync.types";
+import type { StopSnapshot, SyncedGtfsRoute } from "../../types/sync.types";
 import { fetchWithTimeout } from "../../utils/fetch.utils";
+import { classifyImportedRoute } from "./route-classification.utils";
 
 const PID_STOPS_URL = "https://data.pid.cz/stops/json/stops.json";
+
+export type PidSnapshot = StopSnapshot & {
+    gtfsRoutes: SyncedGtfsRoute[];
+};
+
+const PID_LINE_TYPE_TO_GTFS_ROUTE_TYPE: Record<string, string> = {
+    tram: "0",
+    metro: "1",
+    train: "2",
+    bus: "3",
+    ferry: "4",
+    funicular: "7",
+    trolleybus: "11",
+};
+
+const toGtfsRouteType = (pidLineType: string): string =>
+    PID_LINE_TYPE_TO_GTFS_ROUTE_TYPE[pidLineType.toLowerCase()] ?? "";
 
 const resolveStopGroupName = (
     stopGroup: PidStopsSchema["stopGroups"][number],
@@ -27,7 +45,7 @@ const resolveStopGroupName = (
 };
 
 export class PidImportService {
-    async getStopSnapshot(): Promise<StopSnapshot> {
+    async getStopSnapshot(): Promise<PidSnapshot> {
         return this.buildStopSnapshot(await this.getStops());
     }
 
@@ -53,7 +71,7 @@ export class PidImportService {
         return parsed.data;
     }
 
-    buildStopSnapshot(stopsData: PidStopsSchema): StopSnapshot {
+    buildStopSnapshot(stopsData: PidStopsSchema): PidSnapshot {
         const stops = new Map<
             string,
             {
@@ -87,11 +105,12 @@ export class PidImportService {
                 stopId: string | null;
             }
         >();
-        const routes = new Map<string, SyncedRoute>();
+        const gtfsRoutes = new Map<string, SyncedGtfsRoute>();
         const platformRoutes = new Map<
             string,
             {
                 platformId: string;
+                feedId: GtfsFeedId;
                 routeId: string;
             }
         >();
@@ -123,17 +142,33 @@ export class PidImportService {
                         continue;
                     }
 
-                    routes.set(routeId, {
+                    const gtfsRouteType = toGtfsRouteType(line.type);
+                    const classification = classifyImportedRoute({
+                        feedId: GtfsFeedId.PID,
+                        routeShortName: routeName,
+                        routeType: gtfsRouteType,
+                    });
+                    const vehicleType =
+                        classification.vehicleType ??
+                        VehicleType[
+                            line.type.toUpperCase() as keyof typeof VehicleType
+                        ] ??
+                        null;
+
+                    gtfsRoutes.set(routeId, {
                         id: routeId,
-                        name: routeName,
-                        vehicleType:
-                            VehicleType[
-                                line.type.toUpperCase() as keyof typeof VehicleType
-                            ] ?? null,
-                        isNight: null,
+                        feedId: GtfsFeedId.PID,
+                        shortName: routeName,
+                        longName: null,
+                        type: gtfsRouteType,
+                        vehicleType,
+                        color: null,
+                        isNight: classification.isNight,
+                        url: null,
                     });
                     platformRoutes.set(`${platformId}::${routeId}`, {
                         platformId,
+                        feedId: GtfsFeedId.PID,
                         routeId,
                     });
                 }
@@ -143,8 +178,8 @@ export class PidImportService {
         return {
             stops: Array.from(stops.values()),
             platforms: Array.from(platforms.values()),
-            routes: Array.from(routes.values()),
             platformRoutes: Array.from(platformRoutes.values()),
+            gtfsRoutes: Array.from(gtfsRoutes.values()),
         };
     }
 

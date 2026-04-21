@@ -466,17 +466,11 @@ export class LeoImportService {
         const leoRouteById = new Map(
             leoRoutes.map((route) => [route.id, route] as const),
         );
-        const routes = leoRoutes.map((route) => ({
-            id: toLeoRouteId(route.id),
-            name: route.shortName,
-            vehicleType: VehicleType.TRAIN,
-            isNight: false as const,
-        }));
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.LEO,
                     routeId,
                 })),
             ),
@@ -536,7 +530,6 @@ export class LeoImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

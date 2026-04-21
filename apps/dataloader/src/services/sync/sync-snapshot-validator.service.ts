@@ -4,7 +4,6 @@ export class SyncSnapshotValidator {
     validate(snapshot: SyncSnapshot): void {
         this.assertNotEmpty("stops", snapshot.stops);
         this.assertNotEmpty("platforms", snapshot.platforms);
-        this.assertNotEmpty("routes", snapshot.routes);
         this.assertNotEmpty("platformRoutes", snapshot.platformRoutes);
         this.assertNotEmpty("gtfsRoutes", snapshot.gtfsRoutes);
         this.assertNotEmpty("gtfsRouteStops", snapshot.gtfsRouteStops);
@@ -19,18 +18,15 @@ export class SyncSnapshotValidator {
             snapshot.platforms.map((platform) => platform.id),
         );
         this.assertUniqueKeys(
-            "routes",
-            snapshot.routes.map((route) => route.id),
-        );
-        this.assertUniqueKeys(
             "platformRoutes",
             snapshot.platformRoutes.map(
-                (relation) => `${relation.platformId}::${relation.routeId}`,
+                (relation) =>
+                    `${relation.platformId}::${relation.feedId}::${relation.routeId}`,
             ),
         );
         this.assertUniqueKeys(
             "gtfsRoutes",
-            snapshot.gtfsRoutes.map((route) => route.id),
+            snapshot.gtfsRoutes.map((route) => `${route.feedId}::${route.id}`),
         );
         this.assertUniqueKeys(
             "gtfsRouteStops",
@@ -86,9 +82,8 @@ export class SyncSnapshotValidator {
         const platformIds = new Set(
             snapshot.platforms.map((platform) => platform.id),
         );
-        const routeIds = new Set(snapshot.routes.map((route) => route.id));
-        const gtfsRouteIds = new Set(
-            snapshot.gtfsRoutes.map((route) => route.id),
+        const gtfsRouteKeys = new Set(
+            snapshot.gtfsRoutes.map((route) => `${route.feedId}::${route.id}`),
         );
         const gtfsTripIds = new Set(snapshot.gtfsTrips.map((trip) => trip.id));
 
@@ -107,17 +102,19 @@ export class SyncSnapshotValidator {
                 );
             }
 
-            if (!routeIds.has(relation.routeId)) {
+            if (!gtfsRouteKeys.has(`${relation.feedId}::${relation.routeId}`)) {
                 throw new Error(
-                    `Platform route references missing route '${relation.routeId}'`,
+                    `Platform route references missing route '${relation.routeId}' in feed '${relation.feedId}'`,
                 );
             }
         }
 
         for (const routeStop of snapshot.gtfsRouteStops) {
-            if (!gtfsRouteIds.has(routeStop.routeId)) {
+            if (
+                !gtfsRouteKeys.has(`${routeStop.feedId}::${routeStop.routeId}`)
+            ) {
                 throw new Error(
-                    `GTFS route stop references missing route '${routeStop.routeId}'`,
+                    `GTFS route stop references missing route '${routeStop.routeId}' in feed '${routeStop.feedId}'`,
                 );
             }
 
@@ -163,9 +160,9 @@ export class SyncSnapshotValidator {
         }
 
         for (const trip of snapshot.gtfsTrips) {
-            if (!gtfsRouteIds.has(trip.routeId)) {
+            if (!gtfsRouteKeys.has(`${trip.feedId}::${trip.routeId}`)) {
                 throw new Error(
-                    `GTFS trip references missing route '${trip.routeId}'`,
+                    `GTFS trip references missing route '${trip.routeId}' in feed '${trip.feedId}'`,
                 );
             }
         }
@@ -206,9 +203,13 @@ export class SyncSnapshotValidator {
 
             routeDirectionKeys.add(routeDirectionKey);
 
-            if (!gtfsRouteIds.has(routeShape.routeId)) {
+            if (
+                !gtfsRouteKeys.has(
+                    `${routeShape.feedId}::${routeShape.routeId}`,
+                )
+            ) {
                 throw new Error(
-                    `GTFS route shape references missing route '${routeShape.routeId}'`,
+                    `GTFS route shape references missing route '${routeShape.routeId}' in feed '${routeShape.feedId}'`,
                 );
             }
 

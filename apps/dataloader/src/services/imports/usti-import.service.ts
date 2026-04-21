@@ -378,25 +378,11 @@ export class UstiImportService {
             })),
         );
 
-        const routes = ustiRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.USTI,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toUstiRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.USTI,
                     routeId,
                 })),
             ),
@@ -459,7 +445,6 @@ export class UstiImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

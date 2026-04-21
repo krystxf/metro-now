@@ -2,10 +2,10 @@ import type { DatabaseClient } from "@metro-now/database";
 
 import type {
     GtfsSnapshot,
-    StopSnapshot,
     SyncRunResult,
     SyncSnapshot,
     SyncTrigger,
+    SyncedGtfsRoute,
     SyncedStop,
 } from "../../types/sync.types";
 import { logger } from "../../utils/logger";
@@ -18,7 +18,10 @@ import { BrnoImportService } from "../imports/brno-import.service";
 import { FgcImportService } from "../imports/fgc-import.service";
 import { LeoImportService } from "../imports/leo-import.service";
 import { LiberecImportService } from "../imports/liberec-import.service";
-import { PidImportService } from "../imports/pid-import.service";
+import {
+    PidImportService,
+    type PidSnapshot,
+} from "../imports/pid-import.service";
 import { PmdpImportService } from "../imports/pmdp-import.service";
 import { TmbImportService } from "../imports/tmb-import.service";
 import { TramImportService } from "../imports/tram-import.service";
@@ -26,6 +29,16 @@ import { UstiImportService } from "../imports/usti-import.service";
 import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
+
+const dedupeGtfsRoutes = (
+    gtfsRoutes: readonly SyncedGtfsRoute[],
+): SyncedGtfsRoute[] => {
+    const byKey = new Map<string, SyncedGtfsRoute>();
+    for (const gtfsRoute of gtfsRoutes) {
+        byKey.set(`${gtfsRoute.feedId}::${gtfsRoute.id}`, gtfsRoute);
+    }
+    return Array.from(byKey.values());
+};
 
 export class SyncService {
     private readonly importService = new PidImportService();
@@ -287,7 +300,7 @@ export class SyncService {
                 logger.info(`${loader.name} snapshot ready`, {
                     stops: snapshot.stops.length,
                     platforms: snapshot.platforms.length,
-                    routes: snapshot.routes.length,
+                    routes: snapshot.gtfsRoutes.length,
                 });
                 results.push(snapshot);
             } catch (error) {
@@ -307,15 +320,14 @@ export class SyncService {
     }
 
     private mergeSnapshots(
-        stopSnapshot: StopSnapshot,
+        stopSnapshot: PidSnapshot,
         gtfsSnapshot: GtfsSnapshot,
         citySnapshots: SyncSnapshot[],
         allPlatforms: SyncSnapshot["platforms"],
     ): SyncSnapshot {
         const stops = [stopSnapshot.stops];
-        const routes = [stopSnapshot.routes];
         const platformRoutes = [stopSnapshot.platformRoutes];
-        const gtfsRoutes = [gtfsSnapshot.gtfsRoutes];
+        const gtfsRoutes = [stopSnapshot.gtfsRoutes, gtfsSnapshot.gtfsRoutes];
         const gtfsRouteStops = [gtfsSnapshot.gtfsRouteStops];
         const gtfsRouteShapes = [gtfsSnapshot.gtfsRouteShapes];
         const gtfsStationEntrances = [gtfsSnapshot.gtfsStationEntrances];
@@ -328,7 +340,6 @@ export class SyncService {
 
         for (const snapshot of citySnapshots) {
             stops.push(snapshot.stops);
-            routes.push(snapshot.routes);
             platformRoutes.push(snapshot.platformRoutes);
             gtfsRoutes.push(snapshot.gtfsRoutes);
             gtfsRouteStops.push(snapshot.gtfsRouteStops);
@@ -345,9 +356,8 @@ export class SyncService {
         return {
             stops: stops.flat(),
             platforms: allPlatforms,
-            routes: routes.flat(),
             platformRoutes: platformRoutes.flat(),
-            gtfsRoutes: gtfsRoutes.flat(),
+            gtfsRoutes: dedupeGtfsRoutes(gtfsRoutes.flat()),
             gtfsRouteStops: gtfsRouteStops.flat(),
             gtfsRouteShapes: gtfsRouteShapes.flat(),
             gtfsStationEntrances: gtfsStationEntrances.flat(),

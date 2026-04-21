@@ -380,25 +380,11 @@ export class BratislavaImportService {
             })),
         );
 
-        const routes = bratislavaRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.BRATISLAVA,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toBratislavaRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.BRATISLAVA,
                     routeId,
                 })),
             ),
@@ -461,7 +447,6 @@ export class BratislavaImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

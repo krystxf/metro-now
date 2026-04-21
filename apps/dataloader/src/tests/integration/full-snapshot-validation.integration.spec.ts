@@ -260,7 +260,6 @@ test("integration: full snapshot has consistent cross-references", async () => {
 
     const stopIds = new Set(snapshot.stops.map((s) => s.id));
     const platformIds = new Set(snapshot.platforms.map((p) => p.id));
-    const routeIds = new Set(snapshot.routes.map((r) => r.id));
     const gtfsRouteIds = new Set(snapshot.gtfsRoutes.map((r) => r.id));
 
     // all platforms reference valid stops
@@ -273,14 +272,14 @@ test("integration: full snapshot has consistent cross-references", async () => {
         }
     }
 
-    // all platform routes reference valid platforms and routes
+    // all platform routes reference valid platforms and GTFS routes
     for (const pr of snapshot.platformRoutes) {
         assert.ok(
             platformIds.has(pr.platformId),
             `PlatformRoute → platform ${pr.platformId}`,
         );
         assert.ok(
-            routeIds.has(pr.routeId),
+            gtfsRouteIds.has(pr.routeId),
             `PlatformRoute → route ${pr.routeId}`,
         );
     }
@@ -327,7 +326,6 @@ test("integration: full snapshot entity counts are correct", async () => {
 
     assert.equal(snapshot.stops.length, 2);
     assert.equal(snapshot.platforms.length, 4);
-    assert.equal(snapshot.routes.length, 1);
     assert.equal(snapshot.gtfsRoutes.length, 1);
     assert.equal(snapshot.gtfsRouteStops.length, 4);
     assert.equal(snapshot.gtfsRouteShapes.length, 2);

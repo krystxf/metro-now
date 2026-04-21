@@ -377,25 +377,11 @@ export class PmdpImportService {
             })),
         );
 
-        const routes = pmdpRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.PMDP,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toPmdpRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.PMDP,
                     routeId,
                 })),
             ),
@@ -458,7 +444,6 @@ export class PmdpImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,

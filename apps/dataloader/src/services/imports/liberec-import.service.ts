@@ -377,25 +377,11 @@ export class LiberecImportService {
             })),
         );
 
-        const routes = liberecRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.LIBEREC,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toLiberecRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.LIBEREC,
                     routeId,
                 })),
             ),
@@ -458,7 +444,6 @@ export class LiberecImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,
