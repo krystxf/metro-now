@@ -8,10 +8,8 @@ import {
     UseInterceptors,
     Version,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 
-import { ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
@@ -23,9 +21,7 @@ import {
     metroOnlySchema,
     vehicleTypeSchema,
 } from "src/schema/metro-only.schema";
-import { metroOnlyQuery } from "src/swagger/query.swagger";
 
-@ApiTags("departure")
 @Controller("departure")
 @UseInterceptors(CacheInterceptor)
 @CacheTTL(4 * 1000)
@@ -37,25 +33,6 @@ export class DepartureController {
 
     @Get()
     @Version([EndpointVersion.v1])
-    @ApiQueries([
-        metroOnlyQuery,
-        {
-            name: "platform[]",
-            description: "Platform IDs",
-            type: String,
-            isArray: true,
-            allowEmptyValue: true,
-            required: false,
-        },
-        {
-            name: "stop[]",
-            description: "Stop IDs",
-            type: String,
-            isArray: true,
-            allowEmptyValue: true,
-            required: false,
-        },
-    ])
     async getDeparturesV1(@Query() query): Promise<DepartureSchema[]> {
         const schema = z.object({
             metroOnly: metroOnlySchema,
@@ -89,73 +66,6 @@ export class DepartureController {
 
     @Get()
     @Version([EndpointVersion.v2])
-    @ApiQueries([
-        {
-            name: "platform[]",
-            description: "Platform IDs",
-            type: [String],
-            example: ["U1040Z101P", "U1040Z102P"],
-            allowEmptyValue: true,
-            required: false,
-        },
-        {
-            name: "stop[]",
-            description: "Stop IDs",
-            type: [String],
-            example: ["U1040"],
-            allowEmptyValue: true,
-            required: false,
-        },
-        {
-            name: "vehicleType",
-            description: "Vehicle type",
-            enum: vehicleTypeSchema.Enum,
-            example: vehicleTypeSchema.Enum.all,
-            required: false,
-            schema: {
-                default: vehicleTypeSchema.Enum.all,
-            },
-        },
-        {
-            name: "excludeVehicleType",
-            description: "Excluded vehicle type",
-            enum: vehicleTypeSchema.exclude(["all"]).Enum,
-            example: null,
-            required: false,
-            schema: {
-                default: null,
-            },
-            allowEmptyValue: true,
-        },
-        {
-            name: "minutesBefore",
-            description: "Minutes Before",
-            type: "integer",
-            example: 0,
-            required: false,
-        },
-        {
-            name: "minutesAfter",
-            description: "Minutes After",
-            type: "integer",
-            example: 2 * 60,
-            required: false,
-        },
-        {
-            name: "limit",
-            description: "Limit of results per platform and route",
-            type: "integer",
-            example: 10,
-            required: false,
-        },
-        {
-            name: "totalLimit",
-            description: "Limit of total results",
-            type: "integer",
-            example: 500,
-            required: false,
-        },
-    ])
     async getDeparturesV2(@Query() query): Promise<DepartureSchema[]> {
         const schema = z.object({
             vehicleType: vehicleTypeSchema.default("all"),

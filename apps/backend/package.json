@@ -31,7 +31,6 @@
         "@nestjs/core": "^11.1.17",
         "@nestjs/graphql": "^13.2.4",
         "@nestjs/platform-express": "^11.1.17",
-        "@nestjs/swagger": "^11.2.6",
         "cache-manager": "^7.2.8",
         "cacheable": "^2.3.4",
         "compression": "^1.8.1",
