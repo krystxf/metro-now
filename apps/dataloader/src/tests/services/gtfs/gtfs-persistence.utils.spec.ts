@@ -120,6 +120,85 @@ test("buildGtfsPersistenceSnapshot parses stop times", () => {
     assert.equal(stopTime?.timepoint, "1");
 });
 
+test("buildGtfsPersistenceSnapshot interpolates missing stop times between timepoints", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [{ trip_id: "T1", route_id: "R1" }],
+        stopTimes: [
+            {
+                trip_id: "T1",
+                stop_id: "P1",
+                stop_sequence: "1",
+                arrival_time: "08:00:00",
+                departure_time: "08:00:00",
+            },
+            {
+                trip_id: "T1",
+                stop_id: "P2",
+                stop_sequence: "2",
+            },
+            {
+                trip_id: "T1",
+                stop_id: "P3",
+                stop_sequence: "3",
+            },
+            {
+                trip_id: "T1",
+                stop_id: "P4",
+                stop_sequence: "5",
+                arrival_time: "08:08:00",
+                departure_time: "08:08:00",
+            },
+        ],
+    });
+
+    const bySequence = new Map(
+        result.gtfsStopTimes.map((st) => [st.stopSequence, st]),
+    );
+
+    assert.equal(bySequence.get(1)?.arrivalTime, "08:00:00");
+    assert.equal(bySequence.get(2)?.arrivalTime, "08:02:00");
+    assert.equal(bySequence.get(2)?.departureTime, "08:02:00");
+    assert.equal(bySequence.get(3)?.arrivalTime, "08:04:00");
+    assert.equal(bySequence.get(3)?.departureTime, "08:04:00");
+    assert.equal(bySequence.get(5)?.arrivalTime, "08:08:00");
+});
+
+test("buildGtfsPersistenceSnapshot leaves leading/trailing null stop times untouched", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [{ trip_id: "T1", route_id: "R1" }],
+        stopTimes: [
+            {
+                trip_id: "T1",
+                stop_id: "P1",
+                stop_sequence: "1",
+            },
+            {
+                trip_id: "T1",
+                stop_id: "P2",
+                stop_sequence: "2",
+                arrival_time: "08:00:00",
+                departure_time: "08:00:00",
+            },
+            {
+                trip_id: "T1",
+                stop_id: "P3",
+                stop_sequence: "3",
+            },
+        ],
+    });
+
+    const bySequence = new Map(
+        result.gtfsStopTimes.map((st) => [st.stopSequence, st]),
+    );
+
+    assert.equal(bySequence.get(1)?.arrivalTime, null);
+    assert.equal(bySequence.get(1)?.departureTime, null);
+    assert.equal(bySequence.get(3)?.arrivalTime, null);
+    assert.equal(bySequence.get(3)?.departureTime, null);
+});
+
 test("buildGtfsPersistenceSnapshot rejects stop times with non-integer stop_sequence", () => {
     assert.throws(
         () =>

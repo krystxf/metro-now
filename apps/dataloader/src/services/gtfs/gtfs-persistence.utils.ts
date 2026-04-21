@@ -106,6 +106,128 @@ const toStableHash = (parts: Array<string | number | null>): string => {
     return createHash("sha1").update(normalized).digest("hex");
 };
 
+const GTFS_TIME_PATTERN = /^(\d{1,3}):(\d{2}):(\d{2})$/;
+
+const parseGtfsTimeToSeconds = (value: string | null): number | null => {
+    if (value === null) {
+        return null;
+    }
+
+    const match = GTFS_TIME_PATTERN.exec(value);
+
+    if (!match) {
+        return null;
+    }
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3]);
+
+    return hours * 3600 + minutes * 60 + seconds;
+};
+
+const formatSecondsAsGtfsTime = (totalSeconds: number): string => {
+    const total = Math.max(0, Math.round(totalSeconds));
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = total % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+type InterpolableStopTime = {
+    stopSequence: number;
+    arrivalTime: string | null;
+    departureTime: string | null;
+};
+
+const interpolateColumn = <T extends InterpolableStopTime>(
+    group: T[],
+    key: "arrivalTime" | "departureTime",
+): void => {
+    const n = group.length;
+    const seconds: Array<number | null> = group.map((st) =>
+        parseGtfsTimeToSeconds(st[key]),
+    );
+
+    const nextPopulated = new Array<number>(n).fill(-1);
+    let running = -1;
+    for (let i = n - 1; i >= 0; i--) {
+        nextPopulated[i] = running;
+        if (seconds[i] !== null) {
+            running = i;
+        }
+    }
+
+    let prevIdx = -1;
+    for (let i = 0; i < n; i++) {
+        if (seconds[i] !== null) {
+            prevIdx = i;
+            continue;
+        }
+
+        const nextIdx = nextPopulated[i];
+
+        if (prevIdx < 0 || nextIdx < 0) {
+            continue;
+        }
+
+        const prevSeq = group[prevIdx].stopSequence;
+        const nextSeq = group[nextIdx].stopSequence;
+
+        if (nextSeq === prevSeq) {
+            continue;
+        }
+
+        const prevVal = seconds[prevIdx];
+        const nextVal = seconds[nextIdx];
+
+        if (prevVal === null || nextVal === null) {
+            continue;
+        }
+
+        const seq = group[i].stopSequence;
+        const ratio = (seq - prevSeq) / (nextSeq - prevSeq);
+        const interpolated = prevVal + ratio * (nextVal - prevVal);
+
+        group[i][key] = formatSecondsAsGtfsTime(interpolated);
+    }
+};
+
+/**
+ * Fill in missing arrival/departure times using linear interpolation between
+ * populated timepoints. GTFS feeds commonly omit times at non-timepoint stops
+ * (TMB does this for ~50% of stop_times), which causes those platforms to have
+ * no departures downstream. Interpolation is computed per trip against the
+ * stop_sequence axis.
+ */
+const interpolateStopTimes = <
+    T extends InterpolableStopTime & { tripId: string },
+>(
+    stopTimes: T[],
+): void => {
+    const byTrip = new Map<string, T[]>();
+
+    for (const st of stopTimes) {
+        let group = byTrip.get(st.tripId);
+        if (!group) {
+            group = [];
+            byTrip.set(st.tripId, group);
+        }
+        group.push(st);
+    }
+
+    for (const group of byTrip.values()) {
+        if (group.length < 2) {
+            continue;
+        }
+
+        group.sort((a, b) => a.stopSequence - b.stopSequence);
+        interpolateColumn(group, "arrivalTime");
+        interpolateColumn(group, "departureTime");
+    }
+};
+
 export const buildGtfsPersistenceSnapshot = ({
     feedId,
     trips,
@@ -171,6 +293,8 @@ export const buildGtfsPersistenceSnapshot = ({
             timepoint: toOptionalString(row.timepoint),
         };
     });
+
+    interpolateStopTimes(gtfsStopTimes);
 
     const gtfsCalendars = calendars.map((row) => {
         const context = `calendar row '${feedId}'`;
