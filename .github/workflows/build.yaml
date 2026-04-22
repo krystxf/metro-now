@@ -62,6 +62,9 @@ jobs:
             - name: Check out code
               uses: actions/checkout@v4
 
+            - name: Seed Secrets.xcconfig
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
             - name: Build mobile
               run: |
                   xcodebuild build \
