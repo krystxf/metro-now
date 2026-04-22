@@ -3,22 +3,12 @@ import * as fs from "node:fs";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import type { MetroNowDatabase } from "./index";
-
-type Stop = {
-    id: string;
-    name: string;
-    avgLatitude: number;
-    avgLongitude: number;
-};
-
-type Platform = {
-    id: string;
-    name: string;
-    isMetro: boolean;
-    latitude: number;
-    longitude: number;
-    stopId: string;
-};
+import {
+    type SeedPlatform,
+    type SeedStop,
+    mapSeedPlatform,
+    mapSeedStop,
+} from "./seed-mapping";
 
 const BATCH_SIZE = 500;
 
@@ -54,8 +44,8 @@ async function main() {
         }),
     });
 
-    const stops = parseSeedFile<Stop[]>("./seeds/stops.json");
-    const platforms = parseSeedFile<Platform[]>("./seeds/platforms.json");
+    const stops = parseSeedFile<SeedStop[]>("./seeds/stops.json");
+    const platforms = parseSeedFile<SeedPlatform[]>("./seeds/platforms.json");
 
     await db.transaction().execute(async (transaction) => {
         await transaction.deleteFrom("PlatformsOnRoutes").execute();
@@ -67,31 +57,13 @@ async function main() {
         await insertInBatches(
             transaction,
             "Stop",
-            stops.map((stop) => ({
-                id: stop.id,
-                name: stop.name,
-                avgLatitude: stop.avgLatitude,
-                avgLongitude: stop.avgLongitude,
-                feed: "PID",
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
+            stops.map((stop) => mapSeedStop(stop, timestamp)),
         );
 
         await insertInBatches(
             transaction,
             "Platform",
-            platforms.map((platform) => ({
-                id: platform.id,
-                name: platform.name,
-                isMetro: platform.isMetro,
-                latitude: platform.latitude,
-                longitude: platform.longitude,
-                stopId: platform.stopId ?? null,
-                code: null,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
+            platforms.map((platform) => mapSeedPlatform(platform, timestamp)),
         );
     });
 

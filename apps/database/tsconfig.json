@@ -13,6 +13,11 @@
         "declarationMap": true,
         "sourceMap": true
     },
-    "include": ["index.ts"],
+    "include": [
+        "index.ts",
+        "seed-mapping.ts",
+        "stop-feed-prefix.ts",
+        "tests/**/*.ts"
+    ],
     "exclude": ["node_modules", "dist"]
 }
