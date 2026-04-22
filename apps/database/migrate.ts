@@ -10,12 +10,63 @@ import {
 import { Pool } from "pg";
 import type { MetroNowDatabase } from "./index";
 
-const createDb = (): Kysely<MetroNowDatabase> => {
-    const connectionString = process.env.DATABASE_URL;
+const unwrapEnvValue = (value: string): string => {
+    const trimmed = value.trim();
 
-    if (!connectionString) {
-        throw new Error("DATABASE_URL environment variable is required");
+    if (
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+    ) {
+        return trimmed.slice(1, -1);
     }
+
+    return trimmed;
+};
+
+const expandEnvVariables = (value: string, env: NodeJS.ProcessEnv): string => {
+    return value.replace(
+        /\$\{([A-Z0-9_]+)\}/g,
+        (_match, key: string) => env[key] ?? "",
+    );
+};
+
+const resolveConnectionString = (
+    env: NodeJS.ProcessEnv = process.env,
+): string => {
+    if (env.DATABASE_URL) {
+        const expanded = expandEnvVariables(
+            unwrapEnvValue(env.DATABASE_URL),
+            env,
+        );
+
+        try {
+            return new URL(expanded).toString();
+        } catch {
+            // fall through to assembling from parts
+        }
+    }
+
+    const required = [
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DB",
+        "DB_HOST",
+        "DB_PORT",
+        "DB_SCHEMA",
+    ] as const;
+    const missing = required.filter((key) => !env[key]);
+
+    if (missing.length > 0) {
+        throw new Error(
+            `Missing database environment variables: ${missing.join(", ")}`,
+        );
+    }
+
+    return `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.POSTGRES_DB}?schema=${env.DB_SCHEMA}`;
+};
+
+const createDb = (): Kysely<MetroNowDatabase> => {
+    const connectionString = resolveConnectionString();
 
     return new Kysely<MetroNowDatabase>({
         dialect: new PostgresDialect({
