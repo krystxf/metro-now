@@ -14,8 +14,10 @@ export const VehicleType = {
     FERRY: "FERRY",
     FUNICULAR: "FUNICULAR",
     METRO: "METRO",
+    SUBWAY: "SUBWAY",
     TRAIN: "TRAIN",
     TRAM: "TRAM",
+    TROLLEYBUS: "TROLLEYBUS",
 } as const;
 
 export type VehicleType = (typeof VehicleType)[keyof typeof VehicleType];
