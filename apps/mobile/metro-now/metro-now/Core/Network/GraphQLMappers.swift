@@ -128,7 +128,7 @@ func mapGraphQLRouteDetail(
         isNight: route.isNight,
         color: route.color,
         url: nil,
-        type: route.vehicleType.rawValue,
+        vehicleType: route.vehicleType.rawValue,
         directions: route.directions.map { direction in
             ApiRouteDirection(
                 id: direction.id,

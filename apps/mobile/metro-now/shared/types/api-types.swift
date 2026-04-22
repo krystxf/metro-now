@@ -339,7 +339,7 @@ struct ApiRouteDetail: Decodable {
     let isNight: Bool
     let color: String?
     let url: String?
-    let type: String
+    let vehicleType: String
     let directions: [ApiRouteDirection]
     let shapes: [ApiRouteShape]
 
@@ -351,7 +351,8 @@ struct ApiRouteDetail: Decodable {
         case isNight
         case color
         case url
-        case type
+        case vehicleType
+        case legacyType = "type"
         case directions
         case shapes
     }
@@ -366,7 +367,9 @@ struct ApiRouteDetail: Decodable {
         isNight = try container.decodeIfPresent(Bool.self, forKey: .isNight) ?? false
         color = try container.decodeIfPresent(String.self, forKey: .color)
         url = try container.decodeIfPresent(String.self, forKey: .url)
-        type = try container.decode(String.self, forKey: .type)
+        vehicleType =
+            try container.decodeIfPresent(String.self, forKey: .vehicleType)
+                ?? container.decode(String.self, forKey: .legacyType)
         directions = try container.decode([ApiRouteDirection].self, forKey: .directions)
         shapes = try container.decodeIfPresent([ApiRouteShape].self, forKey: .shapes) ?? []
     }
@@ -379,7 +382,7 @@ struct ApiRouteDetail: Decodable {
         isNight: Bool,
         color: String?,
         url: String?,
-        type: String,
+        vehicleType: String,
         directions: [ApiRouteDirection],
         shapes: [ApiRouteShape]
     ) {
@@ -390,7 +393,7 @@ struct ApiRouteDetail: Decodable {
         self.isNight = isNight
         self.color = color
         self.url = url
-        self.type = type
+        self.vehicleType = vehicleType
         self.directions = directions
         self.shapes = shapes
     }
@@ -486,9 +489,9 @@ struct MetroDepartureRow: Identifiable {
     let previewRouteId: String?
     let headsign: String
     let departure: Date
-    let nextHeadsign: String?
     let nextDeparture: Date?
     let platformId: String
+    let platformCode: String?
     let platformName: String
 }
 
@@ -533,58 +536,61 @@ func buildMetroDepartureRows(
         }
     )
 
-    let groupedDepartures = Dictionary(
-        grouping: departures.filter { departure in
-            guard let platform = metroPlatformsById[departure.platformId] else {
-                return false
-            }
+    let rows = departures.enumerated().compactMap { index, departure -> MetroDepartureRow? in
+        guard
+            let platform = metroPlatformsById[departure.platformId],
+            platform.supports(departure)
+        else {
+            return nil
+        }
 
-            return platform.supports(departure)
-        },
-        by: { $0.platformId }
+        let previewRouteId = departure.routeId
+            ?? platform.routes.first(where: { route in
+                route.name == departure.route
+            })?.backendRouteId
+            ?? platform.routes.first?.backendRouteId
+
+        return MetroDepartureRow(
+            id: departure.id ?? "\(platform.id)-\(index)",
+            routeLabel: departure.route,
+            previewRouteId: previewRouteId,
+            headsign: departure.headsign,
+            departure: departure.departure.predicted,
+            nextDeparture: nil,
+            platformId: platform.id,
+            platformCode: platform.code,
+            platformName: platform.name
+        )
+    }
+    .sorted { left, right in
+        left.departure < right.departure
+    }
+
+    let rowsBySequenceKey = Dictionary(
+        grouping: rows.enumerated(),
+        by: { _, row in
+            "\(row.platformId)|\(row.routeLabel)|\(row.headsign)"
+        }
     )
 
-    return groupedDepartures
-        .compactMap { platformId, groupedDepartures -> MetroDepartureRow? in
-            let sortedDepartures = groupedDepartures.sorted { left, right in
-                left.departure.predicted < right.departure.predicted
-            }
+    return rows.enumerated().map { index, row in
+        let sequenceKey = "\(row.platformId)|\(row.routeLabel)|\(row.headsign)"
+        let nextDeparture = rowsBySequenceKey[sequenceKey]?
+            .first(where: { nextIndex, _ in nextIndex > index })?
+            .element.departure
 
-            guard
-                let departure = sortedDepartures.first,
-                let platform = metroPlatformsById[platformId]
-            else {
-                return nil
-            }
-
-            let nextDeparture = sortedDepartures.dropFirst().first
-            let previewRouteId = departure.routeId
-                ?? platform.routes.first(where: { route in
-                    route.name == departure.route
-                })?.backendRouteId
-                ?? platform.routes.first?.backendRouteId
-
-            return MetroDepartureRow(
-                id: platform.id,
-                routeLabel: departure.route,
-                previewRouteId: previewRouteId,
-                headsign: departure.headsign,
-                departure: departure.departure.predicted,
-                nextHeadsign: nextDeparture?.headsign,
-                nextDeparture: nextDeparture?.departure.predicted,
-                platformId: platform.id,
-                platformName: platform.name
-            )
-        }
-        .sorted { left, right in
-            // Sort by line name first so rows don't reorder as minutes tick —
-            // metro headways are tight and a bouncing list is hard to scan.
-            // Headsign breaks ties between directions of the same line.
-            if left.routeLabel != right.routeLabel {
-                return left.routeLabel < right.routeLabel
-            }
-            return left.headsign < right.headsign
-        }
+        return MetroDepartureRow(
+            id: row.id,
+            routeLabel: row.routeLabel,
+            previewRouteId: row.previewRouteId,
+            headsign: row.headsign,
+            departure: row.departure,
+            nextDeparture: nextDeparture,
+            platformId: row.platformId,
+            platformCode: row.platformCode,
+            platformName: row.platformName
+        )
+    }
 }
 
 struct ApiInfotextRelatedStop: Codable {
