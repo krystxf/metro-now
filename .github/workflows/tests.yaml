@@ -131,6 +131,21 @@ jobs:
             - name: Seed Secrets.xcconfig
               run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
 
+            - name: Resolve Swift packages
+              run: |
+                  xcodebuild -resolvePackageDependencies \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now
+
+            - name: Extract apollo-ios-cli
+              run: |
+                  tar -xzf ~/Library/Developer/Xcode/DerivedData/metro-now-*/SourcePackages/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz \
+                    -C apps/mobile/metro-now/
+
+            - name: Generate Apollo code
+              working-directory: apps/mobile/metro-now
+              run: ./apollo-ios-cli generate
+
             - name: Run Swift unit tests
               run: |
                   xcodebuild test \
