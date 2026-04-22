@@ -7,6 +7,7 @@ import type {
     Stop,
 } from "@metro-now/database";
 
+import { getVehicleTypeFromDatabaseType } from "src/modules/route/route-database-vehicle-type.utils";
 import { VehicleType } from "src/types/graphql.generated";
 
 export type StopRecordBase = Pick<
@@ -72,22 +73,9 @@ export type StopWithDistanceGraphQLRecord = StopGraphQLRecord & {
     distance: number;
 };
 
-const DATABASE_VEHICLE_TYPE_TO_GRAPHQL: Record<
-    DatabaseVehicleType,
-    VehicleType
-> = {
-    BUS: VehicleType.BUS,
-    FERRY: VehicleType.FERRY,
-    FUNICULAR: VehicleType.FUNICULAR,
-    METRO: VehicleType.SUBWAY,
-    TRAIN: VehicleType.TRAIN,
-    TRAM: VehicleType.TRAM,
-};
-
 export const toGraphqlVehicleType = (
     value: DatabaseVehicleType | null | undefined,
-): VehicleType | null =>
-    value ? (DATABASE_VEHICLE_TYPE_TO_GRAPHQL[value] ?? null) : null;
+): VehicleType | null => getVehicleTypeFromDatabaseType(value);
 
 export const toLightGraphQLStop = (
     stop: StopRecordBase,

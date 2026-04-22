@@ -9,7 +9,13 @@ import { VehicleType } from "src/types/graphql.generated";
 describe("stop.types", () => {
     it("maps database vehicle types to GraphQL values", () => {
         expect(toGraphqlVehicleType("METRO" as never)).toBe(VehicleType.SUBWAY);
+        expect(toGraphqlVehicleType("SUBWAY" as never)).toBe(
+            VehicleType.SUBWAY,
+        );
         expect(toGraphqlVehicleType("BUS" as never)).toBe(VehicleType.BUS);
+        expect(toGraphqlVehicleType("TROLLEYBUS" as never)).toBe(
+            VehicleType.TROLLEYBUS,
+        );
         expect(toGraphqlVehicleType(null)).toBeNull();
     });
 
