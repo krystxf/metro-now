@@ -1,5 +1,5 @@
 import { type DatabaseClient, sql } from "@metro-now/database";
-import { createDatabaseClient } from "@metro-now/shared";
+import { createDatabaseClient } from "@metro-now/server";
 
 export class DatabaseService {
     readonly db: DatabaseClient;

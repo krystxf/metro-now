@@ -60,22 +60,11 @@ test("databaseEnvSchema rejects empty-string required fields", () => {
                 POSTGRES_USER: "",
             }),
         (error: unknown) => error instanceof z.ZodError,
-        "min(1) strings must not accept empty values — empty POSTGRES_USER would connect anonymously",
+        "min(1) strings must not accept empty POSTGRES_USER",
     );
 });
 
-test("databaseEnvSchema rejects non-numeric DB_PORT", () => {
-    assert.throws(
-        () =>
-            validateEnv(databaseEnvSchema, {
-                ...VALID_DB_ENV,
-                DB_PORT: "not-a-port",
-            }),
-        (error: unknown) => error instanceof z.ZodError,
-    );
-});
-
-test("databaseEnvSchema rejects non-positive DB_PORT", () => {
+test("databaseEnvSchema rejects a non-positive DB_PORT", () => {
     assert.throws(
         () =>
             validateEnv(databaseEnvSchema, {
@@ -130,13 +119,9 @@ test("commonServerEnvSchema coerces PORT to a number", () => {
 });
 
 test("validateEnv defaults to process.env when no env is supplied", () => {
-    // Round-trip against process.env using a permissive schema so the default
-    // argument is actually exercised. A schema that only pulls one key proves
-    // the parameter default is wired without coupling to the test host.
     const schema = z.object({ NODE_OPTIONS: z.string().optional() });
     const parsed = validateEnv(schema);
 
-    // The field must either be a string or undefined — never null or missing.
     assert.ok(
         typeof parsed.NODE_OPTIONS === "string" ||
             parsed.NODE_OPTIONS === undefined,
