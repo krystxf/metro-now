@@ -18,6 +18,7 @@ export type RouteRow = Pick<
     | "longName"
     | "shortName"
     | "type"
+    | "vehicleType"
     | "url"
 >;
 
@@ -95,6 +96,7 @@ export const leoRouteToGraphQLRecord = (leo: LeoRoute): GraphQLRouteRecord => ({
     feedId: GtfsFeedId.LEO,
     shortName: leo.shortName,
     longName: leo.longName ?? "",
+    vehicleType: "TRAIN",
     isNight: false,
     color: leo.color,
     url: leo.url,

@@ -107,6 +107,18 @@ describe("RouteResolver", () => {
     });
 
     describe("getVehicleType", () => {
+        it("uses persisted vehicleType from the route record when present", () => {
+            const { resolver, routeService } = createMocks();
+
+            const result = resolver.getVehicleType({
+                name: "201",
+                vehicleType: "TROLLEYBUS",
+            } as never);
+
+            expect(routeService.getVehicleTypeForRoute).not.toHaveBeenCalled();
+            expect(result).toBe(VehicleType.TROLLEYBUS);
+        });
+
         it("delegates to routeService with route name and gtfs type", () => {
             const { resolver, routeService } = createMocks();
 

@@ -21,7 +21,10 @@ import {
     processRoute,
 } from "src/modules/route/route-graphql.utils";
 import { toLookupRouteId } from "src/modules/route/route-id.utils";
-import { getVehicleTypeFromGtfsType } from "src/modules/route/route-vehicle-type.utils";
+import {
+    getVehicleTypeFromDatabaseType,
+    getVehicleTypeFromGtfsType,
+} from "src/modules/route/route-vehicle-type.utils";
 import { VehicleType } from "src/types/graphql.generated";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
@@ -65,6 +68,7 @@ export class RouteService {
                 "color",
                 "url",
                 "type",
+                "vehicleType",
             ]);
 
         if (routeIds) {
@@ -274,11 +278,14 @@ export class RouteService {
                 const filteredRouteRows = normalizedVehicleTypes
                     ? routeRows.filter((route) =>
                           normalizedVehicleTypes.includes(
-                              this.getVehicleTypeForRoute({
-                                  feedId: route.feedId,
-                                  routeName: route.shortName,
-                                  gtfsRouteType: route.type,
-                              }),
+                              getVehicleTypeFromDatabaseType(
+                                  route.vehicleType,
+                              ) ??
+                                  this.getVehicleTypeForRoute({
+                                      feedId: route.feedId,
+                                      routeName: route.shortName,
+                                      gtfsRouteType: route.type,
+                                  }),
                           ),
                       )
                     : routeRows;
