@@ -93,3 +93,8 @@ iOSInjectionProject/
 # Apollo iOS CLI binary — extracted per-machine from the apollo-ios SPM
 # checkout in DerivedData. Platform-specific, not meant to be committed.
 apollo-ios-cli
+
+# Apollo iOS codegen output — regenerated from .graphql operations and
+# the schema on every build (locally via `./apollo-ios-cli generate`,
+# in CI via the mobile build/test jobs).
+metro-now/metro-now/GraphQL/Generated/

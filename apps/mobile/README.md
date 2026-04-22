@@ -73,7 +73,7 @@ metro-now/
 
 ## GraphQL
 
-GraphQL queries live in `metro-now/GraphQL/Operations/`. The schema is in `metro-now/GraphQL/Schema/MetroNow.graphqls` (hand-mirrored from the backend — keep in sync when the backend schema changes). Generated code is in `metro-now/GraphQL/Generated/` and is produced by Apollo iOS using the config in `apollo-codegen-config.json` (namespace: `MetroNowAPI`).
+GraphQL queries live in `metro-now/GraphQL/Operations/`. The schema is in `metro-now/GraphQL/Schema/MetroNow.graphqls` (hand-mirrored from the backend — keep in sync when the backend schema changes). Generated code is written to `metro-now/GraphQL/Generated/` by Apollo iOS using the config in `apollo-codegen-config.json` (namespace: `MetroNowAPI`). The `Generated/` directory is git-ignored — it's regenerated locally and in CI.
 
 ### Running codegen
 
@@ -95,9 +95,9 @@ The binary is platform-specific and git-ignored.
 ./apollo-ios-cli generate
 ```
 
-This reads `apollo-codegen-config.json`, walks the operations in `GraphQL/Operations/`, validates them against `GraphQL/Schema/MetroNow.graphqls`, and writes Swift types under `GraphQL/Generated/`. Commit the generated files — CI does not currently run codegen.
+This reads `apollo-codegen-config.json`, walks the operations in `GraphQL/Operations/`, validates them against `GraphQL/Schema/MetroNow.graphqls`, and writes Swift types under `GraphQL/Generated/`. The generated files are git-ignored; CI regenerates them in the mobile build and swift test jobs.
 
-**Alternative — Xcode command plugin**: right-click the **metro-now** project in the Xcode navigator → Apollo iOS → Generate Apollo Code. Useful for local dev; doesn't help CI.
+**Alternative — Xcode command plugin**: right-click the **metro-now** project in the Xcode navigator → Apollo iOS → Generate Apollo Code.
 
 ### Keeping the schema in sync
 
