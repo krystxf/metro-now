@@ -37,6 +37,12 @@ struct RoutePreviewView: View {
            )
         {
             loadedContent(data: data, direction: direction)
+        } else if let errorMessage = viewModel.errorMessage {
+            ContentUnavailableView(
+                "Route Unavailable",
+                systemImage: "exclamationmark.triangle",
+                description: Text(errorMessage)
+            )
         } else if viewModel.data == nil {
             ProgressView()
         }

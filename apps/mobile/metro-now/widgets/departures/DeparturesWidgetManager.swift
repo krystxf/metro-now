@@ -1,7 +1,6 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import Alamofire
 import CoreLocation
 
 enum DeparturesWidgetManager {

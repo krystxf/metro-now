@@ -1,7 +1,6 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import Alamofire
 import CoreLocation
 
 private let REFETCH_INTERVAL: TimeInterval = 3 // seconds
