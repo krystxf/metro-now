@@ -4,14 +4,13 @@
 @_spi(Internal) import ApolloAPI
 
 extension MetroNowAPI {
-  nonisolated enum VehicleType: String, EnumType {
-    case bus = "BUS"
-    case tram = "TRAM"
-    case ferry = "FERRY"
-    case train = "TRAIN"
-    case funicular = "FUNICULAR"
-    case subway = "SUBWAY"
-    case trolleybus = "TROLLEYBUS"
-  }
-
+    nonisolated enum VehicleType: String, EnumType {
+        case bus = "BUS"
+        case tram = "TRAM"
+        case ferry = "FERRY"
+        case train = "TRAIN"
+        case funicular = "FUNICULAR"
+        case subway = "SUBWAY"
+        case trolleybus = "TROLLEYBUS"
+    }
 }

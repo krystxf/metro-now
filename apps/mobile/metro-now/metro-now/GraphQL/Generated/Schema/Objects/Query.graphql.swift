@@ -4,9 +4,9 @@
 import ApolloAPI
 
 extension MetroNowAPI.Objects {
-  nonisolated static let Query = ApolloAPI.Object(
-    typename: "Query",
-    implementedInterfaces: [],
-    keyFields: nil
-  )
+    nonisolated static let Query = ApolloAPI.Object(
+        typename: "Query",
+        implementedInterfaces: [],
+        keyFields: nil
+    )
 }

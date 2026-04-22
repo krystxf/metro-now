@@ -4,10 +4,9 @@
 @_spi(Internal) import ApolloAPI
 
 extension MetroNowAPI {
-  nonisolated enum InfotextPriority: String, EnumType {
-    case low = "LOW"
-    case normal = "NORMAL"
-    case high = "HIGH"
-  }
-
+    nonisolated enum InfotextPriority: String, EnumType {
+        case low = "LOW"
+        case normal = "NORMAL"
+        case high = "HIGH"
+    }
 }
