@@ -6,4 +6,5 @@ enum AppStorageKeys: String {
     case mapStyle
     case showTraffic
     case favoriteStopIds
+    case favoritesSortOrder
 }

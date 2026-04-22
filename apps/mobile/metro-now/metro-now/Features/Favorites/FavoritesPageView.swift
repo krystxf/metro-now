@@ -1,18 +1,41 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
+import CoreLocation
 import SwiftUI
+
+enum FavoritesSortOrder: String {
+    case name
+    case distance
+}
 
 struct FavoritesPageView: View {
     @EnvironmentObject var stopsViewModel: StopsViewModel
     @EnvironmentObject var favoritesViewModel: FavoritesViewModel
     @EnvironmentObject private var appNavigation: AppNavigationViewModel
+    @EnvironmentObject private var locationModel: LocationViewModel
+
+    @AppStorage(AppStorageKeys.favoritesSortOrder.rawValue)
+    private var sortOrderRaw: String = FavoritesSortOrder.name.rawValue
+
+    private var sortOrder: FavoritesSortOrder {
+        FavoritesSortOrder(rawValue: sortOrderRaw) ?? .name
+    }
 
     private var favoriteStops: [ApiStop] {
         guard let stops = stopsViewModel.stops else { return [] }
-        return favoritesViewModel.favoriteStopIds.compactMap { id in
+        let favorites = favoritesViewModel.favoriteStopIds.compactMap { id in
             stops.first { $0.id == id }
-        }.sorted { $0.name < $1.name }
+        }
+        switch sortOrder {
+        case .name:
+            return favorites.sorted { $0.name < $1.name }
+        case .distance:
+            guard let location = locationModel.location else {
+                return favorites.sorted { $0.name < $1.name }
+            }
+            return favorites.sorted { $0.distance(to: location) < $1.distance(to: location) }
+        }
     }
 
     private func openStopOnMap(_ stop: ApiStop) {
@@ -48,6 +71,24 @@ struct FavoritesPageView: View {
             }
         }
         .navigationTitle("Favorites")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        sortOrderRaw = FavoritesSortOrder.name.rawValue
+                    } label: {
+                        Label("Sort by Name", systemImage: sortOrder == .name ? "checkmark" : "textformat")
+                    }
+                    Button {
+                        sortOrderRaw = FavoritesSortOrder.distance.rawValue
+                    } label: {
+                        Label("Sort by Distance", systemImage: sortOrder == .distance ? "checkmark" : "location")
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
+                }
+            }
+        }
     }
 }
 
@@ -58,6 +99,7 @@ struct FavoritesPageView: View {
     .environmentObject(StopsViewModel(previewStops: PreviewData.stops))
     .environmentObject(FavoritesViewModel(previewFavoriteStopIds: [PreviewData.metroStop.id]))
     .environmentObject(AppNavigationViewModel())
+    .environmentObject(LocationViewModel(previewLocation: PreviewData.userLocation))
 }
 
 #Preview("Empty") {
@@ -67,4 +109,5 @@ struct FavoritesPageView: View {
     .environmentObject(StopsViewModel(previewStops: PreviewData.stops))
     .environmentObject(FavoritesViewModel(previewFavoriteStopIds: []))
     .environmentObject(AppNavigationViewModel())
+    .environmentObject(LocationViewModel(previewLocation: nil))
 }
