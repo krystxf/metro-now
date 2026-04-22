@@ -72,6 +72,7 @@ async function main() {
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
+                feed: "PID",
                 createdAt: timestamp,
                 updatedAt: timestamp,
             })),
