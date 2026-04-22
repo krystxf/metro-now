@@ -45,7 +45,11 @@ describe("TransitlandService", () => {
     const originalApiKey = process.env.TRANSIT_LAND_API_KEY;
 
     afterEach(() => {
-        process.env.TRANSIT_LAND_API_KEY = originalApiKey;
+        if (originalApiKey === undefined) {
+            Reflect.deleteProperty(process.env, "TRANSIT_LAND_API_KEY");
+        } else {
+            process.env.TRANSIT_LAND_API_KEY = originalApiKey;
+        }
         jest.restoreAllMocks();
     });
 
@@ -86,7 +90,7 @@ describe("TransitlandService", () => {
     });
 
     it("throws when the API key is missing", async () => {
-        process.env.TRANSIT_LAND_API_KEY = undefined;
+        Reflect.deleteProperty(process.env, "TRANSIT_LAND_API_KEY");
         const moduleRef = await Test.createTestingModule({
             providers: [
                 TransitlandService,
