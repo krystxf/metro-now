@@ -27,7 +27,7 @@ RUN pnpm deploy --filter=@metro-now/dataloader --prod /prod/dataloader
 COPY apps/backend/src/**.*.graphql /prod/backend/dist
 
 FROM build AS metro-now_migrations
-WORKDIR /usr/src/app/apps/database
+WORKDIR /usr/src/app/lib/database
 CMD [ "npx", "ts-node", "migrate.ts", "up" ]
 
 FROM base AS metro-now_web
