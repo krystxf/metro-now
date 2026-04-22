@@ -32,6 +32,28 @@ jobs:
             - name: Run unit tests
               run: pnpm test:unit
 
+    mobile-schema-check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate mobile GraphQL operations against backend schema
+              run: pnpm --filter=@metro-now/backend run validate:mobile-schema
+
     backend-e2e:
         runs-on: ubuntu-latest
         timeout-minutes: 20

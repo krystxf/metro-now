@@ -2,6 +2,7 @@
     "name": "@metro-now/backend",
     "scripts": {
         "typegen": "ts-node ./src/scripts/generate-types.ts",
+        "validate:mobile-schema": "ts-node ./src/scripts/validate-mobile-schema.ts",
         "prebuild": "rimraf dist && pnpm typegen",
         "build": "nest build",
         "start": "nest start",
