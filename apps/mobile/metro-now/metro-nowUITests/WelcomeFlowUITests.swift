@@ -1,15 +1,19 @@
 import XCTest
 
 final class WelcomeFlowUITests: XCTestCase {
+    // Tests here exercise first-launch behavior and the persistence of the
+    // welcome-dismissal flag, so each test intentionally launches a fresh
+    // app instance. Do not migrate this class to a class-level setUp.
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
     func testWelcomeScreenIsVisibleOnFirstLaunch() {
-        let app = configuredApp(hasSeenWelcome: false)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: false)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
         XCTAssertTrue(
             continueButton(in: app).waitForExistence(timeout: 5),
@@ -18,10 +22,10 @@ final class WelcomeFlowUITests: XCTestCase {
     }
 
     func testContinueDismissesWelcomeAndRevealsRoot() {
-        let app = configuredApp(hasSeenWelcome: false)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: false)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
         let continueAction = continueButton(in: app)
         XCTAssertTrue(continueAction.waitForExistence(timeout: 5))
@@ -35,10 +39,10 @@ final class WelcomeFlowUITests: XCTestCase {
     }
 
     func testWelcomeScreenDoesNotReappearAfterContinue() {
-        let app = configuredApp(hasSeenWelcome: false)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: false)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
         let continueAction = continueButton(in: app)
         XCTAssertTrue(continueAction.waitForExistence(timeout: 5))
@@ -69,29 +73,5 @@ final class WelcomeFlowUITests: XCTestCase {
         }
 
         return app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Continue")).firstMatch
-    }
-
-    private func configuredApp(hasSeenWelcome: Bool) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["UITEST_RESET_STATE"]
-        app.launchEnvironment["UITEST_HAS_SEEN_WELCOME"] = hasSeenWelcome ? "1" : "0"
-        return app
-    }
-
-    private func dismissSystemAlertIfNeeded(in app: XCUIApplication) {
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let alert = springboard.alerts.firstMatch
-
-        guard alert.waitForExistence(timeout: 2) else {
-            return
-        }
-
-        let dismissButton = alert.buttons.element(boundBy: 0)
-        guard dismissButton.exists else {
-            return
-        }
-
-        dismissButton.tap()
-        _ = app.wait(for: .runningForeground, timeout: 5)
     }
 }

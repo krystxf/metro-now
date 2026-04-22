@@ -1,14 +1,29 @@
 import XCTest
 
 final class SettingsNavigationUITests: XCTestCase {
-    override func setUpWithError() throws {
-        continueAfterFailure = false
+    private static var sharedApp: XCUIApplication!
+
+    override class func setUp() {
+        super.setUp()
+        let app = UITestAppLauncher.launchPastWelcome()
+        UITestAppLauncher.openSettings(in: app)
+        sharedApp = app
     }
 
-    func testAboutSubpageOpensAndReturns() {
-        let app = launchPastWelcome()
+    override class func tearDown() {
+        sharedApp?.terminate()
+        sharedApp = nil
+        super.tearDown()
+    }
 
-        openSettings(in: app)
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        // Guard against a prior failed test leaving us on a subpage.
+        UITestAppLauncher.returnToSettingsRootIfNeeded(in: Self.sharedApp)
+    }
+
+    func testAboutSubpageOpensAndReturns() throws {
+        let app = try XCTUnwrap(Self.sharedApp)
 
         let aboutLink = app.buttons["About"]
         XCTAssertTrue(
@@ -43,48 +58,9 @@ final class SettingsNavigationUITests: XCTestCase {
     }
 
     func testShowTrafficToggleIsPresent() {
-        let app = launchPastWelcome()
-
-        openSettings(in: app)
-
         XCTAssertTrue(
-            app.switches["Show traffic"].waitForExistence(timeout: 5),
+            Self.sharedApp.switches["Show traffic"].waitForExistence(timeout: 5),
             "Settings must expose the Show traffic toggle"
         )
-    }
-
-    // MARK: - helpers
-
-    private func launchPastWelcome() -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["UITEST_RESET_STATE"]
-        app.launchEnvironment["UITEST_HAS_SEEN_WELCOME"] = "1"
-        app.launch()
-        dismissSystemAlertIfNeeded(in: app)
-        return app
-    }
-
-    private func openSettings(in app: XCUIApplication) {
-        let settingsButton = app.buttons["button.open-settings"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
-        settingsButton.tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
-    }
-
-    private func dismissSystemAlertIfNeeded(in app: XCUIApplication) {
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let alert = springboard.alerts.firstMatch
-
-        guard alert.waitForExistence(timeout: 2) else {
-            return
-        }
-
-        let dismissButton = alert.buttons.element(boundBy: 0)
-        guard dismissButton.exists else {
-            return
-        }
-
-        dismissButton.tap()
-        _ = app.wait(for: .runningForeground, timeout: 5)
     }
 }
