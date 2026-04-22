@@ -171,6 +171,4 @@ jobs:
                     -project apps/mobile/metro-now/metro-now.xcodeproj \
                     -scheme metro-now \
                     -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-                    -only-testing:metro-nowUITests \
-                    -parallel-testing-enabled YES \
-                    -parallel-testing-worker-count 2
+                    -only-testing:metro-nowUITests
