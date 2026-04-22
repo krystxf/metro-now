@@ -2,6 +2,7 @@ name: Bundle Integration
 
 on:
     push:
+        branches: [main]
     pull_request:
     workflow_dispatch:
 
@@ -28,7 +29,7 @@ jobs:
                   # env_file duplicate-key precedence across loaders.
                   sed -i 's|^DB_HOST=.*|DB_HOST=postgres|' .env.docker
                   sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env.docker
-                  sed -i 's|^REDIS_HOST=.*|REDIS_HOST=redis-stack|' .env.docker
+                  sed -i 's|^REDIS_HOST=.*|REDIS_HOST=redis|' .env.docker
                   sed -i 's|^REDIS_PORT=.*|REDIS_PORT=6379|' .env.docker
                   echo "GOLEMIO_API_KEY=${{ secrets.GOLEMIO_API_KEY }}" >> .env.docker
                   cp .env.web.docker.example .env.web.docker
