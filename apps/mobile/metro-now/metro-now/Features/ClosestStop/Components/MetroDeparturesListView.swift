@@ -21,6 +21,19 @@ struct MetroDeparturesListView: View {
                 for: closestStop,
                 departures: departures
             ) {
+                if departureRows.isEmpty {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("No upcoming metro departures")
+                            Text("Prague metro runs roughly 04:30 to midnight.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "moon.zzz")
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 ForEach(departureRows) { departureRow in
                     let routeColor = getRouteColor(
                         routeName: departureRow.routeLabel,
@@ -34,8 +47,8 @@ struct MetroDeparturesListView: View {
                         routeLabelBackground: routeColor,
                         headsign: departureRow.headsign,
                         departure: departureRow.departure,
-                        nextHeadsign: departureRow.nextHeadsign,
-                        nextDeparture: departureRow.nextDeparture
+                        nextHeadsign: nil,
+                        nextDeparture: nil
                     )
                     .contextMenu {
                         if let previewRouteId = departureRow.previewRouteId {
@@ -86,8 +99,8 @@ struct MetroDeparturesListView: View {
                                                 routeName: row.routeLabel,
                                                 headsign: row.headsign,
                                                 initialDeparture: row.departure,
-                                                initialNextHeadsign: row.nextHeadsign,
-                                                initialNextDeparture: row.nextDeparture,
+                                                initialNextHeadsign: nil,
+                                                initialNextDeparture: nil,
                                                 initialDelaySeconds: 0,
                                                 initialIsRealtime: true
                                             )
