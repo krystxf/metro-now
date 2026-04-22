@@ -12,6 +12,10 @@ import {
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { RouteService } from "src/modules/route/route.service";
 
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
 @Controller("route")
 @UseInterceptors(CacheInterceptor)
 export class RouteController {

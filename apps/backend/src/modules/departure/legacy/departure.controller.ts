@@ -11,8 +11,8 @@ import {
 import { z } from "zod";
 
 import { EndpointVersion } from "src/enums/endpoint-version";
-import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
+import { DepartureServiceV1 } from "src/modules/departure/legacy/departure-v1.service";
 import {
     type DepartureSchema,
     departureSchema,
@@ -22,6 +22,10 @@ import {
     vehicleTypeSchema,
 } from "src/schema/metro-only.schema";
 
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
 @Controller("departure")
 @UseInterceptors(CacheInterceptor)
 @CacheTTL(4 * 1000)

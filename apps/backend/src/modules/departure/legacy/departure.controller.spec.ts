@@ -1,9 +1,9 @@
 import { CacheModule } from "@nestjs/cache-manager";
 import { Test } from "@nestjs/testing";
 
-import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
-import { DepartureController } from "src/modules/departure/departure.controller";
+import { DepartureServiceV1 } from "src/modules/departure/legacy/departure-v1.service";
+import { DepartureController } from "src/modules/departure/legacy/departure.controller";
 
 const departure = {
     id: "D1",

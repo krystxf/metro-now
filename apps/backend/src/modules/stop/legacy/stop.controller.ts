@@ -11,6 +11,10 @@ import {
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { StopService } from "src/modules/stop/stop.service";
 
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
 @Controller("stop")
 export class StopController {
     constructor(private readonly stopService: StopService) {}

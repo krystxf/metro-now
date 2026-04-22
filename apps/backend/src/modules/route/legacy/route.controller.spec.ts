@@ -1,7 +1,7 @@
 import { CacheModule } from "@nestjs/cache-manager";
 import { Test } from "@nestjs/testing";
 
-import { RouteController } from "src/modules/route/route.controller";
+import { RouteController } from "src/modules/route/legacy/route.controller";
 import { RouteService } from "src/modules/route/route.service";
 
 describe("RouteController", () => {

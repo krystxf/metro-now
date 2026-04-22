@@ -1,6 +1,6 @@
 import { Test } from "@nestjs/testing";
 
-import { StopController } from "src/modules/stop/stop.controller";
+import { StopController } from "src/modules/stop/legacy/stop.controller";
 import { StopService } from "src/modules/stop/stop.service";
 
 describe("StopController", () => {

@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { RoutesByPlatformIdLoaderModule } from "src/modules/dataloader/RoutesByPlatformIdLoader.module";
 import { StopByPlatformLoader } from "src/modules/dataloader/stop-by-platform.loader";
-import { PlatformController } from "src/modules/platform/platform.controller";
+import { PlatformController } from "src/modules/platform/legacy/platform.controller";
 import { PlatformResolver } from "src/modules/platform/platform.resolver";
 import { PlatformService } from "src/modules/platform/platform.service";
 import { StopDataModule } from "src/modules/stop/stop-data.module";

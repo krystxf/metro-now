@@ -3,6 +3,10 @@ import { Controller, Get, VERSION_NEUTRAL } from "@nestjs/common";
 import { StatusService } from "src/modules/status/status.service";
 import { type StatusObject } from "src/modules/status/status.types";
 
+/**
+ * @deprecated Legacy REST surface (health/ops endpoints). Kept for existing
+ * monitoring and the separate Android client. No new features.
+ */
 @Controller({
     path: "status",
     version: VERSION_NEUTRAL,

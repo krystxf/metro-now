@@ -1,8 +1,8 @@
 import { CacheModule } from "@nestjs/cache-manager";
 import { Test } from "@nestjs/testing";
 
-import { InfotextsController } from "src/modules/infotexts/infotexts.controller";
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
+import { InfotextsController } from "src/modules/infotexts/legacy/infotexts.controller";
 
 describe("InfotextsController", () => {
     it("serves infotexts through the controller", async () => {

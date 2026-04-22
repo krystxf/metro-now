@@ -1,7 +1,7 @@
 import { CacheModule } from "@nestjs/cache-manager";
 import { Test } from "@nestjs/testing";
 
-import { PlatformController } from "src/modules/platform/platform.controller";
+import { PlatformController } from "src/modules/platform/legacy/platform.controller";
 import { PlatformService } from "src/modules/platform/platform.service";
 
 describe("PlatformController", () => {

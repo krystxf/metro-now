@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 
 import { DataloaderModule } from "src/modules/dataloader/dataloader.module";
+import { StopController } from "src/modules/stop/legacy/stop.controller";
 import { StopDataModule } from "src/modules/stop/stop-data.module";
-import { StopController } from "src/modules/stop/stop.controller";
 import {
     StopResolver,
     StopWithDistanceResolver,

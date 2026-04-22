@@ -1,5 +1,5 @@
-import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import type { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
+import { DepartureServiceV1 } from "src/modules/departure/legacy/departure-v1.service";
 
 describe("DepartureServiceV1", () => {
     it("maps metroOnly requests to the v2 service contract", async () => {

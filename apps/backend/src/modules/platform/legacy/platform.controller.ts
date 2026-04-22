@@ -23,6 +23,10 @@ import {
 import { boundingBoxSchema } from "src/schema/bounding-box.schema";
 import { metroOnlySchema } from "src/schema/metro-only.schema";
 
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
 @Controller("platform")
 @UseInterceptors(CacheInterceptor)
 export class PlatformController {

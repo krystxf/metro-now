@@ -4,6 +4,10 @@ import { Controller, Get, UseInterceptors, Version } from "@nestjs/common";
 import { EndpointVersion } from "src/enums/endpoint-version";
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
 
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
 @Controller("infotexts")
 @UseInterceptors(CacheInterceptor)
 @CacheTTL(4 * 1000)

@@ -1,6 +1,6 @@
 import { Test } from "@nestjs/testing";
 
-import { StatusController } from "src/modules/status/status.controller";
+import { StatusController } from "src/modules/status/legacy/status.controller";
 import { StatusService } from "src/modules/status/status.service";
 import {
     SystemStatus,
