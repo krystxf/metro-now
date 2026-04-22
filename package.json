@@ -16,7 +16,7 @@
         "test:unit": "turbo run test:unit",
         "types:check": "turbo run types:check",
         "typegen": "turbo run typegen",
-        "docker:up:dev": "docker compose up postgres redis-stack",
+        "docker:up:dev": "docker compose up postgres redis",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down --remove-orphans --volumes",
         "prepare": "husky"
