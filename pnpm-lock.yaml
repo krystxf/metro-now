@@ -43,6 +43,9 @@ importers:
       '@metro-now/database':
         specifier: workspace:*
         version: link:../../lib/database
+      '@metro-now/server':
+        specifier: workspace:*
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -164,6 +167,9 @@ importers:
       '@metro-now/database':
         specifier: workspace:*
         version: link:../../lib/database
+      '@metro-now/server':
+        specifier: workspace:*
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -303,7 +309,7 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
 
-  lib/shared:
+  lib/server:
     dependencies:
       '@metro-now/database':
         specifier: workspace:*
@@ -324,6 +330,19 @@ importers:
       '@types/pg':
         specifier: ^8.15.5
         version: 8.20.0
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  lib/shared:
+    dependencies:
+      '@metro-now/database':
+        specifier: workspace:*
+        version: link:../database
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

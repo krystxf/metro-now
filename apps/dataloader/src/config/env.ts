@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { commonServerEnvSchema, validateEnv } from "@metro-now/shared";
+import { commonServerEnvSchema, validateEnv } from "@metro-now/server";
 import { z } from "zod";
 
 type DataloaderEnv = {

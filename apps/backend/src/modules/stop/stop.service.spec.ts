@@ -1,6 +1,7 @@
 import type { Cache } from "@nestjs/cache-manager";
 
 import type { DatabaseService } from "src/modules/database/database.service";
+import { StopRepository } from "src/modules/stop/stop.repository";
 import { StopService } from "src/modules/stop/stop.service";
 
 type QueryRow = Record<string, unknown>;
@@ -295,7 +296,7 @@ describe("StopService", () => {
             ),
         } as unknown as Cache;
 
-        return new StopService(database, cacheManager);
+        return new StopService(new StopRepository(database), cacheManager);
     };
 
     it("uses the metro platform name for metroOnly stop payloads", async () => {
@@ -689,7 +690,10 @@ describe("StopService", () => {
         const cacheManager = {
             wrap: jest.fn(),
         } as unknown as Cache;
-        const service = new StopService(database, cacheManager);
+        const service = new StopService(
+            new StopRepository(database),
+            cacheManager,
+        );
 
         await expect(service.getDataLastUpdatedAt()).resolves.toBe(
             "2026-04-11T09:30:00.000Z",
@@ -715,7 +719,10 @@ describe("StopService", () => {
         const cacheManager = {
             wrap: jest.fn(),
         } as unknown as Cache;
-        const service = new StopService(database, cacheManager);
+        const service = new StopService(
+            new StopRepository(database),
+            cacheManager,
+        );
 
         await expect(service.getDataLastUpdatedAt()).resolves.toBeNull();
     });

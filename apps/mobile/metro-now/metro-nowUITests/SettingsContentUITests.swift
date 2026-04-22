@@ -10,8 +10,10 @@ final class SettingsContentUITests: XCTestCase {
 
         openSettings(in: app)
 
+        let settingsRoot = settingsRootElement(in: app)
+
         XCTAssertTrue(
-            app.otherElements["screen.settings"].waitForExistence(timeout: 5),
+            settingsRoot.waitForExistence(timeout: 5),
             "Opening the settings sheet must surface the screen.settings identifier"
         )
     }
@@ -57,6 +59,24 @@ final class SettingsContentUITests: XCTestCase {
         XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
         settingsButton.tap()
         XCTAssertTrue(app.buttons["button.close-settings"].waitForExistence(timeout: 5))
+    }
+
+    private func settingsRootElement(in app: XCUIApplication) -> XCUIElement {
+        let queries: [XCUIElementQuery] = [
+            app.otherElements,
+            app.tables,
+            app.collectionViews,
+            app.scrollViews,
+        ]
+
+        for query in queries {
+            let candidate = query["screen.settings"]
+            if candidate.exists {
+                return candidate
+            }
+        }
+
+        return app.descendants(matching: .any)["screen.settings"]
     }
 
     private func dismissSystemAlertIfNeeded(in app: XCUIApplication) {

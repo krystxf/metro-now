@@ -3,7 +3,7 @@
 
 import Foundation
 
-func formatVersionNumber(version: String?, build: String?) -> String {
+public func formatVersionNumber(version: String?, build: String?) -> String {
     guard let version else {
         if let build {
             return "(\(build))"
@@ -19,7 +19,7 @@ func formatVersionNumber(version: String?, build: String?) -> String {
     return version
 }
 
-func getFormattedVersionNumber() -> String {
+public func getFormattedVersionNumber() -> String {
     formatVersionNumber(
         version: Bundle.main.versionNumber,
         build: Bundle.main.buildNumber

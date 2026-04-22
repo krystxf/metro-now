@@ -50,8 +50,6 @@ test("createDatabaseUrl substitutes missing ${VAR} references with empty strings
         DATABASE_URL:
             "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/db",
         POSTGRES_USER: "user",
-        // POSTGRES_PASSWORD intentionally missing; URL parser drops the empty
-        // password (including the preceding colon) when normalizing.
     });
 
     assert.equal(url, "postgresql://user@localhost:5432/db");
@@ -97,7 +95,6 @@ test("createDatabaseUrl throws when DATABASE_URL is missing and fallback parts a
         () =>
             createDatabaseUrl({
                 POSTGRES_USER: "u",
-                // everything else missing
             }),
         /Missing database environment variables:.*POSTGRES_PASSWORD.*POSTGRES_DB.*DB_HOST.*DB_PORT.*DB_SCHEMA/,
     );
@@ -118,8 +115,6 @@ test("createDatabaseUrl treats an empty DATABASE_URL as unset and falls back", (
 });
 
 test("createDatabaseUrl handles mismatched quotes without stripping them", () => {
-    // Only matched pairs are stripped; leading-only quote stays literal and then
-    // forces URL parsing to fail, falling back to assembled parts.
     const url = createDatabaseUrl({
         DATABASE_URL: '"postgresql://user:pw@host:5432/db',
         POSTGRES_USER: "u",

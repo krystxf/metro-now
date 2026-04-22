@@ -6,6 +6,7 @@ import Foundation
 enum UITestLaunchConfiguration {
     private static let resetStateArgument = "UITEST_RESET_STATE"
     private static let hasSeenWelcomeEnvironmentKey = "UITEST_HAS_SEEN_WELCOME"
+    private(set) static var hasSeenWelcomeOverride: Bool?
 
     static func applyIfNeeded() {
         let processInfo = ProcessInfo.processInfo
@@ -22,6 +23,10 @@ enum UITestLaunchConfiguration {
         defaults: UserDefaults = .standard,
         bundleIdentifier: String? = Bundle.main.bundleIdentifier
     ) {
+        hasSeenWelcomeOverride = environment[hasSeenWelcomeEnvironmentKey].map {
+            $0 == "1"
+        }
+
         guard arguments.contains(resetStateArgument)
             || environment[hasSeenWelcomeEnvironmentKey] != nil
         else {

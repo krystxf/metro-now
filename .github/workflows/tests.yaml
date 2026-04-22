@@ -142,6 +142,9 @@ jobs:
                   tar -xzf ~/Library/Developer/Xcode/DerivedData/metro-now-*/SourcePackages/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz \
                     -C apps/mobile/metro-now/
 
+            - name: Sync mobile GraphQL schema
+              run: pnpm --filter @metro-now/mobile graphql:schema:sync
+
             - name: Generate Apollo code
               working-directory: apps/mobile/metro-now
               run: ./apollo-ios-cli generate

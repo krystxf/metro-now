@@ -15,39 +15,41 @@ struct WelcomePageView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .center) {
-            if showContent {
-                Text("Welcome to")
+        ZStack {
+            VStack(alignment: .center) {
+                if showContent {
+                    Text("Welcome to")
+                        .fontWeight(.bold)
+                        .font(.title)
+
+                    Text("metro now")
+                        .foregroundStyle(headingGradient)
+                        .transition(.scale)
+                        .fontWeight(.black)
+                        .font(.system(size: 50))
+
+                    VStack(spacing: 20) {
+                        Text("This app is currently in development, so you might notice some features are still in progress.")
+
+                        Text("Thanks for your patience as we work to improve your experience! ❤️‍🔥")
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.vertical, 10)
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Continue")
+                        Image(systemName: "chevron.forward")
+                    }
+                    .accessibilityIdentifier("button.continue-welcome")
+                    .font(.headline)
                     .fontWeight(.bold)
-                    .font(.title)
-
-                Text("metro now")
-                    .foregroundStyle(headingGradient)
-                    .transition(.scale)
-                    .fontWeight(.black)
-                    .font(.system(size: 50))
-
-                VStack(spacing: 20) {
-                    Text("This app is currently in development, so you might notice some features are still in progress.")
-
-                    Text("Thanks for your patience as we work to improve your experience! ❤️‍🔥")
-                        .fontWeight(.semibold)
+                    .buttonStyle(.borderedProminent)
+                    .padding(.top, 20)
                 }
-                .padding(.vertical, 10)
-                .font(.title3)
-                .multilineTextAlignment(.center)
-
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("Continue")
-                    Image(systemName: "chevron.forward")
-                }
-                .accessibilityIdentifier("button.continue-welcome")
-                .font(.headline)
-                .fontWeight(.bold)
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 20)
             }
         }
         .accessibilityIdentifier("screen.welcome")

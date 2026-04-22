@@ -18,6 +18,7 @@
     "dependencies": {
         "@fast-csv/parse": "^5.0.5",
         "@metro-now/database": "workspace:*",
+        "@metro-now/server": "workspace:*",
         "@metro-now/shared": "workspace:*",
         "express": "^5.2.1",
         "ioredis": "^5.10.1",
