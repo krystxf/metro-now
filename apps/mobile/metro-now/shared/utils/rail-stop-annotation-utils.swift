@@ -365,6 +365,45 @@ func buildRailStopMapAnnotations(from stops: [ApiStop]) -> [RailStopMapAnnotatio
     stops.flatMap(buildRailStopMapAnnotations(for:))
 }
 
+func isMetroRoute(_ route: ApiRoute) -> Bool {
+    if route.vehicleType?.uppercased() == "SUBWAY" {
+        return true
+    }
+
+    return METRO_LINES.contains(route.name.uppercased())
+}
+
+func isMetroPlatform(_ platform: ApiPlatform) -> Bool {
+    platform.isMetro || platform.routes.contains(where: isMetroRoute)
+}
+
+func isBarcelonaMapTramRoute(_ route: ApiRoute) -> Bool {
+    guard
+        route.feed?.uppercased() == "BARCELONA",
+        route.vehicleType?.uppercased() == "TRAM"
+    else {
+        return false
+    }
+
+    let normalizedName = route.name
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .uppercased()
+
+    guard normalizedName.hasPrefix("T"), normalizedName.count == 2 else {
+        return false
+    }
+
+    guard let lineNumber = Int(normalizedName.dropFirst()) else {
+        return false
+    }
+
+    return (1 ... 6).contains(lineNumber)
+}
+
+func shouldShowMapRouteOverlay(_ route: ApiRoute) -> Bool {
+    isMetroRoute(route) || isBarcelonaMapTramRoute(route)
+}
+
 func maximumRailAnnotationCount(for region: MKCoordinateRegion) -> Int {
     let spanDelta = max(region.span.latitudeDelta, region.span.longitudeDelta)
 
@@ -441,8 +480,8 @@ private func metroRouteLineNames(for platforms: [ApiPlatform]) -> [String] {
         Set(
             platforms
                 .flatMap(\.routes)
+                .filter(isMetroRoute)
                 .map(\.name)
-                .filter { METRO_LINES.contains($0.uppercased()) }
         )
     )
     .sorted()
@@ -452,9 +491,7 @@ private func metroRoutes(for platforms: [ApiPlatform]) -> [ApiRoute] {
     uniqueBy(
         array: platforms
             .flatMap(\.routes)
-            .filter { route in
-                METRO_LINES.contains(route.name.uppercased())
-            }
+            .filter(isMetroRoute)
             .sorted { left, right in
                 left.name.localizedCompare(right.name) == .orderedAscending
             },
@@ -529,7 +566,7 @@ private func buildRailStopMapAnnotations(for stop: ApiStop) -> [RailStopMapAnnot
 }
 
 private func buildMetroStationAnnotations(for stop: ApiStop) -> [RailStopMapAnnotation] {
-    let metroPlatforms = stop.platforms.filter(\.isMetro)
+    let metroPlatforms = stop.platforms.filter(isMetroPlatform)
 
     guard !metroPlatforms.isEmpty else {
         return []
@@ -608,7 +645,7 @@ private func resolvedMetroRoutes(
     for platforms: [ApiPlatform],
     within stop: ApiStop
 ) -> [ApiRoute] {
-    guard platforms.allSatisfy(\.isMetro) else {
+    guard platforms.allSatisfy(isMetroPlatform) else {
         return []
     }
 
@@ -620,7 +657,7 @@ private func resolvedMetroRoutes(
 
     return Array(
         metroRoutes(
-            for: stop.platforms.filter(\.isMetro)
+            for: stop.platforms.filter(isMetroPlatform)
         )
         .prefix(2)
     )
@@ -820,7 +857,7 @@ private func filteredPlatform(
     _ platform: ApiPlatform,
     allowedModes: Set<RailStopTransportMode>
 ) -> ApiPlatform? {
-    guard !platform.isMetro else {
+    guard !isMetroPlatform(platform) else {
         return nil
     }
 
