@@ -197,7 +197,7 @@ class StopsViewModel: NSObject, ObservableObject {
                     longitude: platform.longitude,
                     name: platform.name,
                     code: platform.code,
-                    direction: nil,
+                    direction: platform.direction,
                     isMetro: platform.isMetro,
                     routes: platform.routes.map { route in
                         ApiRoute(

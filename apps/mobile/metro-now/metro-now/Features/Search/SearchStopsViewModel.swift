@@ -144,6 +144,7 @@ final class SearchStopsViewModel: ObservableObject {
                         longitude: platform.longitude,
                         name: platform.name,
                         code: platform.code,
+                        direction: platform.direction,
                         isMetro: platform.isMetro,
                         routes: platform.routes.map { route in
                             ApiRoute(

@@ -10,6 +10,7 @@ query AllStopsLight($limit: Int, $offset: Int) {
       longitude
       name
       code
+      direction
       isMetro
       routes {
         id
