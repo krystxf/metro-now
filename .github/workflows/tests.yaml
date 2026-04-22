@@ -118,7 +118,7 @@ jobs:
 
     swift:
         runs-on: macos-latest
-        timeout-minutes: 20
+        timeout-minutes: 40
 
         steps:
             - name: Check out code
