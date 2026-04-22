@@ -89,7 +89,11 @@ struct ContentView: View {
         }
         .accessibilityIdentifier("screen.root")
         .onAppear {
-            showWelcomeScreen = !hasSeenWelcomeScreen
+            if let hasSeenWelcomeOverride = UITestLaunchConfiguration.hasSeenWelcomeOverride {
+                showWelcomeScreen = !hasSeenWelcomeOverride
+            } else {
+                showWelcomeScreen = !hasSeenWelcomeScreen
+            }
             handleQuickAction(appDelegate.quickAction)
             syncDisplayedTabs(with: appNavigation.selectedTab)
         }

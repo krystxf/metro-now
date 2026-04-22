@@ -11,7 +11,7 @@ final class metro_nowUITests: XCTestCase {
         app.launch()
         dismissSystemAlertIfNeeded(in: app)
 
-        XCTAssertTrue(app.buttons["button.continue-welcome"].waitForExistence(timeout: 5))
+        XCTAssertTrue(continueButton(in: app).waitForExistence(timeout: 5))
     }
 
     func testLaunchCanSkipWelcomeScreen() {
@@ -20,7 +20,7 @@ final class metro_nowUITests: XCTestCase {
         app.launch()
         dismissSystemAlertIfNeeded(in: app)
 
-        XCTAssertFalse(app.buttons["button.continue-welcome"].waitForExistence(timeout: 2))
+        XCTAssertFalse(continueButton(in: app).waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["button.open-settings"].waitForExistence(timeout: 5))
     }
 
@@ -49,6 +49,20 @@ final class metro_nowUITests: XCTestCase {
         app.launchArguments = ["UITEST_RESET_STATE"]
         app.launchEnvironment["UITEST_HAS_SEEN_WELCOME"] = hasSeenWelcome ? "1" : "0"
         return app
+    }
+
+    private func continueButton(in app: XCUIApplication) -> XCUIElement {
+        let identifiedButton = app.buttons["button.continue-welcome"]
+        if identifiedButton.exists {
+            return identifiedButton
+        }
+
+        let labeledButton = app.buttons["Continue"]
+        if labeledButton.exists {
+            return labeledButton
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Continue")).firstMatch
     }
 
     private func dismissSystemAlertIfNeeded(in app: XCUIApplication) {

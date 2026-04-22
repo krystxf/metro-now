@@ -21,62 +21,64 @@ struct SettingsPageView: View {
     }
 
     var body: some View {
-        List {
-            if UIApplication.shared.supportsAlternateIcons {
-                Section(header: Text("Customize")) {
-                    NavigationLink(
-                        destination: SettingsAppIconPageView()
-                    ) {
-                        Label("App icon", systemImage: "app.dashed")
-                    }
-                }
-            }
-
-            Section(header: Text("Map")) {
-                Toggle(isOn: $showTraffic) {
-                    Label("Show traffic", systemImage: "car.fill")
-                }
-            }
-
-            Section(header: Text("Storage")) {
-                Button {
-                    Task {
-                        DiskCache.invalidateAll()
-                        try? await clearGraphQLCache()
-                        cacheCleared = true
-
-                        try? await Task.sleep(for: .seconds(2))
-                        cacheCleared = false
-                    }
-                } label: {
-                    HStack {
-                        Label("Clear cache", systemImage: "trash")
-                        Spacer()
-                        if cacheCleared {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.green)
-                                .transition(.opacity)
+        ZStack {
+            List {
+                if UIApplication.shared.supportsAlternateIcons {
+                    Section(header: Text("Customize")) {
+                        NavigationLink(
+                            destination: SettingsAppIconPageView()
+                        ) {
+                            Label("App icon", systemImage: "app.dashed")
                         }
                     }
                 }
-                .animation(.default, value: cacheCleared)
-            }
 
-            Section(header: Text("More")) {
-                NavigationLink(
-                    destination: SettingsChangelogPageView()
-                ) {
-                    Label("What's new", systemImage: "sparkles")
+                Section(header: Text("Map")) {
+                    Toggle(isOn: $showTraffic) {
+                        Label("Show traffic", systemImage: "car.fill")
+                    }
                 }
-                NavigationLink(
-                    destination: SettingsAboutPageView()
-                ) {
-                    Label("About", systemImage: "info.square")
+
+                Section(header: Text("Storage")) {
+                    Button {
+                        Task {
+                            DiskCache.invalidateAll()
+                            try? await clearGraphQLCache()
+                            cacheCleared = true
+
+                            try? await Task.sleep(for: .seconds(2))
+                            cacheCleared = false
+                        }
+                    } label: {
+                        HStack {
+                            Label("Clear cache", systemImage: "trash")
+                            Spacer()
+                            if cacheCleared {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.green)
+                                    .transition(.opacity)
+                            }
+                        }
+                    }
+                    .animation(.default, value: cacheCleared)
                 }
-                NavigationLink(
-                    destination: SettingsWidgetsPageView()
-                ) {
-                    Label("Home Screen Widgets", systemImage: "widget.small")
+
+                Section(header: Text("More")) {
+                    NavigationLink(
+                        destination: SettingsChangelogPageView()
+                    ) {
+                        Label("What's new", systemImage: "sparkles")
+                    }
+                    NavigationLink(
+                        destination: SettingsAboutPageView()
+                    ) {
+                        Label("About", systemImage: "info.square")
+                    }
+                    NavigationLink(
+                        destination: SettingsWidgetsPageView()
+                    ) {
+                        Label("Home Screen Widgets", systemImage: "widget.small")
+                    }
                 }
             }
         }

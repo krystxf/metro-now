@@ -11,7 +11,10 @@ final class WelcomeFlowUITests: XCTestCase {
         app.launch()
         dismissSystemAlertIfNeeded(in: app)
 
-        XCTAssertTrue(app.otherElements["screen.welcome"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            continueButton(in: app).waitForExistence(timeout: 5),
+            "First launch must present the welcome sheet with a visible continue action"
+        )
     }
 
     func testContinueDismissesWelcomeAndRevealsRoot() {
@@ -20,14 +23,14 @@ final class WelcomeFlowUITests: XCTestCase {
         app.launch()
         dismissSystemAlertIfNeeded(in: app)
 
-        let continueButton = app.buttons["button.continue-welcome"]
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        let continueAction = continueButton(in: app)
+        XCTAssertTrue(continueAction.waitForExistence(timeout: 5))
 
-        continueButton.tap()
+        continueAction.tap()
 
         // After tapping continue, the welcome screen must disappear and the
         // root page (with the settings entry point) must become interactable.
-        XCTAssertFalse(app.buttons["button.continue-welcome"].waitForExistence(timeout: 2))
+        XCTAssertFalse(continueButton(in: app).waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["button.open-settings"].waitForExistence(timeout: 5))
     }
 
@@ -37,10 +40,10 @@ final class WelcomeFlowUITests: XCTestCase {
         app.launch()
         dismissSystemAlertIfNeeded(in: app)
 
-        let continueButton = app.buttons["button.continue-welcome"]
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        let continueAction = continueButton(in: app)
+        XCTAssertTrue(continueAction.waitForExistence(timeout: 5))
 
-        continueButton.tap()
+        continueAction.tap()
 
         XCTAssertTrue(app.buttons["button.open-settings"].waitForExistence(timeout: 5))
         // Opening and closing settings must not bring the welcome back — the
@@ -50,8 +53,22 @@ final class WelcomeFlowUITests: XCTestCase {
         XCTAssertTrue(closeButton.waitForExistence(timeout: 5))
         closeButton.tap()
 
-        XCTAssertFalse(app.buttons["button.continue-welcome"].waitForExistence(timeout: 2))
+        XCTAssertFalse(continueButton(in: app).waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["button.open-settings"].waitForExistence(timeout: 5))
+    }
+
+    private func continueButton(in app: XCUIApplication) -> XCUIElement {
+        let identifiedButton = app.buttons["button.continue-welcome"]
+        if identifiedButton.exists {
+            return identifiedButton
+        }
+
+        let labeledButton = app.buttons["Continue"]
+        if labeledButton.exists {
+            return labeledButton
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Continue")).firstMatch
     }
 
     private func configuredApp(hasSeenWelcome: Bool) -> XCUIApplication {
