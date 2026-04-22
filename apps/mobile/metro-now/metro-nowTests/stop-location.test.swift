@@ -165,6 +165,64 @@ struct StopLocationTests {
         #expect(annotations.filter { !$0.isMetro }.allSatisfy { $0.stop.platforms.count == 1 })
     }
 
+    @Test("treats Barcelona subway routes as metro on the map")
+    func treatsBarcelonaSubwayRoutesAsMetro() {
+        let stop = ApiStop(
+            id: "BCN1",
+            name: "Catalunya",
+            avgLatitude: 41.387,
+            avgLongitude: 2.1699,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "BCN1P1",
+                    latitude: 41.3871,
+                    longitude: 2.17,
+                    name: "Catalunya",
+                    code: "1",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "L1", name: "L1", feed: "BARCELONA", vehicleType: "SUBWAY")]
+                ),
+            ]
+        )
+
+        let annotations = buildRailStopMapAnnotations(from: [stop])
+        let metroAnnotation = annotations.first(where: \.isMetro)
+
+        #expect(annotations.count == 1)
+        #expect(metroAnnotation != nil)
+        #expect(metroAnnotation?.metroLineNames == ["L1"])
+    }
+
+    @Test("treats subway routes as metro even without the legacy platform flag")
+    func treatsSubwayRoutesAsMetroWithoutPlatformFlag() {
+        let stop = ApiStop(
+            id: "BCN2",
+            name: "Passeig de Gracia",
+            avgLatitude: 41.391,
+            avgLongitude: 2.165,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "BCN2P1",
+                    latitude: 41.3911,
+                    longitude: 2.1651,
+                    name: "Passeig de Gracia",
+                    code: "2",
+                    isMetro: false,
+                    routes: [ApiRoute(id: "L3", name: "L3", feed: "BARCELONA", vehicleType: "SUBWAY")]
+                ),
+            ]
+        )
+
+        let annotations = buildRailStopMapAnnotations(from: [stop])
+        let metroAnnotation = annotations.first(where: \.isMetro)
+
+        #expect(annotations.count == 1)
+        #expect(metroAnnotation != nil)
+        #expect(metroAnnotation?.metroLineNames == ["L3"])
+    }
+
     @Test("renders train and surface platforms at their own coordinates")
     func rendersTrainAndSurfacePlatformsAtTheirOwnCoordinates() {
         let stop = ApiStop(
@@ -453,8 +511,8 @@ struct MetroDepartureRowsTests {
         )
     }
 
-    @Test("keeps one row per platform even at a terminal with matching headsigns")
-    func keepsOneRowPerTerminalPlatform() {
+    @Test("emits one row per departure sorted by predicted time")
+    func emitsOneRowPerDepartureSortedByTime() {
         let rows = buildMetroDepartureRows(
             for: metroStop(),
             departures: [
@@ -479,25 +537,17 @@ struct MetroDepartureRowsTests {
             ]
         )
 
-        #expect(rows?.count == 2)
-
-        let rowsByPlatform = Dictionary(
-            uniqueKeysWithValues: (rows ?? []).map { ($0.platformId, $0) }
-        )
-
-        #expect(
-            rowsByPlatform["U1071Z101P"]?.departure
-                == baseDate.addingTimeInterval(12 * 60)
-        )
-        #expect(
-            rowsByPlatform["U1071Z101P"]?.nextDeparture
-                == baseDate.addingTimeInterval(20 * 60)
-        )
-        #expect(
-            rowsByPlatform["U1071Z102P"]?.departure
-                == baseDate.addingTimeInterval(4 * 60)
-        )
-        #expect(rowsByPlatform["U1071Z102P"]?.nextDeparture == nil)
+        #expect(rows?.count == 3)
+        #expect(rows?.map(\.departure) == [
+            baseDate.addingTimeInterval(4 * 60),
+            baseDate.addingTimeInterval(12 * 60),
+            baseDate.addingTimeInterval(20 * 60),
+        ])
+        #expect(rows?.map(\.platformId) == [
+            "U1071Z102P",
+            "U1071Z101P",
+            "U1071Z101P",
+        ])
     }
 
     @Test("keeps opposite metro directions as separate rows")
@@ -521,16 +571,12 @@ struct MetroDepartureRowsTests {
         )
 
         #expect(rows?.count == 2)
-        #expect(rows?.first?.headsign == "Depo Hostivař")
-        #expect(rows?.last?.headsign == "Nemocnice Motol")
+        #expect(rows?.first?.headsign == "Nemocnice Motol")
+        #expect(rows?.last?.headsign == "Depo Hostivař")
     }
 
-    @Test("merges short and long runs on the same direction into one row")
-    func mergesShortAndLongRunsOnSameDirection() {
-        // Both trains depart from the same platform heading the same way; the
-        // short run terminates at Skalka, the long run continues to Depo
-        // Hostivař. They should appear as a single row whose secondary line
-        // shows the next departure's headsign.
+    @Test("lists short and long runs on the same platform as separate rows")
+    func listsShortAndLongRunsOnSamePlatformSeparately() {
         let rows = buildMetroDepartureRows(
             for: regularMetroStop(),
             departures: [
@@ -549,11 +595,51 @@ struct MetroDepartureRowsTests {
             ]
         )
 
-        #expect(rows?.count == 1)
+        #expect(rows?.count == 2)
         #expect(rows?.first?.headsign == "Skalka")
-        #expect(rows?.first?.nextHeadsign == "Depo Hostivař")
         #expect(rows?.first?.departure == baseDate.addingTimeInterval(1 * 60))
-        #expect(rows?.first?.nextDeparture == baseDate.addingTimeInterval(4 * 60))
+        #expect(rows?.last?.headsign == "Depo Hostivař")
+        #expect(rows?.last?.departure == baseDate.addingTimeInterval(4 * 60))
+    }
+
+    @Test("tracks the following metro departure for the same platform and headsign")
+    func tracksFollowingMetroDeparture() {
+        let rows = buildMetroDepartureRows(
+            for: metroStop(),
+            departures: [
+                departure(
+                    id: "first",
+                    platformId: "U1071Z101P",
+                    headsign: "Nemocnice Motol",
+                    predictedOffsetMinutes: 4
+                ),
+                departure(
+                    id: "second",
+                    platformId: "U1071Z101P",
+                    headsign: "Nemocnice Motol",
+                    predictedOffsetMinutes: 12
+                ),
+                departure(
+                    id: "third",
+                    platformId: "U1071Z102P",
+                    headsign: "Nemocnice Motol",
+                    predictedOffsetMinutes: 6
+                ),
+                departure(
+                    id: "fourth",
+                    platformId: "U1071Z101P",
+                    headsign: "Skalka",
+                    predictedOffsetMinutes: 8
+                ),
+            ]
+        )
+
+        #expect(rows?.map(\.nextDeparture) == [
+            baseDate.addingTimeInterval(12 * 60),
+            nil,
+            nil,
+            nil,
+        ])
     }
 }
 
