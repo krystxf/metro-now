@@ -138,3 +138,11 @@ jobs:
                     -scheme metro-now \
                     -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
                     -only-testing:metro-nowTests
+
+            - name: Run Swift UI tests
+              run: |
+                  xcodebuild test \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now \
+                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+                    -only-testing:metro-nowUITests
