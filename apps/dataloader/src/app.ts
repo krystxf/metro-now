@@ -5,6 +5,7 @@ import { CacheInvalidationService } from "./services/core/cache-invalidation.ser
 import { CronService } from "./services/core/cron.service";
 import { DatabaseLogStore } from "./services/core/database-log-store.service";
 import { DatabaseService } from "./services/core/database.service";
+import { LogRetentionService } from "./services/core/log-retention.service";
 import { SyncService } from "./services/sync/sync.service";
 import { logger } from "./utils/logger";
 
@@ -24,6 +25,10 @@ const syncService = new SyncService(databaseService.db, {
     relationBatchSize: env.relationBatchSize,
     cacheInvalidation,
 });
+const logRetentionService = new LogRetentionService(
+    databaseService.db,
+    env.logRetentionDays,
+);
 const cronService = new CronService();
 
 app.use(express.json());
@@ -100,6 +105,22 @@ app.post("/api/sync/run", async (_req: Request, res: Response) => {
     }
 });
 
+app.post("/api/log-retention/run", async (_req: Request, res: Response) => {
+    try {
+        const result = await logRetentionService.purgeOldLogs();
+
+        res.json({
+            success: true,
+            result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : String(error),
+        });
+    }
+});
+
 app.get("/api/sync/status", (_req: Request, res: Response) => {
     res.json({
         success: true,
@@ -149,6 +170,18 @@ const bootstrap = async (): Promise<void> => {
         },
         async () => {
             await syncService.syncEverything("cron");
+        },
+    );
+
+    cronService.addJob(
+        {
+            name: "log-retention",
+            description: `Deletes Log and RequestLog rows older than ${env.logRetentionDays} days`,
+            enabled: true,
+            schedule: env.logRetentionSchedule,
+        },
+        async () => {
+            await logRetentionService.purgeOldLogs();
         },
     );
 

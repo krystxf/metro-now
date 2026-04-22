@@ -8,6 +8,8 @@ type DataloaderEnv = {
     syncSchedule: string;
     entityBatchSize: number;
     relationBatchSize: number;
+    logRetentionDays: number;
+    logRetentionSchedule: string;
     tmbAppId: string | undefined;
     tmbAppKey: string | undefined;
 };
@@ -30,6 +32,8 @@ const dataloaderEnvSchema = commonServerEnvSchema.extend({
         .int()
         .positive()
         .default(500),
+    LOG_RETENTION_DAYS: z.coerce.number().int().positive().default(30),
+    LOG_RETENTION_CRON: z.string().default("0 3 * * *"),
     TMB_APP_ID: optionalNonEmptyString,
     TMB_APP_KEY: optionalNonEmptyString,
 });
@@ -69,6 +73,8 @@ export const getDataloaderEnv = (): DataloaderEnv => {
         syncSchedule: env.SYNC_CRON,
         entityBatchSize: env.DATALOADER_ENTITY_BATCH_SIZE,
         relationBatchSize: env.DATALOADER_RELATION_BATCH_SIZE,
+        logRetentionDays: env.LOG_RETENTION_DAYS,
+        logRetentionSchedule: env.LOG_RETENTION_CRON,
         tmbAppId: env.TMB_APP_ID,
         tmbAppKey: env.TMB_APP_KEY,
     };
