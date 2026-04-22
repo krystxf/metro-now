@@ -12,21 +12,11 @@ import { logger } from "../../utils/logger";
 import type { CacheInvalidationService } from "../core/cache-invalidation.service";
 import { CountryLookupService } from "../geo/country-lookup.service";
 import { GtfsService } from "../gtfs/gtfs.service";
-import { AmbImportService } from "../imports/amb-import.service";
-import { BratislavaImportService } from "../imports/bratislava-import.service";
-import { BrnoImportService } from "../imports/brno-import.service";
-import { FgcImportService } from "../imports/fgc-import.service";
-import { LeoImportService } from "../imports/leo-import.service";
-import { LiberecImportService } from "../imports/liberec-import.service";
+import { cityImports } from "../imports/city-imports.registry";
 import {
     PidImportService,
     type PidSnapshot,
 } from "../imports/pid-import.service";
-import { PmdpImportService } from "../imports/pmdp-import.service";
-import { TmbImportService } from "../imports/tmb-import.service";
-import { TramImportService } from "../imports/tram-import.service";
-import { UstiImportService } from "../imports/usti-import.service";
-import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
 
@@ -43,17 +33,6 @@ const dedupeGtfsRoutes = (
 export class SyncService {
     private readonly importService = new PidImportService();
     private readonly gtfsService = new GtfsService();
-    private readonly leoImportService = new LeoImportService();
-    private readonly pmdpImportService = new PmdpImportService();
-    private readonly brnoImportService = new BrnoImportService();
-    private readonly ustiImportService = new UstiImportService();
-    private readonly liberecImportService = new LiberecImportService();
-    private readonly bratislavaImportService = new BratislavaImportService();
-    private readonly zsrImportService = new ZsrImportService();
-    private readonly tmbImportService = new TmbImportService();
-    private readonly ambImportService = new AmbImportService();
-    private readonly tramImportService = new TramImportService();
-    private readonly fgcImportService = new FgcImportService();
     private readonly countryLookupService = new CountryLookupService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
@@ -238,66 +217,14 @@ export class SyncService {
     private async loadCitySnapshots(
         pidStops: SyncSnapshot["stops"],
     ): Promise<SyncSnapshot[]> {
-        type CityLoader = {
-            name: string;
-            load: () => Promise<SyncSnapshot>;
-        };
-
-        const loaders: CityLoader[] = [
-            {
-                name: "Leo",
-                load: () => this.leoImportService.getLeoSnapshot(pidStops),
-            },
-            {
-                name: "PMDP",
-                load: () => this.pmdpImportService.getPmdpSnapshot(),
-            },
-            {
-                name: "Brno",
-                load: () => this.brnoImportService.getBrnoSnapshot(),
-            },
-            {
-                name: "Usti",
-                load: () => this.ustiImportService.getUstiSnapshot(),
-            },
-            {
-                name: "Liberec",
-                load: () => this.liberecImportService.getLiberecSnapshot(),
-            },
-            {
-                name: "Bratislava",
-                load: () =>
-                    this.bratislavaImportService.getBratislavaSnapshot(),
-            },
-            {
-                name: "ZSR",
-                load: () => this.zsrImportService.getZsrSnapshot(pidStops),
-            },
-            {
-                name: "TMB",
-                load: () => this.tmbImportService.getTmbSnapshot(),
-            },
-            {
-                name: "AMB",
-                load: () => this.ambImportService.getAmbSnapshot(),
-            },
-            {
-                name: "TRAM",
-                load: () => this.tramImportService.getTramSnapshot(),
-            },
-            {
-                name: "FGC",
-                load: () => this.fgcImportService.getFgcSnapshot(),
-            },
-        ];
-
+        const context = { pidStops };
         const results: SyncSnapshot[] = [];
 
-        for (const loader of loaders) {
+        for (const cityImport of cityImports) {
             try {
-                const snapshot = await loader.load();
+                const snapshot = await cityImport.load(context);
 
-                logger.info(`${loader.name} snapshot ready`, {
+                logger.info(`${cityImport.name} snapshot ready`, {
                     stops: snapshot.stops.length,
                     platforms: snapshot.platforms.length,
                     routes: snapshot.gtfsRoutes.length,
@@ -305,7 +232,7 @@ export class SyncService {
                 results.push(snapshot);
             } catch (error) {
                 logger.error(
-                    `Failed to fetch ${loader.name} data, continuing without it`,
+                    `Failed to fetch ${cityImport.name} data, continuing without it`,
                     {
                         error:
                             error instanceof Error
