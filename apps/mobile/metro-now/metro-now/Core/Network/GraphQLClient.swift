@@ -30,27 +30,50 @@ private func makeApolloCache() -> any NormalizedCache {
     }
 }
 
-private let apolloClient: ApolloClient = {
-    let store = ApolloStore(cache: makeApolloCache())
+private let apolloStore = ApolloStore(cache: makeApolloCache())
+
+private func makeURLSession() -> URLSession {
     let configuration = URLSessionConfiguration.default
     configuration.urlCache = nil
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+    return URLSession(configuration: configuration)
+}
 
+private let apolloClient: ApolloClient = {
     print("[GraphQL] endpoint=\(GRAPHQL_URL)")
 
     let transport = RequestChainNetworkTransport(
-        urlSession: URLSession(configuration: configuration),
+        urlSession: makeURLSession(),
         interceptorProvider: DefaultInterceptorProvider.shared,
-        store: store,
+        store: apolloStore,
         endpointURL: URL(string: GRAPHQL_URL)!,
         additionalHeaders: appRequestHeaders()
     )
 
     return ApolloClient(
         networkTransport: transport,
-        store: store
+        store: apolloStore
     )
 }()
+
+private let persistedApolloClient: ApolloClient = {
+    let transport = RequestChainNetworkTransport(
+        urlSession: makeURLSession(),
+        interceptorProvider: DefaultInterceptorProvider.shared,
+        store: apolloStore,
+        endpointURL: URL(string: GRAPHQL_URL)!,
+        additionalHeaders: appRequestHeaders(),
+        autoPersistQueries: true,
+        useGETForQueries: true
+    )
+
+    return ApolloClient(
+        networkTransport: transport,
+        store: apolloStore
+    )
+}()
+
+private let persistedOperationNames: Set<String> = ["AllStopsLight"]
 
 func clearGraphQLCache() async throws {
     try await apolloClient.clearCache()
@@ -61,10 +84,11 @@ func fetchGraphQLQuery<Query: ApolloAPI.GraphQLQuery>(
     cachePolicy: CachePolicy.Query.SingleResponse = .networkFirst
 ) async throws -> Query.Data where Query.ResponseFormat == ApolloAPI.SingleResponseFormat {
     let opName = type(of: query).operationName
+    let client = persistedOperationNames.contains(opName) ? persistedApolloClient : apolloClient
     let startedAt = Date()
     do {
         print("[GraphQL] \(opName) start cachePolicy=\(String(describing: cachePolicy))")
-        let response = try await apolloClient.fetch(
+        let response = try await client.fetch(
             query: query,
             cachePolicy: cachePolicy
         )

@@ -8,6 +8,7 @@ extension MetroNowAPI {
     nonisolated struct DeparturesQuery: GraphQLQuery {
         static let operationName: String = "Departures"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
+            operationIdentifier: "e19ea94f90ad88f9ca7a1724e7c34128ae290910ae4ebcbc29f1cb6b04fe3173",
             definition: .init(
                 #"query Departures($stopIds: [ID!], $platformIds: [ID!], $limit: Int, $metroOnly: Boolean, $minutesBefore: Int, $minutesAfter: Int) { departures( stopIds: $stopIds platformIds: $platformIds limit: $limit metroOnly: $metroOnly minutesBefore: $minutesBefore minutesAfter: $minutesAfter ) { __typename id delay headsign isRealtime platformCode departureTime { __typename predicted scheduled } platform { __typename id } route { __typename id name color feed vehicleType isNight } } }"#
             )

@@ -8,6 +8,7 @@ extension MetroNowAPI {
     nonisolated struct MetroStopEntrancesQuery: GraphQLQuery {
         static let operationName: String = "MetroStopEntrances"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
+            operationIdentifier: "c100b5c8d73861ba0bcbab7a12b0ce50b7a37312e941402de1b6e232f9269972",
             definition: .init(
                 #"query MetroStopEntrances($ids: [ID!]) { stops(ids: $ids) { __typename id entrances { __typename id name latitude longitude } } }"#
             )

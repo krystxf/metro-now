@@ -8,6 +8,7 @@ extension MetroNowAPI {
     nonisolated struct InfotextsQuery: GraphQLQuery {
         static let operationName: String = "Infotexts"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
+            operationIdentifier: "0beacc923b8bac48996ca8d82edb41201d463eec5d0d623dd28bb55938aef940",
             definition: .init(
                 #"query Infotexts { infotexts { __typename id text textEn priority displayType validFrom validTo relatedStops { __typename name } } }"#
             )

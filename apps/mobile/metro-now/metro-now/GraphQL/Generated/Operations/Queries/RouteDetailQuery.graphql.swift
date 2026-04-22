@@ -8,6 +8,7 @@ extension MetroNowAPI {
     nonisolated struct RouteDetailQuery: GraphQLQuery {
         static let operationName: String = "RouteDetail"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
+            operationIdentifier: "29a28bfe3b0e6184d5cc419b1f95ea795b20118aa50ee11b67983a0b012c3649",
             definition: .init(
                 #"query RouteDetail($id: ID!) { route(id: $id) { __typename id name color isNight isSubstitute vehicleType feed directions { __typename id platforms { __typename id name latitude longitude isMetro code direction } } shapes { __typename id directionId tripCount geoJson } } }"#
             )

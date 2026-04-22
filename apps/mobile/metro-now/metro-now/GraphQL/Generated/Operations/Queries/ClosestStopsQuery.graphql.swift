@@ -8,6 +8,7 @@ extension MetroNowAPI {
     nonisolated struct ClosestStopsQuery: GraphQLQuery {
         static let operationName: String = "ClosestStops"
         static let operationDocument: ApolloAPI.OperationDocument = .init(
+            operationIdentifier: "4464df971ef17cdd34288d632ac4471e43337135dd4cbab14e32bd8bbc2594b2",
             definition: .init(
                 #"query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) { closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) { __typename id name avgLatitude avgLongitude distance entrances { __typename id name latitude longitude } platforms { __typename id latitude longitude name code direction isMetro routes { __typename id name color feed vehicleType isNight } } } }"#
             )
