@@ -63,7 +63,7 @@ private let persistedApolloClient: ApolloClient = {
         store: apolloStore,
         endpointURL: URL(string: GRAPHQL_URL)!,
         additionalHeaders: appRequestHeaders(),
-        autoPersistQueries: true,
+        apqConfig: AutoPersistedQueryConfiguration(autoPersistQueries: true),
         useGETForQueries: true
     )
 
