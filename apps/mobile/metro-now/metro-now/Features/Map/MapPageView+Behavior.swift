@@ -15,20 +15,21 @@ extension MapPageView {
         } ?? []
 
         let metroStops = mapStops.filter { stop in
-            stop.platforms.contains(where: \.isMetro)
+            stop.platforms.contains(where: isMetroPlatform)
         }
 
         cachedMapStops = mapStops
-        cachedMetroRouteIds = Array(
+        cachedOverlayRouteIds = Array(
             Set(
-                metroStops
+                mapStops
                     .flatMap(\.platforms)
                     .flatMap(\.routes)
-                    .filter { METRO_LINES.contains($0.name.uppercased()) }
+                    .filter(shouldShowMapRouteOverlay)
                     .map(\.backendRouteId)
             )
         ).sorted()
-        cachedMetroRouteRequestKey = cachedMetroRouteIds.joined(separator: ",")
+        print("[map-debug] recomputed derived stop data: mapStops=\(mapStops.count), overlayRouteIds=\(cachedOverlayRouteIds)")
+        cachedOverlayRouteRequestKey = cachedOverlayRouteIds.joined(separator: ",")
         cachedMapStopsRequestKey = mapStops
             .flatMap(\.platforms)
             .map(\.id)
@@ -39,7 +40,7 @@ extension MapPageView {
     }
 
     func focus(on stop: ApiStop) {
-        let zoom: CGFloat = stop.platforms.contains(where: \.isMetro) ? 15 : 14
+        let zoom: CGFloat = stop.platforms.contains(where: isMetroPlatform) ? 15 : 14
         let center = stop.preferredCoordinate
 
         initialCameraSource = .selection

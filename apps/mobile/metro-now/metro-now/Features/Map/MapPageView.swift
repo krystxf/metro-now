@@ -65,8 +65,8 @@ struct MapPageView: View {
 
     // Cached derived stop data — recomputed only when stopsViewModel.stops changes
     @State var cachedMapStops: [ApiStop] = []
-    @State var cachedMetroRouteIds: [String] = []
-    @State var cachedMetroRouteRequestKey: String = ""
+    @State var cachedOverlayRouteIds: [String] = []
+    @State var cachedOverlayRouteRequestKey: String = ""
     @State var cachedMapStopsRequestKey: String = ""
     @State var cachedMetroEntrances: [ApiStopEntrance] = []
     @State var currentBearing: CGFloat = 0
@@ -137,8 +137,8 @@ struct MapPageView: View {
 
     private var loadingBanner: some View {
         VStack {
-            if routeViewModel.isLoading, !cachedMetroRouteIds.isEmpty {
-                ProgressView("Loading metro lines")
+            if routeViewModel.isLoading, !cachedOverlayRouteIds.isEmpty {
+                ProgressView("Loading route lines")
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(.thinMaterial)

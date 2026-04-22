@@ -25,8 +25,19 @@ extension MapPageView {
                 .lineEmissiveStrength(1)
             }
 
+            PolylineAnnotationGroup(cachedRoutePolylines.filter(\.isMetro)) { polyline in
+                var annotation = PolylineAnnotation(lineCoordinates: polyline.coordinates)
+                annotation.lineColor = StyleColor(polyline.color)
+                annotation.lineWidth = 6
+                return annotation
+            }
+            .layerId("metro-lines")
+            .lineCap(.round)
+            .lineJoin(.round)
+            .lineEmissiveStrength(1)
+
             if renderModel.zoomVisibility.showsRoutePolylines {
-                PolylineAnnotationGroup(cachedRoutePolylines) { polyline in
+                PolylineAnnotationGroup(cachedRoutePolylines.filter { !$0.isMetro }) { polyline in
                     var annotation = PolylineAnnotation(lineCoordinates: polyline.coordinates)
                     annotation.lineColor = StyleColor(polyline.color)
                     annotation.lineWidth = 5
@@ -124,8 +135,8 @@ extension MapPageView {
         .task {
             await loadPidZoneBordersIfNeeded()
         }
-        .task(id: cachedMetroRouteRequestKey) {
-            await routeViewModel.loadRoutes(routeIds: cachedMetroRouteIds)
+        .task(id: cachedOverlayRouteRequestKey) {
+            await routeViewModel.loadRoutes(routeIds: cachedOverlayRouteIds)
         }
         .task(id: cachedMapStopsRequestKey) {
             guard

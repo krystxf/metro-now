@@ -80,20 +80,26 @@ func buildVisibleStopFeature(
 func buildRoutePolylines(
     from routes: [ApiRouteDetail]
 ) -> [FlatRoutePolyline] {
-    routes.flatMap { route in
+    let result: [FlatRoutePolyline] = routes.flatMap { route in
+        let isMetro = route.vehicleType.uppercased() == "SUBWAY"
         let color = getRouteColor(route)
             .resolvedUIColor()
-            .withAlphaComponent(0.2)
-        return route.preferredMapShapes.map { shape in
+            .withAlphaComponent(isMetro ? 0.9 : 0.2)
+        let shapes = route.preferredMapShapes
+        print("[map-debug] route \(route.id) name=\(route.shortName) vehicleType=\(route.vehicleType) isMetro=\(isMetro) shapes=\(shapes.count) coordCounts=\(shapes.map(\.normalizedCoordinates.count))")
+        return shapes.map { shape in
             FlatRoutePolyline(
                 id: shape.id,
                 coordinates: shape.normalizedCoordinates.map {
                     CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                 },
-                color: color
+                color: color,
+                isMetro: isMetro
             )
         }
     }
+    print("[map-debug] buildRoutePolylines produced \(result.count) polylines (metro=\(result.filter(\.isMetro).count))")
+    return result
 }
 
 func hasMatchingPolylineIdentities(
