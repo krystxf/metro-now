@@ -1,41 +1,40 @@
 import {
     type DatabaseClient,
     type DatabaseTransaction,
-    type NewGtfsCalendar,
-    type NewGtfsCalendarDate,
-    type NewGtfsFrequency,
-    type NewGtfsRoute,
-    type NewGtfsRouteShape,
-    type NewGtfsRouteStop,
-    type NewGtfsStationEntrance,
-    type NewGtfsStopTime,
-    type NewGtfsTransfer,
-    type NewGtfsTrip,
-    type NewPlatform,
-    type NewPlatformsOnRoutes,
-    type NewStop,
     sql,
 } from "@metro-now/database";
 
 import type {
     SyncPersistenceResult,
     SyncSnapshot,
-    SyncedGtfsCalendar,
-    SyncedGtfsCalendarDate,
-    SyncedGtfsFrequency,
-    SyncedGtfsRoute,
-    SyncedGtfsRouteShape,
-    SyncedGtfsRouteStop,
-    SyncedGtfsStationEntrance,
-    SyncedGtfsStopTime,
-    SyncedGtfsTransfer,
-    SyncedGtfsTrip,
-    SyncedPlatform,
-    SyncedPlatformRoute,
-    SyncedStop,
 } from "../../types/sync.types";
 import { getSyncCounts } from "../../types/sync.types";
-import { logger } from "../../utils/logger";
+import {
+    deleteStaleGtfsRoutes,
+    deleteStaleGtfsStationEntrances,
+    deleteStalePlatforms,
+    deleteStaleStops,
+    recomputePlatformDirections,
+} from "./sync-repository.cleanup";
+import {
+    replaceGtfsCalendarDates,
+    replaceGtfsCalendars,
+    replaceGtfsFrequencies,
+    replaceGtfsStopTimes,
+    replaceGtfsTransfers,
+    replaceGtfsTrips,
+} from "./sync-repository.replaces";
+import {
+    syncGtfsRouteShapes,
+    syncGtfsRouteStops,
+    syncPlatformRoutes,
+} from "./sync-repository.sync";
+import {
+    upsertGtfsRoutes,
+    upsertGtfsStationEntrances,
+    upsertPlatforms,
+    upsertStops,
+} from "./sync-repository.upserts";
 
 const LOCK_KEY = BigInt(4_241_001);
 const ENTITY_BATCH_SIZE = 100;
@@ -45,18 +44,6 @@ type SyncRepositoryOptions = {
     entityBatchSize?: number;
     relationBatchSize?: number;
 };
-
-type IdTableName =
-    | "GtfsRoute"
-    | "GtfsCalendar"
-    | "GtfsCalendarDate"
-    | "GtfsFrequency"
-    | "GtfsStationEntrance"
-    | "GtfsStopTime"
-    | "GtfsTransfer"
-    | "GtfsTrip"
-    | "Platform"
-    | "Stop";
 
 export class SyncRepository {
     private readonly entityBatchSize: number;
@@ -105,99 +92,105 @@ export class SyncRepository {
         await sql`SET LOCAL statement_timeout = '20min'`.execute(transaction);
     }
 
+    private async tryAcquireTransactionLock(
+        transaction: DatabaseTransaction,
+    ): Promise<boolean> {
+        const result = await sql<{ acquired: boolean }>`
+            SELECT pg_try_advisory_xact_lock(${LOCK_KEY}) AS acquired
+        `.execute(transaction);
+
+        return result.rows[0]?.acquired ?? false;
+    }
+
     private async persistSnapshot(
         transaction: DatabaseTransaction,
         snapshot: SyncSnapshot,
     ): Promise<string[]> {
         const changed = new Set<string>();
+        const eb = this.entityBatchSize;
+        const rb = this.relationBatchSize;
 
-        await this.upsertStops(transaction, snapshot.stops);
-        await this.upsertPlatforms(transaction, snapshot.platforms);
-        await this.upsertGtfsRoutes(transaction, snapshot.gtfsRoutes);
-        await this.upsertGtfsStationEntrances(
+        await upsertStops(transaction, snapshot.stops, eb);
+        await upsertPlatforms(transaction, snapshot.platforms, eb);
+        await upsertGtfsRoutes(transaction, snapshot.gtfsRoutes, eb);
+        await upsertGtfsStationEntrances(
             transaction,
             snapshot.gtfsStationEntrances,
+            eb,
         );
-        if (await this.replaceGtfsTrips(transaction, snapshot.gtfsTrips)) {
+
+        if (await replaceGtfsTrips(transaction, snapshot.gtfsTrips, rb)) {
             changed.add("gtfsTrips");
         }
         if (
-            await this.replaceGtfsStopTimes(transaction, snapshot.gtfsStopTimes)
+            await replaceGtfsStopTimes(transaction, snapshot.gtfsStopTimes, rb)
         ) {
             changed.add("gtfsStopTimes");
         }
         if (
-            await this.replaceGtfsCalendars(transaction, snapshot.gtfsCalendars)
+            await replaceGtfsCalendars(transaction, snapshot.gtfsCalendars, rb)
         ) {
             changed.add("gtfsCalendars");
         }
         if (
-            await this.replaceGtfsCalendarDates(
+            await replaceGtfsCalendarDates(
                 transaction,
                 snapshot.gtfsCalendarDates,
+                rb,
             )
         ) {
             changed.add("gtfsCalendarDates");
         }
         if (
-            await this.replaceGtfsTransfers(transaction, snapshot.gtfsTransfers)
+            await replaceGtfsTransfers(transaction, snapshot.gtfsTransfers, rb)
         ) {
             changed.add("gtfsTransfers");
         }
         if (
-            await this.replaceGtfsFrequencies(
+            await replaceGtfsFrequencies(
                 transaction,
                 snapshot.gtfsFrequencies,
+                rb,
             )
         ) {
             changed.add("gtfsFrequencies");
         }
 
         if (
-            await this.syncPlatformRoutes(transaction, snapshot.platformRoutes)
+            await syncPlatformRoutes(transaction, snapshot.platformRoutes, rb)
         ) {
             changed.add("platformRoutes");
         }
-
         if (
-            await this.syncGtfsRouteStops(transaction, snapshot.gtfsRouteStops)
+            await syncGtfsRouteStops(transaction, snapshot.gtfsRouteStops, rb)
         ) {
             changed.add("gtfsRouteStops");
         }
-
         if (
-            await this.syncGtfsRouteShapes(
-                transaction,
-                snapshot.gtfsRouteShapes,
-            )
+            await syncGtfsRouteShapes(transaction, snapshot.gtfsRouteShapes, rb)
         ) {
             changed.add("gtfsRouteShapes");
         }
 
         if (
-            await this.deleteStaleGtfsStationEntrances(
+            await deleteStaleGtfsStationEntrances(
                 transaction,
                 snapshot.gtfsStationEntrances,
+                rb,
             )
         ) {
             changed.add("gtfsStationEntrances");
         }
-
-        if (await this.deleteStalePlatforms(transaction, snapshot.platforms)) {
+        if (await deleteStalePlatforms(transaction, snapshot.platforms, rb)) {
             changed.add("platforms");
         }
-
-        if (await this.recomputePlatformDirections(transaction)) {
+        if (await recomputePlatformDirections(transaction)) {
             changed.add("platforms");
         }
-
-        if (await this.deleteStaleStops(transaction, snapshot.stops)) {
+        if (await deleteStaleStops(transaction, snapshot.stops, rb)) {
             changed.add("stops");
         }
-
-        if (
-            await this.deleteStaleGtfsRoutes(transaction, snapshot.gtfsRoutes)
-        ) {
+        if (await deleteStaleGtfsRoutes(transaction, snapshot.gtfsRoutes, rb)) {
             changed.add("gtfsRoutes");
         }
 
@@ -220,1102 +213,5 @@ export class SyncRepository {
         if (snapshot.gtfsFrequencies.length > 0) changed.add("gtfsFrequencies");
 
         return [...changed];
-    }
-
-    private async upsertStops(
-        transaction: DatabaseTransaction,
-        stops: SyncedStop[],
-    ): Promise<void> {
-        await this.processInBatches(
-            stops,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewStop[] = chunk.map((stop) => ({
-                    id: stop.id,
-                    feed: stop.feed,
-                    name: stop.name,
-                    avgLatitude: stop.avgLatitude,
-                    avgLongitude: stop.avgLongitude,
-                    country: stop.country ?? null,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("Stop")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .column("id")
-                            .doUpdateSet((expressionBuilder) => ({
-                                feed: expressionBuilder.ref("excluded.feed"),
-                                name: expressionBuilder.ref("excluded.name"),
-                                avgLatitude: expressionBuilder.ref(
-                                    "excluded.avgLatitude",
-                                ),
-                                avgLongitude: expressionBuilder.ref(
-                                    "excluded.avgLongitude",
-                                ),
-                                country:
-                                    expressionBuilder.ref("excluded.country"),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async upsertPlatforms(
-        transaction: DatabaseTransaction,
-        platforms: SyncedPlatform[],
-    ): Promise<void> {
-        await this.processInBatches(
-            platforms,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewPlatform[] = chunk.map((platform) => ({
-                    id: platform.id,
-                    name: platform.name,
-                    code: platform.code,
-                    isMetro: platform.isMetro,
-                    latitude: platform.latitude,
-                    longitude: platform.longitude,
-                    stopId: platform.stopId,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("Platform")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .column("id")
-                            .doUpdateSet((expressionBuilder) => ({
-                                name: expressionBuilder.ref("excluded.name"),
-                                code: expressionBuilder.ref("excluded.code"),
-                                isMetro:
-                                    expressionBuilder.ref("excluded.isMetro"),
-                                latitude:
-                                    expressionBuilder.ref("excluded.latitude"),
-                                longitude:
-                                    expressionBuilder.ref("excluded.longitude"),
-                                stopId: expressionBuilder.ref(
-                                    "excluded.stopId",
-                                ),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async upsertGtfsRoutes(
-        transaction: DatabaseTransaction,
-        gtfsRoutes: SyncedGtfsRoute[],
-    ): Promise<void> {
-        await this.processInBatches(
-            gtfsRoutes,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsRoute[] = chunk.map((gtfsRoute) => ({
-                    id: gtfsRoute.id,
-                    feedId: gtfsRoute.feedId,
-                    shortName: gtfsRoute.shortName,
-                    longName: gtfsRoute.longName,
-                    type: gtfsRoute.type,
-                    vehicleType: gtfsRoute.vehicleType,
-                    color: gtfsRoute.color,
-                    isNight: gtfsRoute.isNight,
-                    url: gtfsRoute.url,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("GtfsRoute")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .columns(["feedId", "id"])
-                            .doUpdateSet((expressionBuilder) => ({
-                                shortName:
-                                    expressionBuilder.ref("excluded.shortName"),
-                                longName:
-                                    expressionBuilder.ref("excluded.longName"),
-                                type: expressionBuilder.ref("excluded.type"),
-                                vehicleType: expressionBuilder.ref(
-                                    "excluded.vehicleType",
-                                ),
-                                color: expressionBuilder.ref("excluded.color"),
-                                isNight:
-                                    expressionBuilder.ref("excluded.isNight"),
-                                url: expressionBuilder.ref("excluded.url"),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async upsertGtfsStationEntrances(
-        transaction: DatabaseTransaction,
-        gtfsStationEntrances: SyncedGtfsStationEntrance[],
-    ): Promise<void> {
-        await this.processInBatches(
-            gtfsStationEntrances,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsStationEntrance[] = chunk.map(
-                    (entrance) => ({
-                        id: entrance.id,
-                        feedId: entrance.feedId,
-                        stopId: entrance.stopId,
-                        parentStationId: entrance.parentStationId,
-                        name: entrance.name,
-                        latitude: entrance.latitude,
-                        longitude: entrance.longitude,
-                        createdAt: timestamp,
-                        updatedAt: timestamp,
-                    }),
-                );
-
-                await transaction
-                    .insertInto("GtfsStationEntrance")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .columns(["feedId", "id"])
-                            .doUpdateSet((expressionBuilder) => ({
-                                stopId: expressionBuilder.ref(
-                                    "excluded.stopId",
-                                ),
-                                parentStationId: expressionBuilder.ref(
-                                    "excluded.parentStationId",
-                                ),
-                                name: expressionBuilder.ref("excluded.name"),
-                                latitude:
-                                    expressionBuilder.ref("excluded.latitude"),
-                                longitude:
-                                    expressionBuilder.ref("excluded.longitude"),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async syncPlatformRoutes(
-        transaction: DatabaseTransaction,
-        platformRoutes: SyncedPlatformRoute[],
-    ): Promise<boolean> {
-        const existingRelations = await transaction
-            .selectFrom("PlatformsOnRoutes")
-            .select(["platformId", "feedId", "routeId"])
-            .execute();
-        const incomingKeys = new Set(
-            platformRoutes.map((relation) =>
-                this.getPlatformRouteKey(relation),
-            ),
-        );
-        const existingKeys = new Set(
-            existingRelations.map((relation) =>
-                this.getPlatformRouteKey(relation),
-            ),
-        );
-        const relationsToCreate = platformRoutes.filter(
-            (relation) => !existingKeys.has(this.getPlatformRouteKey(relation)),
-        );
-        const relationsToDelete = existingRelations.filter(
-            (relation) => !incomingKeys.has(this.getPlatformRouteKey(relation)),
-        );
-
-        await this.processInBatches(
-            relationsToCreate,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewPlatformsOnRoutes[] = chunk.map(
-                    (relation) => ({
-                        platformId: relation.platformId,
-                        feedId: relation.feedId,
-                        routeId: relation.routeId,
-                        createdAt: timestamp,
-                        updatedAt: timestamp,
-                    }),
-                );
-
-                await transaction
-                    .insertInto("PlatformsOnRoutes")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .columns(["platformId", "feedId", "routeId"])
-                            .doNothing(),
-                    )
-                    .execute();
-            },
-        );
-        await this.processInBatches(
-            relationsToDelete,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom("PlatformsOnRoutes")
-                    .where((expressionBuilder) =>
-                        expressionBuilder.or(
-                            chunk.map((relation) =>
-                                expressionBuilder.and([
-                                    expressionBuilder(
-                                        "platformId",
-                                        "=",
-                                        relation.platformId,
-                                    ),
-                                    expressionBuilder(
-                                        "feedId",
-                                        "=",
-                                        relation.feedId,
-                                    ),
-                                    expressionBuilder(
-                                        "routeId",
-                                        "=",
-                                        relation.routeId,
-                                    ),
-                                ]),
-                            ),
-                        ),
-                    )
-                    .execute();
-            },
-        );
-
-        return relationsToCreate.length > 0 || relationsToDelete.length > 0;
-    }
-
-    private async syncGtfsRouteStops(
-        transaction: DatabaseTransaction,
-        gtfsRouteStops: SyncedGtfsRouteStop[],
-    ): Promise<boolean> {
-        const existingRouteStops = await transaction
-            .selectFrom("GtfsRouteStop")
-            .select([
-                "feedId",
-                "routeId",
-                "directionId",
-                "stopId",
-                "stopSequence",
-            ])
-            .execute();
-        const incomingKeys = new Set(
-            gtfsRouteStops.map((routeStop) =>
-                this.getGtfsRouteStopKey(routeStop),
-            ),
-        );
-        const existingKeys = new Set(
-            existingRouteStops.map((routeStop) =>
-                this.getGtfsRouteStopKey({
-                    feedId: routeStop.feedId,
-                    routeId: routeStop.routeId,
-                    directionId: routeStop.directionId,
-                    platformId: routeStop.stopId,
-                    stopSequence: routeStop.stopSequence,
-                }),
-            ),
-        );
-        const routeStopsToCreate = gtfsRouteStops.filter(
-            (routeStop) =>
-                !existingKeys.has(this.getGtfsRouteStopKey(routeStop)),
-        );
-        const routeStopsToDelete = existingRouteStops.filter(
-            (routeStop) =>
-                !incomingKeys.has(
-                    this.getGtfsRouteStopKey({
-                        feedId: routeStop.feedId,
-                        routeId: routeStop.routeId,
-                        directionId: routeStop.directionId,
-                        platformId: routeStop.stopId,
-                        stopSequence: routeStop.stopSequence,
-                    }),
-                ),
-        );
-
-        await this.processInBatches(
-            routeStopsToCreate,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsRouteStop[] = chunk.map((routeStop) => ({
-                    feedId: routeStop.feedId,
-                    routeId: routeStop.routeId,
-                    directionId: routeStop.directionId,
-                    stopId: routeStop.platformId,
-                    stopSequence: routeStop.stopSequence,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("GtfsRouteStop")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .columns([
-                                "feedId",
-                                "routeId",
-                                "directionId",
-                                "stopId",
-                                "stopSequence",
-                            ])
-                            .doNothing(),
-                    )
-                    .execute();
-            },
-        );
-        await this.processInBatches(
-            routeStopsToDelete,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom("GtfsRouteStop")
-                    .where((expressionBuilder) =>
-                        expressionBuilder.or(
-                            chunk.map((routeStop) =>
-                                expressionBuilder.and([
-                                    expressionBuilder(
-                                        "feedId",
-                                        "=",
-                                        routeStop.feedId,
-                                    ),
-                                    expressionBuilder(
-                                        "routeId",
-                                        "=",
-                                        routeStop.routeId,
-                                    ),
-                                    expressionBuilder(
-                                        "directionId",
-                                        "=",
-                                        routeStop.directionId,
-                                    ),
-                                    expressionBuilder(
-                                        "stopId",
-                                        "=",
-                                        routeStop.stopId,
-                                    ),
-                                    expressionBuilder(
-                                        "stopSequence",
-                                        "=",
-                                        routeStop.stopSequence,
-                                    ),
-                                ]),
-                            ),
-                        ),
-                    )
-                    .execute();
-            },
-        );
-
-        return routeStopsToCreate.length > 0 || routeStopsToDelete.length > 0;
-    }
-
-    private async syncGtfsRouteShapes(
-        transaction: DatabaseTransaction,
-        gtfsRouteShapes: SyncedGtfsRouteShape[],
-    ): Promise<boolean> {
-        const existingRouteShapes = await transaction
-            .selectFrom("GtfsRouteShape")
-            .select(["feedId", "routeId", "directionId", "shapeId"])
-            .execute();
-        const incomingKeys = new Set(
-            gtfsRouteShapes.map((routeShape) =>
-                this.getGtfsRouteShapeKey(routeShape),
-            ),
-        );
-        const routeShapesToDelete = existingRouteShapes.filter(
-            (routeShape) =>
-                !incomingKeys.has(this.getGtfsRouteShapeKey(routeShape)),
-        );
-
-        await this.processInBatches(
-            gtfsRouteShapes,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsRouteShape[] = chunk.map((routeShape) => ({
-                    feedId: routeShape.feedId,
-                    routeId: routeShape.routeId,
-                    directionId: routeShape.directionId,
-                    shapeId: routeShape.shapeId,
-                    tripCount: routeShape.tripCount,
-                    isPrimary: routeShape.isPrimary,
-                    geoJson: routeShape.geoJson,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("GtfsRouteShape")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .columns([
-                                "feedId",
-                                "routeId",
-                                "directionId",
-                                "shapeId",
-                            ])
-                            .doUpdateSet((expressionBuilder) => ({
-                                tripCount:
-                                    expressionBuilder.ref("excluded.tripCount"),
-                                isPrimary:
-                                    expressionBuilder.ref("excluded.isPrimary"),
-                                geoJson:
-                                    expressionBuilder.ref("excluded.geoJson"),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-        await this.processInBatches(
-            routeShapesToDelete,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom("GtfsRouteShape")
-                    .where((expressionBuilder) =>
-                        expressionBuilder.or(
-                            chunk.map((routeShape) =>
-                                expressionBuilder.and([
-                                    expressionBuilder(
-                                        "feedId",
-                                        "=",
-                                        routeShape.feedId,
-                                    ),
-                                    expressionBuilder(
-                                        "routeId",
-                                        "=",
-                                        routeShape.routeId,
-                                    ),
-                                    expressionBuilder(
-                                        "directionId",
-                                        "=",
-                                        routeShape.directionId,
-                                    ),
-                                    expressionBuilder(
-                                        "shapeId",
-                                        "=",
-                                        routeShape.shapeId,
-                                    ),
-                                ]),
-                            ),
-                        ),
-                    )
-                    .execute();
-            },
-        );
-
-        return gtfsRouteShapes.length > 0 || routeShapesToDelete.length > 0;
-    }
-
-    private async replaceGtfsTrips(
-        transaction: DatabaseTransaction,
-        gtfsTrips: SyncedGtfsTrip[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsTrip");
-
-        await transaction.deleteFrom("GtfsTrip").execute();
-
-        await this.processInBatches(
-            gtfsTrips,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsTrip[] = chunk.map((trip) => ({
-                    id: trip.id,
-                    feedId: trip.feedId,
-                    tripId: trip.tripId,
-                    routeId: trip.routeId,
-                    serviceId: trip.serviceId,
-                    directionId: trip.directionId,
-                    shapeId: trip.shapeId,
-                    tripHeadsign: trip.tripHeadsign,
-                    blockId: trip.blockId,
-                    wheelchairAccessible: trip.wheelchairAccessible,
-                    bikesAllowed: trip.bikesAllowed,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsTrip")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsTrips.length > 0;
-    }
-
-    private async replaceGtfsStopTimes(
-        transaction: DatabaseTransaction,
-        gtfsStopTimes: SyncedGtfsStopTime[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsStopTime");
-
-        await transaction.deleteFrom("GtfsStopTime").execute();
-
-        await this.processInBatches(
-            gtfsStopTimes,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsStopTime[] = chunk.map((stopTime) => ({
-                    id: stopTime.id,
-                    feedId: stopTime.feedId,
-                    tripId: stopTime.tripId,
-                    stopId: stopTime.stopId,
-                    platformId: stopTime.platformId,
-                    stopSequence: stopTime.stopSequence,
-                    arrivalTime: stopTime.arrivalTime,
-                    departureTime: stopTime.departureTime,
-                    pickupType: stopTime.pickupType,
-                    dropOffType: stopTime.dropOffType,
-                    timepoint: stopTime.timepoint,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsStopTime")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsStopTimes.length > 0;
-    }
-
-    private async replaceGtfsCalendars(
-        transaction: DatabaseTransaction,
-        gtfsCalendars: SyncedGtfsCalendar[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsCalendar");
-
-        await transaction.deleteFrom("GtfsCalendar").execute();
-
-        await this.processInBatches(
-            gtfsCalendars,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsCalendar[] = chunk.map((calendar) => ({
-                    id: calendar.id,
-                    feedId: calendar.feedId,
-                    serviceId: calendar.serviceId,
-                    monday: calendar.monday,
-                    tuesday: calendar.tuesday,
-                    wednesday: calendar.wednesday,
-                    thursday: calendar.thursday,
-                    friday: calendar.friday,
-                    saturday: calendar.saturday,
-                    sunday: calendar.sunday,
-                    startDate: calendar.startDate,
-                    endDate: calendar.endDate,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsCalendar")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsCalendars.length > 0;
-    }
-
-    private async replaceGtfsCalendarDates(
-        transaction: DatabaseTransaction,
-        gtfsCalendarDates: SyncedGtfsCalendarDate[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsCalendarDate");
-
-        await transaction.deleteFrom("GtfsCalendarDate").execute();
-
-        await this.processInBatches(
-            gtfsCalendarDates,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsCalendarDate[] = chunk.map(
-                    (calendarDate) => ({
-                        id: calendarDate.id,
-                        feedId: calendarDate.feedId,
-                        serviceId: calendarDate.serviceId,
-                        date: calendarDate.date,
-                        exceptionType: calendarDate.exceptionType,
-                        createdAt: timestamp,
-                        updatedAt: timestamp,
-                    }),
-                );
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsCalendarDate")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsCalendarDates.length > 0;
-    }
-
-    private async replaceGtfsTransfers(
-        transaction: DatabaseTransaction,
-        gtfsTransfers: SyncedGtfsTransfer[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsTransfer");
-
-        await transaction.deleteFrom("GtfsTransfer").execute();
-
-        await this.processInBatches(
-            gtfsTransfers,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsTransfer[] = chunk.map((transfer) => ({
-                    id: transfer.id,
-                    feedId: transfer.feedId,
-                    fromStopId: transfer.fromStopId,
-                    toStopId: transfer.toStopId,
-                    fromRouteId: transfer.fromRouteId,
-                    toRouteId: transfer.toRouteId,
-                    fromTripId: transfer.fromTripId,
-                    toTripId: transfer.toTripId,
-                    transferType: transfer.transferType,
-                    minTransferTime: transfer.minTransferTime,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsTransfer")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsTransfers.length > 0;
-    }
-
-    private async replaceGtfsFrequencies(
-        transaction: DatabaseTransaction,
-        gtfsFrequencies: SyncedGtfsFrequency[],
-    ): Promise<boolean> {
-        const hadRows = await this.hasRows(transaction, "GtfsFrequency");
-
-        await transaction.deleteFrom("GtfsFrequency").execute();
-
-        await this.processInBatches(
-            gtfsFrequencies,
-            this.relationBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewGtfsFrequency[] = chunk.map((frequency) => ({
-                    id: frequency.id,
-                    feedId: frequency.feedId,
-                    tripId: frequency.tripId,
-                    startTime: frequency.startTime,
-                    endTime: frequency.endTime,
-                    headwaySecs: frequency.headwaySecs,
-                    exactTimes: frequency.exactTimes,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                if (values.length > 0) {
-                    await transaction
-                        .insertInto("GtfsFrequency")
-                        .values(values)
-                        .execute();
-                }
-            },
-        );
-
-        return hadRows || gtfsFrequencies.length > 0;
-    }
-
-    private async deleteStalePlatforms(
-        transaction: DatabaseTransaction,
-        platforms: SyncedPlatform[],
-    ): Promise<boolean> {
-        const incomingIds = new Set(platforms.map((platform) => platform.id));
-        const staleIds = (await this.selectIds(transaction, "Platform")).filter(
-            (id) => !incomingIds.has(id),
-        );
-        const deletableIds =
-            await this.excludePlatformIdsReferencedByGtfsStopTimes(
-                transaction,
-                staleIds,
-            );
-
-        if (deletableIds.length !== staleIds.length) {
-            logger.warn(
-                "Skipping stale platform deletes protected by GTFS stop times",
-                {
-                    stalePlatformCount: staleIds.length,
-                    blockedPlatformCount: staleIds.length - deletableIds.length,
-                    sampleBlockedPlatformIds: staleIds
-                        .filter((id) => !deletableIds.includes(id))
-                        .slice(0, 10),
-                },
-            );
-        }
-
-        await this.deleteByIds(transaction, "Platform", deletableIds);
-
-        return deletableIds.length > 0;
-    }
-
-    private async deleteStaleStops(
-        transaction: DatabaseTransaction,
-        stops: SyncedStop[],
-    ): Promise<boolean> {
-        const incomingIds = new Set(stops.map((stop) => stop.id));
-        const staleIds = (await this.selectIds(transaction, "Stop")).filter(
-            (id) => !incomingIds.has(id),
-        );
-
-        await this.deleteByIds(transaction, "Stop", staleIds);
-
-        return staleIds.length > 0;
-    }
-
-    private async deleteStaleGtfsRoutes(
-        transaction: DatabaseTransaction,
-        gtfsRoutes: SyncedGtfsRoute[],
-    ): Promise<boolean> {
-        const incomingKeys = new Set(
-            gtfsRoutes.map((route) => `${route.feedId}::${route.id}`),
-        );
-        const staleRouteKeys = (
-            await transaction
-                .selectFrom("GtfsRoute")
-                .select(["feedId", "id"])
-                .execute()
-        ).filter((route) => !incomingKeys.has(`${route.feedId}::${route.id}`));
-
-        await this.processInBatches(
-            staleRouteKeys,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom("GtfsRoute")
-                    .where((expressionBuilder) =>
-                        expressionBuilder.or(
-                            chunk.map((route) =>
-                                expressionBuilder.and([
-                                    expressionBuilder(
-                                        "feedId",
-                                        "=",
-                                        route.feedId,
-                                    ),
-                                    expressionBuilder("id", "=", route.id),
-                                ]),
-                            ),
-                        ),
-                    )
-                    .execute();
-            },
-        );
-
-        return staleRouteKeys.length > 0;
-    }
-
-    private async deleteStaleGtfsStationEntrances(
-        transaction: DatabaseTransaction,
-        gtfsStationEntrances: SyncedGtfsStationEntrance[],
-    ): Promise<boolean> {
-        const incomingIds = new Set(
-            gtfsStationEntrances.map(
-                (entrance) => `${entrance.feedId}::${entrance.id}`,
-            ),
-        );
-        const staleEntrances = (
-            await transaction
-                .selectFrom("GtfsStationEntrance")
-                .select(["feedId", "id"])
-                .execute()
-        ).filter(
-            (entrance) =>
-                !incomingIds.has(`${entrance.feedId}::${entrance.id}`),
-        );
-
-        await this.processInBatches(
-            staleEntrances,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom("GtfsStationEntrance")
-                    .where((expressionBuilder) =>
-                        expressionBuilder.or(
-                            chunk.map((entrance) =>
-                                expressionBuilder.and([
-                                    expressionBuilder(
-                                        "feedId",
-                                        "=",
-                                        entrance.feedId,
-                                    ),
-                                    expressionBuilder("id", "=", entrance.id),
-                                ]),
-                            ),
-                        ),
-                    )
-                    .execute();
-            },
-        );
-
-        return staleEntrances.length > 0;
-    }
-
-    private async recomputePlatformDirections(
-        transaction: DatabaseTransaction,
-    ): Promise<boolean> {
-        const updatedResult = await sql<{ id: string }>`
-            UPDATE "Platform" p
-            SET "direction" = bd.next_stop_name,
-                "updatedAt" = now()
-            FROM (
-                SELECT DISTINCT ON (o.platform_id)
-                    o.platform_id,
-                    s."name" AS next_stop_name
-                FROM (
-                    SELECT
-                        st."platformId" AS platform_id,
-                        st."stopId" AS current_platform_id,
-                        LEAD(st."stopId") OVER (
-                            PARTITION BY st."feedId", st."tripId"
-                            ORDER BY st."stopSequence"
-                        ) AS next_platform_id
-                    FROM "GtfsStopTime" st
-                    WHERE st."platformId" IS NOT NULL
-                ) o
-                JOIN "Platform" next_p ON next_p."id" = o.next_platform_id
-                JOIN "Stop" s ON s."id" = next_p."stopId"
-                WHERE o.next_platform_id IS NOT NULL
-                  AND o.next_platform_id <> o.current_platform_id
-                GROUP BY o.platform_id, s."name"
-                ORDER BY o.platform_id, COUNT(*) DESC, s."name" ASC
-            ) bd
-            WHERE p."id" = bd.platform_id
-              AND p."direction" IS DISTINCT FROM bd.next_stop_name
-            RETURNING p."id"
-        `.execute(transaction);
-
-        const clearedResult = await sql<{ id: string }>`
-            UPDATE "Platform" p
-            SET "direction" = NULL,
-                "updatedAt" = now()
-            WHERE p."direction" IS NOT NULL
-              AND NOT EXISTS (
-                SELECT 1
-                FROM "GtfsStopTime" st
-                WHERE st."platformId" = p."id"
-              )
-            RETURNING p."id"
-        `.execute(transaction);
-
-        return updatedResult.rows.length > 0 || clearedResult.rows.length > 0;
-    }
-
-    private async selectIds(
-        transaction: DatabaseTransaction,
-        tableName: IdTableName,
-    ): Promise<string[]> {
-        const rows = await transaction
-            .selectFrom(tableName)
-            .select("id")
-            .orderBy("id", "asc")
-            .execute();
-
-        return rows.map(({ id }) => id);
-    }
-
-    private async deleteByIds(
-        transaction: DatabaseTransaction,
-        tableName: IdTableName,
-        ids: string[],
-    ): Promise<void> {
-        await this.processInBatches(
-            ids,
-            this.relationBatchSize,
-            async (chunk) => {
-                if (chunk.length === 0) {
-                    return;
-                }
-
-                await transaction
-                    .deleteFrom(tableName)
-                    .where("id", "in", chunk)
-                    .execute();
-            },
-        );
-    }
-
-    private async tryAcquireTransactionLock(
-        transaction: DatabaseTransaction,
-    ): Promise<boolean> {
-        const result = await sql<{ acquired: boolean }>`
-            SELECT pg_try_advisory_xact_lock(${LOCK_KEY}) AS acquired
-        `.execute(transaction);
-
-        return result.rows[0]?.acquired ?? false;
-    }
-
-    private async excludePlatformIdsReferencedByGtfsStopTimes(
-        transaction: DatabaseTransaction,
-        platformIds: string[],
-    ): Promise<string[]> {
-        if (platformIds.length === 0) {
-            return platformIds;
-        }
-
-        const gtfsStopTimeTableExists = await this.hasTable(
-            transaction,
-            "GtfsStopTime",
-        );
-
-        if (!gtfsStopTimeTableExists) {
-            return platformIds;
-        }
-
-        const protectedPlatformIds = new Set<string>();
-
-        await this.processInBatches(
-            platformIds,
-            this.relationBatchSize,
-            async (chunk) => {
-                const rows = await transaction
-                    .selectFrom("GtfsStopTime")
-                    .select("platformId")
-                    .distinct()
-                    .where("platformId", "is not", null)
-                    .where("platformId", "in", chunk)
-                    .execute();
-
-                for (const { platformId } of rows) {
-                    if (platformId) {
-                        protectedPlatformIds.add(platformId);
-                    }
-                }
-            },
-        );
-
-        return platformIds.filter((id) => !protectedPlatformIds.has(id));
-    }
-
-    private async hasTable(
-        transaction: DatabaseTransaction,
-        tableName: string,
-    ): Promise<boolean> {
-        const result = await sql<{ exists: boolean }>`
-            SELECT EXISTS (
-                SELECT 1
-                FROM information_schema.tables
-                WHERE table_schema = 'public'
-                  AND table_name = ${tableName}
-            ) AS exists
-        `.execute(transaction);
-
-        return Boolean(result.rows[0]?.exists);
-    }
-
-    private async hasRows(
-        transaction: DatabaseTransaction,
-        tableName: IdTableName,
-    ): Promise<boolean> {
-        const row = await transaction
-            .selectFrom(tableName)
-            .select("id")
-            .limit(1)
-            .executeTakeFirst();
-
-        return row !== undefined;
-    }
-
-    private getPlatformRouteKey(relation: SyncedPlatformRoute): string {
-        return `${relation.platformId}::${relation.feedId}::${relation.routeId}`;
-    }
-
-    private getGtfsRouteStopKey(routeStop: SyncedGtfsRouteStop): string {
-        return [
-            routeStop.feedId,
-            routeStop.routeId,
-            routeStop.directionId,
-            routeStop.platformId,
-            routeStop.stopSequence,
-        ].join("::");
-    }
-
-    private getGtfsRouteShapeKey(
-        routeShape: Pick<
-            SyncedGtfsRouteShape,
-            "feedId" | "routeId" | "directionId" | "shapeId"
-        >,
-    ): string {
-        return [
-            routeShape.feedId,
-            routeShape.routeId,
-            routeShape.directionId,
-            routeShape.shapeId,
-        ].join("::");
-    }
-
-    private async processInBatches<T>(
-        items: T[],
-        batchSize: number,
-        callback: (chunk: T[]) => Promise<void>,
-    ): Promise<void> {
-        for (let index = 0; index < items.length; index += batchSize) {
-            await callback(items.slice(index, index + batchSize));
-        }
     }
 }
