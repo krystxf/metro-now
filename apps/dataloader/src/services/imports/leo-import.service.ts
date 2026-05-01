@@ -19,17 +19,16 @@ import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { logger } from "../../utils/logger";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 import {
-    type DominantPattern,
     type LogicalPlatform,
-    type ParsedStopTime,
     agencyRowSchema,
     buildGtfsRouteShapes,
     buildGtfsRouteStops,
     buildLogicalStops,
+    buildPatternsByRouteAndDirection,
+    buildStopTimesByTripId,
     matchStopsToPid,
     parseRouteWithAgency,
     parseStop,
-    parseStopTime,
     parseTrip,
 } from "./gtfs-complex-import.utils";
 
@@ -161,16 +160,11 @@ export class LeoImportService {
                 routeId != null && routeId !== "" && leoRouteIds.has(routeId)
             );
         });
-        const leoStopTimesByTripId = new Map<string, ParsedStopTime[]>();
-
-        for (const rawStopTime of rawStopTimes) {
-            const stopTime = parseStopTime(rawStopTime, "Leo");
-            if (!leoTripById.has(stopTime.tripId)) continue;
-            const tripStopTimes =
-                leoStopTimesByTripId.get(stopTime.tripId) ?? [];
-            tripStopTimes.push(stopTime);
-            leoStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
-        }
+        const leoStopTimesByTripId = buildStopTimesByTripId(
+            rawStopTimes,
+            leoTripById,
+            "Leo",
+        );
 
         const stopsById = new Map(
             rawStops.map((row) => {
@@ -198,45 +192,13 @@ export class LeoImportService {
             ),
         );
 
-        const patternsByRouteAndDirection = new Map<
-            string,
-            Map<string, DominantPattern>
-        >();
-
-        for (const trip of leoTrips) {
-            const tripStopTimes = (
-                leoStopTimesByTripId.get(trip.id) ?? []
-            ).sort((a, b) => a.stopSequence - b.stopSequence);
-            const platformIds = tripStopTimes
-                .map((st) => toLeoPlatformId(st.stopId))
-                .filter((id) => platformById.has(id));
-
-            if (platformIds.length === 0) continue;
-
-            for (const platformId of platformIds) {
-                platformById
-                    .get(platformId)
-                    ?.routeIds.add(toLeoRouteId(trip.routeId));
-            }
-
-            const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
-            const patternKey = platformIds.join(">");
-            const patterns =
-                patternsByRouteAndDirection.get(routeDirectionKey) ?? new Map();
-            const current = patterns.get(patternKey);
-
-            if (current) {
-                current.tripCount += 1;
-            } else {
-                patterns.set(patternKey, {
-                    directionId: trip.directionId,
-                    platformIds,
-                    tripCount: 1,
-                });
-            }
-
-            patternsByRouteAndDirection.set(routeDirectionKey, patterns);
-        }
+        const patternsByRouteAndDirection = buildPatternsByRouteAndDirection({
+            trips: leoTrips,
+            stopTimesByTripId: leoStopTimesByTripId,
+            toPlatformId: toLeoPlatformId,
+            toRouteId: toLeoRouteId,
+            platformById,
+        });
 
         const localStopIdByLeoStopId = matchStopsToPid(pidStops, logicalStops);
         const matchedLeoStopIds = new Set(localStopIdByLeoStopId.keys());

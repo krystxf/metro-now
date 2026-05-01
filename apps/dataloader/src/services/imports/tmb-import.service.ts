@@ -19,15 +19,14 @@ import { parseCsvString } from "../../utils/csv.utils";
 import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 import {
-    type DominantPattern,
     type LogicalPlatform,
-    type ParsedStopTime,
     buildGtfsRouteShapes,
     buildGtfsRouteStops,
     buildLogicalStops,
+    buildPatternsByRouteAndDirection,
+    buildStopTimesByTripId,
     parseRoute,
     parseStop,
-    parseStopTime,
     parseTrip,
 } from "./gtfs-complex-import.utils";
 import { classifyImportedRoute } from "./route-classification.utils";
@@ -153,17 +152,11 @@ export class TmbImportService {
             .map((row) => parseTrip(row))
             .filter((trip) => tmbRouteIds.has(trip.routeId));
         const tmbTripById = new Map(tmbTrips.map((t) => [t.id, t] as const));
-        const tmbStopTimesByTripId = new Map<string, ParsedStopTime[]>();
-
-        for (const stopTime of rawStopTimes.map((row) =>
-            parseStopTime(row, "TMB"),
-        )) {
-            if (!tmbTripById.has(stopTime.tripId)) continue;
-            const tripStopTimes =
-                tmbStopTimesByTripId.get(stopTime.tripId) ?? [];
-            tripStopTimes.push(stopTime);
-            tmbStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
-        }
+        const tmbStopTimesByTripId = buildStopTimesByTripId(
+            rawStopTimes,
+            tmbTripById,
+            "TMB",
+        );
 
         const stopsById = new Map(
             rawStops.map((row) => {
@@ -191,45 +184,13 @@ export class TmbImportService {
             ),
         );
 
-        const patternsByRouteAndDirection = new Map<
-            string,
-            Map<string, DominantPattern>
-        >();
-
-        for (const trip of tmbTrips) {
-            const tripStopTimes = (
-                tmbStopTimesByTripId.get(trip.id) ?? []
-            ).sort((a, b) => a.stopSequence - b.stopSequence);
-            const platformIds = tripStopTimes
-                .map((st) => toTmbPlatformId(st.stopId))
-                .filter((id) => platformById.has(id));
-
-            if (platformIds.length === 0) continue;
-
-            for (const platformId of platformIds) {
-                platformById
-                    .get(platformId)
-                    ?.routeIds.add(toTmbRouteId(trip.routeId));
-            }
-
-            const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
-            const patternKey = platformIds.join(">");
-            const patterns =
-                patternsByRouteAndDirection.get(routeDirectionKey) ?? new Map();
-            const current = patterns.get(patternKey);
-
-            if (current) {
-                current.tripCount += 1;
-            } else {
-                patterns.set(patternKey, {
-                    directionId: trip.directionId,
-                    platformIds,
-                    tripCount: 1,
-                });
-            }
-
-            patternsByRouteAndDirection.set(routeDirectionKey, patterns);
-        }
+        const patternsByRouteAndDirection = buildPatternsByRouteAndDirection({
+            trips: tmbTrips,
+            stopTimesByTripId: tmbStopTimesByTripId,
+            toPlatformId: toTmbPlatformId,
+            toRouteId: toTmbRouteId,
+            platformById,
+        });
 
         const stops = logicalStops.map((stop) => ({
             id: stop.id,

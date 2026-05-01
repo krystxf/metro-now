@@ -7,6 +7,8 @@ import {
     buildGtfsRouteShapes,
     buildGtfsRouteStops,
     buildLogicalStops,
+    buildPatternsByRouteAndDirection,
+    buildStopTimesByTripId,
     distanceInMeters,
     getDominantPattern,
     matchStopsToPid,
@@ -22,6 +24,7 @@ import type {
     DominantPattern,
     LogicalPlatform,
     ParsedStop,
+    ParsedTrip,
 } from "../../../services/imports/gtfs-complex-import.utils";
 
 // ---------------------------------------------------------------------------
@@ -834,4 +837,233 @@ test("buildGtfsRouteShapes skips shapes with fewer than 2 unique points", () => 
     });
 
     assert.equal(result.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// buildStopTimesByTripId
+// ---------------------------------------------------------------------------
+
+test("buildStopTimesByTripId returns empty map for empty stop times", () => {
+    const tripById = new Map<string, ParsedTrip>([
+        ["T1", { id: "T1", routeId: "R1", directionId: "0" }],
+    ]);
+    const result = buildStopTimesByTripId([], tripById, "Test");
+    assert.equal(result.size, 0);
+});
+
+test("buildStopTimesByTripId filters out stop times for unknown trips", () => {
+    const tripById = new Map<string, ParsedTrip>([
+        ["T1", { id: "T1", routeId: "R1", directionId: "0" }],
+    ]);
+    const rawStopTimes = [
+        { trip_id: "UNKNOWN", stop_id: "S1", stop_sequence: "1" },
+    ];
+    const result = buildStopTimesByTripId(rawStopTimes, tripById, "Test");
+    assert.equal(result.size, 0);
+});
+
+test("buildStopTimesByTripId groups stop times by trip ID", () => {
+    const tripById = new Map<string, ParsedTrip>([
+        ["T1", { id: "T1", routeId: "R1", directionId: "0" }],
+        ["T2", { id: "T2", routeId: "R1", directionId: "1" }],
+    ]);
+    const rawStopTimes = [
+        { trip_id: "T1", stop_id: "S1", stop_sequence: "1" },
+        { trip_id: "T1", stop_id: "S2", stop_sequence: "2" },
+        { trip_id: "T2", stop_id: "S3", stop_sequence: "1" },
+    ];
+    const result = buildStopTimesByTripId(rawStopTimes, tripById, "Test");
+    assert.equal(result.size, 2);
+    assert.equal(result.get("T1")?.length, 2);
+    assert.equal(result.get("T2")?.length, 1);
+});
+
+test("buildStopTimesByTripId preserves stop sequence values", () => {
+    const tripById = new Map<string, ParsedTrip>([
+        ["T1", { id: "T1", routeId: "R1", directionId: "0" }],
+    ]);
+    const rawStopTimes = [
+        { trip_id: "T1", stop_id: "S1", stop_sequence: "5" },
+        { trip_id: "T1", stop_id: "S2", stop_sequence: "10" },
+    ];
+    const result = buildStopTimesByTripId(rawStopTimes, tripById, "Test");
+    const stopTimes = result.get("T1") ?? [];
+    assert.equal(stopTimes[0]?.stopSequence, 5);
+    assert.equal(stopTimes[1]?.stopSequence, 10);
+});
+
+test("buildStopTimesByTripId mixes valid and unknown trips correctly", () => {
+    const tripById = new Map<string, ParsedTrip>([
+        ["T1", { id: "T1", routeId: "R1", directionId: "0" }],
+    ]);
+    const rawStopTimes = [
+        { trip_id: "T1", stop_id: "S1", stop_sequence: "1" },
+        { trip_id: "UNKNOWN", stop_id: "S2", stop_sequence: "1" },
+        { trip_id: "T1", stop_id: "S3", stop_sequence: "2" },
+    ];
+    const result = buildStopTimesByTripId(rawStopTimes, tripById, "Test");
+    assert.equal(result.size, 1);
+    assert.equal(result.get("T1")?.length, 2);
+});
+
+// ---------------------------------------------------------------------------
+// buildPatternsByRouteAndDirection
+// ---------------------------------------------------------------------------
+
+const makePlatformById = (ids: string[]): Map<string, LogicalPlatform> =>
+    new Map(
+        ids.map((id) => [
+            id,
+            {
+                id,
+                name: id,
+                code: null,
+                latitude: 0,
+                longitude: 0,
+                stopId: `stop:${id}`,
+                routeIds: new Set<string>(),
+            },
+        ]),
+    );
+
+test("buildPatternsByRouteAndDirection returns empty map for no trips", () => {
+    const result = buildPatternsByRouteAndDirection({
+        trips: [],
+        stopTimesByTripId: new Map(),
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById([]),
+    });
+    assert.equal(result.size, 0);
+});
+
+test("buildPatternsByRouteAndDirection skips trips with no matching platforms", () => {
+    const trips: ParsedTrip[] = [{ id: "T1", routeId: "R1", directionId: "0" }];
+    const stopTimesByTripId = new Map([
+        ["T1", [{ tripId: "T1", stopId: "UNKNOWN", stopSequence: 1 }]],
+    ]);
+    const result = buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById(["P1", "P2"]),
+    });
+    assert.equal(result.size, 0);
+});
+
+test("buildPatternsByRouteAndDirection groups by route and direction", () => {
+    const trips: ParsedTrip[] = [
+        { id: "T1", routeId: "R1", directionId: "0" },
+        { id: "T2", routeId: "R1", directionId: "1" },
+    ];
+    const stopTimesByTripId = new Map([
+        ["T1", [{ tripId: "T1", stopId: "P1", stopSequence: 1 }]],
+        ["T2", [{ tripId: "T2", stopId: "P2", stopSequence: 1 }]],
+    ]);
+    const result = buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById(["P1", "P2"]),
+    });
+    assert.equal(result.size, 2);
+    assert.ok(result.has("R1::0"));
+    assert.ok(result.has("R1::1"));
+});
+
+test("buildPatternsByRouteAndDirection increments tripCount for same pattern", () => {
+    const trips: ParsedTrip[] = [
+        { id: "T1", routeId: "R1", directionId: "0" },
+        { id: "T2", routeId: "R1", directionId: "0" },
+    ];
+    const stopTimesByTripId = new Map([
+        ["T1", [{ tripId: "T1", stopId: "P1", stopSequence: 1 }]],
+        ["T2", [{ tripId: "T2", stopId: "P1", stopSequence: 1 }]],
+    ]);
+    const result = buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById(["P1"]),
+    });
+    const patterns = result.get("R1::0");
+    assert.ok(patterns);
+    const dominantEntry = [...patterns.values()][0];
+    assert.equal(dominantEntry?.tripCount, 2);
+});
+
+test("buildPatternsByRouteAndDirection creates distinct patterns for different platform sequences", () => {
+    const trips: ParsedTrip[] = [
+        { id: "T1", routeId: "R1", directionId: "0" },
+        { id: "T2", routeId: "R1", directionId: "0" },
+    ];
+    const stopTimesByTripId = new Map([
+        [
+            "T1",
+            [
+                { tripId: "T1", stopId: "P1", stopSequence: 1 },
+                { tripId: "T1", stopId: "P2", stopSequence: 2 },
+            ],
+        ],
+        [
+            "T2",
+            [
+                { tripId: "T2", stopId: "P1", stopSequence: 1 },
+                { tripId: "T2", stopId: "P3", stopSequence: 2 },
+            ],
+        ],
+    ]);
+    const result = buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById(["P1", "P2", "P3"]),
+    });
+    const patterns = result.get("R1::0");
+    assert.ok(patterns);
+    assert.equal(patterns.size, 2);
+});
+
+test("buildPatternsByRouteAndDirection adds route IDs to platform routeIds", () => {
+    const trips: ParsedTrip[] = [{ id: "T1", routeId: "R1", directionId: "0" }];
+    const stopTimesByTripId = new Map([
+        ["T1", [{ tripId: "T1", stopId: "P1", stopSequence: 1 }]],
+    ]);
+    const platformById = makePlatformById(["P1"]);
+    buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => `route:${id}`,
+        platformById,
+    });
+    assert.ok(platformById.get("P1")?.routeIds.has("route:R1"));
+});
+
+test("buildPatternsByRouteAndDirection sorts stop times by sequence before building pattern", () => {
+    const trips: ParsedTrip[] = [{ id: "T1", routeId: "R1", directionId: "0" }];
+    const stopTimesByTripId = new Map([
+        [
+            "T1",
+            [
+                { tripId: "T1", stopId: "P2", stopSequence: 2 },
+                { tripId: "T1", stopId: "P1", stopSequence: 1 },
+            ],
+        ],
+    ]);
+    const result = buildPatternsByRouteAndDirection({
+        trips,
+        stopTimesByTripId,
+        toPlatformId: (id) => id,
+        toRouteId: (id) => id,
+        platformById: makePlatformById(["P1", "P2"]),
+    });
+    const patterns = result.get("R1::0");
+    assert.ok(patterns);
+    const pattern = [...patterns.values()][0];
+    assert.deepEqual(pattern?.platformIds, ["P1", "P2"]);
 });

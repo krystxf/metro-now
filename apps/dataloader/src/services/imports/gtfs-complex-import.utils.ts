@@ -416,6 +416,73 @@ export const buildLogicalStops = ({
 };
 
 // ---------------------------------------------------------------------------
+// Trip pattern building helpers
+// ---------------------------------------------------------------------------
+
+export const buildStopTimesByTripId = (
+    rawStopTimes: Record<string, string>[],
+    tripById: Map<string, ParsedTrip>,
+    feedLabel: string,
+): Map<string, ParsedStopTime[]> => {
+    const stopTimesByTripId = new Map<string, ParsedStopTime[]>();
+    for (const rawStopTime of rawStopTimes) {
+        const stopTime = parseStopTime(rawStopTime, feedLabel);
+        if (!tripById.has(stopTime.tripId)) continue;
+        const tripStopTimes = stopTimesByTripId.get(stopTime.tripId) ?? [];
+        tripStopTimes.push(stopTime);
+        stopTimesByTripId.set(stopTime.tripId, tripStopTimes);
+    }
+    return stopTimesByTripId;
+};
+
+export const buildPatternsByRouteAndDirection = ({
+    trips,
+    stopTimesByTripId,
+    toPlatformId,
+    toRouteId,
+    platformById,
+}: {
+    trips: ParsedTrip[];
+    stopTimesByTripId: Map<string, ParsedStopTime[]>;
+    toPlatformId: (gtfsId: string) => string;
+    toRouteId: (gtfsId: string) => string;
+    platformById: Map<string, LogicalPlatform>;
+}): Map<string, Map<string, DominantPattern>> => {
+    const patternsByRouteAndDirection = new Map<
+        string,
+        Map<string, DominantPattern>
+    >();
+    for (const trip of trips) {
+        const tripStopTimes = (stopTimesByTripId.get(trip.id) ?? []).sort(
+            (a, b) => a.stopSequence - b.stopSequence,
+        );
+        const platformIds = tripStopTimes
+            .map((st) => toPlatformId(st.stopId))
+            .filter((id) => platformById.has(id));
+        if (platformIds.length === 0) continue;
+        for (const platformId of platformIds) {
+            platformById.get(platformId)?.routeIds.add(toRouteId(trip.routeId));
+        }
+        const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
+        const patternKey = platformIds.join(">");
+        const patterns =
+            patternsByRouteAndDirection.get(routeDirectionKey) ?? new Map();
+        const current = patterns.get(patternKey);
+        if (current) {
+            current.tripCount += 1;
+        } else {
+            patterns.set(patternKey, {
+                directionId: trip.directionId,
+                platformIds,
+                tripCount: 1,
+            });
+        }
+        patternsByRouteAndDirection.set(routeDirectionKey, patterns);
+    }
+    return patternsByRouteAndDirection;
+};
+
+// ---------------------------------------------------------------------------
 // Route shape / stop pattern helpers
 // ---------------------------------------------------------------------------
 
