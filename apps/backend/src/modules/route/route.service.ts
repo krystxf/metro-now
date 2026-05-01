@@ -1,5 +1,4 @@
 import { GtfsFeedId } from "@metro-now/database";
-import { classifyRoute } from "@metro-now/shared";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -22,23 +21,16 @@ import {
 } from "src/modules/route/route-graphql.utils";
 import { toLookupRouteId } from "src/modules/route/route-id.utils";
 import {
-    getVehicleTypeFromDatabaseType,
-    getVehicleTypeFromGtfsType,
-} from "src/modules/route/route-vehicle-type.utils";
+    getDatabaseVehicleType,
+    getVehicleTypeForRoute,
+    isMissingTableError,
+    isNightRoute,
+    isSubstituteRoute,
+} from "src/modules/route/route-logic.utils";
 import { VehicleType } from "src/types/graphql.generated";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
 const ROUTE_DATA_CACHE_TTL_MS = CACHE_TTL.routeData;
-
-const CLASSIFIED_VEHICLE_TYPE_TO_GRAPHQL: Record<string, VehicleType> = {
-    SUBWAY: VehicleType.SUBWAY,
-    TROLLEYBUS: VehicleType.TROLLEYBUS,
-    TRAM: VehicleType.TRAM,
-    TRAIN: VehicleType.TRAIN,
-    FERRY: VehicleType.FERRY,
-    FUNICULAR: VehicleType.FUNICULAR,
-    BUS: VehicleType.BUS,
-};
 
 @Injectable()
 export class RouteService {
@@ -165,7 +157,7 @@ export class RouteService {
                 .execute();
             this.gtfsRouteShapeTableAvailable = true;
         } catch (error) {
-            if (this.isMissingTableError(error, "GtfsRouteShape")) {
+            if (isMissingTableError(error, "GtfsRouteShape")) {
                 this.gtfsRouteShapeTableAvailable = false;
 
                 return routeExactShapesByRouteId;
@@ -179,26 +171,6 @@ export class RouteService {
         }
 
         return routeExactShapesByRouteId;
-    }
-
-    private isMissingTableError(error: unknown, tableName: string): boolean {
-        if (
-            typeof error === "object" &&
-            error !== null &&
-            "code" in error &&
-            error.code === "42P01"
-        ) {
-            return true;
-        }
-
-        if (
-            error instanceof Error &&
-            error.message.includes(`relation "${tableName}" does not exist`)
-        ) {
-            return true;
-        }
-
-        return false;
     }
 
     private async loadGraphQLRoutesByIds(
@@ -278,10 +250,8 @@ export class RouteService {
                 const filteredRouteRows = normalizedVehicleTypes
                     ? routeRows.filter((route) =>
                           normalizedVehicleTypes.includes(
-                              getVehicleTypeFromDatabaseType(
-                                  route.vehicleType,
-                              ) ??
-                                  this.getVehicleTypeForRoute({
+                              getDatabaseVehicleType(route.vehicleType) ??
+                                  getVehicleTypeForRoute({
                                       feedId: route.feedId,
                                       routeName: route.shortName,
                                       gtfsRouteType: route.type,
@@ -380,23 +350,15 @@ export class RouteService {
     }
 
     isSubstitute(routeName: string): boolean {
-        return routeName.startsWith("X");
+        return isSubstituteRoute(routeName);
     }
 
     isNight(routeName: string, feedId: GtfsFeedId = GtfsFeedId.PID): boolean {
-        return (
-            classifyRoute({
-                feedId,
-                routeShortName: routeName,
-            }).isNight ?? false
-        );
+        return isNightRoute(routeName, feedId);
     }
 
     getVehicleType(routeName: string): VehicleType {
-        return this.getVehicleTypeForRoute({
-            feedId: GtfsFeedId.PID,
-            routeName,
-        });
+        return getVehicleTypeForRoute({ feedId: GtfsFeedId.PID, routeName });
     }
 
     getVehicleTypeForRoute({
@@ -408,21 +370,10 @@ export class RouteService {
         routeName: string;
         gtfsRouteType?: string | null;
     }): VehicleType {
-        const classifiedRoute = classifyRoute({
+        return getVehicleTypeForRoute({
             feedId,
-            routeShortName: routeName,
-            routeType: gtfsRouteType,
+            routeName,
+            ...(gtfsRouteType !== undefined ? { gtfsRouteType } : {}),
         });
-        const classifiedVehicleType = classifiedRoute.vehicleType
-            ? (CLASSIFIED_VEHICLE_TYPE_TO_GRAPHQL[
-                  classifiedRoute.vehicleType
-              ] ?? null)
-            : null;
-
-        if (classifiedVehicleType) {
-            return classifiedVehicleType;
-        }
-
-        return getVehicleTypeFromGtfsType(gtfsRouteType) ?? VehicleType.BUS;
     }
 }
