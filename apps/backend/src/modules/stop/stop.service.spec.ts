@@ -294,6 +294,8 @@ describe("StopService", () => {
             wrap: jest.fn(async (_key: string, callback: () => unknown) =>
                 callback(),
             ),
+            get: jest.fn(async () => undefined),
+            set: jest.fn(async () => undefined),
         } as unknown as Cache;
 
         return new StopService(new StopRepository(database), cacheManager);

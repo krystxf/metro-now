@@ -43,6 +43,27 @@ export class StopService {
         @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     ) {}
 
+    /// Like `cacheManager.wrap`, but never caches an empty result.
+    /// The unfiltered "all stops" queries should never legitimately return
+    /// `[]` — caching one (e.g. during a reseed window) poisons the entry
+    /// for the full TTL. Search-style queries that can validly be empty
+    /// should keep using `wrap` directly.
+    private async wrapNonEmpty<T>(
+        key: string,
+        loader: () => Promise<T[]>,
+        ttlMs: number,
+    ): Promise<T[]> {
+        const cached = await this.cacheManager.get<T[]>(key);
+        if (cached !== undefined && cached !== null) {
+            return cached;
+        }
+        const fresh = await loader();
+        if (fresh.length > 0) {
+            await this.cacheManager.set(key, fresh, ttlMs);
+        }
+        return fresh;
+    }
+
     private async loadStopRows({
         ids,
         limit,
@@ -250,7 +271,7 @@ export class StopService {
         limit?: number;
         offset?: number;
     }): Promise<StopRecord[]> {
-        return this.cacheManager.wrap(
+        return this.wrapNonEmpty(
             CACHE_KEYS.stop.getAll({
                 metroOnly,
                 railOnly,
@@ -342,7 +363,7 @@ export class StopService {
             return toLightGraphQLStops(stops);
         }
 
-        return this.cacheManager.wrap(
+        return this.wrapNonEmpty(
             CACHE_KEYS.stop.getAllGraphQL({
                 limit,
                 offset,
