@@ -22,7 +22,9 @@ struct ClosestStopPageView: View {
     }
 
     private var hasRealtimeData: Bool {
-        viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let general = viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let metro = viewModel.metroDepartures?.contains(where: { $0.isRealtime == true }) ?? false
+        return general || metro
     }
 
     var body: some View {
@@ -34,7 +36,7 @@ struct ClosestStopPageView: View {
                     Section(header: Text(closestMetroStop.name)) {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
-                            departures: viewModel.departures,
+                            departures: viewModel.metroDepartures,
                             onRoutePreviewRequested: handleRoutePreview,
                             onShowAllDeparturesRequested: { allDeparturesRequest = $0 }
                         )
@@ -70,7 +72,8 @@ struct ClosestStopPageView: View {
                     "[DeparturesPageView] showing departures list " +
                         "closestStop=\(viewModel.closestStop?.id ?? "nil") " +
                         "closestMetroStop=\(viewModel.closestMetroStop?.id ?? "nil") " +
-                        "departures=\(viewModel.departures?.count ?? 0)"
+                        "departures=\(viewModel.departures?.count ?? 0) " +
+                        "metroDepartures=\(viewModel.metroDepartures?.count ?? 0)"
                 )
             }
             .navigationTitle("Departures")

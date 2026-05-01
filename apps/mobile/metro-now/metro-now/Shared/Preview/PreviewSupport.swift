@@ -46,12 +46,14 @@ extension ClosestStopPageViewModel {
     convenience init(
         previewLocation: CLLocation,
         nearbyStops: [ApiStop],
-        departures: [ApiDeparture]
+        departures: [ApiDeparture],
+        metroDepartures: [ApiDeparture]? = nil
     ) {
         self.init(
             initialLocation: previewLocation,
             initialNearbyStops: nearbyStops,
             initialDepartures: departures,
+            initialMetroDepartures: metroDepartures ?? departures,
             shouldRefresh: false
         )
     }

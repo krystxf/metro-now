@@ -22,6 +22,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     @Published var closestStop: ApiStop?
 
     @Published var departures: [ApiDeparture]?
+    @Published var metroDepartures: [ApiDeparture]?
 
     var isMetroNearby: Bool {
         guard let location, let closestMetroStop else { return false }
@@ -31,6 +32,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     private var refreshTask: Task<Void, Never>?
     private var closestStopsTask: Task<Void, Never>?
     private var departuresTask: Task<Void, Never>?
+    private var metroDeparturesTask: Task<Void, Never>?
 
     private func log(_ message: String) {
         print("[DeparturesPage] \(message)")
@@ -71,19 +73,22 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         initialLocation: CLLocation? = nil,
         initialNearbyStops: [ApiStop]? = nil,
         initialDepartures: [ApiDeparture]? = nil,
+        initialMetroDepartures: [ApiDeparture]? = nil,
         shouldRefresh: Bool = true
     ) {
         self.shouldRefresh = shouldRefresh
         location = initialLocation
         nearbyStops = initialNearbyStops
         departures = initialDepartures
+        metroDepartures = initialMetroDepartures
         super.init()
 
         log(
             "init shouldRefresh=\(shouldRefresh) " +
                 "initialLocation=\(Self.locationDescription(initialLocation)) " +
                 "initialNearbyStops=\(initialNearbyStops?.count ?? 0) " +
-                "initialDepartures=\(initialDepartures?.count ?? 0)"
+                "initialDepartures=\(initialDepartures?.count ?? 0) " +
+                "initialMetroDepartures=\(initialMetroDepartures?.count ?? 0)"
         )
 
         if let initialNearbyStops {
@@ -110,6 +115,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         stopPeriodicRefresh()
         closestStopsTask?.cancel()
         departuresTask?.cancel()
+        metroDeparturesTask?.cancel()
     }
 
     private func deriveClosestStops(from stops: [ApiStop]) {
@@ -119,16 +125,20 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         }
     }
 
-    private static func uniqueIds(_ ids: [String]) -> [String] {
-        var seen = Set<String>()
+    private struct DepartureTargets {
+        let generalStopId: String?
+        let metroStopId: String?
 
-        return ids.filter { id in
-            seen.insert(id).inserted
+        var isEmpty: Bool {
+            generalStopId == nil && metroStopId == nil
         }
     }
 
-    private func currentDepartureStopIds() -> [String] {
-        Self.uniqueIds([closestMetroStop?.id, closestStop?.id].compactMap { $0 })
+    private func currentDepartureTargets() -> DepartureTargets {
+        DepartureTargets(
+            generalStopId: closestStop?.id,
+            metroStopId: closestMetroStop?.id
+        )
     }
 
     func refresh() async {
@@ -145,12 +155,12 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
             return
         }
 
-        let stopIds = await MainActor.run { currentDepartureStopIds() }
-        guard !stopIds.isEmpty else {
+        let targets = await MainActor.run { currentDepartureTargets() }
+        guard !targets.isEmpty else {
             log("manual refresh skipped departures fetch because there are no stop ids yet")
             return
         }
-        await requestDepartures(stopsIds: stopIds, platformsIds: [])
+        await requestDepartures(targets: targets)
     }
 
     private func startPeriodicRefresh() {
@@ -161,15 +171,12 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                 try? await Task.sleep(for: .seconds(REFETCH_INTERVAL))
                 guard !Task.isCancelled, let self else { return }
 
-                let stopIds: [String] = await MainActor.run {
-                    self.currentDepartureStopIds()
+                let targets: DepartureTargets = await MainActor.run {
+                    self.currentDepartureTargets()
                 }
-                guard !stopIds.isEmpty else { continue }
+                guard !targets.isEmpty else { continue }
 
-                await requestDepartures(
-                    stopsIds: stopIds,
-                    platformsIds: []
-                )
+                await requestDepartures(targets: targets)
             }
         }
     }
@@ -264,7 +271,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
             let previousMetroId = await MainActor.run { closestMetroStop?.id }
             let previousStopId = await MainActor.run { closestStop?.id }
             let shouldFetchInitialDepartures = await MainActor.run {
-                departures == nil
+                departures == nil && metroDepartures == nil
             }
 
             let currentState = await MainActor.run {
@@ -279,7 +286,7 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     nearbyStopsCount: nearbyStops?.count ?? 0,
                     closestStopId: closestStop?.id ?? "nil",
                     closestMetroStopId: closestMetroStop?.id ?? "nil",
-                    departureStopIds: currentDepartureStopIds(),
+                    targets: currentDepartureTargets(),
                     shouldFetchDepartures: forceDeparturesRefresh
                         || shouldFetchInitialDepartures
                         || closestMetroStop?.id != previousMetroId
@@ -294,16 +301,12 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
                     "closestMetroStop=\(currentState.closestMetroStopId)"
             )
 
-            if currentState.shouldFetchDepartures,
-               !currentState.departureStopIds.isEmpty
-            {
+            if currentState.shouldFetchDepartures, !currentState.targets.isEmpty {
                 log(
-                    "requesting combined departures for stopIds=\(currentState.departureStopIds)"
+                    "requesting departures general=\(currentState.targets.generalStopId ?? "nil") " +
+                        "metro=\(currentState.targets.metroStopId ?? "nil")"
                 )
-                await requestDepartures(
-                    stopsIds: currentState.departureStopIds,
-                    platformsIds: []
-                )
+                await requestDepartures(targets: currentState.targets)
             }
         } catch is CancellationError {
             log("closest stops fetch cancelled")
@@ -312,40 +315,44 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
         }
     }
 
-    private func requestDepartures(
-        stopsIds: [String],
-        platformsIds: [String]
-    ) async {
-        let uniqueStopIds = Self.uniqueIds(stopsIds)
-        let uniquePlatformIds = Self.uniqueIds(platformsIds)
-
-        guard !uniqueStopIds.isEmpty || !uniquePlatformIds.isEmpty else {
-            log("skipping departures fetch because there are no stop or platform ids")
+    private func requestDepartures(targets: DepartureTargets) async {
+        guard !targets.isEmpty else {
+            log("skipping departures fetch because there are no stop ids")
             return
         }
 
         departuresTask?.cancel()
-        let task = Task(priority: .utility) { [weak self] in
-            guard let self else { return }
-            await fetchAndApplyDepartures(
-                stopsIds: uniqueStopIds,
-                platformsIds: uniquePlatformIds
-            )
-        }
-        departuresTask = task
-        await task.value
+        metroDeparturesTask?.cancel()
+
+        let generalTask: Task<Void, Never>? = {
+            guard let stopId = targets.generalStopId else { return nil }
+            return Task(priority: .utility) { [weak self] in
+                guard let self else { return }
+                await fetchAndApplyDepartures(stopId: stopId)
+            }
+        }()
+        departuresTask = generalTask
+
+        let metroTask: Task<Void, Never>? = {
+            guard let stopId = targets.metroStopId else { return nil }
+            return Task(priority: .utility) { [weak self] in
+                guard let self else { return }
+                await fetchAndApplyMetroDepartures(stopId: stopId)
+            }
+        }()
+        metroDeparturesTask = metroTask
+
+        await generalTask?.value
+        await metroTask?.value
     }
 
-    private func fetchAndApplyDepartures(
-        stopsIds: [String],
-        platformsIds: [String]
-    ) async {
+    private func fetchAndApplyDepartures(stopId: String) async {
         do {
-            log("fetching departures stopIds=\(stopsIds) platformIds=\(platformsIds)")
+            log("fetching departures stopId=\(stopId) metroOnly=false")
             let response = try await fetchGraphQLQuery(
                 MetroNowAPI.DeparturesQuery(
-                    stopIds: .some(stopsIds),
-                    platformIds: .some(platformsIds),
+                    stopIds: .some([stopId]),
+                    platformIds: .some([]),
                     limit: .some(10),
                     metroOnly: .none,
                     minutesBefore: .some(1),
@@ -354,55 +361,70 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
             )
             try Task.checkCancellation()
 
-            let rawCount = response.departures.count
             let fetchedDepartures = response.departures.compactMap {
                 mapGraphQLDeparture($0)
             }
-            if rawCount != fetchedDepartures.count {
-                log("dropped \(rawCount - fetchedDepartures.count) of \(rawCount) departures during mapping")
-            }
-
             let oldDepartures = await MainActor.run { self.departures }
-
-            let newDepartures: [ApiDeparture]
-            if let oldDepartures {
-                let fetchedIds = Set(fetchedDepartures.compactMap(\.id))
-                let retainedOld = oldDepartures.filter { old in
-                    guard let id = old.id else { return true }
-                    return !fetchedIds.contains(id)
-                }
-                newDepartures = uniqueBy(
-                    array: retainedOld + fetchedDepartures,
-                    by: \.id
-                )
-                .filter {
-                    $0.departure.predicted > Date.now - SECONDS_BEFORE
-                }
-                .sorted(by: {
-                    $0.departure.scheduled < $1.departure.scheduled
-                })
-            } else {
-                newDepartures = fetchedDepartures
-            }
+            let merged = Self.mergeDepartures(old: oldDepartures, fetched: fetchedDepartures)
 
             await MainActor.run {
-                self.departures = newDepartures
+                self.departures = merged
             }
 
-            log(
-                "departures updated fetched=\(fetchedDepartures.count) " +
-                    "displayed=\(newDepartures.count)"
-            )
+            log("departures updated fetched=\(fetchedDepartures.count) displayed=\(merged.count)")
         } catch is CancellationError {
-            log(
-                "departures fetch cancelled stopIds=\(stopsIds) " +
-                    "platformIds=\(platformsIds)"
-            )
+            log("departures fetch cancelled stopId=\(stopId)")
         } catch {
-            log(
-                "error fetching departures stopIds=\(stopsIds) " +
-                    "platformIds=\(platformsIds): \(error.localizedDescription)"
-            )
+            log("error fetching departures stopId=\(stopId): \(error.localizedDescription)")
         }
+    }
+
+    private func fetchAndApplyMetroDepartures(stopId: String) async {
+        do {
+            log("fetching metro departures stopId=\(stopId)")
+            let response = try await fetchGraphQLQuery(
+                MetroNowAPI.DeparturesQuery(
+                    stopIds: .some([stopId]),
+                    platformIds: .some([]),
+                    limit: .some(10),
+                    metroOnly: .some(true),
+                    minutesBefore: .some(1),
+                    minutesAfter: .some(DEPARTURES_MINUTES_AFTER)
+                )
+            )
+            try Task.checkCancellation()
+
+            let fetchedDepartures = response.departures.compactMap {
+                mapGraphQLDeparture($0)
+            }
+            let oldDepartures = await MainActor.run { self.metroDepartures }
+            let merged = Self.mergeDepartures(old: oldDepartures, fetched: fetchedDepartures)
+
+            await MainActor.run {
+                self.metroDepartures = merged
+            }
+
+            log("metro departures updated fetched=\(fetchedDepartures.count) displayed=\(merged.count)")
+        } catch is CancellationError {
+            log("metro departures fetch cancelled stopId=\(stopId)")
+        } catch {
+            log("error fetching metro departures stopId=\(stopId): \(error.localizedDescription)")
+        }
+    }
+
+    private static func mergeDepartures(
+        old: [ApiDeparture]?,
+        fetched: [ApiDeparture]
+    ) -> [ApiDeparture] {
+        guard let old else { return fetched }
+
+        let fetchedIds = Set(fetched.compactMap(\.id))
+        let retainedOld = old.filter { departure in
+            guard let id = departure.id else { return true }
+            return !fetchedIds.contains(id)
+        }
+        return uniqueBy(array: retainedOld + fetched, by: \.id)
+            .filter { $0.departure.predicted > Date.now - SECONDS_BEFORE }
+            .sorted(by: { $0.departure.scheduled < $1.departure.scheduled })
     }
 }

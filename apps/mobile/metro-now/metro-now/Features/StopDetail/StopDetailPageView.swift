@@ -21,7 +21,9 @@ struct StopDetailPageView: View {
     }
 
     private var hasRealtimeData: Bool {
-        viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let general = viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let metro = viewModel.metroDepartures?.contains(where: { $0.isRealtime == true }) ?? false
+        return general || metro
     }
 
     var body: some View {
@@ -31,7 +33,7 @@ struct StopDetailPageView: View {
                     Section(header: Text("Metro")) {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
-                            departures: viewModel.departures,
+                            departures: viewModel.metroDepartures,
                             onRoutePreviewRequested: handleRoutePreview
                         )
                     }
