@@ -2,7 +2,6 @@ import {
     APPSTORE_URL,
     GRAPHQL_URL,
     SOURCE_CODE_URL,
-    SWAGGER_URL,
 } from "@/constants/api";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -41,10 +40,6 @@ export const Footer = () => {
 
                 <FooterSection>
                     <FooterSectionHeading>API</FooterSectionHeading>
-                    <FooterLink href={SWAGGER_URL} target="_blank">
-                        REST API
-                        <ArrowTopRightOnSquareIcon className="h-4" />
-                    </FooterLink>
                     <FooterLink href={GRAPHQL_URL} target="_blank">
                         GraphQL
                         <ArrowTopRightOnSquareIcon className="h-4" />

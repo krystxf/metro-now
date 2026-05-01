@@ -10,6 +10,7 @@ import type {
     StopSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -159,6 +160,7 @@ export type ZsrSnapshot = StopSnapshot & {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 const toOptionalString = (value?: string): string | null => {
@@ -245,6 +247,7 @@ export class ZsrImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         ] = await Promise.all([
             getFile("agency.txt"),
             getFile("routes.txt"),
@@ -254,6 +257,7 @@ export class ZsrImportService {
             getOptionalFile("calendar.txt"),
             getOptionalFile("calendar_dates.txt"),
             getOptionalFile("transfers.txt"),
+            getOptionalFile("frequencies.txt"),
         ]);
 
         return this.buildSnapshot({
@@ -265,6 +269,7 @@ export class ZsrImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
             pidStops,
         });
     }
@@ -278,6 +283,7 @@ export class ZsrImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        frequenciesCsv,
         pidStops,
     }: {
         agenciesCsv: string;
@@ -288,6 +294,7 @@ export class ZsrImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
+        frequenciesCsv: string | null;
         pidStops: StopSnapshot["stops"];
     }): Promise<ZsrSnapshot> {
         const [rawAgencies, rawRoutes, rawStops, rawStopTimes, rawTrips] =
@@ -298,7 +305,7 @@ export class ZsrImportService {
                 parseCsvString<Record<string, string>>(stopTimesCsv),
                 parseCsvString<Record<string, string>>(tripsCsv),
             ]);
-        const [rawCalendars, rawCalendarDates, rawTransfers] =
+        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
                     ? parseCsvString<Record<string, string>>(calendarCsv)
@@ -308,6 +315,9 @@ export class ZsrImportService {
                     : Promise.resolve([]),
                 transfersCsv
                     ? parseCsvString<Record<string, string>>(transfersCsv)
+                    : Promise.resolve([]),
+                frequenciesCsv
+                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
                     : Promise.resolve([]),
             ]);
 
@@ -439,6 +449,7 @@ export class ZsrImportService {
             .filter((stop) => !matchedZsrStopIds.has(stop.id))
             .map((stop) => ({
                 id: stop.id,
+                feed: GtfsFeedId.ZSR,
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
@@ -456,17 +467,11 @@ export class ZsrImportService {
             })),
         );
 
-        const routes = zsrRoutes.map((route) => ({
-            id: toZsrRouteId(route.id),
-            name: route.shortName,
-            vehicleType: VehicleType.TRAIN,
-            isNight: false as const,
-        }));
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.ZSR,
                     routeId,
                 })),
             ),
@@ -478,6 +483,7 @@ export class ZsrImportService {
             shortName: route.shortName,
             longName: route.longName,
             type: route.type,
+            vehicleType: VehicleType.TRAIN,
             color: route.color,
             isNight: false as const,
             url: route.url,
@@ -520,6 +526,7 @@ export class ZsrImportService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapRouteId: toZsrRouteId,
             mapStopId: toZsrPlatformId,
         });
@@ -535,7 +542,6 @@ export class ZsrImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,
@@ -546,6 +552,7 @@ export class ZsrImportService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 

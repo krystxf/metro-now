@@ -19,9 +19,8 @@ type CachePrefixGroup = keyof typeof CACHE_PREFIX_GROUPS;
  *
  * - stops → stop caches (stops include platform/entrance data)
  * - platforms → stop + platform caches
- * - routes → stop + platform + route caches (routes are nested in platforms/stops)
  * - platformRoutes → stop + platform + route caches
- * - gtfsRoutes → route caches
+ * - gtfsRoutes → stop + platform + route caches (routes are nested in platforms/stops)
  * - gtfsRouteStops → route caches
  * - gtfsRouteShapes → route caches
  * - gtfsStationEntrances → stop caches
@@ -34,9 +33,8 @@ type CachePrefixGroup = keyof typeof CACHE_PREFIX_GROUPS;
 const ENTITY_TO_CACHE_GROUPS: Record<string, CachePrefixGroup[]> = {
     stops: ["stop"],
     platforms: ["stop", "platform"],
-    routes: ["stop", "platform", "route"],
     platformRoutes: ["stop", "platform", "route"],
-    gtfsRoutes: ["route"],
+    gtfsRoutes: ["stop", "platform", "route"],
 
     gtfsRouteStops: ["route"],
     gtfsRouteShapes: ["route"],

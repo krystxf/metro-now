@@ -2,7 +2,6 @@
 // https://github.com/krystxf/metro-now
 
 import SwiftUI
-import Translation
 
 enum InfotextSeverity: String {
     case low = "LOW"
@@ -41,179 +40,113 @@ enum InfotextSeverity: String {
             .red
         }
     }
-}
 
-struct ApiInfotextRelatedStop: Decodable {
-    let name: String
-}
-
-struct ApiInfotext: Decodable {
-    let id: String
-    let text: String
-    let textEn: String?
-    let priority: String
-    let displayType: String
-    let validFrom: String?
-    let validTo: String?
-    let relatedStops: [ApiInfotextRelatedStop]
-
-    var relatedStopNames: [String] {
-        relatedStops.reduce(into: [String]()) { result, stop in
-            guard !stop.name.isEmpty, !result.contains(stop.name) else {
-                return
-            }
-
-            result.append(stop.name)
+    var sortOrder: Int {
+        switch self {
+        case .high: 0
+        case .normal: 1
+        case .low: 2
         }
     }
+}
 
+extension ApiInfotext {
     var severity: InfotextSeverity {
         InfotextSeverity(rawValue: priority) ?? .normal
     }
 }
 
-struct InfotextEnglishText: Equatable {
-    let text: String
-    let isAutomatic: Bool
-}
-
-private extension String {
-    var nonEmptyText: String? {
-        let value = trimmingCharacters(in: .whitespacesAndNewlines)
-        return value.isEmpty ? nil : value
-    }
-}
-
-private extension String? {
-    var nonEmptyText: String? {
-        self?.nonEmptyText
-    }
-}
+private let INFOTEXTS_CACHE_KEY = "infotexts_v1"
+private let INFOTEXTS_CACHE_MAX_AGE: TimeInterval = 6 * 60 * 60
 
 @MainActor
 final class InfotextsViewModel: ObservableObject {
+    typealias FetchInfotexts = @Sendable () async throws -> [ApiInfotext]
+    typealias LoadCachedInfotexts = @Sendable () -> [ApiInfotext]?
+    typealias SaveCachedInfotexts = @Sendable ([ApiInfotext]) -> Void
+
     @Published var infotexts: [ApiInfotext] = []
     @Published var isLoading = true
-    @Published private(set) var automaticEnglishTextsById: [String: String] = [:]
-    @Published private(set) var pendingAutomaticTranslationIDs: [String] = []
-    @Published private(set) var isTranslatingAutomaticEnglishText = false
 
-    init() {
+    private let fetchInfotexts: FetchInfotexts
+    private let loadCachedInfotexts: LoadCachedInfotexts
+    private let loadStaleCachedInfotexts: LoadCachedInfotexts
+    private let saveCachedInfotexts: SaveCachedInfotexts
+
+    init(
+        fetchInfotexts: @escaping FetchInfotexts = defaultFetchInfotexts,
+        loadCachedInfotexts: @escaping LoadCachedInfotexts = defaultLoadCachedInfotexts,
+        loadStaleCachedInfotexts: @escaping LoadCachedInfotexts = defaultLoadStaleCachedInfotexts,
+        saveCachedInfotexts: @escaping SaveCachedInfotexts = defaultSaveCachedInfotexts
+    ) {
+        self.fetchInfotexts = fetchInfotexts
+        self.loadCachedInfotexts = loadCachedInfotexts
+        self.loadStaleCachedInfotexts = loadStaleCachedInfotexts
+        self.saveCachedInfotexts = saveCachedInfotexts
+
+        if let cached = loadCachedInfotexts() {
+            infotexts = cached
+            isLoading = false
+        } else if let stale = loadStaleCachedInfotexts() {
+            infotexts = stale
+        }
+
         Task(priority: .high) {
             await loadInfotexts()
         }
     }
 
-    func englishText(for infotext: ApiInfotext) -> InfotextEnglishText? {
-        if let providedEnglishText = infotext.textEn.nonEmptyText {
-            return InfotextEnglishText(
-                text: providedEnglishText,
-                isAutomatic: false
-            )
-        }
-
-        if let automaticEnglishText = automaticEnglishTextsById[infotext.id].nonEmptyText {
-            return InfotextEnglishText(
-                text: automaticEnglishText,
-                isAutomatic: true
-            )
-        }
-
-        return nil
-    }
-
-    func translateMissingInfotexts(using session: TranslationSession) async {
-        let pendingIDs = Set(pendingAutomaticTranslationIDs)
-        let infotextsToTranslate = infotexts.filter { pendingIDs.contains($0.id) }
-
-        guard !infotextsToTranslate.isEmpty, !isTranslatingAutomaticEnglishText else {
-            return
-        }
-
-        isTranslatingAutomaticEnglishText = true
-
-        defer {
-            isTranslatingAutomaticEnglishText = false
-        }
-
-        let translationRequests = infotextsToTranslate.map { infotext in
-            TranslationSession.Request(
-                sourceText: infotext.text,
-                clientIdentifier: infotext.id
-            )
-        }
-
-        do {
-            try await session.prepareTranslation()
-
-            let responses = try await session.translations(from: translationRequests)
-            let translatedTextsById = responses.reduce(into: [String: String]()) {
-                result,
-                response in
-                guard let infotextID = response.clientIdentifier,
-                      let translatedText = response.targetText.nonEmptyText
-                else {
-                    return
-                }
-
-                result[infotextID] = translatedText
-            }
-
-            automaticEnglishTextsById.merge(
-                translatedTextsById,
-                uniquingKeysWith: { _, newValue in newValue }
-            )
-
-            let unresolvedIDs = pendingIDs.subtracting(translatedTextsById.keys)
-            if !unresolvedIDs.isEmpty {
-                print(
-                    "Automatic translation did not return text for \(unresolvedIDs.count) infotexts"
-                )
-            }
-
-            refreshPendingAutomaticTranslationIDs()
-            print("Translated \(translatedTextsById.count) infotexts automatically")
-        } catch {
-            print("Failed to translate infotexts automatically: \(error)")
-        }
-    }
-
     private func loadInfotexts() async {
         do {
-            let result = try await fetchGraphQLQuery(
-                MetroNowAPI.InfotextsQuery()
-            )
-            automaticEnglishTextsById = [:]
-            infotexts = result.infotexts.map { infotext in
-                ApiInfotext(
-                    id: infotext.id,
-                    text: infotext.text,
-                    textEn: infotext.textEn,
-                    priority: infotext.priority.rawValue,
-                    displayType: infotext.displayType,
-                    validFrom: infotext.validFrom,
-                    validTo: infotext.validTo,
-                    relatedStops: infotext.relatedStops.map { relatedStop in
-                        ApiInfotextRelatedStop(name: relatedStop.name)
-                    }
-                )
-            }
-            refreshPendingAutomaticTranslationIDs()
+            let fetched = try await fetchInfotexts()
+            infotexts = fetched
+            saveCachedInfotexts(fetched)
             print("Fetched \(infotexts.count) infotexts")
         } catch {
+            // Keep whatever we showed from cache (fresh or stale).
             print("Failed to fetch infotexts: \(error)")
         }
 
         isLoading = false
     }
 
-    private func refreshPendingAutomaticTranslationIDs() {
-        pendingAutomaticTranslationIDs = infotexts
-            .filter { infotext in
-                infotext.textEn.nonEmptyText == nil
-                    && automaticEnglishTextsById[infotext.id].nonEmptyText == nil
-            }
-            .map(\.id)
-            .sorted()
+    private static func defaultLoadCachedInfotexts() -> [ApiInfotext]? {
+        DiskCache.load(
+            key: INFOTEXTS_CACHE_KEY,
+            maxAge: INFOTEXTS_CACHE_MAX_AGE,
+            as: [ApiInfotext].self
+        )
+    }
+
+    private static func defaultLoadStaleCachedInfotexts() -> [ApiInfotext]? {
+        DiskCache.loadStale(
+            key: INFOTEXTS_CACHE_KEY,
+            as: [ApiInfotext].self
+        )?.data
+    }
+
+    private static func defaultSaveCachedInfotexts(_ infotexts: [ApiInfotext]) {
+        DiskCache.save(infotexts, key: INFOTEXTS_CACHE_KEY)
+    }
+
+    private static func defaultFetchInfotexts() async throws -> [ApiInfotext] {
+        let result = try await fetchGraphQLQuery(
+            MetroNowAPI.InfotextsQuery()
+        )
+
+        return result.infotexts.map { infotext in
+            ApiInfotext(
+                id: infotext.id,
+                text: infotext.text,
+                textEn: infotext.textEn,
+                priority: infotext.priority.rawValue,
+                displayType: infotext.displayType,
+                validFrom: infotext.validFrom,
+                validTo: infotext.validTo,
+                relatedStops: infotext.relatedStops.map { relatedStop in
+                    ApiInfotextRelatedStop(name: relatedStop.name)
+                }
+            )
+        }
     }
 }

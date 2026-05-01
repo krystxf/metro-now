@@ -2,6 +2,7 @@ import { type GtfsFeedId } from "@metro-now/database";
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { toLookupRouteId } from "src/modules/route/route-id.utils";
+import { getVehicleTypeFromDatabaseType } from "src/modules/route/route-vehicle-type.utils";
 import { RouteService } from "src/modules/route/route.service";
 import type { VehicleType } from "src/types/graphql.generated";
 import type { ParentType } from "src/types/parent";
@@ -20,8 +21,10 @@ export class RouteResolver {
     }
 
     @Query("routes")
-    getMany() {
-        return this.routeService.getManyGraphQL();
+    getMany(@Args("vehicleType") vehicleType?: VehicleType[]) {
+        return this.routeService.getManyGraphQL(
+            vehicleType ? { vehicleType } : {},
+        );
     }
 
     @ResolveField("isSubstitute")
@@ -43,6 +46,18 @@ export class RouteResolver {
     getVehicleType(
         @Parent() route: ParentType<typeof this.getMany>,
     ): VehicleType {
+        const persistedVehicleType =
+            typeof route === "object" &&
+            route !== null &&
+            "vehicleType" in route &&
+            typeof route.vehicleType === "string"
+                ? getVehicleTypeFromDatabaseType(route.vehicleType)
+                : null;
+
+        if (persistedVehicleType) {
+            return persistedVehicleType;
+        }
+
         return this.routeService.getVehicleTypeForRoute({
             routeName: route.name ?? "",
             ...((typeof route === "object" &&

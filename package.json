@@ -3,6 +3,7 @@
     "description": "Monorepo includes backend, docs and apps for iOS and WatchOS",
     "packageManager": "pnpm@10.33.0",
     "engines": {
+        "node": ">=24",
         "pnpm": ">=10.16.0"
     },
     "scripts": {
@@ -16,7 +17,7 @@
         "test:unit": "turbo run test:unit",
         "types:check": "turbo run types:check",
         "typegen": "turbo run typegen",
-        "docker:up:dev": "docker compose up postgres redis-stack",
+        "docker:up:dev": "docker compose up postgres redis",
         "docker:up": "docker compose up -d --build",
         "docker:down": "docker compose down --remove-orphans --volumes",
         "prepare": "husky"
@@ -43,7 +44,8 @@
     "lint-staged": {
         "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
             "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
-        ]
+        ],
+        "apps/mobile/**/*.swift": ["swiftformat --quiet"]
     },
     "pnpm": {
         "overrides": {

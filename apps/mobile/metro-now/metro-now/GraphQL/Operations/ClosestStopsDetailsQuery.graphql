@@ -1,0 +1,25 @@
+query ClosestStopsDetails($ids: [ID!]) {
+  stops(ids: $ids) {
+    id
+    name
+    avgLatitude
+    avgLongitude
+    platforms {
+      id
+      latitude
+      longitude
+      name
+      code
+      direction
+      isMetro
+      routes {
+        id
+        name
+        color
+        feed
+        vehicleType
+        isNight
+      }
+    }
+  }
+}

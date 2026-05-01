@@ -42,7 +42,10 @@ importers:
         version: 5.1.6(keyv@5.6.0)
       '@metro-now/database':
         specifier: workspace:*
-        version: link:../database
+        version: link:../../lib/database
+      '@metro-now/server':
+        specifier: workspace:*
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -67,15 +70,15 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.1.17
         version: 11.1.17(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.17)
-      '@nestjs/swagger':
-        specifier: ^11.2.6
-        version: 11.2.6(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.17)(reflect-metadata@0.2.2)
       cache-manager:
         specifier: ^7.2.8
         version: 7.2.8
       cacheable:
         specifier: ^2.3.4
         version: 2.3.4
+      compression:
+        specifier: ^1.8.1
+        version: 1.8.1
       dataloader:
         specifier: ^2.2.3
         version: 2.2.3
@@ -113,6 +116,9 @@ importers:
       '@nestjs/testing':
         specifier: ^11.1.17
         version: 11.1.17(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.17)(@nestjs/platform-express@11.1.17)
+      '@types/compression':
+        specifier: ^1.8.1
+        version: 1.8.1
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -153,29 +159,6 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  apps/database:
-    dependencies:
-      kysely:
-        specifier: ^0.28.14
-        version: 0.28.14
-      pg:
-        specifier: ^8.20.0
-        version: 8.20.0
-    devDependencies:
-      '@types/pg':
-        specifier: ^8.15.5
-        version: 8.20.0
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@25.5.0)(typescript@5.8.3)
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-    optionalDependencies:
-      dotenv-cli:
-        specifier: ^8.0.0
-        version: 8.0.0
-
   apps/dataloader:
     dependencies:
       '@fast-csv/parse':
@@ -183,7 +166,10 @@ importers:
         version: 5.0.5
       '@metro-now/database':
         specifier: workspace:*
-        version: link:../database
+        version: link:../../lib/database
+      '@metro-now/server':
+        specifier: workspace:*
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -300,11 +286,34 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  lib/shared:
+  lib/database:
+    dependencies:
+      kysely:
+        specifier: ^0.28.14
+        version: 0.28.14
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.15.5
+        version: 8.20.0
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@25.5.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+    optionalDependencies:
+      dotenv-cli:
+        specifier: ^8.0.0
+        version: 8.0.0
+
+  lib/server:
     dependencies:
       '@metro-now/database':
         specifier: workspace:*
-        version: link:../../apps/database
+        version: link:../database
       kysely:
         specifier: ^0.28.14
         version: 0.28.14
@@ -321,6 +330,19 @@ importers:
       '@types/pg':
         specifier: ^8.15.5
         version: 8.20.0
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  lib/shared:
+    dependencies:
+      '@metro-now/database':
+        specifier: workspace:*
+        version: link:../database
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -1491,9 +1513,6 @@ packages:
     peerDependencies:
       react: '>=16'
 
-  '@microsoft/tsdoc@0.16.0':
-    resolution: {integrity: sha512-xgAyonlVVS+q7Vc7qLW0UrJU7rSFcETRWsqdXZtjzRU8dF+6CkozTK4V4y1LwOX7j8r/vHphjDeMeGI4tNGeGA==}
-
   '@napi-rs/simple-git-android-arm-eabi@0.1.19':
     resolution: {integrity: sha512-XryEH/hadZ4Duk/HS/HC/cA1j0RHmqUGey3MsCf65ZS0VrWMqChXM/xlTPWuY5jfCc/rPubHaqI7DZlbexnX/g==}
     engines: {node: '>= 10'}
@@ -1716,23 +1735,6 @@ packages:
     peerDependencies:
       typescript: '>=4.8.2'
 
-  '@nestjs/swagger@11.2.6':
-    resolution: {integrity: sha512-oiXOxMQqDFyv1AKAqFzSo6JPvMEs4uA36Eyz/s2aloZLxUjcLfUMELSLSNQunr61xCPTpwEOShfmO7NIufKXdA==}
-    peerDependencies:
-      '@fastify/static': ^8.0.0 || ^9.0.0
-      '@nestjs/common': ^11.0.1
-      '@nestjs/core': ^11.0.1
-      class-transformer: '*'
-      class-validator: '*'
-      reflect-metadata: ^0.1.12 || ^0.2.0
-    peerDependenciesMeta:
-      '@fastify/static':
-        optional: true
-      class-transformer:
-        optional: true
-      class-validator:
-        optional: true
-
   '@nestjs/testing@11.1.17':
     resolution: {integrity: sha512-lNffw+z+2USewmw4W0tsK+Rq94A2N4PiHbcqoRUu5y8fnqxQeIWGHhjo5BFCqj7eivqJBhT7WdRydxVq4rAHzg==}
     peerDependencies:
@@ -1895,9 +1897,6 @@ packages:
   '@rushstack/eslint-patch@1.11.0':
     resolution: {integrity: sha512-zxnHvoMQVqewTJr/W4pKjF0bMGiKJv1WX7bSrkl46Hg0QjESbzBROWK0Wg4RphzSOS5Jiy7eFimmM3UgMrMZbQ==}
 
-  '@scarf/scarf@1.4.0':
-    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
-
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
 
@@ -1999,6 +1998,9 @@ packages:
 
   '@types/body-parser@1.19.5':
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
+
+  '@types/compression@1.8.1':
+    resolution: {integrity: sha512-kCFuWS0ebDbmxs0AXYn6e2r2nrGAb5KwQhknjSPSPgJcGd8+HVSILlUyFhGqML2gk39HcG7D1ydW9/qpYkN00Q==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -2367,11 +2369,6 @@ packages:
   acorn-walk@8.3.4:
     resolution: {integrity: sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==}
     engines: {node: '>=0.4.0'}
-
-  acorn@8.14.1:
-    resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
 
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
@@ -2892,6 +2889,14 @@ packages:
   component-emitter@1.3.1:
     resolution: {integrity: sha512-T0+barUSQRTUQASh8bx02dl+DhF54GtIDY13Y3m9oWTklKbb3Wv974meRpeZ3lp1JpLVECWWNHC4vaG2XHXouQ==}
 
+  compressible@2.0.18:
+    resolution: {integrity: sha512-AF3r7P5dWxL8MxyITRMlORQNaOA2IkAFaTr4k7BUumjPtRpGDTZpl0Pb1XCO6JeDCBdp126Cgs9sMxqSjgYyRg==}
+    engines: {node: '>= 0.6'}
+
+  compression@1.8.1:
+    resolution: {integrity: sha512-9mAqGPHLakhCLeNyxPkK4xVo746zQ/czLH1Ky+vkitMnWfWZps8r0qXuwhwizagCRttsL4lfG4pIOvaWLpAP0w==}
+    engines: {node: '>= 0.8.0'}
+
   compute-scroll-into-view@3.1.1:
     resolution: {integrity: sha512-VRhuHOLoKYOy4UbilLbUzbYg93XLjv2PncJC50EuTWPA3gaja1UjBsUP/D/9/juV3vQFr6XBEzn9KCAHdUvOHw==}
 
@@ -3155,6 +3160,14 @@ packages:
 
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
+
+  debug@2.6.9:
+    resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -4507,10 +4520,6 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
-  js-yaml@4.1.1:
-    resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
-    hasBin: true
-
   jsesc@3.1.0:
     resolution: {integrity: sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==}
     engines: {node: '>=6'}
@@ -5049,6 +5058,9 @@ packages:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
 
+  ms@2.0.0:
+    resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -5073,6 +5085,10 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  negotiator@0.6.4:
+    resolution: {integrity: sha512-myRT3DiWPHqho5PrJaIRyaMv2kgYf0mUVgBNOYMuCH5Ki1yEiQaf/ZJuQ62nvpc44wL5WDbTX7yGJi1Neevw8w==}
+    engines: {node: '>= 0.6'}
 
   negotiator@1.0.0:
     resolution: {integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==}
@@ -5220,6 +5236,10 @@ packages:
 
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
+    engines: {node: '>= 0.8'}
+
+  on-headers@1.1.0:
+    resolution: {integrity: sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A==}
     engines: {node: '>= 0.8'}
 
   once@1.4.0:
@@ -6156,9 +6176,6 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
-
-  swagger-ui-dist@5.31.0:
-    resolution: {integrity: sha512-zSUTIck02fSga6rc0RZP3b7J7wgHXwLea8ZjgLA3Vgnb8QeOl3Wou2/j5QkzSGeoz6HusP/coYuJl33aQxQZpg==}
 
   symbol-observable@1.2.0:
     resolution: {integrity: sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==}
@@ -8017,8 +8034,6 @@ snapshots:
       '@types/react': 18.3.20
       react: 18.3.1
 
-  '@microsoft/tsdoc@0.16.0': {}
-
   '@napi-rs/simple-git-android-arm-eabi@0.1.19':
     optional: true
 
@@ -8232,18 +8247,6 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@nestjs/swagger@11.2.6(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.17)(reflect-metadata@0.2.2)':
-    dependencies:
-      '@microsoft/tsdoc': 0.16.0
-      '@nestjs/common': 11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/core': 11.1.17(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.17)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/mapped-types': 2.1.0(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)
-      js-yaml: 4.1.1
-      lodash: 4.17.23
-      path-to-regexp: 8.3.0
-      reflect-metadata: 0.2.2
-      swagger-ui-dist: 5.31.0
-
   '@nestjs/testing@11.1.17(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.17)(@nestjs/platform-express@11.1.17)':
     dependencies:
       '@nestjs/common': 11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8347,8 +8350,6 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.11.0': {}
-
-  '@scarf/scarf@1.4.0': {}
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -8459,6 +8460,11 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
+      '@types/node': 25.5.0
+
+  '@types/compression@1.8.1':
+    dependencies:
+      '@types/express': 5.0.6
       '@types/node': 25.5.0
 
   '@types/connect@3.4.38':
@@ -8844,15 +8850,13 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
-  acorn-jsx@5.3.2(acorn@8.14.1):
+  acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
-      acorn: 8.14.1
+      acorn: 8.16.0
 
   acorn-walk@8.3.4:
     dependencies:
-      acorn: 8.14.1
-
-  acorn@8.14.1: {}
+      acorn: 8.16.0
 
   acorn@8.16.0: {}
 
@@ -9392,6 +9396,22 @@ snapshots:
 
   component-emitter@1.3.1: {}
 
+  compressible@2.0.18:
+    dependencies:
+      mime-db: 1.54.0
+
+  compression@1.8.1:
+    dependencies:
+      bytes: 3.1.2
+      compressible: 2.0.18
+      debug: 2.6.9
+      negotiator: 0.6.4
+      on-headers: 1.1.0
+      safe-buffer: 5.2.1
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+
   compute-scroll-into-view@3.1.1: {}
 
   concat-map@0.0.1: {}
@@ -9687,6 +9707,10 @@ snapshots:
   dataloader@2.2.3: {}
 
   dayjs@1.11.13: {}
+
+  debug@2.6.9:
+    dependencies:
+      ms: 2.0.0
 
   debug@3.2.7:
     dependencies:
@@ -10199,8 +10223,8 @@ snapshots:
 
   espree@9.6.1:
     dependencies:
-      acorn: 8.14.1
-      acorn-jsx: 5.3.2(acorn@8.14.1)
+      acorn: 8.16.0
+      acorn-jsx: 5.3.2(acorn@8.16.0)
       eslint-visitor-keys: 3.4.3
 
   esprima@4.0.1: {}
@@ -11525,10 +11549,6 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  js-yaml@4.1.1:
-    dependencies:
-      argparse: 2.0.1
-
   jsesc@3.1.0: {}
 
   json-buffer@3.0.1: {}
@@ -12101,8 +12121,8 @@ snapshots:
 
   micromark-extension-mdxjs@1.0.1:
     dependencies:
-      acorn: 8.14.1
-      acorn-jsx: 5.3.2(acorn@8.14.1)
+      acorn: 8.16.0
+      acorn-jsx: 5.3.2(acorn@8.16.0)
       micromark-extension-mdx-expression: 1.0.8
       micromark-extension-mdx-jsx: 1.0.5
       micromark-extension-mdx-md: 1.0.1
@@ -12330,6 +12350,8 @@ snapshots:
 
   mri@1.2.0: {}
 
+  ms@2.0.0: {}
+
   ms@2.1.3: {}
 
   multer@2.1.1:
@@ -12352,6 +12374,8 @@ snapshots:
   nanoid@3.3.11: {}
 
   natural-compare@1.4.0: {}
+
+  negotiator@0.6.4: {}
 
   negotiator@1.0.0: {}
 
@@ -12545,6 +12569,8 @@ snapshots:
   on-finished@2.4.1:
     dependencies:
       ee-first: 1.1.1
+
+  on-headers@1.1.0: {}
 
   once@1.4.0:
     dependencies:
@@ -13624,10 +13650,6 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swagger-ui-dist@5.31.0:
-    dependencies:
-      '@scarf/scarf': 1.4.0
-
   symbol-observable@1.2.0: {}
 
   symbol-observable@4.0.0: {}
@@ -13793,7 +13815,7 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 20.17.30
-      acorn: 8.14.1
+      acorn: 8.16.0
       acorn-walk: 8.3.4
       arg: 4.1.3
       create-require: 1.1.1
@@ -13812,7 +13834,7 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 22.14.0
-      acorn: 8.14.1
+      acorn: 8.16.0
       acorn-walk: 8.3.4
       arg: 4.1.3
       create-require: 1.1.1
@@ -13822,7 +13844,7 @@ snapshots:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
-  ts-node@10.9.2(@types/node@25.5.0)(typescript@5.8.3):
+  ts-node@10.9.2(@types/node@25.5.0)(typescript@5.9.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -13830,13 +13852,13 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 25.5.0
-      acorn: 8.14.1
+      acorn: 8.16.0
       acorn-walk: 8.3.4
       arg: 4.1.3
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.8.3
+      typescript: 5.9.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 

@@ -25,7 +25,7 @@
 
 ![Apple watch screenshots](https://github.com/krystxf/metro-now/assets/48121710/3ce8f583-c260-4588-b63d-63ecadd22333)
 
-Metro Now is a transit monorepo built around a NestJS backend, a Next.js web app, a background dataloader, and shared database packages. The repository uses `pnpm` workspaces and Turborepo for task orchestration, caching, and dependency-aware builds.
+Transit monorepo with a NestJS backend, Next.js web app, background dataloader, and native iOS/watchOS app. Uses pnpm workspaces and Turborepo.
 
 ## Architecture
 
@@ -45,7 +45,8 @@ flowchart LR
 
     subgraph Shared["Shared packages"]
         database["Database package<br/>schema, migrations, seeds"]
-        shared["Shared library<br/>types and helpers"]
+        server["Server package<br/>env + db runtime helpers"]
+        shared["Shared library<br/>domain helpers"]
     end
 
     subgraph Sources["External data sources"]
@@ -61,153 +62,94 @@ flowchart LR
     dataloader -->|"downloads scheduled datasets"| pid
     dataloader -->|"normalizes and writes snapshots"| postgres
     database -.->|"defines schema for"| postgres
-    shared -.->|"shared code for"| backend
-    shared -.->|"shared code for"| dataloader
+    server -.->|"runtime wiring for"| backend
+    server -.->|"runtime wiring for"| dataloader
+    shared -.->|"domain logic for"| backend
+    shared -.->|"domain logic for"| dataloader
 ```
 
 ## Workspace layout
 
 ```text
 apps/
-  backend/      NestJS API
-  database/     database package, migrations, seeds
+  backend/      NestJS API (REST + GraphQL)
+  database/     schema, migrations, seeds
   dataloader/   background sync worker
-  mobile/       iOS / watchOS app
+  mobile/       iOS / watchOS app (Xcode)
   web/          Next.js website
 lib/
+  server/       server-only env and database helpers
   shared/       shared TypeScript package
 ```
 
 ## Requirements
 
 - Node.js 20
-- `pnpm` 9.1.0 via Corepack
-- Docker Desktop for local PostgreSQL, Redis, and container builds
-- Xcode for the mobile app
+- pnpm 10 (via Corepack)
+- Docker (PostgreSQL + Redis)
+- Xcode (mobile app only)
 
 ## Getting started
-
-Install dependencies once at the repository root:
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
-```
-
-Create the backend local environment file:
-
-```bash
 cp apps/backend/.env.local.example apps/backend/.env.local
+# edit apps/backend/.env.local with your local values
 ```
-
-Then update `apps/backend/.env.local` with your local values. For containerized runs, the repo also includes `.env.docker` and `.env.web.docker`.
 
 ## Development
 
-Start local infrastructure only:
-
 ```bash
-pnpm docker:up:dev
+pnpm docker:up:dev   # start PostgreSQL and Redis
+pnpm dev             # run all dev servers
+pnpm xcode           # open mobile app in Xcode
 ```
 
-Run the main JavaScript development tasks through Turborepo:
-
-```bash
-pnpm dev
-```
-
-Useful scoped commands:
+Run a single app:
 
 ```bash
 pnpm turbo run dev --filter=@metro-now/backend
-pnpm turbo run start:debug --filter=@metro-now/backend
 pnpm turbo run dev --filter=@metro-now/web
 pnpm turbo run dev --filter=@metro-now/dataloader
 ```
 
-Open the Apple app in Xcode:
-
-```bash
-pnpm xcode
-```
-
 ## Common commands
 
-All commands are run from the repository root.
-
 ```bash
-pnpm build
-pnpm test
-pnpm lint
-pnpm types:check
-pnpm format:check
-pnpm format
-pnpm app:format
+pnpm build           # build all packages
+pnpm test:unit       # run unit tests
+pnpm lint            # lint all packages
+pnpm types:check     # type-check all packages
+pnpm typegen         # generate GraphQL types
+pnpm app:format      # format Swift code
 ```
 
-`pnpm format` and `pnpm format:check` run Biome for `apps/backend`, `apps/dataloader`, and `lib/shared`. `pnpm app:format` is the separate Swift formatting entry point for the mobile app.
-
-Scoped commands:
+Scope any Turbo task with `--filter`:
 
 ```bash
-pnpm turbo run build --filter=@metro-now/backend
-pnpm turbo run test --filter=@metro-now/backend
 pnpm turbo run test:e2e --filter=@metro-now/backend
-pnpm turbo run lint --filter=@metro-now/backend
-pnpm turbo run types:check --filter=@metro-now/backend
-pnpm turbo run typegen --filter=@metro-now/backend
-
-pnpm turbo run build --filter=@metro-now/web
-pnpm turbo run lint --filter=@metro-now/web
-pnpm turbo run types:check --filter=@metro-now/web
-
 pnpm turbo run migrate:deploy --filter=@metro-now/database
-pnpm turbo run migrate:rollback --filter=@metro-now/database
 pnpm turbo run seed --filter=@metro-now/database
 ```
 
 ## Docker
 
-Start the full stack with container builds:
-
 ```bash
-pnpm docker:up
+pnpm docker:up       # start full stack (builds containers)
+pnpm docker:down     # stop and remove volumes
 ```
 
-Stop containers and remove volumes:
+Default ports:
 
-```bash
-pnpm docker:down
-```
+| Service        | Address                  |
+| -------------- | ------------------------ |
+| Web            | http://localhost:3000    |
+| Backend        | http://localhost:3001    |
+| PostgreSQL     | localhost:5532           |
+| Redis          | localhost:6479           |
+| Redis Stack UI | http://localhost:8101    |
 
-The default compose setup exposes:
+## License
 
-- Web: `http://localhost:3000`
-- Backend: `http://localhost:3001`
-- PostgreSQL: `localhost:5532`
-- Redis: `localhost:6479`
-- Redis Stack UI: `http://localhost:8101`
-
-## Turborepo
-
-Turborepo is the task runner for this repository. Root scripts such as `pnpm build`, `pnpm dev`, and `pnpm test` resolve package dependencies automatically instead of relying on manual `cd`-based workflows.
-
-Package-specific task configuration lives in:
-
-- `turbo.json`
-- `apps/backend/turbo.json`
-- `apps/web/turbo.json`
-
-## CI
-
-GitHub Actions uses the same root commands exposed locally:
-
-- backend CI runs the backend Turbo tasks
-- web CI runs the web Turbo tasks
-- format CI runs Biome from the root
-- Docker CI builds the production images from the root `Dockerfile`
-
-## Notes
-
-- The mobile app is part of the monorepo, but it is developed through Xcode rather than a Turbo `build` or `dev` task.
-- Backend GraphQL types are generated through `pnpm turbo run typegen --filter=@metro-now/backend` and are also wired into the Turbo task graph for backend builds and e2e tests.
+[Mozilla Public License 2.0](LICENSE.md)

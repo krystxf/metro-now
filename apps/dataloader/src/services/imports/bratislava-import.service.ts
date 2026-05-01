@@ -6,6 +6,7 @@ import type {
     StopSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -142,6 +143,7 @@ export type BratislavaSnapshot = StopSnapshot & {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 const toOptionalString = (value?: string): string | null => {
@@ -196,6 +198,7 @@ export class BratislavaImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         ] = await Promise.all([
             getFile("routes.txt"),
             getFile("stops.txt"),
@@ -204,6 +207,7 @@ export class BratislavaImportService {
             getOptionalFile("calendar.txt"),
             getOptionalFile("calendar_dates.txt"),
             getOptionalFile("transfers.txt"),
+            getOptionalFile("frequencies.txt"),
         ]);
 
         return this.buildSnapshot({
@@ -214,6 +218,7 @@ export class BratislavaImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         });
     }
 
@@ -225,6 +230,7 @@ export class BratislavaImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        frequenciesCsv,
     }: {
         routesCsv: string;
         stopsCsv: string;
@@ -233,6 +239,7 @@ export class BratislavaImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
+        frequenciesCsv: string | null;
     }): Promise<BratislavaSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
@@ -242,7 +249,7 @@ export class BratislavaImportService {
                 parseCsvString<Record<string, string>>(tripsCsv),
             ],
         );
-        const [rawCalendars, rawCalendarDates, rawTransfers] =
+        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
                     ? parseCsvString<Record<string, string>>(calendarCsv)
@@ -252,6 +259,9 @@ export class BratislavaImportService {
                     : Promise.resolve([]),
                 transfersCsv
                     ? parseCsvString<Record<string, string>>(transfersCsv)
+                    : Promise.resolve([]),
+                frequenciesCsv
+                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
                     : Promise.resolve([]),
             ]);
 
@@ -352,6 +362,7 @@ export class BratislavaImportService {
 
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
+            feed: GtfsFeedId.BRATISLAVA,
             name: stop.name,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
@@ -369,44 +380,34 @@ export class BratislavaImportService {
             })),
         );
 
-        const routes = bratislavaRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.BRATISLAVA,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toBratislavaRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.BRATISLAVA,
                     routeId,
                 })),
             ),
         );
 
-        const gtfsRoutes = bratislavaRoutes.map((route) => ({
-            id: toBratislavaRouteId(route.id),
-            feedId: GtfsFeedId.BRATISLAVA,
-            shortName: route.shortName,
-            longName: route.longName,
-            type: route.type,
-            color: route.color,
-            isNight: classifyImportedRoute({
+        const gtfsRoutes = bratislavaRoutes.map((route) => {
+            const { isNight, vehicleType } = classifyImportedRoute({
                 feedId: GtfsFeedId.BRATISLAVA,
                 routeShortName: route.shortName,
                 routeType: route.type,
-            }).isNight,
-            url: route.url,
-        }));
+            });
+            return {
+                id: toBratislavaRouteId(route.id),
+                feedId: GtfsFeedId.BRATISLAVA,
+                shortName: route.shortName,
+                longName: route.longName,
+                type: route.type,
+                vehicleType,
+                color: route.color,
+                isNight,
+                url: route.url,
+            };
+        });
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
             bratislavaRoutes,
@@ -438,6 +439,7 @@ export class BratislavaImportService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapRouteId: toBratislavaRouteId,
             mapStopId: toBratislavaPlatformId,
         });
@@ -445,7 +447,6 @@ export class BratislavaImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,
@@ -456,6 +457,7 @@ export class BratislavaImportService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 

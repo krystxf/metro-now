@@ -3,6 +3,7 @@ import {
     type DatabaseTransaction,
     type NewGtfsCalendar,
     type NewGtfsCalendarDate,
+    type NewGtfsFrequency,
     type NewGtfsRoute,
     type NewGtfsRouteShape,
     type NewGtfsRouteStop,
@@ -12,7 +13,6 @@ import {
     type NewGtfsTrip,
     type NewPlatform,
     type NewPlatformsOnRoutes,
-    type NewRoute,
     type NewStop,
     sql,
 } from "@metro-now/database";
@@ -22,6 +22,7 @@ import type {
     SyncSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -31,7 +32,6 @@ import type {
     SyncedGtfsTrip,
     SyncedPlatform,
     SyncedPlatformRoute,
-    SyncedRoute,
     SyncedStop,
 } from "../../types/sync.types";
 import { getSyncCounts } from "../../types/sync.types";
@@ -50,12 +50,12 @@ type IdTableName =
     | "GtfsRoute"
     | "GtfsCalendar"
     | "GtfsCalendarDate"
+    | "GtfsFrequency"
     | "GtfsStationEntrance"
     | "GtfsStopTime"
     | "GtfsTransfer"
     | "GtfsTrip"
     | "Platform"
-    | "Route"
     | "Stop";
 
 export class SyncRepository {
@@ -112,7 +112,6 @@ export class SyncRepository {
         const changed = new Set<string>();
 
         await this.upsertStops(transaction, snapshot.stops);
-        await this.upsertRoutes(transaction, snapshot.routes);
         await this.upsertPlatforms(transaction, snapshot.platforms);
         await this.upsertGtfsRoutes(transaction, snapshot.gtfsRoutes);
         await this.upsertGtfsStationEntrances(
@@ -144,6 +143,14 @@ export class SyncRepository {
             await this.replaceGtfsTransfers(transaction, snapshot.gtfsTransfers)
         ) {
             changed.add("gtfsTransfers");
+        }
+        if (
+            await this.replaceGtfsFrequencies(
+                transaction,
+                snapshot.gtfsFrequencies,
+            )
+        ) {
+            changed.add("gtfsFrequencies");
         }
 
         if (
@@ -180,8 +187,8 @@ export class SyncRepository {
             changed.add("platforms");
         }
 
-        if (await this.deleteStaleRoutes(transaction, snapshot.routes)) {
-            changed.add("routes");
+        if (await this.recomputePlatformDirections(transaction)) {
+            changed.add("platforms");
         }
 
         if (await this.deleteStaleStops(transaction, snapshot.stops)) {
@@ -201,7 +208,6 @@ export class SyncRepository {
         // came from the live PID API, so any non-empty upsert is a potential change.
         if (snapshot.stops.length > 0) changed.add("stops");
         if (snapshot.platforms.length > 0) changed.add("platforms");
-        if (snapshot.routes.length > 0) changed.add("routes");
         if (snapshot.gtfsRoutes.length > 0) changed.add("gtfsRoutes");
         if (snapshot.gtfsStationEntrances.length > 0)
             changed.add("gtfsStationEntrances");
@@ -211,6 +217,7 @@ export class SyncRepository {
         if (snapshot.gtfsCalendarDates.length > 0)
             changed.add("gtfsCalendarDates");
         if (snapshot.gtfsTransfers.length > 0) changed.add("gtfsTransfers");
+        if (snapshot.gtfsFrequencies.length > 0) changed.add("gtfsFrequencies");
 
         return [...changed];
     }
@@ -226,9 +233,11 @@ export class SyncRepository {
                 const timestamp = new Date();
                 const values: NewStop[] = chunk.map((stop) => ({
                     id: stop.id,
+                    feed: stop.feed,
                     name: stop.name,
                     avgLatitude: stop.avgLatitude,
                     avgLongitude: stop.avgLongitude,
+                    country: stop.country ?? null,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -240,6 +249,7 @@ export class SyncRepository {
                         conflict
                             .column("id")
                             .doUpdateSet((expressionBuilder) => ({
+                                feed: expressionBuilder.ref("excluded.feed"),
                                 name: expressionBuilder.ref("excluded.name"),
                                 avgLatitude: expressionBuilder.ref(
                                     "excluded.avgLatitude",
@@ -247,45 +257,8 @@ export class SyncRepository {
                                 avgLongitude: expressionBuilder.ref(
                                     "excluded.avgLongitude",
                                 ),
-                                updatedAt: sql`now()`,
-                            })),
-                    )
-                    .execute();
-            },
-        );
-    }
-
-    private async upsertRoutes(
-        transaction: DatabaseTransaction,
-        routes: SyncedRoute[],
-    ): Promise<void> {
-        await this.processInBatches(
-            routes,
-            this.entityBatchSize,
-            async (chunk) => {
-                const timestamp = new Date();
-                const values: NewRoute[] = chunk.map((route) => ({
-                    id: route.id,
-                    name: route.name,
-                    vehicleType: route.vehicleType,
-                    isNight: route.isNight,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                }));
-
-                await transaction
-                    .insertInto("Route")
-                    .values(values)
-                    .onConflict((conflict) =>
-                        conflict
-                            .column("id")
-                            .doUpdateSet((expressionBuilder) => ({
-                                name: expressionBuilder.ref("excluded.name"),
-                                vehicleType: expressionBuilder.ref(
-                                    "excluded.vehicleType",
-                                ),
-                                isNight:
-                                    expressionBuilder.ref("excluded.isNight"),
+                                country:
+                                    expressionBuilder.ref("excluded.country"),
                                 updatedAt: sql`now()`,
                             })),
                     )
@@ -356,6 +329,7 @@ export class SyncRepository {
                     shortName: gtfsRoute.shortName,
                     longName: gtfsRoute.longName,
                     type: gtfsRoute.type,
+                    vehicleType: gtfsRoute.vehicleType,
                     color: gtfsRoute.color,
                     isNight: gtfsRoute.isNight,
                     url: gtfsRoute.url,
@@ -375,6 +349,9 @@ export class SyncRepository {
                                 longName:
                                     expressionBuilder.ref("excluded.longName"),
                                 type: expressionBuilder.ref("excluded.type"),
+                                vehicleType: expressionBuilder.ref(
+                                    "excluded.vehicleType",
+                                ),
                                 color: expressionBuilder.ref("excluded.color"),
                                 isNight:
                                     expressionBuilder.ref("excluded.isNight"),
@@ -442,7 +419,7 @@ export class SyncRepository {
     ): Promise<boolean> {
         const existingRelations = await transaction
             .selectFrom("PlatformsOnRoutes")
-            .select(["platformId", "routeId"])
+            .select(["platformId", "feedId", "routeId"])
             .execute();
         const incomingKeys = new Set(
             platformRoutes.map((relation) =>
@@ -469,6 +446,7 @@ export class SyncRepository {
                 const values: NewPlatformsOnRoutes[] = chunk.map(
                     (relation) => ({
                         platformId: relation.platformId,
+                        feedId: relation.feedId,
                         routeId: relation.routeId,
                         createdAt: timestamp,
                         updatedAt: timestamp,
@@ -479,7 +457,9 @@ export class SyncRepository {
                     .insertInto("PlatformsOnRoutes")
                     .values(values)
                     .onConflict((conflict) =>
-                        conflict.columns(["platformId", "routeId"]).doNothing(),
+                        conflict
+                            .columns(["platformId", "feedId", "routeId"])
+                            .doNothing(),
                     )
                     .execute();
             },
@@ -502,6 +482,11 @@ export class SyncRepository {
                                         "platformId",
                                         "=",
                                         relation.platformId,
+                                    ),
+                                    expressionBuilder(
+                                        "feedId",
+                                        "=",
+                                        relation.feedId,
                                     ),
                                     expressionBuilder(
                                         "routeId",
@@ -777,7 +762,6 @@ export class SyncRepository {
                     blockId: trip.blockId,
                     wheelchairAccessible: trip.wheelchairAccessible,
                     bikesAllowed: trip.bikesAllowed,
-                    rawData: trip.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -819,7 +803,6 @@ export class SyncRepository {
                     pickupType: stopTime.pickupType,
                     dropOffType: stopTime.dropOffType,
                     timepoint: stopTime.timepoint,
-                    rawData: stopTime.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -862,7 +845,6 @@ export class SyncRepository {
                     sunday: calendar.sunday,
                     startDate: calendar.startDate,
                     endDate: calendar.endDate,
-                    rawData: calendar.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -899,7 +881,6 @@ export class SyncRepository {
                         serviceId: calendarDate.serviceId,
                         date: calendarDate.date,
                         exceptionType: calendarDate.exceptionType,
-                        rawData: calendarDate.rawData,
                         createdAt: timestamp,
                         updatedAt: timestamp,
                     }),
@@ -941,7 +922,6 @@ export class SyncRepository {
                     toTripId: transfer.toTripId,
                     transferType: transfer.transferType,
                     minTransferTime: transfer.minTransferTime,
-                    rawData: transfer.rawData,
                     createdAt: timestamp,
                     updatedAt: timestamp,
                 }));
@@ -956,6 +936,43 @@ export class SyncRepository {
         );
 
         return hadRows || gtfsTransfers.length > 0;
+    }
+
+    private async replaceGtfsFrequencies(
+        transaction: DatabaseTransaction,
+        gtfsFrequencies: SyncedGtfsFrequency[],
+    ): Promise<boolean> {
+        const hadRows = await this.hasRows(transaction, "GtfsFrequency");
+
+        await transaction.deleteFrom("GtfsFrequency").execute();
+
+        await this.processInBatches(
+            gtfsFrequencies,
+            this.relationBatchSize,
+            async (chunk) => {
+                const timestamp = new Date();
+                const values: NewGtfsFrequency[] = chunk.map((frequency) => ({
+                    id: frequency.id,
+                    feedId: frequency.feedId,
+                    tripId: frequency.tripId,
+                    startTime: frequency.startTime,
+                    endTime: frequency.endTime,
+                    headwaySecs: frequency.headwaySecs,
+                    exactTimes: frequency.exactTimes,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
+                }));
+
+                if (values.length > 0) {
+                    await transaction
+                        .insertInto("GtfsFrequency")
+                        .values(values)
+                        .execute();
+                }
+            },
+        );
+
+        return hadRows || gtfsFrequencies.length > 0;
     }
 
     private async deleteStalePlatforms(
@@ -988,20 +1005,6 @@ export class SyncRepository {
         await this.deleteByIds(transaction, "Platform", deletableIds);
 
         return deletableIds.length > 0;
-    }
-
-    private async deleteStaleRoutes(
-        transaction: DatabaseTransaction,
-        routes: SyncedRoute[],
-    ): Promise<boolean> {
-        const incomingIds = new Set(routes.map((route) => route.id));
-        const staleIds = (await this.selectIds(transaction, "Route")).filter(
-            (id) => !incomingIds.has(id),
-        );
-
-        await this.deleteByIds(transaction, "Route", staleIds);
-
-        return staleIds.length > 0;
     }
 
     private async deleteStaleStops(
@@ -1111,6 +1114,56 @@ export class SyncRepository {
         );
 
         return staleEntrances.length > 0;
+    }
+
+    private async recomputePlatformDirections(
+        transaction: DatabaseTransaction,
+    ): Promise<boolean> {
+        const updatedResult = await sql<{ id: string }>`
+            UPDATE "Platform" p
+            SET "direction" = bd.next_stop_name,
+                "updatedAt" = now()
+            FROM (
+                SELECT DISTINCT ON (o.platform_id)
+                    o.platform_id,
+                    s."name" AS next_stop_name
+                FROM (
+                    SELECT
+                        st."platformId" AS platform_id,
+                        st."stopId" AS current_platform_id,
+                        LEAD(st."stopId") OVER (
+                            PARTITION BY st."feedId", st."tripId"
+                            ORDER BY st."stopSequence"
+                        ) AS next_platform_id
+                    FROM "GtfsStopTime" st
+                    WHERE st."platformId" IS NOT NULL
+                ) o
+                JOIN "Platform" next_p ON next_p."id" = o.next_platform_id
+                JOIN "Stop" s ON s."id" = next_p."stopId"
+                WHERE o.next_platform_id IS NOT NULL
+                  AND o.next_platform_id <> o.current_platform_id
+                GROUP BY o.platform_id, s."name"
+                ORDER BY o.platform_id, COUNT(*) DESC, s."name" ASC
+            ) bd
+            WHERE p."id" = bd.platform_id
+              AND p."direction" IS DISTINCT FROM bd.next_stop_name
+            RETURNING p."id"
+        `.execute(transaction);
+
+        const clearedResult = await sql<{ id: string }>`
+            UPDATE "Platform" p
+            SET "direction" = NULL,
+                "updatedAt" = now()
+            WHERE p."direction" IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "GtfsStopTime" st
+                WHERE st."platformId" = p."id"
+              )
+            RETURNING p."id"
+        `.execute(transaction);
+
+        return updatedResult.rows.length > 0 || clearedResult.rows.length > 0;
     }
 
     private async selectIds(
@@ -1229,7 +1282,7 @@ export class SyncRepository {
     }
 
     private getPlatformRouteKey(relation: SyncedPlatformRoute): string {
-        return `${relation.platformId}::${relation.routeId}`;
+        return `${relation.platformId}::${relation.feedId}::${relation.routeId}`;
     }
 
     private getGtfsRouteStopKey(routeStop: SyncedGtfsRouteStop): string {

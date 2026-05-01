@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { GtfsFeedId } from "@metro-now/database";
+
 import { PidImportService } from "../../../services/imports/pid-import.service";
 
 test("PidImportService prefers the metro platform name for metro stop groups", () => {
@@ -50,6 +52,7 @@ test("PidImportService prefers the metro platform name for metro stop groups", (
     assert.deepEqual(snapshot.stops, [
         {
             id: "U1072",
+            feed: GtfsFeedId.PID,
             name: "Můstek",
             avgLatitude: 50.0818176,
             avgLongitude: 14.4255056,
@@ -86,6 +89,7 @@ test("PidImportService keeps the shared stop-group name when no metro platforms 
     assert.deepEqual(snapshot.stops, [
         {
             id: "U1072",
+            feed: GtfsFeedId.PID,
             name: "Václavské náměstí",
             avgLatitude: 50.0818176,
             avgLongitude: 14.4255056,

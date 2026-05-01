@@ -4,6 +4,8 @@ import {
 } from "@metro-now/shared";
 import { VehicleType } from "src/types/graphql.generated";
 
+export { getVehicleTypeFromDatabaseType } from "./route-database-vehicle-type.utils";
+
 const toGraphqlVehicleType = (
     vehicleType: ClassifiedVehicleType | null,
 ): VehicleType | null => {

@@ -10,6 +10,7 @@ const createSnapshot = (): SyncSnapshot => ({
     stops: [
         {
             id: "U1",
+            feed: GtfsFeedId.PID,
             name: "Stop 1",
             avgLatitude: 50.1,
             avgLongitude: 14.4,
@@ -26,18 +27,11 @@ const createSnapshot = (): SyncSnapshot => ({
             stopId: "U1",
         },
     ],
-    routes: [
-        {
-            id: "R1",
-            name: "Route 1",
-            vehicleType: null,
-            isNight: false,
-        },
-    ],
     platformRoutes: [
         {
             platformId: "P1",
-            routeId: "R1",
+            feedId: GtfsFeedId.PID,
+            routeId: "L1",
         },
     ],
     gtfsRoutes: [
@@ -47,6 +41,7 @@ const createSnapshot = (): SyncSnapshot => ({
             shortName: "C",
             longName: "Line C",
             type: "metro",
+            vehicleType: null,
             color: "#ff0000",
             isNight: false,
             url: null,
@@ -102,10 +97,6 @@ const createSnapshot = (): SyncSnapshot => ({
             blockId: null,
             wheelchairAccessible: null,
             bikesAllowed: null,
-            rawData: {
-                trip_id: "T1",
-                route_id: "L1",
-            },
         },
     ],
     gtfsStopTimes: [
@@ -121,11 +112,6 @@ const createSnapshot = (): SyncSnapshot => ({
             pickupType: null,
             dropOffType: null,
             timepoint: null,
-            rawData: {
-                trip_id: "T1",
-                stop_id: "P1",
-                stop_sequence: "1",
-            },
         },
     ],
     gtfsCalendars: [
@@ -142,9 +128,6 @@ const createSnapshot = (): SyncSnapshot => ({
             sunday: false,
             startDate: "20260101",
             endDate: "20261231",
-            rawData: {
-                service_id: "S1",
-            },
         },
     ],
     gtfsCalendarDates: [
@@ -154,14 +137,10 @@ const createSnapshot = (): SyncSnapshot => ({
             serviceId: "S1",
             date: "20260101",
             exceptionType: 1,
-            rawData: {
-                service_id: "S1",
-                date: "20260101",
-                exception_type: "1",
-            },
         },
     ],
     gtfsTransfers: [],
+    gtfsFrequencies: [],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {

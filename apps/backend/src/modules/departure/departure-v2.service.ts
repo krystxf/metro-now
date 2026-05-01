@@ -1,236 +1,31 @@
 import { GtfsFeedId, type Stop } from "@metro-now/database";
 import { Injectable } from "@nestjs/common";
-import { group } from "radash";
 
 import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { DepartureBoardService } from "src/modules/departure/departure-board.service";
-import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
-import { departureSchema } from "src/modules/departure/schema/departure.schema";
+import { limitDeparturesPerRoute } from "src/modules/departure/departure-grouping.utils";
+import {
+    getGtfsServiceDatesForWindow,
+    getWeekdayFromGtfsDate,
+    parseGtfsTimeToSeconds,
+    toPragueDateFromGtfs,
+} from "src/modules/departure/prague-gtfs-time.utils";
+import {
+    type DepartureSchema,
+    departureSchema,
+} from "src/modules/departure/schema/departure.schema";
 import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import { isLeoPlatformId, isLeoStopId } from "src/modules/leo/leo-id.utils";
 import { LeoStopMatcherService } from "src/modules/leo/leo-stop-matcher.service";
 import type { VehicleTypeSchema } from "src/schema/metro-only.schema";
 import { getDelayInSeconds } from "src/utils/delay";
 
-const PRAGUE_TIME_ZONE = "Europe/Prague";
 const ROUTE_ID_BY_NAME = {
     A: "L991",
     B: "L992",
     C: "L993",
 } as const;
-
-type PragueDateTimeParts = {
-    date: string;
-    time: string;
-};
-
-type PragueDateTuple = {
-    year: number;
-    month: number;
-    day: number;
-};
-
-const getPragueDateTimeParts = (date: Date): PragueDateTimeParts => {
-    const formatter = new Intl.DateTimeFormat("en-CA", {
-        timeZone: PRAGUE_TIME_ZONE,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-    });
-    const values = Object.fromEntries(
-        formatter
-            .formatToParts(date)
-            .flatMap((part) =>
-                part.type !== "literal" ? [[part.type, part.value]] : [],
-            ),
-    );
-
-    return {
-        date: `${values.year}-${values.month}-${values.day}`,
-        time: `${values.hour}:${values.minute}:${values.second}`,
-    };
-};
-
-const parsePragueDate = (value: string): PragueDateTuple => {
-    const [year, month, day] = value.split("-").map((part) => Number(part));
-
-    if (
-        !Number.isInteger(year) ||
-        !Number.isInteger(month) ||
-        !Number.isInteger(day)
-    ) {
-        throw new Error(`Invalid Prague date '${value}'`);
-    }
-
-    return { year, month, day };
-};
-
-const formatGtfsDate = ({ year, month, day }: PragueDateTuple): string =>
-    `${String(year).padStart(4, "0")}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
-
-const parseGtfsDate = (value: string): PragueDateTuple => {
-    const match = /^(\d{4})(\d{2})(\d{2})$/.exec(value);
-
-    if (!match) {
-        throw new Error(`Invalid GTFS date '${value}'`);
-    }
-
-    return {
-        year: Number(match[1]),
-        month: Number(match[2]),
-        day: Number(match[3]),
-    };
-};
-
-const addDays = (date: PragueDateTuple, dayDelta: number): PragueDateTuple => {
-    const next = new Date(
-        Date.UTC(date.year, date.month - 1, date.day + dayDelta, 12, 0, 0),
-    );
-
-    return {
-        year: next.getUTCFullYear(),
-        month: next.getUTCMonth() + 1,
-        day: next.getUTCDate(),
-    };
-};
-
-const parseGtfsTimeToSeconds = (value: string): number | null => {
-    const trimmed = value.trim();
-    const match = /^(\d+):([0-5]\d):([0-5]\d)$/.exec(trimmed);
-
-    if (!match) {
-        return null;
-    }
-
-    return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
-};
-
-const parseTimezoneOffsetMs = (offset: string): number => {
-    const match = /^GMT([+-])(\d{1,2})(?::?(\d{2}))?$/.exec(offset);
-
-    if (!match) {
-        return 0;
-    }
-
-    const sign = match[1] === "-" ? -1 : 1;
-    const hours = Number(match[2]);
-    const minutes = Number(match[3] ?? "0");
-
-    return sign * (hours * 60 + minutes) * 60_000;
-};
-
-const getTimezoneOffsetMs = (date: Date, timeZone: string): number => {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        timeZoneName: "shortOffset",
-        year: "numeric",
-    });
-    const part = formatter
-        .formatToParts(date)
-        .find((item) => item.type === "timeZoneName")?.value;
-
-    return parseTimezoneOffsetMs(part ?? "GMT+0");
-};
-
-const toPragueDateFromGtfs = ({
-    gtfsDate,
-    timeSeconds,
-}: {
-    gtfsDate: string;
-    timeSeconds: number;
-}): Date => {
-    const date = parseGtfsDate(gtfsDate);
-    const hours = Math.floor(timeSeconds / 3600);
-    const minutes = Math.floor((timeSeconds % 3600) / 60);
-    const seconds = timeSeconds % 60;
-    const localMillis = Date.UTC(
-        date.year,
-        date.month - 1,
-        date.day,
-        hours,
-        minutes,
-        seconds,
-    );
-    let utcGuess = localMillis;
-
-    for (let index = 0; index < 3; index += 1) {
-        const offsetMs = getTimezoneOffsetMs(
-            new Date(utcGuess),
-            PRAGUE_TIME_ZONE,
-        );
-        const candidate = localMillis - offsetMs;
-
-        if (candidate === utcGuess) {
-            break;
-        }
-
-        utcGuess = candidate;
-    }
-
-    return new Date(utcGuess);
-};
-
-const getGtfsServiceDatesForWindow = ({
-    start,
-    end,
-}: {
-    start: Date;
-    end: Date;
-}): string[] => {
-    const startDate = parsePragueDate(getPragueDateTimeParts(start).date);
-    const endDate = parsePragueDate(getPragueDateTimeParts(end).date);
-    const dates: string[] = [];
-    let cursor = addDays(startDate, -1);
-    const endPlusOne = addDays(endDate, 1);
-
-    while (
-        Date.UTC(cursor.year, cursor.month - 1, cursor.day) <=
-        Date.UTC(endPlusOne.year, endPlusOne.month - 1, endPlusOne.day)
-    ) {
-        dates.push(formatGtfsDate(cursor));
-        cursor = addDays(cursor, 1);
-    }
-
-    return dates;
-};
-
-const getWeekdayFromGtfsDate = (
-    gtfsDate: string,
-):
-    | "monday"
-    | "tuesday"
-    | "wednesday"
-    | "thursday"
-    | "friday"
-    | "saturday"
-    | "sunday" => {
-    const date = parseGtfsDate(gtfsDate);
-    const dayOfWeek = new Date(
-        Date.UTC(date.year, date.month - 1, date.day),
-    ).getUTCDay();
-
-    switch (dayOfWeek) {
-        case 0:
-            return "sunday";
-        case 1:
-            return "monday";
-        case 2:
-            return "tuesday";
-        case 3:
-            return "wednesday";
-        case 4:
-            return "thursday";
-        case 5:
-            return "friday";
-        default:
-            return "saturday";
-    }
-};
 
 @Injectable()
 export class DepartureServiceV2 {
@@ -292,7 +87,7 @@ export class DepartureServiceV2 {
             .parse(localDepartures.concat(leoDepartures));
         const limitedByPlatformAndRoute =
             limit !== null && limit < totalLimit
-                ? getLimitedRes(parsedDepartures, limit)
+                ? limitDeparturesPerRoute(parsedDepartures, limit)
                 : parsedDepartures;
 
         return limitedByPlatformAndRoute
@@ -587,6 +382,30 @@ export class DepartureServiceV2 {
                 .where("GtfsStopTime.platformId", "in", fallbackPlatformIds)
                 .where("GtfsStopTime.feedId", "in", feedIds)
                 .execute();
+            const tripKeys = uniqueSortedStrings(
+                departures.map((row) => `${row.feedId}::${row.tripId}`),
+            );
+            const frequenciesByTripKey =
+                tripKeys.length === 0
+                    ? new Map<
+                          string,
+                          Array<{
+                              startTime: string;
+                              endTime: string;
+                              headwaySecs: number;
+                          }>
+                      >()
+                    : await this.loadGtfsFrequenciesByTripKey({
+                          feedIds,
+                          tripKeys,
+                      });
+            const firstStopTimeByTripKey =
+                frequenciesByTripKey.size === 0
+                    ? new Map<string, number>()
+                    : await this.loadGtfsFirstStopTimeByTripKey({
+                          feedIds,
+                          tripKeys: [...frequenciesByTripKey.keys()],
+                      });
             const fallbackDepartures = departures.flatMap((row) => {
                 const platformId = row.platformId;
                 const serviceId = row.serviceId;
@@ -607,6 +426,47 @@ export class DepartureServiceV2 {
                     return [];
                 }
 
+                const tripKey = `${row.feedId}::${row.tripId}`;
+                const frequencies = frequenciesByTripKey.get(tripKey);
+                const buildDeparture = (
+                    serviceDate: string,
+                    actualSeconds: number,
+                    suffix: string,
+                ): DepartureSchema | null => {
+                    const predictedDate = toPragueDateFromGtfs({
+                        gtfsDate: serviceDate,
+                        timeSeconds: actualSeconds,
+                    });
+                    const predictedMs = predictedDate.getTime();
+
+                    if (
+                        predictedMs < windowStart.getTime() ||
+                        predictedMs > windowEnd.getTime()
+                    ) {
+                        return null;
+                    }
+
+                    const timestamp = predictedDate.toISOString();
+
+                    return {
+                        id: `${row.stopTimeId}::${serviceDate}::${suffix}`,
+                        departure: {
+                            predicted: timestamp,
+                            scheduled: timestamp,
+                        },
+                        delay: 0,
+                        headsign:
+                            row.tripHeadsign ??
+                            row.routeLongName ??
+                            row.routeShortName,
+                        route: row.routeShortName,
+                        routeId: row.routeId,
+                        platformId,
+                        platformCode: row.platformCode,
+                        isRealtime: false,
+                    } satisfies DepartureSchema;
+                };
+
                 return serviceDates.flatMap((serviceDate) => {
                     const activeServiceIds = activeServiceIdsByFeedDate.get(
                         `${row.feedId}::${serviceDate}`,
@@ -616,40 +476,57 @@ export class DepartureServiceV2 {
                         return [];
                     }
 
-                    const predictedDate = toPragueDateFromGtfs({
-                        gtfsDate: serviceDate,
-                        timeSeconds,
-                    });
-                    const predictedMs = predictedDate.getTime();
+                    if (frequencies && frequencies.length > 0) {
+                        const firstStopSeconds =
+                            firstStopTimeByTripKey.get(tripKey) ?? 0;
+                        const offsetSeconds = timeSeconds - firstStopSeconds;
+                        const results: DepartureSchema[] = [];
 
-                    if (
-                        predictedMs < windowStart.getTime() ||
-                        predictedMs > windowEnd.getTime()
-                    ) {
-                        return [];
+                        for (const frequency of frequencies) {
+                            const startSeconds = parseGtfsTimeToSeconds(
+                                frequency.startTime,
+                            );
+                            const endSeconds = parseGtfsTimeToSeconds(
+                                frequency.endTime,
+                            );
+
+                            if (
+                                startSeconds === null ||
+                                endSeconds === null ||
+                                frequency.headwaySecs <= 0
+                            ) {
+                                continue;
+                            }
+
+                            for (
+                                let tripStartSeconds = startSeconds;
+                                tripStartSeconds < endSeconds;
+                                tripStartSeconds += frequency.headwaySecs
+                            ) {
+                                const actualSeconds =
+                                    tripStartSeconds + offsetSeconds;
+                                const departure = buildDeparture(
+                                    serviceDate,
+                                    actualSeconds,
+                                    `freq::${frequency.startTime}::${tripStartSeconds}`,
+                                );
+
+                                if (departure) {
+                                    results.push(departure);
+                                }
+                            }
+                        }
+
+                        return results;
                     }
 
-                    const timestamp = predictedDate.toISOString();
+                    const departure = buildDeparture(
+                        serviceDate,
+                        timeSeconds,
+                        "explicit",
+                    );
 
-                    return [
-                        {
-                            id: `${row.stopTimeId}::${serviceDate}`,
-                            departure: {
-                                predicted: timestamp,
-                                scheduled: timestamp,
-                            },
-                            delay: 0,
-                            headsign:
-                                row.tripHeadsign ??
-                                row.routeLongName ??
-                                row.routeShortName,
-                            route: row.routeShortName,
-                            routeId: row.routeId,
-                            platformId,
-                            platformCode: row.platformCode,
-                            isRealtime: false,
-                        } satisfies DepartureSchema,
-                    ];
+                    return departure ? [departure] : [];
                 });
             });
 
@@ -758,40 +635,128 @@ export class DepartureServiceV2 {
         return result;
     }
 
+    private async loadGtfsFrequenciesByTripKey(args: {
+        feedIds: readonly string[];
+        tripKeys: readonly string[];
+    }): Promise<
+        Map<
+            string,
+            Array<{
+                startTime: string;
+                endTime: string;
+                headwaySecs: number;
+            }>
+        >
+    > {
+        const result = new Map<
+            string,
+            Array<{
+                startTime: string;
+                endTime: string;
+                headwaySecs: number;
+            }>
+        >();
+        const tripIds = uniqueSortedStrings(
+            args.tripKeys.map((key) => key.split("::").slice(1).join("::")),
+        );
+
+        if (tripIds.length === 0 || args.feedIds.length === 0) {
+            return result;
+        }
+
+        const tripKeySet = new Set(args.tripKeys);
+        const rows = await this.database.db
+            .selectFrom("GtfsFrequency")
+            .select(["feedId", "tripId", "startTime", "endTime", "headwaySecs"])
+            .where("feedId", "in", [...args.feedIds] as GtfsFeedId[])
+            .where("tripId", "in", [...tripIds])
+            .execute();
+
+        for (const row of rows) {
+            const key = `${row.feedId}::${row.tripId}`;
+
+            if (!tripKeySet.has(key)) {
+                continue;
+            }
+
+            const list = result.get(key) ?? [];
+
+            list.push({
+                startTime: row.startTime,
+                endTime: row.endTime,
+                headwaySecs: row.headwaySecs,
+            });
+            result.set(key, list);
+        }
+
+        return result;
+    }
+
+    private async loadGtfsFirstStopTimeByTripKey(args: {
+        feedIds: readonly string[];
+        tripKeys: readonly string[];
+    }): Promise<Map<string, number>> {
+        const result = new Map<string, number>();
+        const tripIds = uniqueSortedStrings(
+            args.tripKeys.map((key) => key.split("::").slice(1).join("::")),
+        );
+
+        if (tripIds.length === 0 || args.feedIds.length === 0) {
+            return result;
+        }
+
+        const tripKeySet = new Set(args.tripKeys);
+        const rows = await this.database.db
+            .selectFrom("GtfsStopTime")
+            .select([
+                "feedId",
+                "tripId",
+                "stopSequence",
+                "arrivalTime",
+                "departureTime",
+            ])
+            .where("feedId", "in", [...args.feedIds] as GtfsFeedId[])
+            .where("tripId", "in", [...tripIds])
+            .execute();
+
+        const minSeqByTripKey = new Map<string, number>();
+
+        for (const row of rows) {
+            const key = `${row.feedId}::${row.tripId}`;
+
+            if (!tripKeySet.has(key)) {
+                continue;
+            }
+
+            const currentMin = minSeqByTripKey.get(key);
+
+            if (currentMin === undefined || row.stopSequence < currentMin) {
+                minSeqByTripKey.set(key, row.stopSequence);
+
+                const time = row.departureTime ?? row.arrivalTime;
+                const seconds =
+                    time !== null ? parseGtfsTimeToSeconds(time) : null;
+
+                if (seconds !== null) {
+                    result.set(key, seconds);
+                }
+            }
+        }
+
+        return result;
+    }
+
     private isMissingGtfsTimetableError(error: unknown): boolean {
-        if (
+        // Only rely on Postgres SQLSTATE codes: 42P01 (undefined_table) and
+        // 42703 (undefined_column). Substring matching on error messages was
+        // too broad — any error mentioning "column" or "relation" would flip
+        // gtfsTimetableFallbackAvailable to false and permanently disable
+        // non-PID departures for the process lifetime.
+        return (
             typeof error === "object" &&
             error !== null &&
             "code" in error &&
             (error.code === "42P01" || error.code === "42703")
-        ) {
-            return true;
-        }
-
-        if (
-            error instanceof Error &&
-            (error.message.includes("does not exist") ||
-                error.message.includes("column") ||
-                error.message.includes("relation"))
-        ) {
-            return true;
-        }
-
-        return false;
+        );
     }
 }
-
-const getLimitedRes = (
-    departures: DepartureSchema[],
-    limit: number,
-): DepartureSchema[] => {
-    const groupedDepartures = group(
-        departures,
-        (departure) => `${departure.platformCode}-${departure.route}`,
-    );
-    const groupedDeparturesValues = Object.values(groupedDepartures);
-
-    return groupedDeparturesValues.flatMap((grouped) =>
-        (grouped ?? []).slice(0, limit),
-    );
-};

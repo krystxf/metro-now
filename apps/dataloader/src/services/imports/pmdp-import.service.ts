@@ -6,6 +6,7 @@ import type {
     StopSnapshot,
     SyncedGtfsCalendar,
     SyncedGtfsCalendarDate,
+    SyncedGtfsFrequency,
     SyncedGtfsRoute,
     SyncedGtfsRouteShape,
     SyncedGtfsRouteStop,
@@ -141,6 +142,7 @@ export type PmdpSnapshot = StopSnapshot & {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 const toOptionalString = (value?: string): string | null => {
@@ -195,6 +197,7 @@ export class PmdpImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         ] = await Promise.all([
             getFile("routes.txt"),
             getFile("stops.txt"),
@@ -203,6 +206,7 @@ export class PmdpImportService {
             getOptionalFile("calendar.txt"),
             getOptionalFile("calendar_dates.txt"),
             getOptionalFile("transfers.txt"),
+            getOptionalFile("frequencies.txt"),
         ]);
 
         return this.buildSnapshot({
@@ -213,6 +217,7 @@ export class PmdpImportService {
             calendarCsv,
             calendarDatesCsv,
             transfersCsv,
+            frequenciesCsv,
         });
     }
 
@@ -224,6 +229,7 @@ export class PmdpImportService {
         calendarCsv,
         calendarDatesCsv,
         transfersCsv,
+        frequenciesCsv,
     }: {
         routesCsv: string;
         stopsCsv: string;
@@ -232,6 +238,7 @@ export class PmdpImportService {
         calendarCsv: string | null;
         calendarDatesCsv: string | null;
         transfersCsv: string | null;
+        frequenciesCsv: string | null;
     }): Promise<PmdpSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
@@ -241,7 +248,7 @@ export class PmdpImportService {
                 parseCsvString<Record<string, string>>(tripsCsv),
             ],
         );
-        const [rawCalendars, rawCalendarDates, rawTransfers] =
+        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
                     ? parseCsvString<Record<string, string>>(calendarCsv)
@@ -251,6 +258,9 @@ export class PmdpImportService {
                     : Promise.resolve([]),
                 transfersCsv
                     ? parseCsvString<Record<string, string>>(transfersCsv)
+                    : Promise.resolve([]),
+                frequenciesCsv
+                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
                     : Promise.resolve([]),
             ]);
 
@@ -349,6 +359,7 @@ export class PmdpImportService {
 
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
+            feed: GtfsFeedId.PMDP,
             name: stop.name,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
@@ -366,44 +377,34 @@ export class PmdpImportService {
             })),
         );
 
-        const routes = pmdpRoutes.map((route) => {
-            const classification = classifyImportedRoute({
-                feedId: GtfsFeedId.PMDP,
-                routeShortName: route.shortName,
-                routeType: route.type,
-            });
-
-            return {
-                id: toPmdpRouteId(route.id),
-                name: route.shortName,
-                vehicleType: classification.vehicleType,
-                isNight: classification.isNight,
-            };
-        });
-
         const platformRoutes = logicalStops.flatMap((stop) =>
             stop.platforms.flatMap((platform) =>
                 [...platform.routeIds].map((routeId) => ({
                     platformId: platform.id,
+                    feedId: GtfsFeedId.PMDP,
                     routeId,
                 })),
             ),
         );
 
-        const gtfsRoutes = pmdpRoutes.map((route) => ({
-            id: toPmdpRouteId(route.id),
-            feedId: GtfsFeedId.PMDP,
-            shortName: route.shortName,
-            longName: route.longName,
-            type: route.type,
-            color: route.color,
-            isNight: classifyImportedRoute({
+        const gtfsRoutes = pmdpRoutes.map((route) => {
+            const { isNight, vehicleType } = classifyImportedRoute({
                 feedId: GtfsFeedId.PMDP,
                 routeShortName: route.shortName,
                 routeType: route.type,
-            }).isNight,
-            url: route.url,
-        }));
+            });
+            return {
+                id: toPmdpRouteId(route.id),
+                feedId: GtfsFeedId.PMDP,
+                shortName: route.shortName,
+                longName: route.longName,
+                type: route.type,
+                vehicleType,
+                color: route.color,
+                isNight,
+                url: route.url,
+            };
+        });
 
         const gtfsRouteStops = this.buildGtfsRouteStops(
             pmdpRoutes,
@@ -435,6 +436,7 @@ export class PmdpImportService {
             calendars: rawCalendars,
             calendarDates: rawCalendarDates,
             transfers: rawTransfers,
+            frequencies: rawFrequencies,
             mapRouteId: toPmdpRouteId,
             mapStopId: toPmdpPlatformId,
         });
@@ -442,7 +444,6 @@ export class PmdpImportService {
         return {
             stops,
             platforms,
-            routes,
             platformRoutes,
             gtfsRoutes,
             gtfsRouteStops,
@@ -453,6 +454,7 @@ export class PmdpImportService {
             gtfsCalendars: gtfsPersistenceSnapshot.gtfsCalendars,
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
+            gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
         };
     }
 

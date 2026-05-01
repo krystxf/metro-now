@@ -1,5 +1,5 @@
-import type { Platform, Route } from "@metro-now/database";
-import { sql } from "@metro-now/database";
+import type { GtfsRoute, Platform } from "@metro-now/database";
+import { GtfsFeedId, sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -11,13 +11,22 @@ import type { BoundingBox } from "src/schema/bounding-box.schema";
 import { loadCachedBatch } from "src/utils/cache-batch";
 import { minMax } from "src/utils/math";
 
-type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
+type PlatformRouteRecord = Pick<GtfsRoute, "id"> & {
+    name: string;
     color: string | null;
+    feed: GtfsFeedId;
 };
 
 type PlatformRecordBase = Pick<
     Platform,
-    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name" | "stopId"
+    | "code"
+    | "direction"
+    | "id"
+    | "isMetro"
+    | "latitude"
+    | "longitude"
+    | "name"
+    | "stopId"
 >;
 
 type PlatformRecord = PlatformRecordBase & {
@@ -58,6 +67,7 @@ export class PlatformService {
                 "isMetro",
                 "stopId",
                 "code",
+                "direction",
             ]);
 
         if (ids) {
@@ -95,17 +105,21 @@ export class PlatformService {
 
         const rows = await this.database.db
             .selectFrom("PlatformsOnRoutes")
-            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
-            .leftJoin("GtfsRoute", "GtfsRoute.id", "PlatformsOnRoutes.routeId")
+            .innerJoin("GtfsRoute", (join) =>
+                join
+                    .onRef("GtfsRoute.id", "=", "PlatformsOnRoutes.routeId")
+                    .onRef("GtfsRoute.feedId", "=", "PlatformsOnRoutes.feedId"),
+            )
             .select([
                 "PlatformsOnRoutes.platformId as platformId",
-                "Route.id as routeId",
-                "Route.name as routeName",
+                "GtfsRoute.id as routeId",
+                "GtfsRoute.shortName as routeName",
                 "GtfsRoute.color as routeColor",
+                "GtfsRoute.feedId as routeFeedId",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
-            .orderBy("Route.id", "asc")
+            .orderBy("GtfsRoute.id", "asc")
             .execute();
 
         for (const row of rows) {
@@ -113,6 +127,7 @@ export class PlatformService {
                 id: row.routeId,
                 name: row.routeName,
                 color: row.routeColor ?? null,
+                feed: row.routeFeedId,
             });
         }
 
@@ -186,7 +201,8 @@ export class PlatformService {
                 ) AS "distance"
             FROM "Platform"
             ${whereClause}
-            ORDER BY "distance"
+            ORDER BY ll_to_earth("Platform"."latitude", "Platform"."longitude")
+                <-> ll_to_earth(${latitude}, ${longitude})
             ${limitClause}
         `.execute(this.database.db);
 
@@ -201,25 +217,20 @@ export class PlatformService {
             platforms.map((platform) => [platform.id, platform]),
         );
 
-        return orderedPlatformIds
-            .map((id) => {
-                const platform = platformsById.get(id);
+        return orderedPlatformIds.flatMap((id) => {
+            const platform = platformsById.get(id);
 
-                if (!platform) {
-                    return null;
-                }
+            if (!platform) {
+                return [];
+            }
 
-                return {
+            return [
+                {
                     ...platform,
                     distance: distanceByPlatformId.get(id) ?? 0,
-                };
-            })
-            .filter(
-                (
-                    platform,
-                ): platform is PlatformWithDistanceSchema & PlatformRecord =>
-                    platform !== null,
-            );
+                },
+            ];
+        });
     }
 
     async getPlatformsInBoundingBox({

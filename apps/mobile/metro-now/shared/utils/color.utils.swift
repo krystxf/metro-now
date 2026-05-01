@@ -2,6 +2,24 @@
 // https://github.com/krystxf/metro-now
 
 import SwiftUI
+#if canImport(UIKit) && !os(watchOS)
+    import UIKit
+
+    extension Color {
+        /// SwiftUI system colors (.blue, .green, .indigo, ...) resolve to dynamic
+        /// UIColors. Mapbox reads .cgColor on the render thread without a
+        /// UITraitCollection, so dynamic colors fall back to unresolved/dark
+        /// variants. Resolve against a fixed trait collection so route/brand
+        /// colors render consistently on the map regardless of dark mode.
+        func resolvedUIColor(
+            style: UIUserInterfaceStyle = .light
+        ) -> UIColor {
+            UIColor(self).resolvedColor(
+                with: UITraitCollection(userInterfaceStyle: style)
+            )
+        }
+    }
+#endif
 
 extension Color {
     init(hex: Int) {
@@ -29,8 +47,6 @@ extension Color {
 }
 
 public extension Color {
-    static let brandPrimary = Color(hex: 0x9956F0)
-
     enum pragueMetro {
         public static let a = Color.green
         public static let b = Color(hex: 0xFFCA38)
@@ -40,28 +56,55 @@ public extension Color {
 
 func getRouteColor(
     _ routeName: String?,
-    apiColor: String?
+    apiColor: String?,
+    feed: String? = nil
 ) -> Color {
     if let apiColor, let parsedColor = Color(hexString: apiColor) {
         return parsedColor
     }
 
-    return getRouteColor(routeName)
+    return getRouteColor(routeName, feed: feed)
 }
 
 func getRouteColor(_ route: ApiRoute) -> Color {
-    getRouteColor(route.name, apiColor: route.color)
+    if let apiColor = route.color, let parsedColor = Color(hexString: apiColor) {
+        return parsedColor
+    }
+
+    if isSubstituteRoute(route.name, feed: route.feed) {
+        return .orange
+    }
+
+    return getRouteType(route).color
 }
 
 func getRouteColor(_ route: ApiRouteDetail) -> Color {
     getRouteColor(route.shortName, apiColor: route.color)
 }
 
+func getRouteColor(_ departure: ApiDeparture) -> Color {
+    getRouteColor(
+        ApiRoute(
+            id: departure.routeId ?? departure.route,
+            name: departure.route,
+            color: departure.routeColor,
+            feed: departure.routeFeed,
+            vehicleType: departure.routeVehicleType,
+            isNight: departure.routeIsNight
+        )
+    )
+}
+
 func getRouteColor(
     routeName: String,
     routeId: String?,
+    routeColor: String? = nil,
     availableRoutes: [ApiRoute]
 ) -> Color {
+    if let routeColor, let parsedColor = Color(hexString: routeColor) {
+        return parsedColor
+    }
+
     if let routeId,
        let matchedRoute = availableRoutes.first(where: { route in
            route.id == routeId || route.backendRouteId == routeId

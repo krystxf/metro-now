@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 
 import { GolemioModule } from "src/modules/golemio/golemio.module";
-import { InfotextsController } from "src/modules/infotexts/infotexts.controller";
 import { InfotextsResolver } from "src/modules/infotexts/infotexts.resolver";
 import { InfotextsService } from "src/modules/infotexts/infotexts.service";
+import { InfotextsController } from "src/modules/infotexts/legacy/infotexts.controller";
 
 @Module({
     controllers: [InfotextsController],

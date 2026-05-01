@@ -8,3 +8,10 @@
 !pnpm-lock.yaml
 !pnpm-workspace.yaml
 !turbo.json
+
+# Re-exclude local build artifacts that the workspace allowlist would otherwise leak into the build context.
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/.tsbuildinfo
