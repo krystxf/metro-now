@@ -75,6 +75,10 @@ class StopsViewModel: NSObject, ObservableObject {
         startPeriodicRefresh()
     }
 
+    func refresh() async {
+        await updateStops()
+    }
+
     private func updateStops() async {
         guard let fetched = await fetchStops() else {
             // Fetch failed — keep whatever we already have (fresh or stale).

@@ -5,6 +5,7 @@ import SwiftUI
 
 struct SettingsPageView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var stopsViewModel: StopsViewModel
     @AppStorage(
         AppStorageKeys.showTraffic.rawValue
     ) var showTraffic = false
@@ -42,8 +43,7 @@ struct SettingsPageView: View {
                 Section(header: Text("Storage")) {
                     Button {
                         Task {
-                            DiskCache.invalidateAll()
-                            try? await clearGraphQLCache()
+                            await clearAllAppCaches(stopsViewModel: stopsViewModel)
                             cacheCleared = true
 
                             try? await Task.sleep(for: .seconds(2))
@@ -106,5 +106,6 @@ struct SettingsPageView: View {
 #Preview {
     NavigationStack {
         SettingsPageView()
+            .environmentObject(StopsViewModel(previewStops: PreviewData.stops))
     }
 }

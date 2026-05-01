@@ -17,6 +17,7 @@ extension ContentView {
         NavigationStack {
             SettingsPageView(showsCloseButton: true)
         }
+        .environmentObject(stopsViewModel)
     }
 
     var departuresPageView: some View {
