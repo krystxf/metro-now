@@ -389,3 +389,261 @@ test("buildGtfsPersistenceSnapshot generates stable transfer IDs", () => {
 
     assert.equal(first.gtfsTransfers[0]?.id, second.gtfsTransfers[0]?.id);
 });
+
+test("buildGtfsPersistenceSnapshot rejects stop times missing trip_id", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [{ stop_id: "P1", stop_sequence: "1" }],
+            }),
+        /Missing GTFS trip_id/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects stop times missing stop_id", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [{ trip_id: "T1", stop_sequence: "1" }],
+            }),
+        /Missing GTFS stop_id/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot does not interpolate single-stop trips", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [{ trip_id: "T1", route_id: "R1" }],
+        stopTimes: [
+            {
+                trip_id: "T1",
+                stop_id: "P1",
+                stop_sequence: "1",
+            },
+        ],
+    });
+
+    assert.equal(result.gtfsStopTimes[0]?.arrivalTime, null);
+    assert.equal(result.gtfsStopTimes[0]?.departureTime, null);
+});
+
+test("buildGtfsPersistenceSnapshot interpolates trips independently when multiple trips share stop IDs", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [
+            { trip_id: "T1", route_id: "R1" },
+            { trip_id: "T2", route_id: "R1" },
+        ],
+        stopTimes: [
+            {
+                trip_id: "T1",
+                stop_id: "P1",
+                stop_sequence: "1",
+                arrival_time: "08:00:00",
+                departure_time: "08:00:00",
+            },
+            { trip_id: "T1", stop_id: "P2", stop_sequence: "2" },
+            {
+                trip_id: "T1",
+                stop_id: "P3",
+                stop_sequence: "3",
+                arrival_time: "08:06:00",
+                departure_time: "08:06:00",
+            },
+            {
+                trip_id: "T2",
+                stop_id: "P1",
+                stop_sequence: "1",
+                arrival_time: "09:00:00",
+                departure_time: "09:00:00",
+            },
+            { trip_id: "T2", stop_id: "P2", stop_sequence: "2" },
+            {
+                trip_id: "T2",
+                stop_id: "P3",
+                stop_sequence: "3",
+                arrival_time: "09:10:00",
+                departure_time: "09:10:00",
+            },
+        ],
+    });
+
+    const byTripAndSequence = new Map(
+        result.gtfsStopTimes.map((st) => [
+            `${st.tripId}:${st.stopSequence}`,
+            st,
+        ]),
+    );
+
+    assert.equal(byTripAndSequence.get("T1:2")?.arrivalTime, "08:03:00");
+    assert.equal(byTripAndSequence.get("T2:2")?.arrivalTime, "09:05:00");
+});
+
+test("buildGtfsPersistenceSnapshot parses frequencies with all fields", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [],
+        stopTimes: [],
+        frequencies: [
+            {
+                trip_id: "T1",
+                start_time: "06:00:00",
+                end_time: "22:00:00",
+                headway_secs: "300",
+                exact_times: "1",
+            },
+        ],
+    });
+
+    assert.equal(result.gtfsFrequencies.length, 1);
+
+    const frequency = result.gtfsFrequencies[0];
+
+    assert.equal(frequency?.id, "PID::T1::06:00:00::22:00:00");
+    assert.equal(frequency?.feedId, GtfsFeedId.PID);
+    assert.equal(frequency?.tripId, "T1");
+    assert.equal(frequency?.startTime, "06:00:00");
+    assert.equal(frequency?.endTime, "22:00:00");
+    assert.equal(frequency?.headwaySecs, 300);
+    assert.equal(frequency?.exactTimes, 1);
+});
+
+test("buildGtfsPersistenceSnapshot defaults frequency exactTimes to 0 when missing", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.PID,
+        trips: [],
+        stopTimes: [],
+        frequencies: [
+            {
+                trip_id: "T1",
+                start_time: "06:00:00",
+                end_time: "22:00:00",
+                headway_secs: "300",
+            },
+        ],
+    });
+
+    assert.equal(result.gtfsFrequencies[0]?.exactTimes, 0);
+});
+
+test("buildGtfsPersistenceSnapshot applies mapTripId to frequencies", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.BRNO,
+        trips: [],
+        stopTimes: [],
+        frequencies: [
+            {
+                trip_id: "T1",
+                start_time: "07:00:00",
+                end_time: "23:00:00",
+                headway_secs: "600",
+            },
+        ],
+        mapTripId: (id) => `BRT:${id}`,
+    });
+
+    const frequency = result.gtfsFrequencies[0];
+
+    assert.equal(frequency?.tripId, "BRT:T1");
+    assert.equal(frequency?.id, "BRNO::BRT:T1::07:00:00::23:00:00");
+});
+
+test("buildGtfsPersistenceSnapshot rejects frequencies missing trip_id", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                frequencies: [
+                    {
+                        start_time: "06:00:00",
+                        end_time: "22:00:00",
+                        headway_secs: "300",
+                    },
+                ],
+            }),
+        /Missing GTFS trip_id/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects frequencies missing start_time", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                frequencies: [
+                    {
+                        trip_id: "T1",
+                        end_time: "22:00:00",
+                        headway_secs: "300",
+                    },
+                ],
+            }),
+        /Missing GTFS start_time/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects frequencies missing end_time", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                frequencies: [
+                    {
+                        trip_id: "T1",
+                        start_time: "06:00:00",
+                        headway_secs: "300",
+                    },
+                ],
+            }),
+        /Missing GTFS end_time/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects frequencies missing headway_secs", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                frequencies: [
+                    {
+                        trip_id: "T1",
+                        start_time: "06:00:00",
+                        end_time: "22:00:00",
+                    },
+                ],
+            }),
+        /Missing GTFS headway_secs/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects frequencies with non-integer headway_secs", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                frequencies: [
+                    {
+                        trip_id: "T1",
+                        start_time: "06:00:00",
+                        end_time: "22:00:00",
+                        headway_secs: "4.5",
+                    },
+                ],
+            }),
+        /Invalid GTFS integer/,
+    );
+});
