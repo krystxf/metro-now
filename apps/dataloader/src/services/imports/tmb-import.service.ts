@@ -1,6 +1,5 @@
-import { type GeoJsonLineString, GtfsFeedId } from "@metro-now/database";
+import { GtfsFeedId } from "@metro-now/database";
 import { Open as unzipperOpen } from "unzipper";
-import { z } from "zod";
 
 import { getDataloaderEnv } from "../../config/env";
 import type {
@@ -19,6 +18,17 @@ import type {
 import { parseCsvString } from "../../utils/csv.utils";
 import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
+import {
+    type LogicalPlatform,
+    buildGtfsRouteShapes,
+    buildGtfsRouteStops,
+    buildLogicalStops,
+    buildPatternsByRouteAndDirection,
+    buildStopTimesByTripId,
+    parseRoute,
+    parseStop,
+    parseTrip,
+} from "./gtfs-complex-import.utils";
 import { classifyImportedRoute } from "./route-classification.utils";
 
 // TMB (Transports Metropolitans de Barcelona) static GTFS. Requires
@@ -28,10 +38,8 @@ const TMB_GTFS_ARCHIVE_BASE_URL =
 
 const buildTmbGtfsUrl = (appId: string, appKey: string): string => {
     const url = new URL(TMB_GTFS_ARCHIVE_BASE_URL);
-
     url.searchParams.set("app_id", appId);
     url.searchParams.set("app_key", appKey);
-
     return url.toString();
 };
 
@@ -39,111 +47,10 @@ const TMB_STOP_PREFIX = "TMBS:";
 const TMB_PLATFORM_PREFIX = "TMBP:";
 const TMB_ROUTE_PREFIX = "TMBR:";
 
-const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
-const LOCATION_TYPE_ENTRANCE = "2";
-const EMPTY_LOCATION_TYPE = "0";
-
-const toTmbStopId = (gtfsStopId: string): string =>
-    `${TMB_STOP_PREFIX}${gtfsStopId}`;
-const toTmbPlatformId = (gtfsStopId: string): string =>
-    `${TMB_PLATFORM_PREFIX}${gtfsStopId}`;
-const toTmbRouteId = (gtfsRouteId: string): string =>
-    `${TMB_ROUTE_PREFIX}${gtfsRouteId}`;
-
-const routeRowSchema = z.object({
-    route_id: z.string().min(1),
-    route_short_name: z.string().min(1),
-    route_long_name: z.string().optional(),
-    route_type: z.string().min(1),
-    route_url: z.string().optional(),
-    route_color: z.string().optional(),
-});
-
-const tripRowSchema = z.object({
-    trip_id: z.string().min(1),
-    route_id: z.string().min(1),
-    direction_id: z.string().optional(),
-});
-
-const stopRowSchema = z.object({
-    stop_id: z.string().min(1),
-    stop_name: z.string(),
-    stop_lat: z.string().min(1),
-    stop_lon: z.string().min(1),
-    location_type: z.string().optional(),
-    parent_station: z.string().optional(),
-    platform_code: z.string().optional(),
-});
-
-const stopTimeRowSchema = z.object({
-    trip_id: z.string().min(1),
-    stop_id: z.string().min(1),
-    stop_sequence: z.string().min(1),
-});
-
-type ParsedStop = {
-    id: string;
-    name: string;
-    latitude: number;
-    longitude: number;
-    locationType: string;
-    parentStationId: string | null;
-    platformCode: string | null;
-};
-
-type ParsedRoute = {
-    id: string;
-    shortName: string;
-    longName: string | null;
-    type: string;
-    url: string | null;
-    color: string | null;
-};
-
-type ParsedTrip = {
-    id: string;
-    routeId: string;
-    directionId: string;
-};
-
-type ParsedStopTime = {
-    tripId: string;
-    stopId: string;
-    stopSequence: number;
-};
-
-type LogicalStop = {
-    id: string;
-    gtfsStopId: string;
-    name: string;
-    avgLatitude: number;
-    avgLongitude: number;
-    platforms: LogicalPlatform[];
-    entrances: LogicalEntrance[];
-};
-
-type LogicalPlatform = {
-    id: string;
-    name: string;
-    code: string | null;
-    latitude: number;
-    longitude: number;
-    stopId: string;
-    routeIds: Set<string>;
-};
-
-type LogicalEntrance = {
-    id: string;
-    name: string;
-    latitude: number;
-    longitude: number;
-};
-
-type DominantPattern = {
-    directionId: string;
-    platformIds: string[];
-    tripCount: number;
-};
+const toTmbStopId = (gtfsId: string): string => `${TMB_STOP_PREFIX}${gtfsId}`;
+const toTmbPlatformId = (gtfsId: string): string =>
+    `${TMB_PLATFORM_PREFIX}${gtfsId}`;
+const toTmbRouteId = (gtfsId: string): string => `${TMB_ROUTE_PREFIX}${gtfsId}`;
 
 export type TmbSnapshot = StopSnapshot & {
     gtfsRoutes: SyncedGtfsRoute[];
@@ -156,16 +63,6 @@ export type TmbSnapshot = StopSnapshot & {
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
     gtfsFrequencies: SyncedGtfsFrequency[];
-};
-
-const toOptionalString = (value?: string): string | null => {
-    if (value === undefined) {
-        return null;
-    }
-
-    const trimmed = value.trim();
-
-    return trimmed.length > 0 ? trimmed : null;
 };
 
 export class TmbImportService {
@@ -193,23 +90,15 @@ export class TmbImportService {
         );
         const getFile = (path: string): Promise<string> => {
             const file = directory.files.find((entry) => entry.path === path);
-
-            if (!file) {
-                throw new Error(`TMB GTFS archive is missing '${path}'`);
-            }
-
-            return file.buffer().then((buffer) => buffer.toString());
+            if (!file) throw new Error(`TMB GTFS archive is missing '${path}'`);
+            return file.buffer().then((buf) => buf.toString());
         };
         const getOptionalFile = async (
             path: string,
         ): Promise<string | null> => {
             const file = directory.files.find((entry) => entry.path === path);
-
-            if (!file) {
-                return null;
-            }
-
-            return file.buffer().then((buffer) => buffer.toString());
+            if (!file) return null;
+            return file.buffer().then((buf) => buf.toString());
         };
 
         const [
@@ -232,37 +121,6 @@ export class TmbImportService {
             getOptionalFile("frequencies.txt"),
         ]);
 
-        return this.buildSnapshot({
-            routesCsv,
-            stopsCsv,
-            stopTimesCsv,
-            tripsCsv,
-            calendarCsv,
-            calendarDatesCsv,
-            transfersCsv,
-            frequenciesCsv,
-        });
-    }
-
-    private async buildSnapshot({
-        routesCsv,
-        stopsCsv,
-        stopTimesCsv,
-        tripsCsv,
-        calendarCsv,
-        calendarDatesCsv,
-        transfersCsv,
-        frequenciesCsv,
-    }: {
-        routesCsv: string;
-        stopsCsv: string;
-        stopTimesCsv: string;
-        tripsCsv: string;
-        calendarCsv: string | null;
-        calendarDatesCsv: string | null;
-        transfersCsv: string | null;
-        frequenciesCsv: string | null;
-    }): Promise<TmbSnapshot> {
         const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
             [
                 parseCsvString<Record<string, string>>(routesCsv),
@@ -271,6 +129,7 @@ export class TmbImportService {
                 parseCsvString<Record<string, string>>(tripsCsv),
             ],
         );
+
         const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
             await Promise.all([
                 calendarCsv
@@ -287,98 +146,51 @@ export class TmbImportService {
                     : Promise.resolve([]),
             ]);
 
-        const tmbRoutes = rawRoutes.map((row) => this.parseRoute(row));
-        const tmbRouteIds = new Set(tmbRoutes.map((route) => route.id));
+        const tmbRoutes = rawRoutes.map((row) => parseRoute(row));
+        const tmbRouteIds = new Set(tmbRoutes.map((r) => r.id));
         const tmbTrips = rawTrips
-            .map((row) => this.parseTrip(row))
+            .map((row) => parseTrip(row))
             .filter((trip) => tmbRouteIds.has(trip.routeId));
-        const tmbTripById = new Map(
-            tmbTrips.map((trip) => [trip.id, trip] as const),
+        const tmbTripById = new Map(tmbTrips.map((t) => [t.id, t] as const));
+        const tmbStopTimesByTripId = buildStopTimesByTripId(
+            rawStopTimes,
+            tmbTripById,
+            "TMB",
         );
-        const tmbStopTimesByTripId = new Map<string, ParsedStopTime[]>();
-
-        for (const stopTime of rawStopTimes.map((row) =>
-            this.parseStopTime(row),
-        )) {
-            if (!tmbTripById.has(stopTime.tripId)) {
-                continue;
-            }
-
-            const tripStopTimes =
-                tmbStopTimesByTripId.get(stopTime.tripId) ?? [];
-
-            tripStopTimes.push(stopTime);
-            tmbStopTimesByTripId.set(stopTime.tripId, tripStopTimes);
-        }
 
         const stopsById = new Map(
             rawStops.map((row) => {
-                const stop = this.parseStop(row);
-
+                const stop = parseStop(row, "TMB");
                 return [stop.id, stop] as const;
             }),
         );
         const referencedStopIds = new Set<string>();
 
         for (const tripStopTimes of tmbStopTimesByTripId.values()) {
-            for (const stopTime of tripStopTimes) {
-                referencedStopIds.add(stopTime.stopId);
+            for (const st of tripStopTimes) {
+                referencedStopIds.add(st.stopId);
             }
         }
 
-        const logicalStops = this.buildLogicalStops({
+        const logicalStops = buildLogicalStops({
             referencedStopIds,
             stopsById,
+            toStopId: toTmbStopId,
+            toPlatformId: toTmbPlatformId,
         });
-        const platformById = new Map(
+        const platformById = new Map<string, LogicalPlatform>(
             logicalStops.flatMap((stop) =>
-                stop.platforms.map(
-                    (platform) => [platform.id, platform] as const,
-                ),
+                stop.platforms.map((p) => [p.id, p] as const),
             ),
         );
 
-        const patternsByRouteAndDirection = new Map<
-            string,
-            Map<string, DominantPattern>
-        >();
-
-        for (const trip of tmbTrips) {
-            const tripStopTimes = (
-                tmbStopTimesByTripId.get(trip.id) ?? []
-            ).sort((left, right) => left.stopSequence - right.stopSequence);
-            const platformIds = tripStopTimes
-                .map((stopTime) => toTmbPlatformId(stopTime.stopId))
-                .filter((platformId) => platformById.has(platformId));
-
-            if (platformIds.length === 0) {
-                continue;
-            }
-
-            for (const platformId of platformIds) {
-                platformById
-                    .get(platformId)
-                    ?.routeIds.add(toTmbRouteId(trip.routeId));
-            }
-
-            const routeDirectionKey = `${trip.routeId}::${trip.directionId}`;
-            const patternKey = platformIds.join(">");
-            const patterns =
-                patternsByRouteAndDirection.get(routeDirectionKey) ?? new Map();
-            const currentPattern = patterns.get(patternKey);
-
-            if (currentPattern) {
-                currentPattern.tripCount += 1;
-            } else {
-                patterns.set(patternKey, {
-                    directionId: trip.directionId,
-                    platformIds,
-                    tripCount: 1,
-                });
-            }
-
-            patternsByRouteAndDirection.set(routeDirectionKey, patterns);
-        }
+        const patternsByRouteAndDirection = buildPatternsByRouteAndDirection({
+            trips: tmbTrips,
+            stopTimesByTripId: tmbStopTimesByTripId,
+            toPlatformId: toTmbPlatformId,
+            toRouteId: toTmbRouteId,
+            platformById,
+        });
 
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
@@ -389,21 +201,21 @@ export class TmbImportService {
         }));
 
         const platforms = logicalStops.flatMap((stop) =>
-            stop.platforms.map((platform) => ({
-                id: platform.id,
-                name: platform.name,
-                code: platform.code,
+            stop.platforms.map((p) => ({
+                id: p.id,
+                name: p.name,
+                code: p.code,
                 isMetro: false,
-                latitude: platform.latitude,
-                longitude: platform.longitude,
+                latitude: p.latitude,
+                longitude: p.longitude,
                 stopId: stop.id,
             })),
         );
 
         const platformRoutes = logicalStops.flatMap((stop) =>
-            stop.platforms.flatMap((platform) =>
-                [...platform.routeIds].map((routeId) => ({
-                    platformId: platform.id,
+            stop.platforms.flatMap((p) =>
+                [...p.routeIds].map((routeId) => ({
+                    platformId: p.id,
                     feedId: GtfsFeedId.BARCELONA,
                     routeId,
                 })),
@@ -429,29 +241,35 @@ export class TmbImportService {
             };
         });
 
-        const gtfsRouteStops = this.buildGtfsRouteStops(
-            tmbRoutes,
+        const gtfsRouteStops = buildGtfsRouteStops({
+            routes: tmbRoutes,
             patternsByRouteAndDirection,
             platformById,
-        );
+            feedId: GtfsFeedId.BARCELONA,
+            toRouteId: toTmbRouteId,
+        });
 
-        const gtfsRouteShapes = this.buildGtfsRouteShapes(
-            tmbRoutes,
+        const gtfsRouteShapes = buildGtfsRouteShapes({
+            routes: tmbRoutes,
             patternsByRouteAndDirection,
             platformById,
+            feedId: GtfsFeedId.BARCELONA,
+            toRouteId: toTmbRouteId,
+        });
+
+        const gtfsStationEntrances = logicalStops.flatMap(
+            (stop): SyncedGtfsStationEntrance[] =>
+                stop.entrances.map((entrance) => ({
+                    id: `${TMB_STOP_PREFIX}entrance:${entrance.id}`,
+                    feedId: GtfsFeedId.BARCELONA,
+                    stopId: stop.id,
+                    parentStationId: stop.gtfsStopId,
+                    name: entrance.name,
+                    latitude: entrance.latitude,
+                    longitude: entrance.longitude,
+                })),
         );
 
-        const gtfsStationEntrances = logicalStops.flatMap((stop) =>
-            stop.entrances.map((entrance) => ({
-                id: `${TMB_STOP_PREFIX}entrance:${entrance.id}`,
-                feedId: GtfsFeedId.BARCELONA,
-                stopId: stop.id,
-                parentStationId: stop.gtfsStopId,
-                name: entrance.name,
-                latitude: entrance.latitude,
-                longitude: entrance.longitude,
-            })),
-        );
         const gtfsPersistenceSnapshot = buildGtfsPersistenceSnapshot({
             feedId: GtfsFeedId.BARCELONA,
             trips: rawTrips,
@@ -478,310 +296,6 @@ export class TmbImportService {
             gtfsCalendarDates: gtfsPersistenceSnapshot.gtfsCalendarDates,
             gtfsTransfers: gtfsPersistenceSnapshot.gtfsTransfers,
             gtfsFrequencies: gtfsPersistenceSnapshot.gtfsFrequencies,
-        };
-    }
-
-    private buildLogicalStops({
-        referencedStopIds,
-        stopsById,
-    }: {
-        referencedStopIds: Set<string>;
-        stopsById: Map<string, ParsedStop>;
-    }): LogicalStop[] {
-        const childStopsByParentId = new Map<string, ParsedStop[]>();
-
-        for (const stop of stopsById.values()) {
-            if (!stop.parentStationId) {
-                continue;
-            }
-
-            const children =
-                childStopsByParentId.get(stop.parentStationId) ?? [];
-
-            children.push(stop);
-            childStopsByParentId.set(stop.parentStationId, children);
-        }
-
-        const logicalStopIds = new Set<string>();
-
-        for (const stopId of referencedStopIds) {
-            const stop = stopsById.get(stopId);
-
-            if (!stop) {
-                continue;
-            }
-
-            logicalStopIds.add(stop.parentStationId ?? stop.id);
-        }
-
-        const logicalStops: LogicalStop[] = [];
-
-        for (const logicalStopSourceId of [...logicalStopIds].sort((a, b) =>
-            a.localeCompare(b),
-        )) {
-            const sourceStop = stopsById.get(logicalStopSourceId);
-
-            if (!sourceStop) {
-                continue;
-            }
-
-            const children =
-                childStopsByParentId.get(logicalStopSourceId) ?? [];
-            const platformStops = children.filter((stop) =>
-                LOCATION_TYPE_PLATFORM.has(stop.locationType),
-            );
-            const entranceStops = children.filter(
-                (stop) => stop.locationType === LOCATION_TYPE_ENTRANCE,
-            );
-            const logicalStopId = toTmbStopId(logicalStopSourceId);
-            const platformSeeds =
-                platformStops.length > 0
-                    ? platformStops
-                    : LOCATION_TYPE_PLATFORM.has(sourceStop.locationType)
-                      ? [sourceStop]
-                      : [];
-
-            const platforms: LogicalPlatform[] = platformSeeds
-                .map((platformStop) => ({
-                    id: toTmbPlatformId(platformStop.id),
-                    name: platformStop.name,
-                    code: platformStop.platformCode,
-                    latitude: platformStop.latitude,
-                    longitude: platformStop.longitude,
-                    stopId: logicalStopId,
-                    routeIds: new Set<string>(),
-                }))
-                .sort((left, right) => left.id.localeCompare(right.id));
-            const entrances: LogicalEntrance[] = entranceStops
-                .map((entranceStop) => ({
-                    id: entranceStop.id,
-                    name: entranceStop.name,
-                    latitude: entranceStop.latitude,
-                    longitude: entranceStop.longitude,
-                }))
-                .sort((left, right) => left.id.localeCompare(right.id));
-            const coordinatePoints =
-                platforms.length > 0
-                    ? platforms
-                    : entrances.length > 0
-                      ? entrances
-                      : [sourceStop];
-            const avgLatitude =
-                coordinatePoints.reduce(
-                    (sum, point) => sum + point.latitude,
-                    0,
-                ) / coordinatePoints.length;
-            const avgLongitude =
-                coordinatePoints.reduce(
-                    (sum, point) => sum + point.longitude,
-                    0,
-                ) / coordinatePoints.length;
-
-            logicalStops.push({
-                id: logicalStopId,
-                gtfsStopId: logicalStopSourceId,
-                name: sourceStop.name,
-                avgLatitude,
-                avgLongitude,
-                platforms,
-                entrances,
-            });
-        }
-
-        return logicalStops;
-    }
-
-    private buildGtfsRouteStops(
-        tmbRoutes: ParsedRoute[],
-        patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
-        platformById: Map<string, LogicalPlatform>,
-    ): SyncedGtfsRouteStop[] {
-        const routeStops: SyncedGtfsRouteStop[] = [];
-
-        for (const route of tmbRoutes) {
-            const dominantPattern = this.getDominantPattern(
-                route,
-                patternsByRouteAndDirection,
-            );
-
-            for (const { pattern } of dominantPattern) {
-                for (const [
-                    index,
-                    platformId,
-                ] of pattern.platformIds.entries()) {
-                    if (!platformById.has(platformId)) {
-                        continue;
-                    }
-
-                    routeStops.push({
-                        feedId: GtfsFeedId.BARCELONA,
-                        routeId: toTmbRouteId(route.id),
-                        directionId: pattern.directionId,
-                        platformId,
-                        stopSequence: index,
-                    });
-                }
-            }
-        }
-
-        return routeStops;
-    }
-
-    private buildGtfsRouteShapes(
-        tmbRoutes: ParsedRoute[],
-        patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
-        platformById: Map<string, LogicalPlatform>,
-    ): SyncedGtfsRouteShape[] {
-        const routeShapes: SyncedGtfsRouteShape[] = [];
-
-        for (const route of tmbRoutes) {
-            const dominantPattern = this.getDominantPattern(
-                route,
-                patternsByRouteAndDirection,
-            );
-
-            for (const { pattern } of dominantPattern) {
-                const points = pattern.platformIds
-                    .map((platformId) => platformById.get(platformId))
-                    .filter(
-                        (platform): platform is LogicalPlatform =>
-                            platform !== undefined,
-                    )
-                    .map((platform) => ({
-                        latitude: platform.latitude,
-                        longitude: platform.longitude,
-                    }));
-                const dedupedPoints = points.filter((point, index) => {
-                    if (index === 0) {
-                        return true;
-                    }
-
-                    const previousPoint = points[index - 1];
-
-                    return (
-                        previousPoint?.latitude !== point.latitude ||
-                        previousPoint.longitude !== point.longitude
-                    );
-                });
-
-                if (dedupedPoints.length < 2) {
-                    continue;
-                }
-
-                routeShapes.push({
-                    feedId: GtfsFeedId.BARCELONA,
-                    routeId: toTmbRouteId(route.id),
-                    directionId: pattern.directionId,
-                    shapeId: `generated:${route.id}:${pattern.directionId}`,
-                    tripCount: pattern.tripCount,
-                    isPrimary: true,
-                    geoJson: {
-                        type: "LineString",
-                        coordinates: dedupedPoints.map(
-                            (
-                                point,
-                            ): GeoJsonLineString["coordinates"][number] => [
-                                point.longitude,
-                                point.latitude,
-                            ],
-                        ),
-                    },
-                });
-            }
-        }
-
-        return routeShapes;
-    }
-
-    private getDominantPattern(
-        route: ParsedRoute,
-        patternsByRouteAndDirection: Map<string, Map<string, DominantPattern>>,
-    ): Array<{ pattern: DominantPattern }> {
-        return [...patternsByRouteAndDirection.entries()]
-            .filter(([key]) => key.startsWith(`${route.id}::`))
-            .map(([, patterns]) => {
-                const dominant = [...patterns.values()].sort(
-                    (left, right) =>
-                        right.tripCount - left.tripCount ||
-                        right.platformIds.length - left.platformIds.length ||
-                        left.platformIds
-                            .join(">")
-                            .localeCompare(right.platformIds.join(">")),
-                )[0];
-
-                return dominant ? { pattern: dominant } : null;
-            })
-            .filter(
-                (entry): entry is { pattern: DominantPattern } =>
-                    entry !== null,
-            )
-            .sort((left, right) =>
-                left.pattern.directionId.localeCompare(
-                    right.pattern.directionId,
-                ),
-            );
-    }
-
-    private parseStop(row: Record<string, string>): ParsedStop {
-        const parsed = stopRowSchema.parse(row);
-        const latitude = Number(parsed.stop_lat);
-        const longitude = Number(parsed.stop_lon);
-
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            throw new Error(
-                `Invalid TMB GTFS stop coordinates for '${parsed.stop_id}'`,
-            );
-        }
-
-        return {
-            id: parsed.stop_id,
-            name: parsed.stop_name.trim(),
-            latitude,
-            longitude,
-            locationType:
-                toOptionalString(parsed.location_type) ?? EMPTY_LOCATION_TYPE,
-            parentStationId: toOptionalString(parsed.parent_station),
-            platformCode: toOptionalString(parsed.platform_code),
-        };
-    }
-
-    private parseRoute(row: Record<string, string>): ParsedRoute {
-        const parsed = routeRowSchema.parse(row);
-
-        return {
-            id: parsed.route_id,
-            shortName: parsed.route_short_name.trim(),
-            longName: toOptionalString(parsed.route_long_name),
-            type: parsed.route_type,
-            url: toOptionalString(parsed.route_url),
-            color: toOptionalString(parsed.route_color),
-        };
-    }
-
-    private parseTrip(row: Record<string, string>): ParsedTrip {
-        const parsed = tripRowSchema.parse(row);
-
-        return {
-            id: parsed.trip_id,
-            routeId: parsed.route_id,
-            directionId: toOptionalString(parsed.direction_id) ?? "0",
-        };
-    }
-
-    private parseStopTime(row: Record<string, string>): ParsedStopTime {
-        const parsed = stopTimeRowSchema.parse(row);
-        const stopSequence = Number(parsed.stop_sequence);
-
-        if (!Number.isInteger(stopSequence)) {
-            throw new Error(
-                `Invalid TMB GTFS stop sequence '${parsed.stop_sequence}'`,
-            );
-        }
-
-        return {
-            tripId: parsed.trip_id,
-            stopId: parsed.stop_id,
-            stopSequence,
         };
     }
 }

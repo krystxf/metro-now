@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 
+import { normalizeStopName } from "src/modules/leo/leo-gtfs-parsers.utils";
 import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
+import type { LeoStop } from "src/modules/leo/leo.types";
 
 export const distanceInMeters = (
     leftLatitude: number,
@@ -29,6 +31,42 @@ type LocalStopSeed = {
     avgLongitude: number;
 };
 
+const MAX_MATCH_DISTANCE_METERS = 250;
+
+export const findMatchingLeoStop = (
+    localStop: Pick<LocalStopSeed, "name" | "avgLatitude" | "avgLongitude">,
+    leoStops: readonly LeoStop[],
+): LeoStop | undefined => {
+    const normalizedLocalName = normalizeStopName(localStop.name);
+
+    return leoStops
+        .filter((leoStop) => leoStop.normalizedName === normalizedLocalName)
+        .filter(
+            (leoStop) =>
+                distanceInMeters(
+                    localStop.avgLatitude,
+                    localStop.avgLongitude,
+                    leoStop.avgLatitude,
+                    leoStop.avgLongitude,
+                ) <= MAX_MATCH_DISTANCE_METERS,
+        )
+        .sort(
+            (left, right) =>
+                distanceInMeters(
+                    localStop.avgLatitude,
+                    localStop.avgLongitude,
+                    left.avgLatitude,
+                    left.avgLongitude,
+                ) -
+                    distanceInMeters(
+                        localStop.avgLatitude,
+                        localStop.avgLongitude,
+                        right.avgLatitude,
+                        right.avgLongitude,
+                    ) || left.id.localeCompare(right.id),
+        )[0];
+};
+
 @Injectable()
 export class LeoStopMatcherService {
     constructor(private readonly leoGtfsService: LeoGtfsService) {}
@@ -40,37 +78,7 @@ export class LeoStopMatcherService {
         const matches = new Map<string, string>();
 
         for (const localStop of localStops) {
-            const matchedLeoStop = leoStops
-                .filter(
-                    (leoStop) =>
-                        leoStop.normalizedName ===
-                        this.normalize(localStop.name),
-                )
-                .filter(
-                    (leoStop) =>
-                        distanceInMeters(
-                            localStop.avgLatitude,
-                            localStop.avgLongitude,
-                            leoStop.avgLatitude,
-                            leoStop.avgLongitude,
-                        ) <= 250,
-                )
-                .sort((left, right) => {
-                    return (
-                        distanceInMeters(
-                            localStop.avgLatitude,
-                            localStop.avgLongitude,
-                            left.avgLatitude,
-                            left.avgLongitude,
-                        ) -
-                            distanceInMeters(
-                                localStop.avgLatitude,
-                                localStop.avgLongitude,
-                                right.avgLatitude,
-                                right.avgLongitude,
-                            ) || left.id.localeCompare(right.id)
-                    );
-                })[0];
+            const matchedLeoStop = findMatchingLeoStop(localStop, leoStops);
 
             if (matchedLeoStop) {
                 matches.set(localStop.id, matchedLeoStop.id);
@@ -92,15 +100,5 @@ export class LeoStopMatcherService {
                 .map((leoStop) => leoStop.id)
                 .filter((leoStopId) => !matchedLeoStopIds.has(leoStopId)),
         );
-    }
-
-    private normalize(value: string): string {
-        return value
-            .normalize("NFD")
-            .replace(/\p{Diacritic}+/gu, "")
-            .replace(/[^\p{L}\p{N}]+/gu, " ")
-            .trim()
-            .replace(/\s+/g, " ")
-            .toLowerCase();
     }
 }

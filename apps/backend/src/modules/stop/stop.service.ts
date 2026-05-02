@@ -9,12 +9,10 @@ import {
 } from "src/modules/stop/stop-name.utils";
 import {
     type SearchableStopRow,
-    compareStopSearchMatchQuality,
-    compareStopSearchMatchScores,
-    createSearchableStopTerm,
+    buildSearchableStops,
+    compareStopSearchResults,
     getStopSearchMatchScore,
     normalizeStopSearchValue,
-    squaredGeoDistance,
 } from "src/modules/stop/stop-search.utils";
 import { StopRepository } from "src/modules/stop/stop.repository";
 import {
@@ -88,44 +86,8 @@ export class StopService {
                     this.loadStopRows({}),
                     this.stopRepository.findSearchablePlatformRows(),
                 ]);
-                const platformNamesByStopId = new Map<string, Set<string>>();
-                const stopIdsWithMetroPlatforms = new Set<string>();
 
-                for (const row of platformRows) {
-                    if (!row.stopId) {
-                        continue;
-                    }
-
-                    const platformNames =
-                        platformNamesByStopId.get(row.stopId) ?? new Set();
-
-                    platformNames.add(row.name);
-                    platformNamesByStopId.set(row.stopId, platformNames);
-
-                    if (row.isMetro) {
-                        stopIdsWithMetroPlatforms.add(row.stopId);
-                    }
-                }
-
-                return stops.map((stop) => ({
-                    ...stop,
-                    hasMetro: stopIdsWithMetroPlatforms.has(stop.id),
-                    normalizedStopName: normalizeStopSearchValue(stop.name),
-                    searchTerms: [
-                        createSearchableStopTerm({
-                            sourceRank: 0,
-                            value: stop.name,
-                        }),
-                        ...Array.from(platformNamesByStopId.get(stop.id) ?? [])
-                            .sort((left, right) => left.localeCompare(right))
-                            .map((platformName) =>
-                                createSearchableStopTerm({
-                                    sourceRank: 1,
-                                    value: platformName,
-                                }),
-                            ),
-                    ],
-                }));
+                return buildSearchableStops(stops, platformRows);
             },
             STOP_DATA_CACHE_TTL_MS,
         );
@@ -424,59 +386,9 @@ export class StopService {
 
                     return score ? [{ score, stop }] : [];
                 })
-                .sort((left, right) => {
-                    const matchQualityOrder = compareStopSearchMatchQuality(
-                        left.score,
-                        right.score,
-                    );
-
-                    if (matchQualityOrder !== 0) {
-                        return matchQualityOrder;
-                    }
-
-                    if (left.stop.hasMetro !== right.stop.hasMetro) {
-                        return left.stop.hasMetro ? -1 : 1;
-                    }
-
-                    const scoreOrder = compareStopSearchMatchScores(
-                        left.score,
-                        right.score,
-                    );
-
-                    if (scoreOrder !== 0) {
-                        return scoreOrder;
-                    }
-
-                    const nameOrder =
-                        left.stop.normalizedStopName.localeCompare(
-                            right.stop.normalizedStopName,
-                        );
-
-                    if (nameOrder !== 0) {
-                        return nameOrder;
-                    }
-
-                    if (origin) {
-                        const leftDistance = squaredGeoDistance(
-                            left.stop.avgLatitude,
-                            left.stop.avgLongitude,
-                            origin.latitude,
-                            origin.longitude,
-                        );
-                        const rightDistance = squaredGeoDistance(
-                            right.stop.avgLatitude,
-                            right.stop.avgLongitude,
-                            origin.latitude,
-                            origin.longitude,
-                        );
-
-                        if (leftDistance !== rightDistance) {
-                            return leftDistance - rightDistance;
-                        }
-                    }
-
-                    return left.stop.id.localeCompare(right.stop.id);
-                })
+                .sort((left, right) =>
+                    compareStopSearchResults(left, right, origin),
+                )
                 .map(({ stop }) => stop);
             const normalizedOffset = offset ?? 0;
             const end =

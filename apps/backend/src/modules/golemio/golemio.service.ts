@@ -3,51 +3,16 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { Cache } from "cache-manager";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
+import {
+    getErrorMessage,
+    isRetryableFetchError,
+} from "src/modules/golemio/golemio-fetch.utils";
 
 const GOLEMIO_API = "https://api.golemio.cz";
 const GOLEMIO_MAX_ATTEMPTS = 2;
 const GOLEMIO_REQUEST_TIMEOUT_MS = 10_000;
 const GOLEMIO_RETRY_DELAY_MS = 250;
 const GOLEMIO_RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
-
-const getErrorMessage = (error: unknown): string => {
-    if (error instanceof Error) {
-        return error.message;
-    }
-
-    return String(error);
-};
-
-const isRetryableFetchError = (error: unknown): boolean => {
-    if (
-        error instanceof Error &&
-        "name" in error &&
-        error.name === "AbortError"
-    ) {
-        return true;
-    }
-
-    if (!(error instanceof Error)) {
-        return false;
-    }
-
-    const maybeErrno = error as NodeJS.ErrnoException;
-    if (
-        maybeErrno.code &&
-        [
-            "ECONNRESET",
-            "ETIMEDOUT",
-            "ECONNREFUSED",
-            "EPIPE",
-            "ENOTFOUND",
-            "EAI_AGAIN",
-        ].includes(maybeErrno.code)
-    ) {
-        return true;
-    }
-
-    return "cause" in error && isRetryableFetchError(error.cause);
-};
 
 const wait = async (ms: number): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, ms));
