@@ -320,3 +320,132 @@ describe("compareStopSearchResults", () => {
         expect(compareStopSearchResults(a, a)).toBe(0);
     });
 });
+
+// ---------------------------------------------------------------------------
+// getStopSearchMatchScore — edge cases not covered by the broad smoke tests
+// ---------------------------------------------------------------------------
+
+const makeMinimalStop = (
+    normalizedValue: string,
+    sourceRank = 0,
+): SearchableStopRow => ({
+    id: "U1",
+    name: "Test Stop",
+    avgLatitude: 50.0,
+    avgLongitude: 14.0,
+    feed: "PID" as never,
+    hasMetro: false,
+    normalizedStopName: normalizedValue,
+    searchTerms: [
+        {
+            normalizedValue,
+            normalizedTokens: [normalizedValue],
+            sourceRank,
+        },
+    ],
+});
+
+describe("getStopSearchMatchScore — matchRank=2 (substring at non-zero position)", () => {
+    it("returns matchRank=2 with the correct position when query appears mid-candidate", () => {
+        // "mepla" starts at position 2 in "someplace"
+        const score = getStopSearchMatchScore({
+            normalizedQuery: "mepla",
+            searchableStop: makeMinimalStop("someplace"),
+        });
+
+        expect(score).toMatchObject({ matchRank: 2, position: 2, distance: 0 });
+    });
+});
+
+describe("getStopSearchMatchScore — Damerau-Levenshtein transposition", () => {
+    it("treats adjacent-character swap as distance=1, not distance=2", () => {
+        // Regular Levenshtein: "ba" vs "ab" = 2 (delete+insert); DL = 1 (transpose)
+        const score = getStopSearchMatchScore({
+            normalizedQuery: "ab",
+            searchableStop: makeMinimalStop("ba"),
+        });
+
+        expect(score).toMatchObject({ matchRank: 3, distance: 1 });
+    });
+});
+
+describe("getStopSearchMatchScore — fuzzy distance thresholds", () => {
+    it("allows distance=1 for query length ≤4 but rejects distance=2", () => {
+        expect(
+            getStopSearchMatchScore({
+                normalizedQuery: "abcx",
+                searchableStop: makeMinimalStop("abcd"),
+            }),
+        ).toMatchObject({ matchRank: 3, distance: 1 });
+
+        expect(
+            getStopSearchMatchScore({
+                normalizedQuery: "axyd",
+                searchableStop: makeMinimalStop("abcd"),
+            }),
+        ).toBeNull();
+    });
+
+    it("allows distance=2 for query length 5–8 but rejects distance=3", () => {
+        expect(
+            getStopSearchMatchScore({
+                normalizedQuery: "abcdefxy",
+                searchableStop: makeMinimalStop("abcdefgh"),
+            }),
+        ).toMatchObject({ matchRank: 3, distance: 2 });
+
+        expect(
+            getStopSearchMatchScore({
+                normalizedQuery: "abcdexyz",
+                searchableStop: makeMinimalStop("abcdefgh"),
+            }),
+        ).toBeNull();
+    });
+
+    it("allows distance=3 for query length >8", () => {
+        expect(
+            getStopSearchMatchScore({
+                normalizedQuery: "abcdefgxyz",
+                searchableStop: makeMinimalStop("abcdefghij"),
+            }),
+        ).toMatchObject({ matchRank: 3, distance: 3 });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// compareStopSearchMatchScores / compareStopSearchMatchQuality
+// ---------------------------------------------------------------------------
+
+describe("compareStopSearchMatchScores vs compareStopSearchMatchQuality", () => {
+    it("compareStopSearchMatchQuality returns 0 when only sourceRank differs", () => {
+        const left = makeScore({ sourceRank: 0 });
+        const right = makeScore({ sourceRank: 1 });
+
+        expect(compareStopSearchMatchQuality(left, right)).toBe(0);
+        expect(compareStopSearchMatchScores(left, right)).toBeLessThan(0);
+    });
+
+    it("both rank lower position before higher position", () => {
+        const near = makeScore({ matchRank: 2, position: 0 });
+        const far = makeScore({ matchRank: 2, position: 3 });
+
+        expect(compareStopSearchMatchScores(near, far)).toBeLessThan(0);
+        expect(compareStopSearchMatchQuality(near, far)).toBeLessThan(0);
+    });
+
+    it("both rank smaller lengthDelta before larger", () => {
+        const tight = makeScore({ lengthDelta: 1 });
+        const loose = makeScore({ lengthDelta: 4 });
+
+        expect(compareStopSearchMatchScores(tight, loose)).toBeLessThan(0);
+        expect(compareStopSearchMatchQuality(tight, loose)).toBeLessThan(0);
+    });
+
+    it("both rank shorter candidateLength before longer as last tiebreaker", () => {
+        const shorter = makeScore({ candidateLength: 4 });
+        const longer = makeScore({ candidateLength: 8 });
+
+        expect(compareStopSearchMatchScores(shorter, longer)).toBeLessThan(0);
+        expect(compareStopSearchMatchQuality(shorter, longer)).toBeLessThan(0);
+    });
+});
