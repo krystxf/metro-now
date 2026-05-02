@@ -23,4 +23,59 @@ describe("RouteByIdLoader", () => {
             "L404",
         ]);
     });
+
+    it("returns null for all IDs when service returns empty array", async () => {
+        const routeService = {
+            getGraphQLByIds: jest.fn().mockResolvedValue([]),
+        } as unknown as jest.Mocked<RouteService>;
+        const loader = new RouteByIdLoader(routeService);
+
+        await expect(
+            Promise.all([loader.load("L1"), loader.load("L2")]),
+        ).resolves.toEqual([null, null]);
+    });
+
+    it("returns all results when every requested ID is found", async () => {
+        const routeService = {
+            getGraphQLByIds: jest
+                .fn()
+                .mockResolvedValue([{ id: "1" }, { id: "2" }, { id: "TMB:3" }]),
+        } as unknown as jest.Mocked<RouteService>;
+        const loader = new RouteByIdLoader(routeService);
+
+        await expect(
+            Promise.all([
+                loader.load("L1"),
+                loader.load("L2"),
+                loader.load("TMB:3"),
+            ]),
+        ).resolves.toEqual([{ id: "1" }, { id: "2" }, { id: "TMB:3" }]);
+    });
+
+    it("matches L-prefixed route IDs directly without double-prefixing", async () => {
+        const routeService = {
+            getGraphQLByIds: jest.fn().mockResolvedValue([{ id: "L-express" }]),
+        } as unknown as jest.Mocked<RouteService>;
+        const loader = new RouteByIdLoader(routeService);
+
+        // Route id starts with "L", so toLookupRouteId keeps it as-is
+        await expect(loader.load("L-express")).resolves.toEqual({
+            id: "L-express",
+        });
+    });
+
+    it("deduplicates repeated IDs and calls service once", async () => {
+        const routeService = {
+            getGraphQLByIds: jest.fn().mockResolvedValue([{ id: "42" }]),
+        } as unknown as jest.Mocked<RouteService>;
+        const loader = new RouteByIdLoader(routeService);
+
+        const [first, second] = await Promise.all([
+            loader.load("L42"),
+            loader.load("L42"),
+        ]);
+        expect(first).toEqual({ id: "42" });
+        expect(second).toEqual({ id: "42" });
+        expect(routeService.getGraphQLByIds).toHaveBeenCalledTimes(1);
+    });
 });
