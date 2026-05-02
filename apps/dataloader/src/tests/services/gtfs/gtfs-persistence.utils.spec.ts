@@ -647,3 +647,155 @@ test("buildGtfsPersistenceSnapshot rejects frequencies with non-integer headway_
         /Invalid GTFS integer/,
     );
 });
+
+test("buildGtfsPersistenceSnapshot rejects calendars missing service_id", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendars: [
+                    {
+                        monday: "1",
+                        tuesday: "1",
+                        wednesday: "1",
+                        thursday: "1",
+                        friday: "1",
+                        saturday: "0",
+                        sunday: "0",
+                    },
+                ],
+            }),
+        /Missing GTFS service_id/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects calendars missing a required binary flag", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendars: [
+                    {
+                        service_id: "S1",
+                        tuesday: "1",
+                        wednesday: "1",
+                        thursday: "1",
+                        friday: "1",
+                        saturday: "0",
+                        sunday: "0",
+                    },
+                ],
+            }),
+        /Missing GTFS monday/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects calendarDates missing service_id", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendarDates: [{ date: "20260101", exception_type: "2" }],
+            }),
+        /Missing GTFS service_id/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects calendarDates missing date", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendarDates: [{ service_id: "S1", exception_type: "2" }],
+            }),
+        /Missing GTFS date/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects calendarDates missing exception_type", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendarDates: [{ service_id: "S1", date: "20260101" }],
+            }),
+        /Missing GTFS exception_type/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects calendarDates with non-integer exception_type", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                calendarDates: [
+                    {
+                        service_id: "S1",
+                        date: "20260101",
+                        exception_type: "bad",
+                    },
+                ],
+            }),
+        /Invalid GTFS integer/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot rejects transfers with non-integer transfer_type", () => {
+    assert.throws(
+        () =>
+            buildGtfsPersistenceSnapshot({
+                feedId: GtfsFeedId.PID,
+                trips: [],
+                stopTimes: [],
+                transfers: [
+                    {
+                        from_stop_id: "P1",
+                        to_stop_id: "P2",
+                        transfer_type: "1.5",
+                    },
+                ],
+            }),
+        /Invalid GTFS integer/,
+    );
+});
+
+test("buildGtfsPersistenceSnapshot applies mapRouteId and mapTripId to transfer route and trip IDs", () => {
+    const result = buildGtfsPersistenceSnapshot({
+        feedId: GtfsFeedId.BRNO,
+        trips: [],
+        stopTimes: [],
+        transfers: [
+            {
+                from_stop_id: "P1",
+                to_stop_id: "P2",
+                from_route_id: "R1",
+                to_route_id: "R2",
+                from_trip_id: "T1",
+                to_trip_id: "T2",
+                transfer_type: "3",
+            },
+        ],
+        mapRouteId: (id) => `BRR:${id}`,
+        mapTripId: (id) => `BRT:${id}`,
+    });
+
+    const transfer = result.gtfsTransfers[0];
+
+    assert.equal(transfer?.fromRouteId, "BRR:R1");
+    assert.equal(transfer?.toRouteId, "BRR:R2");
+    assert.equal(transfer?.fromTripId, "BRT:T1");
+    assert.equal(transfer?.toTripId, "BRT:T2");
+    assert.equal(transfer?.transferType, 3);
+});
