@@ -50,6 +50,7 @@ export class DepartureServiceV2 {
         minutesBefore: number;
         minutesAfter: number;
     }): Promise<DepartureSchema[]> {
+        const totalLimit = args.totalLimit ?? 1_000;
         const localStopIds = args.stopIds.filter(
             (stopId) => !isLeoStopId(stopId),
         );
@@ -67,7 +68,7 @@ export class DepartureServiceV2 {
                 platformIds: localPlatformIds,
                 vehicleType: args.vehicleType,
                 excludeVehicleType: args.excludeVehicleType,
-                totalLimit: args.totalLimit ?? 1_000,
+                totalLimit,
                 minutesBefore: args.minutesBefore,
                 minutesAfter: args.minutesAfter,
             }),
@@ -76,20 +77,18 @@ export class DepartureServiceV2 {
                       localStopIds,
                       leoStopIds,
                       leoPlatformIds,
-                      totalLimit: args.totalLimit ?? 1_000,
+                      totalLimit,
                       minutesBefore: args.minutesBefore,
                       minutesAfter: args.minutesAfter,
                   })
                 : Promise.resolve([]),
         ]);
-        const limit = args.limit;
-        const totalLimit = args.totalLimit ?? 1_000;
         const parsedDepartures = departureSchema
             .array()
             .parse(localDepartures.concat(leoDepartures));
         const limitedByPlatformAndRoute =
-            limit !== null && limit < totalLimit
-                ? limitDeparturesPerRoute(parsedDepartures, limit)
+            args.limit !== null && args.limit < totalLimit
+                ? limitDeparturesPerRoute(parsedDepartures, args.limit)
                 : parsedDepartures;
 
         return limitedByPlatformAndRoute
@@ -137,19 +136,17 @@ export class DepartureServiceV2 {
         minutesBefore: number;
         minutesAfter: number;
     }): Promise<DepartureSchema[]> {
-        const vehicleTypeWhere =
+        const metroOnly =
             args.vehicleType === "metro"
-                ? { isMetro: true }
+                ? true
                 : args.excludeVehicleType === "metro"
-                  ? { isMetro: false }
+                  ? false
                   : undefined;
         const allPlatformIds =
             await this.departureBoardService.resolvePlatformIds({
                 platformIds: args.platformIds,
                 stopIds: args.stopIds,
-                ...(vehicleTypeWhere?.isMetro !== undefined
-                    ? { metroOnly: vehicleTypeWhere.isMetro }
-                    : {}),
+                ...(metroOnly !== undefined ? { metroOnly } : {}),
             });
 
         if (allPlatformIds.length === 0) {
@@ -255,26 +252,18 @@ export class DepartureServiceV2 {
                 : await this.leoStopMatcherService.getMatchedLeoStopByLocalStopId(
                       await this.loadLocalStopsByIds(args.localStopIds),
                   );
-        const explicitLeoPlatformIds = new Set(args.leoPlatformIds);
-        const leoPlatformIdsFromStops = uniqueSortedStrings(
-            args.leoStopIds
+        const candidateLeoStopIds = [
+            ...args.leoStopIds,
+            ...args.localStopIds.flatMap((stopId) => {
+                const matched = matchedLeoStopIdByLocalStopId.get(stopId);
+                return matched === undefined ? [] : [matched];
+            }),
+        ];
+        const leoPlatformIds = uniqueSortedStrings([
+            ...args.leoPlatformIds,
+            ...candidateLeoStopIds
                 .flatMap((stopId) => leoStopsById.get(stopId)?.platforms ?? [])
                 .map((platform) => platform.id),
-        );
-        const matchedLeoPlatformIds = uniqueSortedStrings(
-            args.localStopIds
-                .flatMap(
-                    (stopId) =>
-                        leoStopsById.get(
-                            matchedLeoStopIdByLocalStopId.get(stopId) ?? "",
-                        )?.platforms ?? [],
-                )
-                .map((platform) => platform.id),
-        );
-        const leoPlatformIds = uniqueSortedStrings([
-            ...explicitLeoPlatformIds,
-            ...leoPlatformIdsFromStops,
-            ...matchedLeoPlatformIds,
         ]);
 
         if (leoPlatformIds.length === 0) {
