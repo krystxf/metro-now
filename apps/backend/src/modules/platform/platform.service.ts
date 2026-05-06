@@ -33,9 +33,13 @@ type PlatformRecord = PlatformRecordBase & {
     routes: PlatformRouteRecord[];
 };
 
-type PlatformGraphQLRecord = PlatformRecordBase;
-
 const PLATFORM_DATA_CACHE_TTL_MS = CACHE_TTL.platformData;
+
+type PlatformLoadFilters = {
+    ids?: readonly string[];
+    metroOnly?: boolean;
+    boundingBox?: BoundingBox;
+};
 
 @Injectable()
 export class PlatformService {
@@ -48,11 +52,7 @@ export class PlatformService {
         ids,
         metroOnly,
         boundingBox,
-    }: {
-        ids?: readonly string[];
-        metroOnly?: boolean;
-        boundingBox?: BoundingBox;
-    }): Promise<PlatformRecordBase[]> {
+    }: PlatformLoadFilters): Promise<PlatformRecordBase[]> {
         if (ids && ids.length === 0) {
             return [];
         }
@@ -134,20 +134,10 @@ export class PlatformService {
         return routesByPlatformId;
     }
 
-    private async loadPlatformsWithRoutes({
-        ids,
-        metroOnly,
-        boundingBox,
-    }: {
-        ids?: readonly string[];
-        metroOnly?: boolean;
-        boundingBox?: BoundingBox;
-    }): Promise<PlatformRecord[]> {
-        const platforms = await this.loadPlatformRows({
-            ...(ids ? { ids } : {}),
-            ...(metroOnly ? { metroOnly } : {}),
-            ...(boundingBox ? { boundingBox } : {}),
-        });
+    private async loadPlatformsWithRoutes(
+        filters: PlatformLoadFilters,
+    ): Promise<PlatformRecord[]> {
+        const platforms = await this.loadPlatformRows(filters);
         const routesByPlatformId = await this.loadRoutesByPlatformIds(
             platforms.map((platform) => platform.id),
         );
@@ -160,11 +150,11 @@ export class PlatformService {
 
     private async loadGraphQLPlatformsByIds(
         ids: readonly string[],
-    ): Promise<Map<string, PlatformGraphQLRecord | null>> {
+    ): Promise<Map<string, PlatformRecordBase | null>> {
         const platforms = await this.loadPlatformRows({
             ids,
         });
-        const platformsById = new Map<string, PlatformGraphQLRecord | null>(
+        const platformsById = new Map<string, PlatformRecordBase | null>(
             platforms.map((platform) => [platform.id, platform]),
         );
 
@@ -260,7 +250,7 @@ export class PlatformService {
         metroOnly,
     }: {
         metroOnly: boolean;
-    }): Promise<PlatformGraphQLRecord[]> {
+    }): Promise<PlatformRecordBase[]> {
         return this.cacheManager.wrap(
             CACHE_KEYS.platform.getAllGraphQL({
                 metroOnly,
@@ -275,7 +265,7 @@ export class PlatformService {
 
     async getGraphQLByIds(
         ids: readonly string[],
-    ): Promise<PlatformGraphQLRecord[]> {
+    ): Promise<PlatformRecordBase[]> {
         const platformsById = await loadCachedBatch({
             cacheManager: this.cacheManager,
             getCacheKey: CACHE_KEYS.platform.getGraphQLById,
@@ -288,8 +278,7 @@ export class PlatformService {
         return Array.from(new Set(ids))
             .map((id) => platformsById.get(id))
             .filter(
-                (platform): platform is PlatformGraphQLRecord =>
-                    platform !== null,
+                (platform): platform is PlatformRecordBase => platform !== null,
             );
     }
 
