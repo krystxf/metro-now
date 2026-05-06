@@ -357,23 +357,11 @@ export class RouteService {
         return isNightRoute(routeName, feedId);
     }
 
-    getVehicleType(routeName: string): VehicleType {
-        return getVehicleTypeForRoute({ feedId: GtfsFeedId.PID, routeName });
-    }
-
-    getVehicleTypeForRoute({
-        feedId = GtfsFeedId.PID,
-        routeName,
-        gtfsRouteType,
-    }: {
+    getVehicleTypeForRoute(params: {
         feedId?: GtfsFeedId | null;
         routeName: string;
         gtfsRouteType?: string | null;
     }): VehicleType {
-        return getVehicleTypeForRoute({
-            feedId,
-            routeName,
-            ...(gtfsRouteType !== undefined ? { gtfsRouteType } : {}),
-        });
+        return getVehicleTypeForRoute(params);
     }
 }
