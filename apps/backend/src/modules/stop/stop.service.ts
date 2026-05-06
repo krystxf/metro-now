@@ -16,7 +16,6 @@ import {
 } from "src/modules/stop/stop-search.utils";
 import { StopRepository } from "src/modules/stop/stop.repository";
 import {
-    type PlatformRouteRecord,
     type StopEntranceRecord,
     type StopGraphQLRecord,
     type StopPlatformRecord,
@@ -93,20 +92,6 @@ export class StopService {
         );
     }
 
-    private async loadPlatformRoutesByPlatformIds(
-        platformIds: readonly string[],
-    ): Promise<Map<string, PlatformRouteRecord[]>> {
-        const routesByPlatformId = new Map<string, PlatformRouteRecord[]>(
-            platformIds.map((platformId) => [platformId, []]),
-        );
-
-        if (platformIds.length === 0) {
-            return routesByPlatformId;
-        }
-
-        return this.stopRepository.findPlatformRoutesByPlatformIds(platformIds);
-    }
-
     private async loadPlatformsByStopIds({
         stopIds,
         metroOnly,
@@ -140,19 +125,6 @@ export class StopService {
         }
 
         return platformsByStopId;
-    }
-
-    private async loadRailStopIds({
-        limit,
-        offset,
-    }: {
-        limit?: number;
-        offset?: number;
-    }): Promise<string[]> {
-        return this.stopRepository.findRailStopIds({
-            ...(typeof limit === "number" ? { limit } : {}),
-            ...(typeof offset === "number" ? { offset } : {}),
-        });
     }
 
     private async loadStopEntrancesByStopIds(
@@ -243,7 +215,7 @@ export class StopService {
             async () => {
                 let stopIds: string[];
                 if (railOnly) {
-                    stopIds = await this.loadRailStopIds({
+                    stopIds = await this.stopRepository.findRailStopIds({
                         ...(typeof limit === "number" ? { limit } : {}),
                         ...(typeof offset === "number" ? { offset } : {}),
                     });
