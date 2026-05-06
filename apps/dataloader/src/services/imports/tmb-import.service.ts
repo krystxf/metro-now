@@ -1,5 +1,4 @@
 import { GtfsFeedId } from "@metro-now/database";
-import { Open as unzipperOpen } from "unzipper";
 
 import { getDataloaderEnv } from "../../config/env";
 import type {
@@ -15,9 +14,8 @@ import type {
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
 } from "../../types/sync.types";
-import { parseCsvString } from "../../utils/csv.utils";
-import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
+import { fetchAndParseGtfsArchive } from "./gtfs-archive.utils";
 import {
     type LogicalPlatform,
     buildGtfsRouteShapes,
@@ -75,76 +73,19 @@ export class TmbImportService {
             );
         }
 
-        const response = await fetchWithTimeout(
-            buildTmbGtfsUrl(tmbAppId, tmbAppKey),
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch TMB GTFS archive: ${response.status} ${response.statusText}`,
-            );
-        }
-
-        const directory = await unzipperOpen.buffer(
-            Buffer.from(await response.arrayBuffer()),
-        );
-        const getFile = (path: string): Promise<string> => {
-            const file = directory.files.find((entry) => entry.path === path);
-            if (!file) throw new Error(`TMB GTFS archive is missing '${path}'`);
-            return file.buffer().then((buf) => buf.toString());
-        };
-        const getOptionalFile = async (
-            path: string,
-        ): Promise<string | null> => {
-            const file = directory.files.find((entry) => entry.path === path);
-            if (!file) return null;
-            return file.buffer().then((buf) => buf.toString());
-        };
-
-        const [
-            routesCsv,
-            stopsCsv,
-            stopTimesCsv,
-            tripsCsv,
-            calendarCsv,
-            calendarDatesCsv,
-            transfersCsv,
-            frequenciesCsv,
-        ] = await Promise.all([
-            getFile("routes.txt"),
-            getFile("stops.txt"),
-            getFile("stop_times.txt"),
-            getFile("trips.txt"),
-            getOptionalFile("calendar.txt"),
-            getOptionalFile("calendar_dates.txt"),
-            getOptionalFile("transfers.txt"),
-            getOptionalFile("frequencies.txt"),
-        ]);
-
-        const [rawRoutes, rawStops, rawStopTimes, rawTrips] = await Promise.all(
-            [
-                parseCsvString<Record<string, string>>(routesCsv),
-                parseCsvString<Record<string, string>>(stopsCsv),
-                parseCsvString<Record<string, string>>(stopTimesCsv),
-                parseCsvString<Record<string, string>>(tripsCsv),
-            ],
-        );
-
-        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
-            await Promise.all([
-                calendarCsv
-                    ? parseCsvString<Record<string, string>>(calendarCsv)
-                    : Promise.resolve([]),
-                calendarDatesCsv
-                    ? parseCsvString<Record<string, string>>(calendarDatesCsv)
-                    : Promise.resolve([]),
-                transfersCsv
-                    ? parseCsvString<Record<string, string>>(transfersCsv)
-                    : Promise.resolve([]),
-                frequenciesCsv
-                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
-                    : Promise.resolve([]),
-            ]);
+        const {
+            routes: rawRoutes,
+            stops: rawStops,
+            stopTimes: rawStopTimes,
+            trips: rawTrips,
+            calendars: rawCalendars,
+            calendarDates: rawCalendarDates,
+            transfers: rawTransfers,
+            frequencies: rawFrequencies,
+        } = await fetchAndParseGtfsArchive({
+            url: buildTmbGtfsUrl(tmbAppId, tmbAppKey),
+            archiveLabel: "TMB",
+        });
 
         const tmbRoutes = rawRoutes.map((row) => parseRoute(row));
         const tmbRouteIds = new Set(tmbRoutes.map((r) => r.id));

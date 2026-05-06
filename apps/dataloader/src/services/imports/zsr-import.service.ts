@@ -1,5 +1,4 @@
 import { GtfsFeedId, VehicleType } from "@metro-now/database";
-import { Open as unzipperOpen } from "unzipper";
 
 import type {
     StopSnapshot,
@@ -14,10 +13,9 @@ import type {
     SyncedGtfsTransfer,
     SyncedGtfsTrip,
 } from "../../types/sync.types";
-import { parseCsvString } from "../../utils/csv.utils";
-import { fetchWithTimeout } from "../../utils/fetch.utils";
 import { logger } from "../../utils/logger";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
+import { fetchAndParseGtfsArchive } from "./gtfs-archive.utils";
 import {
     type LogicalPlatform,
     agencyRowSchema,
@@ -66,76 +64,21 @@ export class ZsrImportService {
     async getZsrSnapshot(
         pidStops: StopSnapshot["stops"],
     ): Promise<ZsrSnapshot> {
-        const response = await fetchWithTimeout(ZSR_GTFS_ARCHIVE_URL);
-
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch ZSR GTFS archive: ${response.status} ${response.statusText}`,
-            );
-        }
-
-        const directory = await unzipperOpen.buffer(
-            Buffer.from(await response.arrayBuffer()),
-        );
-        const getFile = (path: string): Promise<string> => {
-            const file = directory.files.find((entry) => entry.path === path);
-            if (!file) throw new Error(`ZSR GTFS archive is missing '${path}'`);
-            return file.buffer().then((buf) => buf.toString());
-        };
-        const getOptionalFile = async (
-            path: string,
-        ): Promise<string | null> => {
-            const file = directory.files.find((entry) => entry.path === path);
-            if (!file) return null;
-            return file.buffer().then((buf) => buf.toString());
-        };
-
-        const [
-            agenciesCsv,
-            routesCsv,
-            stopsCsv,
-            stopTimesCsv,
-            tripsCsv,
-            calendarCsv,
-            calendarDatesCsv,
-            transfersCsv,
-            frequenciesCsv,
-        ] = await Promise.all([
-            getFile("agency.txt"),
-            getFile("routes.txt"),
-            getFile("stops.txt"),
-            getFile("stop_times.txt"),
-            getFile("trips.txt"),
-            getOptionalFile("calendar.txt"),
-            getOptionalFile("calendar_dates.txt"),
-            getOptionalFile("transfers.txt"),
-            getOptionalFile("frequencies.txt"),
-        ]);
-
-        const [rawAgencies, rawRoutes, rawStops, rawStopTimes, rawTrips] =
-            await Promise.all([
-                parseCsvString<Record<string, string>>(agenciesCsv),
-                parseCsvString<Record<string, string>>(routesCsv),
-                parseCsvString<Record<string, string>>(stopsCsv),
-                parseCsvString<Record<string, string>>(stopTimesCsv),
-                parseCsvString<Record<string, string>>(tripsCsv),
-            ]);
-
-        const [rawCalendars, rawCalendarDates, rawTransfers, rawFrequencies] =
-            await Promise.all([
-                calendarCsv
-                    ? parseCsvString<Record<string, string>>(calendarCsv)
-                    : Promise.resolve([]),
-                calendarDatesCsv
-                    ? parseCsvString<Record<string, string>>(calendarDatesCsv)
-                    : Promise.resolve([]),
-                transfersCsv
-                    ? parseCsvString<Record<string, string>>(transfersCsv)
-                    : Promise.resolve([]),
-                frequenciesCsv
-                    ? parseCsvString<Record<string, string>>(frequenciesCsv)
-                    : Promise.resolve([]),
-            ]);
+        const {
+            agencies: rawAgencies,
+            routes: rawRoutes,
+            stops: rawStops,
+            stopTimes: rawStopTimes,
+            trips: rawTrips,
+            calendars: rawCalendars,
+            calendarDates: rawCalendarDates,
+            transfers: rawTransfers,
+            frequencies: rawFrequencies,
+        } = await fetchAndParseGtfsArchive({
+            url: ZSR_GTFS_ARCHIVE_URL,
+            archiveLabel: "ZSR",
+            requireAgency: true,
+        });
 
         // Filter out Leo Express agencies — their data comes via the leo-import service
         const nonLeoAgencyIds = new Set(
