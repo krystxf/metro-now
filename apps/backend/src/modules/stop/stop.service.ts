@@ -83,17 +83,10 @@ export class StopService {
             options.hydrateFields === false
                 ? toLightGraphQLStops(stops)
                 : await this.hydrateGraphQLStops(stops);
-        const stopsById = new Map<string, StopGraphQLRecord | null>(
+
+        return new Map<string, StopGraphQLRecord | null>(
             hydratedStops.map((stop) => [stop.id, stop]),
         );
-
-        for (const id of ids) {
-            if (!stopsById.has(id)) {
-                stopsById.set(id, null);
-            }
-        }
-
-        return stopsById;
     }
 
     private async hydrateGraphQLStops(

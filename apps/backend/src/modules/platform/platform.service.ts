@@ -148,25 +148,6 @@ export class PlatformService {
         }));
     }
 
-    private async loadGraphQLPlatformsByIds(
-        ids: readonly string[],
-    ): Promise<Map<string, PlatformRecordBase | null>> {
-        const platforms = await this.loadPlatformRows({
-            ids,
-        });
-        const platformsById = new Map<string, PlatformRecordBase | null>(
-            platforms.map((platform) => [platform.id, platform]),
-        );
-
-        for (const id of ids) {
-            if (!platformsById.has(id)) {
-                platformsById.set(id, null);
-            }
-        }
-
-        return platformsById;
-    }
-
     async getPlatformsByDistance({
         latitude,
         longitude,
@@ -270,8 +251,15 @@ export class PlatformService {
             cacheManager: this.cacheManager,
             getCacheKey: CACHE_KEYS.platform.getGraphQLById,
             keys: ids,
-            loadMissing: async (missingIds) =>
-                this.loadGraphQLPlatformsByIds(missingIds),
+            loadMissing: async (missingIds) => {
+                const platforms = await this.loadPlatformRows({
+                    ids: missingIds,
+                });
+
+                return new Map<string, PlatformRecordBase | null>(
+                    platforms.map((platform) => [platform.id, platform]),
+                );
+            },
             ttlMs: PLATFORM_DATA_CACHE_TTL_MS,
         });
 

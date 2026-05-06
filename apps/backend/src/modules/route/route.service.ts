@@ -310,9 +310,7 @@ export class RouteService {
                         : Promise.resolve([] as LeoRoute[]),
                 ]);
 
-                const result = new Map<string, GraphQLRouteRecord | null>(
-                    missingIds.map((key) => [key, null]),
-                );
+                const result = new Map<string, GraphQLRouteRecord | null>();
 
                 for (const route of dbRoutes) {
                     result.set(toLookupRouteId(route.id), route);
