@@ -38,32 +38,24 @@ export const findMatchingLeoStop = (
     leoStops: readonly LeoStop[],
 ): LeoStop | undefined => {
     const normalizedLocalName = normalizeStopName(localStop.name);
+    const distanceTo = (stop: LeoStop): number =>
+        distanceInMeters(
+            localStop.avgLatitude,
+            localStop.avgLongitude,
+            stop.avgLatitude,
+            stop.avgLongitude,
+        );
 
     return leoStops
-        .filter((leoStop) => leoStop.normalizedName === normalizedLocalName)
         .filter(
             (leoStop) =>
-                distanceInMeters(
-                    localStop.avgLatitude,
-                    localStop.avgLongitude,
-                    leoStop.avgLatitude,
-                    leoStop.avgLongitude,
-                ) <= MAX_MATCH_DISTANCE_METERS,
+                leoStop.normalizedName === normalizedLocalName &&
+                distanceTo(leoStop) <= MAX_MATCH_DISTANCE_METERS,
         )
         .sort(
             (left, right) =>
-                distanceInMeters(
-                    localStop.avgLatitude,
-                    localStop.avgLongitude,
-                    left.avgLatitude,
-                    left.avgLongitude,
-                ) -
-                    distanceInMeters(
-                        localStop.avgLatitude,
-                        localStop.avgLongitude,
-                        right.avgLatitude,
-                        right.avgLongitude,
-                    ) || left.id.localeCompare(right.id),
+                distanceTo(left) - distanceTo(right) ||
+                left.id.localeCompare(right.id),
         )[0];
 };
 
