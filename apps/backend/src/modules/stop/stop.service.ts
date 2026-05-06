@@ -16,7 +16,6 @@ import {
 } from "src/modules/stop/stop-search.utils";
 import { StopRepository } from "src/modules/stop/stop.repository";
 import {
-    type StopEntranceRecord,
     type StopGraphQLRecord,
     type StopPlatformRecord,
     type StopRecord,
@@ -101,22 +100,11 @@ export class StopService {
         metroOnly?: boolean;
         railOnly?: boolean;
     }): Promise<Map<string, StopPlatformRecord[]>> {
-        const platformsByStopId = new Map<string, StopPlatformRecord[]>(
-            stopIds.map((stopId) => [stopId, []]),
-        );
-
-        if (stopIds.length === 0) {
-            return platformsByStopId;
-        }
-        const loadedPlatformsByStopId =
+        const platformsByStopId =
             await this.stopRepository.findPlatformsByStopIds({
                 stopIds,
                 ...(metroOnly ? { metroOnly: true } : {}),
             });
-
-        for (const [stopId, platforms] of loadedPlatformsByStopId) {
-            platformsByStopId.set(stopId, platforms);
-        }
 
         if (railOnly) {
             for (const [stopId, platforms] of platformsByStopId) {
@@ -125,20 +113,6 @@ export class StopService {
         }
 
         return platformsByStopId;
-    }
-
-    private async loadStopEntrancesByStopIds(
-        stopIds: readonly string[],
-    ): Promise<Map<string, StopEntranceRecord[]>> {
-        const entrancesByStopId = new Map<string, StopEntranceRecord[]>(
-            stopIds.map((stopId) => [stopId, []]),
-        );
-
-        if (stopIds.length === 0) {
-            return entrancesByStopId;
-        }
-
-        return this.stopRepository.findStopEntrancesByStopIds(stopIds);
     }
 
     private async loadGraphQLStopsByIds(
@@ -173,7 +147,7 @@ export class StopService {
             this.loadPlatformsByStopIds({
                 stopIds,
             }),
-            this.loadStopEntrancesByStopIds(stopIds),
+            this.stopRepository.findStopEntrancesByStopIds(stopIds),
         ]);
 
         return stops.map((stop) => {
@@ -235,9 +209,10 @@ export class StopService {
                     ...(metroOnly ? { metroOnly: true } : {}),
                     ...(railOnly ? { railOnly: true } : {}),
                 });
-                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-                    stops.map((stop) => stop.id),
-                );
+                const entrancesByStopId =
+                    await this.stopRepository.findStopEntrancesByStopIds(
+                        stops.map((stop) => stop.id),
+                    );
                 const stopById = new Map(stops.map((stop) => [stop.id, stop]));
 
                 return stopIds
@@ -450,14 +425,7 @@ export class StopService {
                           ids: orderedIds,
                       }),
                   )
-                : await this.getGraphQLByIds(
-                      orderedIds,
-                      hydrateFields === undefined
-                          ? {}
-                          : {
-                                hydrateFields,
-                            },
-                  );
+                : await this.getGraphQLByIds(orderedIds);
         const stopsById = new Map(stops.map((stop) => [stop.id, stop]));
 
         return orderedIds.flatMap((id) => {
@@ -486,9 +454,8 @@ export class StopService {
                 const platformsByStopId = await this.loadPlatformsByStopIds({
                     stopIds: [id],
                 });
-                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-                    [id],
-                );
+                const entrancesByStopId =
+                    await this.stopRepository.findStopEntrancesByStopIds([id]);
 
                 return {
                     ...stop,
