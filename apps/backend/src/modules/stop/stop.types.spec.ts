@@ -92,4 +92,109 @@ describe("stop.types", () => {
             vehicleTypes: [VehicleType.SUBWAY, VehicleType.TRAM],
         });
     });
+
+    it("returns empty vehicleTypes and isMetro=false for empty platforms", () => {
+        expect(getStopAggregateFromPlatforms([])).toEqual({
+            isMetro: false,
+            vehicleTypes: [],
+        });
+    });
+
+    it("skips routes with null vehicleType", () => {
+        expect(
+            getStopAggregateFromPlatforms([
+                {
+                    id: "P1",
+                    stopId: "U1",
+                    code: null,
+                    direction: null,
+                    isMetro: false,
+                    latitude: 50,
+                    longitude: 14,
+                    name: "Stop",
+                    routes: [
+                        {
+                            id: "R1",
+                            name: "X",
+                            color: null,
+                            feed: "PID" as never,
+                            vehicleType: null,
+                        },
+                    ],
+                },
+            ]),
+        ).toEqual({
+            isMetro: false,
+            vehicleTypes: [],
+        });
+    });
+
+    it("sets isMetro=true from platform flag even when routes are empty", () => {
+        expect(
+            getStopAggregateFromPlatforms([
+                {
+                    id: "P1",
+                    stopId: "U1",
+                    code: null,
+                    direction: null,
+                    isMetro: true,
+                    latitude: 50,
+                    longitude: 14,
+                    name: "Metro Stop",
+                    routes: [],
+                },
+            ]),
+        ).toEqual({
+            isMetro: true,
+            vehicleTypes: [],
+        });
+    });
+
+    it("deduplicates the same vehicleType appearing across multiple platforms", () => {
+        const busRoute = {
+            id: "R1",
+            name: "200",
+            color: null,
+            feed: "PID" as never,
+            vehicleType: "BUS" as never,
+        };
+
+        expect(
+            getStopAggregateFromPlatforms([
+                {
+                    id: "P1",
+                    stopId: "U1",
+                    code: null,
+                    direction: null,
+                    isMetro: false,
+                    latitude: 50,
+                    longitude: 14,
+                    name: "Bus Stop",
+                    routes: [busRoute],
+                },
+                {
+                    id: "P2",
+                    stopId: "U1",
+                    code: null,
+                    direction: null,
+                    isMetro: false,
+                    latitude: 50,
+                    longitude: 14,
+                    name: "Bus Stop",
+                    routes: [{ ...busRoute, id: "R2" }],
+                },
+            ]),
+        ).toEqual({
+            isMetro: false,
+            vehicleTypes: [VehicleType.BUS],
+        });
+    });
+
+    it("toLightGraphQLStops returns empty array for empty input", () => {
+        expect(toLightGraphQLStops([])).toEqual([]);
+    });
+
+    it("toGraphqlVehicleType returns null for undefined", () => {
+        expect(toGraphqlVehicleType(undefined)).toBeNull();
+    });
 });

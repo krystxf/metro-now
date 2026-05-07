@@ -19,4 +19,38 @@ describe("getVehicleTypeFromDatabaseType", () => {
             VehicleType.TROLLEYBUS,
         );
     });
+
+    it("maps BUS to BUS", () => {
+        expect(getVehicleTypeFromDatabaseType("BUS")).toBe(VehicleType.BUS);
+    });
+
+    it("maps FERRY to FERRY", () => {
+        expect(getVehicleTypeFromDatabaseType("FERRY")).toBe(VehicleType.FERRY);
+    });
+
+    it("maps FUNICULAR to FUNICULAR", () => {
+        expect(getVehicleTypeFromDatabaseType("FUNICULAR")).toBe(
+            VehicleType.FUNICULAR,
+        );
+    });
+
+    it("maps TRAIN to TRAIN", () => {
+        expect(getVehicleTypeFromDatabaseType("TRAIN")).toBe(VehicleType.TRAIN);
+    });
+
+    it("maps TRAM to TRAM", () => {
+        expect(getVehicleTypeFromDatabaseType("TRAM")).toBe(VehicleType.TRAM);
+    });
+
+    it("returns null for null input", () => {
+        expect(getVehicleTypeFromDatabaseType(null)).toBeNull();
+    });
+
+    it("returns null for undefined input", () => {
+        expect(getVehicleTypeFromDatabaseType(undefined)).toBeNull();
+    });
+
+    it("returns null for unknown string", () => {
+        expect(getVehicleTypeFromDatabaseType("HOVERCRAFT")).toBeNull();
+    });
 });

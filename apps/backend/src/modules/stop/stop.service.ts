@@ -9,19 +9,14 @@ import {
 } from "src/modules/stop/stop-name.utils";
 import {
     type SearchableStopRow,
-    compareStopSearchMatchQuality,
-    compareStopSearchMatchScores,
-    createSearchableStopTerm,
+    buildSearchableStops,
+    compareStopSearchResults,
     getStopSearchMatchScore,
     normalizeStopSearchValue,
-    squaredGeoDistance,
 } from "src/modules/stop/stop-search.utils";
 import { StopRepository } from "src/modules/stop/stop.repository";
 import {
-    type PlatformRouteRecord,
-    type StopEntranceRecord,
     type StopGraphQLRecord,
-    type StopPlatformRecord,
     type StopRecord,
     type StopRecordBase,
     type StopWithDistanceGraphQLRecord,
@@ -64,171 +59,34 @@ export class StopService {
         return fresh;
     }
 
-    private async loadStopRows({
-        ids,
-        limit,
-        offset,
-    }: {
-        ids?: readonly string[];
-        limit?: number;
-        offset?: number;
-    }): Promise<StopRecordBase[]> {
-        return this.stopRepository.findStops({
-            ...(ids ? { ids } : {}),
-            ...(typeof limit === "number" ? { limit } : {}),
-            ...(typeof offset === "number" ? { offset } : {}),
-        });
-    }
-
     private async loadSearchableStopRows(): Promise<SearchableStopRow[]> {
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.getSearchRows(),
             async () => {
                 const [stops, platformRows] = await Promise.all([
-                    this.loadStopRows({}),
+                    this.stopRepository.findStops({}),
                     this.stopRepository.findSearchablePlatformRows(),
                 ]);
-                const platformNamesByStopId = new Map<string, Set<string>>();
-                const stopIdsWithMetroPlatforms = new Set<string>();
 
-                for (const row of platformRows) {
-                    if (!row.stopId) {
-                        continue;
-                    }
-
-                    const platformNames =
-                        platformNamesByStopId.get(row.stopId) ?? new Set();
-
-                    platformNames.add(row.name);
-                    platformNamesByStopId.set(row.stopId, platformNames);
-
-                    if (row.isMetro) {
-                        stopIdsWithMetroPlatforms.add(row.stopId);
-                    }
-                }
-
-                return stops.map((stop) => ({
-                    ...stop,
-                    hasMetro: stopIdsWithMetroPlatforms.has(stop.id),
-                    normalizedStopName: normalizeStopSearchValue(stop.name),
-                    searchTerms: [
-                        createSearchableStopTerm({
-                            sourceRank: 0,
-                            value: stop.name,
-                        }),
-                        ...Array.from(platformNamesByStopId.get(stop.id) ?? [])
-                            .sort((left, right) => left.localeCompare(right))
-                            .map((platformName) =>
-                                createSearchableStopTerm({
-                                    sourceRank: 1,
-                                    value: platformName,
-                                }),
-                            ),
-                    ],
-                }));
+                return buildSearchableStops(stops, platformRows);
             },
             STOP_DATA_CACHE_TTL_MS,
         );
-    }
-
-    private async loadPlatformRoutesByPlatformIds(
-        platformIds: readonly string[],
-    ): Promise<Map<string, PlatformRouteRecord[]>> {
-        const routesByPlatformId = new Map<string, PlatformRouteRecord[]>(
-            platformIds.map((platformId) => [platformId, []]),
-        );
-
-        if (platformIds.length === 0) {
-            return routesByPlatformId;
-        }
-
-        return this.stopRepository.findPlatformRoutesByPlatformIds(platformIds);
-    }
-
-    private async loadPlatformsByStopIds({
-        stopIds,
-        metroOnly,
-        railOnly,
-    }: {
-        stopIds: readonly string[];
-        metroOnly?: boolean;
-        railOnly?: boolean;
-    }): Promise<Map<string, StopPlatformRecord[]>> {
-        const platformsByStopId = new Map<string, StopPlatformRecord[]>(
-            stopIds.map((stopId) => [stopId, []]),
-        );
-
-        if (stopIds.length === 0) {
-            return platformsByStopId;
-        }
-        const loadedPlatformsByStopId =
-            await this.stopRepository.findPlatformsByStopIds({
-                stopIds,
-                ...(metroOnly ? { metroOnly: true } : {}),
-            });
-
-        for (const [stopId, platforms] of loadedPlatformsByStopId) {
-            platformsByStopId.set(stopId, platforms);
-        }
-
-        if (railOnly) {
-            for (const [stopId, platforms] of platformsByStopId) {
-                platformsByStopId.set(stopId, filterRailPlatforms(platforms));
-            }
-        }
-
-        return platformsByStopId;
-    }
-
-    private async loadRailStopIds({
-        limit,
-        offset,
-    }: {
-        limit?: number;
-        offset?: number;
-    }): Promise<string[]> {
-        return this.stopRepository.findRailStopIds({
-            ...(typeof limit === "number" ? { limit } : {}),
-            ...(typeof offset === "number" ? { offset } : {}),
-        });
-    }
-
-    private async loadStopEntrancesByStopIds(
-        stopIds: readonly string[],
-    ): Promise<Map<string, StopEntranceRecord[]>> {
-        const entrancesByStopId = new Map<string, StopEntranceRecord[]>(
-            stopIds.map((stopId) => [stopId, []]),
-        );
-
-        if (stopIds.length === 0) {
-            return entrancesByStopId;
-        }
-
-        return this.stopRepository.findStopEntrancesByStopIds(stopIds);
     }
 
     private async loadGraphQLStopsByIds(
         ids: readonly string[],
         options: StopGraphQLQueryOptions = {},
     ): Promise<Map<string, StopGraphQLRecord | null>> {
-        const stops = await this.loadStopRows({
-            ids,
-        });
+        const stops = await this.stopRepository.findStops({ ids });
         const hydratedStops =
             options.hydrateFields === false
                 ? toLightGraphQLStops(stops)
                 : await this.hydrateGraphQLStops(stops);
-        const stopsById = new Map<string, StopGraphQLRecord | null>(
+
+        return new Map<string, StopGraphQLRecord | null>(
             hydratedStops.map((stop) => [stop.id, stop]),
         );
-
-        for (const id of ids) {
-            if (!stopsById.has(id)) {
-                stopsById.set(id, null);
-            }
-        }
-
-        return stopsById;
     }
 
     private async hydrateGraphQLStops(
@@ -236,10 +94,8 @@ export class StopService {
     ): Promise<StopGraphQLRecord[]> {
         const stopIds = stops.map((stop) => stop.id);
         const [platformsByStopId, entrancesByStopId] = await Promise.all([
-            this.loadPlatformsByStopIds({
-                stopIds,
-            }),
-            this.loadStopEntrancesByStopIds(stopIds),
+            this.stopRepository.findPlatformsByStopIds({ stopIds }),
+            this.stopRepository.findStopEntrancesByStopIds(stopIds),
         ]);
 
         return stops.map((stop) => {
@@ -281,7 +137,7 @@ export class StopService {
             async () => {
                 let stopIds: string[];
                 if (railOnly) {
-                    stopIds = await this.loadRailStopIds({
+                    stopIds = await this.stopRepository.findRailStopIds({
                         ...(typeof limit === "number" ? { limit } : {}),
                         ...(typeof offset === "number" ? { offset } : {}),
                     });
@@ -293,17 +149,26 @@ export class StopService {
                             ...(typeof offset === "number" ? { offset } : {}),
                         });
                 }
-                const stops = await this.loadStopRows({
+                const stops = await this.stopRepository.findStops({
                     ids: stopIds,
                 });
-                const platformsByStopId = await this.loadPlatformsByStopIds({
-                    stopIds: stops.map((stop) => stop.id),
-                    ...(metroOnly ? { metroOnly: true } : {}),
-                    ...(railOnly ? { railOnly: true } : {}),
-                });
-                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-                    stops.map((stop) => stop.id),
-                );
+                const platformsByStopId =
+                    await this.stopRepository.findPlatformsByStopIds({
+                        stopIds: stops.map((stop) => stop.id),
+                        ...(metroOnly ? { metroOnly: true } : {}),
+                    });
+                if (railOnly) {
+                    for (const [stopId, platforms] of platformsByStopId) {
+                        platformsByStopId.set(
+                            stopId,
+                            filterRailPlatforms(platforms),
+                        );
+                    }
+                }
+                const entrancesByStopId =
+                    await this.stopRepository.findStopEntrancesByStopIds(
+                        stops.map((stop) => stop.id),
+                    );
                 const stopById = new Map(stops.map((stop) => [stop.id, stop]));
 
                 return stopIds
@@ -355,7 +220,7 @@ export class StopService {
         hydrateFields?: boolean;
     }): Promise<StopGraphQLRecord[]> {
         if (hydrateFields === false) {
-            const stops = await this.loadStopRows({
+            const stops = await this.stopRepository.findStops({
                 ...(typeof limit === "number" ? { limit } : {}),
                 ...(typeof offset === "number" ? { offset } : {}),
             });
@@ -369,7 +234,7 @@ export class StopService {
                 offset,
             }),
             async () => {
-                const stops = await this.loadStopRows({
+                const stops = await this.stopRepository.findStops({
                     ...(typeof limit === "number" ? { limit } : {}),
                     ...(typeof offset === "number" ? { offset } : {}),
                 });
@@ -424,59 +289,9 @@ export class StopService {
 
                     return score ? [{ score, stop }] : [];
                 })
-                .sort((left, right) => {
-                    const matchQualityOrder = compareStopSearchMatchQuality(
-                        left.score,
-                        right.score,
-                    );
-
-                    if (matchQualityOrder !== 0) {
-                        return matchQualityOrder;
-                    }
-
-                    if (left.stop.hasMetro !== right.stop.hasMetro) {
-                        return left.stop.hasMetro ? -1 : 1;
-                    }
-
-                    const scoreOrder = compareStopSearchMatchScores(
-                        left.score,
-                        right.score,
-                    );
-
-                    if (scoreOrder !== 0) {
-                        return scoreOrder;
-                    }
-
-                    const nameOrder =
-                        left.stop.normalizedStopName.localeCompare(
-                            right.stop.normalizedStopName,
-                        );
-
-                    if (nameOrder !== 0) {
-                        return nameOrder;
-                    }
-
-                    if (origin) {
-                        const leftDistance = squaredGeoDistance(
-                            left.stop.avgLatitude,
-                            left.stop.avgLongitude,
-                            origin.latitude,
-                            origin.longitude,
-                        );
-                        const rightDistance = squaredGeoDistance(
-                            right.stop.avgLatitude,
-                            right.stop.avgLongitude,
-                            origin.latitude,
-                            origin.longitude,
-                        );
-
-                        if (leftDistance !== rightDistance) {
-                            return leftDistance - rightDistance;
-                        }
-                    }
-
-                    return left.stop.id.localeCompare(right.stop.id);
-                })
+                .sort((left, right) =>
+                    compareStopSearchResults(left, right, origin),
+                )
                 .map(({ stop }) => stop);
             const normalizedOffset = offset ?? 0;
             const end =
@@ -511,9 +326,7 @@ export class StopService {
         options: StopGraphQLQueryOptions = {},
     ): Promise<StopGraphQLRecord[]> {
         if (options.hydrateFields === false) {
-            const stops = await this.loadStopRows({
-                ids,
-            });
+            const stops = await this.stopRepository.findStops({ ids });
             const lightStopsById = new Map(
                 toLightGraphQLStops(stops).map((stop) => [stop.id, stop]),
             );
@@ -562,18 +375,11 @@ export class StopService {
         const stops =
             hydrateFields === false
                 ? toLightGraphQLStops(
-                      await this.loadStopRows({
+                      await this.stopRepository.findStops({
                           ids: orderedIds,
                       }),
                   )
-                : await this.getGraphQLByIds(
-                      orderedIds,
-                      hydrateFields === undefined
-                          ? {}
-                          : {
-                                hydrateFields,
-                            },
-                  );
+                : await this.getGraphQLByIds(orderedIds);
         const stopsById = new Map(stops.map((stop) => [stop.id, stop]));
 
         return orderedIds.flatMap((id) => {
@@ -591,7 +397,7 @@ export class StopService {
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.getOne({ id }),
             async () => {
-                const [stop] = await this.loadStopRows({
+                const [stop] = await this.stopRepository.findStops({
                     ids: [id],
                 });
 
@@ -599,12 +405,12 @@ export class StopService {
                     return null;
                 }
 
-                const platformsByStopId = await this.loadPlatformsByStopIds({
-                    stopIds: [id],
-                });
-                const entrancesByStopId = await this.loadStopEntrancesByStopIds(
-                    [id],
-                );
+                const platformsByStopId =
+                    await this.stopRepository.findPlatformsByStopIds({
+                        stopIds: [id],
+                    });
+                const entrancesByStopId =
+                    await this.stopRepository.findStopEntrancesByStopIds([id]);
 
                 return {
                     ...stop,

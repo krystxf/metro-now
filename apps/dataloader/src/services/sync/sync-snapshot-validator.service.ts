@@ -138,25 +138,11 @@ export class SyncSnapshotValidator {
                 );
             }
 
-            if (
-                !Number.isFinite(entrance.latitude) ||
-                entrance.latitude < -90 ||
-                entrance.latitude > 90
-            ) {
-                throw new Error(
-                    `GTFS station entrance has invalid latitude '${entrance.latitude}'`,
-                );
-            }
-
-            if (
-                !Number.isFinite(entrance.longitude) ||
-                entrance.longitude < -180 ||
-                entrance.longitude > 180
-            ) {
-                throw new Error(
-                    `GTFS station entrance has invalid longitude '${entrance.longitude}'`,
-                );
-            }
+            this.assertValidCoordinates(
+                "GTFS station entrance",
+                entrance.latitude,
+                entrance.longitude,
+            );
         }
 
         for (const trip of snapshot.gtfsTrips) {
@@ -233,25 +219,11 @@ export class SyncSnapshotValidator {
 
             for (const [longitude, latitude] of routeShape.geoJson
                 .coordinates) {
-                if (
-                    !Number.isFinite(latitude) ||
-                    latitude < -90 ||
-                    latitude > 90
-                ) {
-                    throw new Error(
-                        `GTFS route shape has invalid latitude '${latitude}'`,
-                    );
-                }
-
-                if (
-                    !Number.isFinite(longitude) ||
-                    longitude < -180 ||
-                    longitude > 180
-                ) {
-                    throw new Error(
-                        `GTFS route shape has invalid longitude '${longitude}'`,
-                    );
-                }
+                this.assertValidCoordinates(
+                    "GTFS route shape",
+                    latitude,
+                    longitude,
+                );
             }
 
             if (!routeShape.isPrimary) {
@@ -293,6 +265,24 @@ export class SyncSnapshotValidator {
     private assertNotEmpty(name: string, items: unknown[]): void {
         if (items.length === 0) {
             throw new Error(`Refusing to sync empty ${name} dataset`);
+        }
+    }
+
+    private assertValidCoordinates(
+        label: string,
+        latitude: number,
+        longitude: number,
+    ): void {
+        if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+            throw new Error(`${label} has invalid latitude '${latitude}'`);
+        }
+
+        if (
+            !Number.isFinite(longitude) ||
+            longitude < -180 ||
+            longitude > 180
+        ) {
+            throw new Error(`${label} has invalid longitude '${longitude}'`);
         }
     }
 

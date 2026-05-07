@@ -11,13 +11,9 @@ import type { ParentType } from "src/types/parent";
 export class RouteResolver {
     constructor(private readonly routeService: RouteService) {}
 
-    private toDatabaseRouteId(id: string): string {
-        return toLookupRouteId(id);
-    }
-
     @Query("route")
     getOne(@Args("id") id: string) {
-        return this.routeService.getOneGraphQL(this.toDatabaseRouteId(id));
+        return this.routeService.getOneGraphQL(toLookupRouteId(id));
     }
 
     @Query("routes")
@@ -47,9 +43,6 @@ export class RouteResolver {
         @Parent() route: ParentType<typeof this.getMany>,
     ): VehicleType {
         const persistedVehicleType =
-            typeof route === "object" &&
-            route !== null &&
-            "vehicleType" in route &&
             typeof route.vehicleType === "string"
                 ? getVehicleTypeFromDatabaseType(route.vehicleType)
                 : null;
@@ -60,22 +53,12 @@ export class RouteResolver {
 
         return this.routeService.getVehicleTypeForRoute({
             routeName: route.name ?? "",
-            ...((typeof route === "object" &&
-            route !== null &&
-            "feed" in route &&
-            typeof route.feed === "string"
-                ? {
-                      feedId: route.feed as GtfsFeedId,
-                  }
-                : {}) as { feedId?: GtfsFeedId | null }),
-            ...((typeof route === "object" &&
-            route !== null &&
-            "type" in route &&
-            typeof route.type === "string"
-                ? {
-                      gtfsRouteType: route.type,
-                  }
-                : {}) as { gtfsRouteType?: string | null }),
+            ...(typeof route.feed === "string"
+                ? { feedId: route.feed as GtfsFeedId }
+                : {}),
+            ...(typeof route.type === "string"
+                ? { gtfsRouteType: route.type }
+                : {}),
         });
     }
 }
