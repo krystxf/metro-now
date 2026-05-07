@@ -69,12 +69,21 @@
         "moduleFileExtensions": ["js", "json", "ts"],
         "rootDir": "./",
         "modulePaths": ["<rootDir>"],
-        "testRegex": ".*\\.spec\\.ts$",
+        "testRegex": "src/.*\\.spec\\.ts$",
         "transform": {
             "^.+\\.ts$": "ts-jest"
         },
-        "collectCoverageFrom": ["**/*.(t|j)s"],
-        "coverageDirectory": "../coverage",
+        "collectCoverageFrom": [
+            "src/**/*.ts",
+            "!src/**/*.spec.ts",
+            "!src/**/*.d.ts",
+            "!src/main.ts",
+            "!src/scripts/**",
+            "!src/types/graphql.generated.ts"
+        ],
+        "coveragePathIgnorePatterns": ["/node_modules/", "/dist/"],
+        "coverageDirectory": "./coverage",
+        "coverageReporters": ["text-summary", "lcov", "json-summary"],
         "testEnvironment": "node"
     }
 }
