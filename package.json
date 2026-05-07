@@ -15,6 +15,7 @@
         "lint:fix": "turbo run lint:fix",
         "app:format": "swiftformat apps/mobile",
         "test:unit": "turbo run test:unit",
+        "test:cov": "turbo run test:cov",
         "types:check": "turbo run types:check",
         "typegen": "turbo run typegen",
         "docker:up:dev": "docker compose up postgres redis",

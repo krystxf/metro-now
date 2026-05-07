@@ -27,6 +27,10 @@
       "dependsOn": ["typegen", "^build"],
       "outputs": []
     },
+    "test:cov": {
+      "dependsOn": ["typegen", "^build"],
+      "outputs": ["coverage/**"]
+    },
     "test:e2e": {
       "dependsOn": ["typegen", "^build"],
       "outputs": []
