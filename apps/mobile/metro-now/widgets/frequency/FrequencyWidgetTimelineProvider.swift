@@ -6,18 +6,16 @@ import WidgetKit
 struct FrequencyWidgetTimelineProvider: TimelineProvider {
     private let stopManager = FrequencyWidgetManager()
 
-    func placeholder(in _: Context) -> FrequencyWidgetTimelineEntry {
+    private func previewEntry() -> FrequencyWidgetTimelineEntry {
         FrequencyWidgetTimelineEntry(date: Date(), stopName: "Muzeum", frequency: 2 * 60)
     }
 
-    func getSnapshot(in _: Context, completion: @escaping (FrequencyWidgetTimelineEntry) -> Void) {
-        let entry = FrequencyWidgetTimelineEntry(
-            date: Date(),
-            stopName: "Muzeum",
-            frequency: 2 * 60
-        )
+    func placeholder(in _: Context) -> FrequencyWidgetTimelineEntry {
+        previewEntry()
+    }
 
-        completion(entry)
+    func getSnapshot(in _: Context, completion: @escaping (FrequencyWidgetTimelineEntry) -> Void) {
+        completion(previewEntry())
     }
 
     func getTimeline(
