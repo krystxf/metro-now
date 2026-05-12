@@ -2,6 +2,10 @@ import { GtfsFeedId } from "@metro-now/database";
 import { classifyRoute } from "@metro-now/shared";
 
 import {
+    POSTGRES_UNDEFINED_TABLE,
+    hasPostgresErrorCode,
+} from "src/common/postgres-error.utils";
+import {
     getVehicleTypeFromDatabaseType,
     getVehicleTypeFromGtfsType,
 } from "src/modules/route/route-vehicle-type.utils";
@@ -21,23 +25,14 @@ export const isMissingTableError = (
     error: unknown,
     tableName: string,
 ): boolean => {
-    if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        error.code === "42P01"
-    ) {
+    if (hasPostgresErrorCode(error, [POSTGRES_UNDEFINED_TABLE])) {
         return true;
     }
 
-    if (
+    return (
         error instanceof Error &&
         error.message.includes(`relation "${tableName}" does not exist`)
-    ) {
-        return true;
-    }
-
-    return false;
+    );
 };
 
 export const isSubstituteRoute = (routeName: string): boolean =>

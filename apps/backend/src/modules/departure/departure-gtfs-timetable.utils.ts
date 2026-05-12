@@ -1,5 +1,10 @@
 import { type DatabaseClient, GtfsFeedId } from "@metro-now/database";
 
+import {
+    POSTGRES_UNDEFINED_COLUMN,
+    POSTGRES_UNDEFINED_TABLE,
+    hasPostgresErrorCode,
+} from "src/common/postgres-error.utils";
 import { uniqueSortedStrings } from "src/constants/cache";
 
 import {
@@ -7,18 +12,15 @@ import {
     parseGtfsTimeToSeconds,
 } from "./prague-gtfs-time.utils";
 
+// Only rely on Postgres SQLSTATE codes here. Substring matching on error
+// messages was too broad — any error mentioning "column" or "relation"
+// would flip gtfsTimetableFallbackAvailable to false and permanently
+// disable non-PID departures for the process lifetime.
 export function isMissingGtfsTimetableError(error: unknown): boolean {
-    // Only rely on Postgres SQLSTATE codes: 42P01 (undefined_table) and
-    // 42703 (undefined_column). Substring matching on error messages was
-    // too broad — any error mentioning "column" or "relation" would flip
-    // gtfsTimetableFallbackAvailable to false and permanently disable
-    // non-PID departures for the process lifetime.
-    return (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error.code === "42P01" || error.code === "42703")
-    );
+    return hasPostgresErrorCode(error, [
+        POSTGRES_UNDEFINED_TABLE,
+        POSTGRES_UNDEFINED_COLUMN,
+    ]);
 }
 
 export async function getActiveGtfsServiceIdsForDates(
