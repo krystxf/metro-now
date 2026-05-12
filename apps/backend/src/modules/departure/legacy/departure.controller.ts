@@ -117,8 +117,6 @@ export class DepartureController {
             minutesAfter: parsedQuery.minutesAfter ?? 2 * 60,
         });
 
-        departureSchema.array().parse(departures);
-
-        return departures;
+        return departureSchema.array().parse(departures);
     }
 }
