@@ -44,11 +44,25 @@ struct PidZoneBorderPolyline: Identifiable {
 }
 
 enum PidZoneBorderLoader {
-    static func load() async -> [PidZoneBorderPolyline] {
-        await Task.detached(priority: .utility) {
-            loadSynchronously()
+    private actor Cache {
+        private var task: Task<[PidZoneBorderPolyline], Never>?
+
+        func load() async -> [PidZoneBorderPolyline] {
+            if let task {
+                return await task.value
+            }
+            let new = Task.detached(priority: .utility) {
+                PidZoneBorderLoader.loadSynchronously()
+            }
+            task = new
+            return await new.value
         }
-        .value
+    }
+
+    private static let cache = Cache()
+
+    static func load() async -> [PidZoneBorderPolyline] {
+        await cache.load()
     }
 
     private static func loadSynchronously() -> [PidZoneBorderPolyline] {

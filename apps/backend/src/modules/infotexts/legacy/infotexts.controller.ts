@@ -1,0 +1,22 @@
+import { CacheInterceptor, CacheTTL } from "@nestjs/cache-manager";
+import { Controller, Get, UseInterceptors, Version } from "@nestjs/common";
+
+import { EndpointVersion } from "src/enums/endpoint-version";
+import { InfotextsService } from "src/modules/infotexts/infotexts.service";
+
+/**
+ * @deprecated Legacy REST surface. Frozen — consumed by the separate Android
+ * client. No new features; all new work goes through the GraphQL resolver.
+ */
+@Controller("infotexts")
+@UseInterceptors(CacheInterceptor)
+@CacheTTL(4 * 1000)
+export class InfotextsController {
+    constructor(private readonly infotextsService: InfotextsService) {}
+
+    @Get("/")
+    @Version([EndpointVersion.v1])
+    async getInfotextsV1() {
+        return this.infotextsService.getAll();
+    }
+}

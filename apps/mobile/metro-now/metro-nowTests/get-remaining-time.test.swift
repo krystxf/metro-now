@@ -2,6 +2,7 @@
 // https://github.com/krystxf/metro-now
 
 import Foundation
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.utils))
@@ -39,7 +40,7 @@ struct GetRemainingTimeTests {
             "minutes",
             arguments: zip(
                 [60, 3540, 3599],
-                ["1m 0s", "59m 0s", "59m 59s"]
+                ["1m", "59m", "59m 59s"]
             )
         )
         func getRemainingTimeMinutes(
@@ -59,7 +60,7 @@ struct GetRemainingTimeTests {
                     3659 + 3540,
                 ],
                 [
-                    "1h 0m",
+                    "1h",
                     "1h 1m",
                     "1h 1m",
                     "1h 59m",
@@ -93,7 +94,7 @@ struct GetRemainingTimeTests {
             "minutes",
             arguments: zip(
                 [-60, -3540, -3599],
-                ["-1m 0s", "-59m 0s", "-59m 59s"]
+                ["-1m", "-59m", "-59m 59s"]
             )
         )
         func testGetRemainingTimeMinutes(
@@ -113,7 +114,7 @@ struct GetRemainingTimeTests {
                     -3659 - 3540,
                 ],
                 [
-                    "-1h 0m",
+                    "-1h",
                     "-1h 1m",
                     "-1h 1m",
                     "-1h 59m",

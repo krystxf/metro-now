@@ -5,6 +5,7 @@ export const platformWithDistanceSchema = z.object({
     latitude: z.number(),
     longitude: z.number(),
     name: z.string(),
+    direction: z.string().nullable().optional(),
     routes: z
         .object({
             id: z.string(),

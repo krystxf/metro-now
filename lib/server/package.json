@@ -1,0 +1,24 @@
+{
+    "name": "@metro-now/server",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "lint": "biome check --config-path ../../biome.json ../../lib/server/src ../../lib/server/package.json ../../lib/server/tsconfig.json",
+        "lint:fix": "biome check --config-path ../../biome.json ../../lib/server/src ../../lib/server/package.json ../../lib/server/tsconfig.json --write",
+        "test:unit": "pnpm run build && node --test $(find dist/tests -name '*.spec.js' -type f)",
+        "types:check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@metro-now/database": "workspace:*",
+        "kysely": "^0.28.14",
+        "pg": "^8.20.0",
+        "zod": "^3.24.2"
+    },
+    "devDependencies": {
+        "@types/node": "^25.5.0",
+        "@types/pg": "^8.15.5",
+        "typescript": "^5.8.3"
+    }
+}

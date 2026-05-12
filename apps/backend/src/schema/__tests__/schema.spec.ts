@@ -105,6 +105,7 @@ describe("GraphQL schema", () => {
             "stops",
             "stop",
             "searchStops",
+            "closestStops",
             "stopDataLastUpdatedAt",
             "platforms",
             "platform",
@@ -221,12 +222,18 @@ describe("GraphQL schema", () => {
             }
         });
 
-        it("searchStops query requires query and accepts optional limit, offset", () => {
+        it("searchStops query requires query and accepts optional limit, offset, latitude, longitude", () => {
             const field = getQueryFields(schema).searchStops;
             const argNames = field.args.map((a) => a.name);
             const queryArg = field.args.find((a) => a.name === "query");
 
-            expect(argNames).toEqual(["query", "limit", "offset"]);
+            expect(argNames).toEqual([
+                "query",
+                "limit",
+                "offset",
+                "latitude",
+                "longitude",
+            ]);
 
             if (!queryArg) {
                 throw new Error("Expected query argument on searchStops query");

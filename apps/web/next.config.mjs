@@ -1,8 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import nextra from "nextra";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Configure `pageExtensions` to include markdown and MDX files
+    output: "standalone",
+    outputFileTracingRoot: path.join(__dirname, "../.."),
     pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
     images: {
         formats: ["image/avif", "image/webp"],

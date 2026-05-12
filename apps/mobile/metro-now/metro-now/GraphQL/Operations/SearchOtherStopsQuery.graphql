@@ -1,5 +1,15 @@
-query SearchOtherStops($query: String!, $limit: Int!) {
-  searchStops(query: $query, limit: $limit) {
+query SearchOtherStops(
+  $query: String!
+  $limit: Int!
+  $latitude: Float
+  $longitude: Float
+) {
+  searchStops(
+    query: $query
+    limit: $limit
+    latitude: $latitude
+    longitude: $longitude
+  ) {
     id
     name
     avgLatitude
@@ -16,10 +26,15 @@ query SearchOtherStops($query: String!, $limit: Int!) {
       longitude
       name
       code
+      direction
       isMetro
       routes {
         id
         name
+        color
+        feed
+        vehicleType
+        isNight
       }
     }
   }

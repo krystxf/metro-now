@@ -3,6 +3,7 @@
 
 import Apollo
 import ApolloAPI
+import ApolloSQLite
 import Foundation
 
 private func appRequestHeaders() -> [String: String] {
@@ -13,49 +14,109 @@ private func appRequestHeaders() -> [String: String] {
     ]
 }
 
-private let apolloClient: ApolloClient = {
-    let store = ApolloStore(cache: InMemoryNormalizedCache())
+private func makeApolloCache() -> any NormalizedCache {
+    guard let cachesDir = FileManager.default.urls(
+        for: .cachesDirectory,
+        in: .userDomainMask
+    ).first else {
+        return InMemoryNormalizedCache()
+    }
+    let fileURL = cachesDir.appendingPathComponent("apollo_cache.sqlite")
+    do {
+        return try SQLiteNormalizedCache(fileURL: fileURL)
+    } catch {
+        print("Failed to init SQLiteNormalizedCache at \(fileURL): \(error). Falling back to in-memory.")
+        return InMemoryNormalizedCache()
+    }
+}
+
+private let apolloStore = ApolloStore(cache: makeApolloCache())
+
+private func makeURLSession() -> URLSession {
     let configuration = URLSessionConfiguration.default
     configuration.urlCache = nil
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+    return URLSession(configuration: configuration)
+}
+
+private let apolloClient: ApolloClient = {
+    print("[GraphQL] endpoint=\(GRAPHQL_URL)")
 
     let transport = RequestChainNetworkTransport(
-        urlSession: URLSession(configuration: configuration),
+        urlSession: makeURLSession(),
         interceptorProvider: DefaultInterceptorProvider.shared,
-        store: store,
+        store: apolloStore,
         endpointURL: URL(string: GRAPHQL_URL)!,
         additionalHeaders: appRequestHeaders()
     )
 
     return ApolloClient(
         networkTransport: transport,
-        store: store,
-        defaultRequestConfiguration: RequestConfiguration(
-            writeResultsToCache: false
-        )
+        store: apolloStore
     )
 }()
 
+private let persistedApolloClient: ApolloClient = {
+    let transport = RequestChainNetworkTransport(
+        urlSession: makeURLSession(),
+        interceptorProvider: DefaultInterceptorProvider.shared,
+        store: apolloStore,
+        endpointURL: URL(string: GRAPHQL_URL)!,
+        additionalHeaders: appRequestHeaders(),
+        apqConfig: AutoPersistedQueryConfiguration(autoPersistQueries: true),
+        useGETForQueries: true
+    )
+
+    return ApolloClient(
+        networkTransport: transport,
+        store: apolloStore
+    )
+}()
+
+private let persistedOperationNames: Set<String> = ["AllStopsLight"]
+
+func clearGraphQLCache() async throws {
+    try await apolloClient.clearCache()
+}
+
 func fetchGraphQLQuery<Query: ApolloAPI.GraphQLQuery>(
     _ query: Query,
-    cachePolicy: CachePolicy.Query.SingleResponse = .networkOnly
+    cachePolicy: CachePolicy.Query.SingleResponse = .networkFirst
 ) async throws -> Query.Data where Query.ResponseFormat == ApolloAPI.SingleResponseFormat {
-    let response = try await apolloClient.fetch(
-        query: query,
-        cachePolicy: cachePolicy
-    )
+    let opName = type(of: query).operationName
+    let client = persistedOperationNames.contains(opName) ? persistedApolloClient : apolloClient
+    let startedAt = Date()
+    do {
+        print("[GraphQL] \(opName) start cachePolicy=\(String(describing: cachePolicy))")
+        let response = try await client.fetch(
+            query: query,
+            cachePolicy: cachePolicy
+        )
 
-    if let data = response.data {
-        return data
+        if let errors = response.errors, !errors.isEmpty {
+            print("[GraphQL] \(opName) errors: \(errors.map(\.localizedDescription).joined(separator: "; "))")
+        }
+
+        if let data = response.data {
+            let elapsedMs = Int(Date().timeIntervalSince(startedAt) * 1000)
+            print("[GraphQL] \(opName) success in \(elapsedMs)ms")
+            return data
+        }
+
+        let message = response.errors?
+            .map(\.localizedDescription)
+            .joined(separator: "\n")
+            ?? "Missing GraphQL response data"
+        let elapsedMs = Int(Date().timeIntervalSince(startedAt) * 1000)
+        print("[GraphQL] \(opName) no data after \(elapsedMs)ms: \(message)")
+        throw NSError(
+            domain: "GraphQL",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: message]
+        )
+    } catch {
+        let elapsedMs = Int(Date().timeIntervalSince(startedAt) * 1000)
+        print("[GraphQL] \(opName) transport error after \(elapsedMs)ms: \(error.localizedDescription)")
+        throw error
     }
-
-    let message = response.errors?
-        .map(\.localizedDescription)
-        .joined(separator: "\n")
-        ?? "Missing GraphQL response data"
-    throw NSError(
-        domain: "GraphQL",
-        code: 1,
-        userInfo: [NSLocalizedDescriptionKey: message]
-    )
 }

@@ -1,6 +1,7 @@
 import type { Cache } from "@nestjs/cache-manager";
 
 import type { DatabaseService } from "src/modules/database/database.service";
+import { StopRepository } from "src/modules/stop/stop.repository";
 import { StopService } from "src/modules/stop/stop.service";
 
 type QueryRow = Record<string, unknown>;
@@ -228,21 +229,23 @@ describe("StopService", () => {
                     id: "U1072Z101P",
                     name: "Můstek",
                     code: null,
+                    direction: null,
                     isMetro: true,
                     latitude: 50.08312,
                     longitude: 14.4249659,
                     stopId: "U1072",
-                    routeName: "A",
+                    shortName: "A",
                 },
                 {
                     id: "U1072Z1P",
                     name: "Václavské náměstí",
                     code: null,
+                    direction: null,
                     isMetro: false,
                     latitude: 50.08167,
                     longitude: 14.4252787,
                     stopId: "U1072",
-                    routeName: "176",
+                    shortName: "176",
                 },
                 ...extraPlatforms,
             ],
@@ -250,16 +253,20 @@ describe("StopService", () => {
                 {
                     platformId: "U1072Z101P",
                     routeId: "L991",
-                    routeName: "A",
                     id: "L991",
-                    name: "A",
+                    shortName: "A",
+                    color: null,
+                    feedId: "PID",
+                    vehicleType: "METRO",
                 },
                 {
                     platformId: "U1072Z1P",
                     routeId: "L176",
-                    routeName: "176",
                     id: "L176",
-                    name: "176",
+                    shortName: "176",
+                    color: null,
+                    feedId: "PID",
+                    vehicleType: "BUS",
                 },
                 ...extraPlatformsOnRoutes,
             ],
@@ -287,9 +294,11 @@ describe("StopService", () => {
             wrap: jest.fn(async (_key: string, callback: () => unknown) =>
                 callback(),
             ),
+            get: jest.fn(async () => undefined),
+            set: jest.fn(async () => undefined),
         } as unknown as Cache;
 
-        return new StopService(database, cacheManager);
+        return new StopService(new StopRepository(database), cacheManager);
     };
 
     it("uses the metro platform name for metroOnly stop payloads", async () => {
@@ -362,20 +371,23 @@ describe("StopService", () => {
                     id: "TLP:leo-1",
                     name: "Václavské náměstí",
                     code: null,
+                    direction: null,
                     isMetro: false,
                     latitude: 50.0819,
                     longitude: 14.4256,
                     stopId: "U1072",
-                    routeName: "LE 100",
+                    shortName: "LE 100",
                 },
             ],
             extraPlatformsOnRoutes: [
                 {
                     platformId: "TLP:leo-1",
                     routeId: "LTL:leo-route",
-                    routeName: "LE 100",
                     id: "LTL:leo-route",
-                    name: "LE 100",
+                    shortName: "LE 100",
+                    color: null,
+                    feedId: "LEO",
+                    vehicleType: "TRAIN",
                 },
             ],
         });
@@ -414,20 +426,23 @@ describe("StopService", () => {
                     id: "TLP:leo-standalone",
                     name: "Praha hl.n.",
                     code: null,
+                    direction: null,
                     isMetro: false,
                     latitude: 50.0839,
                     longitude: 14.4359,
                     stopId: "TLS:leo-standalone",
-                    routeName: "LE 100",
+                    shortName: "LE 100",
                 },
             ],
             extraPlatformsOnRoutes: [
                 {
                     platformId: "TLP:leo-standalone",
                     routeId: "LTL:leo-route",
-                    routeName: "LE 100",
                     id: "LTL:leo-route",
-                    name: "LE 100",
+                    shortName: "LE 100",
+                    color: null,
+                    feedId: "LEO",
+                    vehicleType: "TRAIN",
                 },
             ],
         });
@@ -550,20 +565,23 @@ describe("StopService", () => {
                     id: "BUS100P1",
                     name: "Trmice,Bělský můstek",
                     code: null,
+                    direction: null,
                     isMetro: false,
                     latitude: 50.612,
                     longitude: 13.98,
                     stopId: "BUS100",
-                    routeName: "11",
+                    shortName: "11",
                 },
             ],
             extraPlatformsOnRoutes: [
                 {
                     platformId: "BUS100P1",
                     routeId: "L11",
-                    routeName: "11",
                     id: "L11",
-                    name: "11",
+                    shortName: "11",
+                    color: null,
+                    feedId: "USTI",
+                    vehicleType: "BUS",
                 },
             ],
         });
@@ -596,6 +614,47 @@ describe("StopService", () => {
                 id: "U1072",
                 name: "Václavské náměstí",
             }),
+        ]);
+    });
+
+    it("uses provided coordinates as a tie-breaker between same-named stops", async () => {
+        const service = createService({
+            extraStops: [
+                {
+                    id: "SAME_A",
+                    name: "Duplikát",
+                    avgLatitude: 50.1,
+                    avgLongitude: 14.4,
+                },
+                {
+                    id: "SAME_B",
+                    name: "Duplikát",
+                    avgLatitude: 50.9,
+                    avgLongitude: 15.2,
+                },
+            ],
+        });
+
+        const nearerFirst = await service.searchGraphQL({
+            query: "duplikát",
+            latitude: 50.1,
+            longitude: 14.4,
+        });
+
+        expect(nearerFirst.map((stop) => stop.id).slice(0, 2)).toEqual([
+            "SAME_A",
+            "SAME_B",
+        ]);
+
+        const reversed = await service.searchGraphQL({
+            query: "duplikát",
+            latitude: 50.9,
+            longitude: 15.2,
+        });
+
+        expect(reversed.map((stop) => stop.id).slice(0, 2)).toEqual([
+            "SAME_B",
+            "SAME_A",
         ]);
     });
 
@@ -633,7 +692,10 @@ describe("StopService", () => {
         const cacheManager = {
             wrap: jest.fn(),
         } as unknown as Cache;
-        const service = new StopService(database, cacheManager);
+        const service = new StopService(
+            new StopRepository(database),
+            cacheManager,
+        );
 
         await expect(service.getDataLastUpdatedAt()).resolves.toBe(
             "2026-04-11T09:30:00.000Z",
@@ -659,7 +721,10 @@ describe("StopService", () => {
         const cacheManager = {
             wrap: jest.fn(),
         } as unknown as Cache;
-        const service = new StopService(database, cacheManager);
+        const service = new StopService(
+            new StopRepository(database),
+            cacheManager,
+        );
 
         await expect(service.getDataLastUpdatedAt()).resolves.toBeNull();
     });

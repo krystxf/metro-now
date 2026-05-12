@@ -2,6 +2,7 @@
 // https://github.com/krystxf/metro-now
 
 import Foundation
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.api))
@@ -25,6 +26,7 @@ struct ApiPlatformSupportsTests {
             delay: 0,
             route: route,
             routeId: routeId,
+            routeColor: nil,
             isRealtime: nil
         )
     }

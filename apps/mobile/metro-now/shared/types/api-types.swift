@@ -107,18 +107,45 @@ struct ApiPlatform: Codable {
     let latitude, longitude: Double
     let name: String
     let code: String?
+    let direction: String?
     let isMetro: Bool
     let routes: [ApiRoute]
+
+    init(
+        id: String,
+        latitude: Double,
+        longitude: Double,
+        name: String,
+        code: String?,
+        direction: String? = nil,
+        isMetro: Bool,
+        routes: [ApiRoute]
+    ) {
+        self.id = id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.name = name
+        self.code = code
+        self.direction = direction
+        self.isMetro = isMetro
+        self.routes = routes
+    }
 }
 
 struct ApiRoute: Codable {
     let id, name: String
     let color: String?
+    let feed: String?
+    let vehicleType: String?
+    let isNight: Bool?
 
-    init(id: String, name: String, color: String? = nil) {
+    init(id: String, name: String, color: String? = nil, feed: String? = nil, vehicleType: String? = nil, isNight: Bool? = nil) {
         self.id = id
         self.name = name
         self.color = color
+        self.feed = feed
+        self.vehicleType = vehicleType
+        self.isNight = isNight
     }
 }
 
@@ -283,6 +310,7 @@ struct ApiRoutePlatform: Identifiable, Decodable {
     let name: String
     let isMetro: Bool
     let code: String?
+    let direction: String?
 }
 
 extension ApiRoutePlatform {
@@ -311,7 +339,7 @@ struct ApiRouteDetail: Decodable {
     let isNight: Bool
     let color: String?
     let url: String?
-    let type: String
+    let vehicleType: String
     let directions: [ApiRouteDirection]
     let shapes: [ApiRouteShape]
 
@@ -323,7 +351,8 @@ struct ApiRouteDetail: Decodable {
         case isNight
         case color
         case url
-        case type
+        case vehicleType
+        case legacyType = "type"
         case directions
         case shapes
     }
@@ -338,7 +367,9 @@ struct ApiRouteDetail: Decodable {
         isNight = try container.decodeIfPresent(Bool.self, forKey: .isNight) ?? false
         color = try container.decodeIfPresent(String.self, forKey: .color)
         url = try container.decodeIfPresent(String.self, forKey: .url)
-        type = try container.decode(String.self, forKey: .type)
+        vehicleType =
+            try container.decodeIfPresent(String.self, forKey: .vehicleType)
+                ?? container.decode(String.self, forKey: .legacyType)
         directions = try container.decode([ApiRouteDirection].self, forKey: .directions)
         shapes = try container.decodeIfPresent([ApiRouteShape].self, forKey: .shapes) ?? []
     }
@@ -351,7 +382,7 @@ struct ApiRouteDetail: Decodable {
         isNight: Bool,
         color: String?,
         url: String?,
-        type: String,
+        vehicleType: String,
         directions: [ApiRouteDirection],
         shapes: [ApiRouteShape]
     ) {
@@ -362,7 +393,7 @@ struct ApiRouteDetail: Decodable {
         self.isNight = isNight
         self.color = color
         self.url = url
-        self.type = type
+        self.vehicleType = vehicleType
         self.directions = directions
         self.shapes = shapes
     }
@@ -415,7 +446,41 @@ struct ApiDeparture: Codable {
 
     let route: String
     let routeId: String?
+    let routeColor: String?
+    let routeFeed: String?
+    let routeVehicleType: String?
+    let routeIsNight: Bool?
     let isRealtime: Bool?
+
+    init(
+        id: String?,
+        platformId: String,
+        platformCode: String?,
+        headsign: String,
+        departure: ApiDepartureDate,
+        delay: Int,
+        route: String,
+        routeId: String?,
+        routeColor: String?,
+        routeFeed: String? = nil,
+        routeVehicleType: String? = nil,
+        routeIsNight: Bool? = nil,
+        isRealtime: Bool?
+    ) {
+        self.id = id
+        self.platformId = platformId
+        self.platformCode = platformCode
+        self.headsign = headsign
+        self.departure = departure
+        self.delay = delay
+        self.route = route
+        self.routeId = routeId
+        self.routeColor = routeColor
+        self.routeFeed = routeFeed
+        self.routeVehicleType = routeVehicleType
+        self.routeIsNight = routeIsNight
+        self.isRealtime = isRealtime
+    }
 }
 
 struct MetroDepartureRow: Identifiable {
@@ -424,9 +489,9 @@ struct MetroDepartureRow: Identifiable {
     let previewRouteId: String?
     let headsign: String
     let departure: Date
-    let nextHeadsign: String?
     let nextDeparture: Date?
     let platformId: String
+    let platformCode: String?
     let platformName: String
 }
 
@@ -456,11 +521,6 @@ func buildPlatformDepartureGroups(
     )
 }
 
-private struct MetroDepartureGroupKey: Hashable {
-    let routeLabel: String
-    let headsign: String
-}
-
 func buildMetroDepartureRows(
     for stop: ApiStop,
     departures: [ApiDeparture]?
@@ -476,59 +536,86 @@ func buildMetroDepartureRows(
         }
     )
 
-    let groupedDepartures = Dictionary(
-        grouping: departures.filter { departure in
-            guard let platform = metroPlatformsById[departure.platformId] else {
-                return false
-            }
+    let rows = departures.enumerated().compactMap { index, departure -> MetroDepartureRow? in
+        guard
+            let platform = metroPlatformsById[departure.platformId],
+            platform.supports(departure)
+        else {
+            return nil
+        }
 
-            return platform.supports(departure)
-        },
-        by: { departure in
-            MetroDepartureGroupKey(
-                routeLabel: departure.route,
-                headsign: departure.headsign.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-            )
+        let previewRouteId = departure.routeId
+            ?? platform.routes.first(where: { route in
+                route.name == departure.route
+            })?.backendRouteId
+            ?? platform.routes.first?.backendRouteId
+
+        return MetroDepartureRow(
+            id: departure.id ?? "\(platform.id)-\(index)",
+            routeLabel: departure.route,
+            previewRouteId: previewRouteId,
+            headsign: departure.headsign,
+            departure: departure.departure.predicted,
+            nextDeparture: nil,
+            platformId: platform.id,
+            platformCode: platform.code,
+            platformName: platform.name
+        )
+    }
+    .sorted { left, right in
+        left.departure < right.departure
+    }
+
+    let rowsBySequenceKey = Dictionary(
+        grouping: rows.enumerated(),
+        by: { _, row in
+            "\(row.platformId)|\(row.routeLabel)|\(row.headsign)"
         }
     )
 
-    return groupedDepartures.values
-        .compactMap { groupedDepartures -> MetroDepartureRow? in
-            let sortedDepartures = groupedDepartures.sorted { left, right in
-                left.departure.predicted < right.departure.predicted
+    return rows.enumerated().map { index, row in
+        let sequenceKey = "\(row.platformId)|\(row.routeLabel)|\(row.headsign)"
+        let nextDeparture = rowsBySequenceKey[sequenceKey]?
+            .first(where: { nextIndex, _ in nextIndex > index })?
+            .element.departure
+
+        return MetroDepartureRow(
+            id: row.id,
+            routeLabel: row.routeLabel,
+            previewRouteId: row.previewRouteId,
+            headsign: row.headsign,
+            departure: row.departure,
+            nextDeparture: nextDeparture,
+            platformId: row.platformId,
+            platformCode: row.platformCode,
+            platformName: row.platformName
+        )
+    }
+}
+
+struct ApiInfotextRelatedStop: Codable {
+    let name: String
+}
+
+struct ApiInfotext: Codable {
+    let id: String
+    let text: String
+    let textEn: String?
+    let priority: String
+    let displayType: String
+    let validFrom: String?
+    let validTo: String?
+    let relatedStops: [ApiInfotextRelatedStop]
+
+    var relatedStopNames: [String] {
+        relatedStops.reduce(into: [String]()) { result, stop in
+            guard !stop.name.isEmpty, !result.contains(stop.name) else {
+                return
             }
 
-            guard
-                let departure = sortedDepartures.first,
-                let platform = metroPlatformsById[departure.platformId]
-            else {
-                return nil
-            }
-
-            let nextDeparture = sortedDepartures.dropFirst().first
-            let previewRouteId = departure.routeId
-                ?? platform.routes.first(where: { route in
-                    route.name == departure.route
-                })?.backendRouteId
-                ?? platform.routes.first?.backendRouteId
-
-            return MetroDepartureRow(
-                id: "\(departure.route)|\(departure.headsign)",
-                routeLabel: departure.route,
-                previewRouteId: previewRouteId,
-                headsign: departure.headsign,
-                departure: departure.departure.predicted,
-                nextHeadsign: nextDeparture?.headsign,
-                nextDeparture: nextDeparture?.departure.predicted,
-                platformId: platform.id,
-                platformName: platform.name
-            )
+            result.append(stop.name)
         }
-        .sorted { left, right in
-            left.departure < right.departure
-        }
+    }
 }
 
 private extension Double {

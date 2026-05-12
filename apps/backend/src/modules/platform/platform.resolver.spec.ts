@@ -40,6 +40,7 @@ describe("PlatformResolver", () => {
                 id: "U1072Z101P",
                 name: "Můstek",
                 code: "1",
+                direction: null,
                 isMetro: true,
                 latitude: 50.08,
                 longitude: 14.42,

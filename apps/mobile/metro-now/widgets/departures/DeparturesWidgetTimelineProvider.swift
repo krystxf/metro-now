@@ -5,6 +5,7 @@ import Foundation
 import WidgetKit
 
 private let departuresWidgetReloadInterval: TimeInterval = 45
+private let departuresWidgetNextDepartureDisplayThreshold: TimeInterval = 12 * 60 * 60
 
 /// One-second timeline entries so countdown / “Xs ago” advance without relying on `TimelineView` (animation
 /// schedules are often idle on the home screen; periodic timelines are throttled).
@@ -81,6 +82,7 @@ struct DeparturesWidgetTimelineProvider: AppIntentTimelineProvider {
         let apiDepartures = await DeparturesWidgetManager.fetchDepartures(platformIds: platformIds)
 
         let metroLineOrder = ["A", "B", "C"]
+        let at = Date()
 
         let rows = buildMetroDepartureRows(for: stop, departures: apiDepartures) ?? []
         let departures = rows
@@ -89,7 +91,10 @@ struct DeparturesWidgetTimelineProvider: AppIntentTimelineProvider {
                     routeLabel: row.routeLabel,
                     headsign: row.headsign,
                     departureTime: row.departure,
-                    nextDepartureTime: row.nextDeparture
+                    nextDepartureTime: visibleNextDepartureTime(
+                        for: row,
+                        referenceDate: at
+                    )
                 )
             }
             .sorted { lhs, rhs in
@@ -99,9 +104,23 @@ struct DeparturesWidgetTimelineProvider: AppIntentTimelineProvider {
                 return lhs.headsign.localizedCompare(rhs.headsign) == .orderedAscending
             }
 
-        let at = Date()
         let entries = secondStaggeredEntries(base: at, stopName: stop.name, departures: departures)
         // Reload when the last staggered second elapses so we fetch fresh departures and emit a new fan-out.
         return Timeline(entries: entries, policy: .after(at.addingTimeInterval(60)))
     }
+}
+
+private func visibleNextDepartureTime(
+    for row: MetroDepartureRow,
+    referenceDate: Date
+) -> Date? {
+    guard let nextDeparture = row.nextDeparture else {
+        return nil
+    }
+
+    guard nextDeparture.timeIntervalSince(referenceDate) < departuresWidgetNextDepartureDisplayThreshold else {
+        return nil
+    }
+
+    return nextDeparture
 }

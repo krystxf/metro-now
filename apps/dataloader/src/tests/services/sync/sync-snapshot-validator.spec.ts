@@ -10,6 +10,7 @@ const createSnapshot = (): SyncSnapshot => ({
     stops: [
         {
             id: "U1",
+            feed: GtfsFeedId.PID,
             name: "Stop 1",
             avgLatitude: 50.1,
             avgLongitude: 14.4,
@@ -26,18 +27,11 @@ const createSnapshot = (): SyncSnapshot => ({
             stopId: "U1",
         },
     ],
-    routes: [
-        {
-            id: "R1",
-            name: "Route 1",
-            vehicleType: null,
-            isNight: false,
-        },
-    ],
     platformRoutes: [
         {
             platformId: "P1",
-            routeId: "R1",
+            feedId: GtfsFeedId.PID,
+            routeId: "L1",
         },
     ],
     gtfsRoutes: [
@@ -47,6 +41,7 @@ const createSnapshot = (): SyncSnapshot => ({
             shortName: "C",
             longName: "Line C",
             type: "metro",
+            vehicleType: null,
             color: "#ff0000",
             isNight: false,
             url: null,
@@ -102,10 +97,6 @@ const createSnapshot = (): SyncSnapshot => ({
             blockId: null,
             wheelchairAccessible: null,
             bikesAllowed: null,
-            rawData: {
-                trip_id: "T1",
-                route_id: "L1",
-            },
         },
     ],
     gtfsStopTimes: [
@@ -121,11 +112,6 @@ const createSnapshot = (): SyncSnapshot => ({
             pickupType: null,
             dropOffType: null,
             timepoint: null,
-            rawData: {
-                trip_id: "T1",
-                stop_id: "P1",
-                stop_sequence: "1",
-            },
         },
     ],
     gtfsCalendars: [
@@ -142,9 +128,6 @@ const createSnapshot = (): SyncSnapshot => ({
             sunday: false,
             startDate: "20260101",
             endDate: "20261231",
-            rawData: {
-                service_id: "S1",
-            },
         },
     ],
     gtfsCalendarDates: [
@@ -154,14 +137,10 @@ const createSnapshot = (): SyncSnapshot => ({
             serviceId: "S1",
             date: "20260101",
             exceptionType: 1,
-            rawData: {
-                service_id: "S1",
-                date: "20260101",
-                exception_type: "1",
-            },
         },
     ],
     gtfsTransfers: [],
+    gtfsFrequencies: [],
 });
 
 test("SyncSnapshotValidator accepts a consistent snapshot", () => {
@@ -496,4 +475,200 @@ test("SyncSnapshotValidator rejects GTFS station entrance with invalid longitude
     assert.throws(() => {
         validator.validate(snapshot);
     }, /invalid longitude/);
+});
+
+test("SyncSnapshotValidator rejects empty platformRoutes dataset", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.platformRoutes = [];
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /empty platformRoutes dataset/);
+});
+
+test("SyncSnapshotValidator rejects empty gtfsRoutes dataset", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRoutes = [];
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /empty gtfsRoutes dataset/);
+});
+
+test("SyncSnapshotValidator rejects empty gtfsRouteStops dataset", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteStops = [];
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /empty gtfsRouteStops dataset/);
+});
+
+test("SyncSnapshotValidator rejects empty gtfsRouteShapes dataset", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteShapes = [];
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /empty gtfsRouteShapes dataset/);
+});
+
+test("SyncSnapshotValidator rejects duplicate platformRoutes composite key", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.platformRoutes.push({ ...snapshot.platformRoutes[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate platformRoutes record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsRoutes feedId::id composite key", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRoutes.push({ ...snapshot.gtfsRoutes[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsRoutes record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsRouteStops four-part composite key", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteStops.push({ ...snapshot.gtfsRouteStops[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsRouteStops record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsRouteShapes three-part composite key", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteShapes.push({
+        ...snapshot.gtfsRouteShapes[0],
+        isPrimary: false,
+    });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsRouteShapes record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsStationEntrances IDs", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsStationEntrances.push({
+        ...snapshot.gtfsStationEntrances[0],
+    });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsStationEntrances record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsTrips IDs", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsTrips.push({ ...snapshot.gtfsTrips[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsTrips record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsStopTimes IDs", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsStopTimes.push({ ...snapshot.gtfsStopTimes[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsStopTimes record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsCalendars IDs", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsCalendars.push({ ...snapshot.gtfsCalendars[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsCalendars record/);
+});
+
+test("SyncSnapshotValidator rejects duplicate gtfsCalendarDates IDs", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsCalendarDates.push({ ...snapshot.gtfsCalendarDates[0] });
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /Duplicate gtfsCalendarDates record/);
+});
+
+test("SyncSnapshotValidator rejects GTFS route stop referencing missing route", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteStops[0] = {
+        ...snapshot.gtfsRouteStops[0],
+        routeId: "missing-route",
+    };
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /missing route 'missing-route'/);
+});
+
+test("SyncSnapshotValidator rejects GTFS route shape with non-LineString GeoJSON type", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.gtfsRouteShapes[0] = {
+        ...snapshot.gtfsRouteShapes[0],
+        geoJson: {
+            type: "Point" as unknown as "LineString",
+            coordinates: [
+                [14.4, 50.1],
+                [14.5, 50.2],
+            ],
+        },
+    };
+
+    assert.throws(() => {
+        validator.validate(snapshot);
+    }, /invalid GeoJSON type 'Point'/);
+});
+
+test("SyncSnapshotValidator accepts platform with null stopId", () => {
+    const validator = new SyncSnapshotValidator();
+    const snapshot = createSnapshot();
+
+    snapshot.platforms[0] = {
+        ...snapshot.platforms[0],
+        stopId: null,
+    };
+
+    assert.doesNotThrow(() => {
+        validator.validate(snapshot);
+    });
 });

@@ -1,13 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { GtfsFeedId } from "@metro-now/database";
-import {
-    buildGtfsShapeDatasets,
-    buildGtfsStationEntranceDataset,
-} from "../../services/gtfs/gtfs.service";
 import { PidImportService } from "../../services/imports/pid-import.service";
-import { SyncSnapshotValidator } from "../../services/sync/sync-snapshot-validator.service";
 
 test("integration: PidImportService builds a snapshot from realistic multi-group stop data", () => {
     const service = new PidImportService();
@@ -132,9 +126,9 @@ test("integration: PidImportService builds a snapshot from realistic multi-group
     assert.equal(tramPlatform.stopId, "U1072");
 
     // routes: A, 3, 9, 12
-    assert.equal(snapshot.routes.length, 4);
+    assert.equal(snapshot.gtfsRoutes.length, 4);
 
-    const routeNames = snapshot.routes.map((r) => r.name).sort();
+    const routeNames = snapshot.gtfsRoutes.map((r) => r.shortName).sort();
 
     assert.deepEqual(routeNames, ["12", "3", "9", "A"]);
 

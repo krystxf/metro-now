@@ -54,7 +54,7 @@ export class StatusService {
                             )
                             .executeTakeFirstOrThrow(),
                         this.database.db
-                            .selectFrom("Route")
+                            .selectFrom("GtfsRoute")
                             .select(({ fn }) =>
                                 fn.countAll<number>().as("count"),
                             )

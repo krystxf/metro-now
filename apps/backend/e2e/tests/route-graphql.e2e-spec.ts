@@ -73,6 +73,16 @@ describe("Route GraphQL (e2e)", () => {
                                 url: "https://example.com/routes/L1",
                                 type: "1",
                             },
+                            {
+                                id: "L2",
+                                feedId: "PID",
+                                shortName: "119",
+                                longName: "Airport",
+                                isNight: false,
+                                color: "0055AA",
+                                url: "https://example.com/routes/L2",
+                                type: "3",
+                            },
                         ],
                         GtfsRouteStop: [],
                         GtfsRouteShape: [],
@@ -140,5 +150,34 @@ describe("Route GraphQL (e2e)", () => {
             name: "C",
             color: "E2001A",
         });
+    });
+
+    it("filters routes by vehicle type list", async () => {
+        const response = await request(app.getHttpServer())
+            .post("/graphql")
+            .send({
+                query: `
+                    query Routes($vehicleType: [VehicleType!]) {
+                        routes(vehicleType: $vehicleType) {
+                            id
+                            name
+                            vehicleType
+                        }
+                    }
+                `,
+                variables: {
+                    vehicleType: ["SUBWAY", "TRAM"],
+                },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeUndefined();
+        expect(response.body.data.routes).toEqual([
+            {
+                id: "1",
+                name: "C",
+                vehicleType: "SUBWAY",
+            },
+        ]);
     });
 });

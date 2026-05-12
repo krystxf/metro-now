@@ -2,6 +2,7 @@ name: Tests
 
 on:
     push:
+        branches: [main]
     pull_request:
     workflow_dispatch:
 
@@ -23,7 +24,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -31,6 +32,75 @@ jobs:
 
             - name: Run unit tests
               run: pnpm test:unit
+
+    coverage:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run coverage
+              run: pnpm test:cov
+
+            - name: Print coverage summary
+              run: |
+                  for app in backend dataloader; do
+                      summary="apps/$app/coverage/coverage-summary.json"
+                      if [ -f "$summary" ]; then
+                          echo "## $app" >> "$GITHUB_STEP_SUMMARY"
+                          node -e "
+                              const t = require('./$summary').total;
+                              const fmt = (k) => \`\${k}: \${t[k].pct}% (\${t[k].covered}/\${t[k].total})\`;
+                              console.log(['lines','statements','functions','branches'].map(fmt).join('\\n'));
+                          " | tee -a "$GITHUB_STEP_SUMMARY"
+                      fi
+                  done
+
+            - name: Upload coverage reports
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage
+                  path: |
+                      apps/backend/coverage/lcov.info
+                      apps/backend/coverage/coverage-summary.json
+                      apps/dataloader/coverage/lcov.info
+                      apps/dataloader/coverage/coverage-summary.json
+                  if-no-files-found: error
+
+    mobile-schema-check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate mobile GraphQL operations against backend schema
+              run: pnpm --filter=@metro-now/backend run validate:mobile-schema
 
     backend-e2e:
         runs-on: ubuntu-latest
@@ -70,7 +140,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -95,11 +165,44 @@ jobs:
 
     swift:
         runs-on: macos-latest
-        timeout-minutes: 20
+        timeout-minutes: 40
 
         steps:
             - name: Check out code
               uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: "^26.0"
+
+            - name: Seed Secrets.xcconfig
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - name: Resolve Swift packages
+              run: |
+                  xcodebuild -resolvePackageDependencies \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now
+
+            - name: Extract apollo-ios-cli
+              run: |
+                  tar -xzf ~/Library/Developer/Xcode/DerivedData/metro-now-*/SourcePackages/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz \
+                    -C apps/mobile/metro-now/
+
+            - name: Sync mobile GraphQL schema
+              run: pnpm --filter @metro-now/mobile graphql:schema:sync
+
+            - name: Generate Apollo code
+              working-directory: apps/mobile/metro-now
+              run: ./apollo-ios-cli generate
 
             - name: Run Swift unit tests
               run: |
@@ -108,3 +211,11 @@ jobs:
                     -scheme metro-now \
                     -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
                     -only-testing:metro-nowTests
+
+            - name: Run Swift UI tests
+              run: |
+                  xcodebuild test \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now \
+                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+                    -only-testing:metro-nowUITests

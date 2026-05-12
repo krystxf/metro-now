@@ -41,13 +41,12 @@ struct FrequencyWidgetView: View {
     }
 }
 
-#Preview {
-    FrequencyWidgetView(
-        entry: FrequencyWidgetTimelineEntry(
-            date: .now,
-            stopName: "Muzeum",
-            frequency: 2 * 60
-        )
+#Preview(as: .systemSmall) {
+    FrequencyWidget()
+} timeline: {
+    FrequencyWidgetTimelineEntry(
+        date: .now,
+        stopName: "Muzeum",
+        frequency: 2 * 60
     )
-    .previewContext(WidgetPreviewContext(family: .systemSmall))
 }

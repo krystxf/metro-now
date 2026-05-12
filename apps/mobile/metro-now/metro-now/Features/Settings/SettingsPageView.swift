@@ -5,56 +5,80 @@ import SwiftUI
 
 struct SettingsPageView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(
-        AppStorageKeys.showMetroOnly.rawValue
-    ) var showMetroOnly = false
+    @EnvironmentObject private var stopsViewModel: StopsViewModel
     @AppStorage(
         AppStorageKeys.showTraffic.rawValue
     ) var showTraffic = false
+    @State private var cacheCleared = false
     let showsCloseButton: Bool
+    let onClose: (() -> Void)?
 
-    init(showsCloseButton: Bool = false) {
+    init(
+        showsCloseButton: Bool = false,
+        onClose: (() -> Void)? = nil
+    ) {
         self.showsCloseButton = showsCloseButton
+        self.onClose = onClose
     }
 
     var body: some View {
-        List {
-            Section(header: Text("Customize")) {
+        ZStack {
+            List {
                 if UIApplication.shared.supportsAlternateIcons {
-                    NavigationLink(
-                        destination: SettingsAppIconPageView()
-                    ) {
-                        Label("App icon", systemImage: "app.dashed")
+                    Section(header: Text("Customize")) {
+                        NavigationLink(
+                            destination: SettingsAppIconPageView()
+                        ) {
+                            Label("App icon", systemImage: "app.dashed")
+                        }
                     }
                 }
-                Toggle(isOn: $showMetroOnly) {
-                    Label("Show only metro", systemImage: "")
-                }
-                .tint(.brandPrimary)
-            }
 
-            Section(header: Text("Map")) {
-                Toggle(isOn: $showTraffic) {
-                    Label("Show traffic", systemImage: "car.fill")
+                Section(header: Text("Map")) {
+                    Toggle(isOn: $showTraffic) {
+                        Label("Show traffic", systemImage: "car.fill")
+                    }
                 }
-                .tint(.brandPrimary)
-            }
 
-            Section(header: Text("More")) {
-                NavigationLink(
-                    destination: SettingsChangelogPageView()
-                ) {
-                    Label("What's new", systemImage: "sparkles")
+                Section(header: Text("Storage")) {
+                    Button {
+                        Task {
+                            await clearAllAppCaches(stopsViewModel: stopsViewModel)
+                            cacheCleared = true
+
+                            try? await Task.sleep(for: .seconds(2))
+                            cacheCleared = false
+                        }
+                    } label: {
+                        HStack {
+                            Label("Clear cache", systemImage: "trash")
+                            Spacer()
+                            if cacheCleared {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.green)
+                                    .transition(.opacity)
+                            }
+                        }
+                    }
+                    .animation(.default, value: cacheCleared)
                 }
-                NavigationLink(
-                    destination: SettingsAboutPageView()
-                ) {
-                    Label("About", systemImage: "info.square")
-                }
-                NavigationLink(
-                    destination: SettingsWidgetsPageView()
-                ) {
-                    Label("Home Screen Widgets", systemImage: "widget.small")
+
+                Section(header: Text("More")) {
+                    NavigationLink(
+                        destination: SettingsChangelogPageView()
+                    ) {
+                        Label("What's new", systemImage: "sparkles")
+                    }
+                    NavigationLink(
+                        destination: SettingsAboutPageView()
+                    ) {
+                        Label("About", systemImage: "info.square")
+                    }
+                    NavigationLink(
+                        destination: SettingsWidgetsPageView()
+                    ) {
+                        Label("Home Screen Widgets", systemImage: "widget.small")
+                    }
                 }
             }
         }
@@ -63,7 +87,11 @@ struct SettingsPageView: View {
             if showsCloseButton {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        dismiss()
+                        if let onClose {
+                            onClose()
+                        } else {
+                            dismiss()
+                        }
                     } label: {
                         Label("Close", systemImage: "xmark")
                     }
@@ -78,5 +106,6 @@ struct SettingsPageView: View {
 #Preview {
     NavigationStack {
         SettingsPageView()
+            .environmentObject(StopsViewModel(previewStops: PreviewData.stops))
     }
 }

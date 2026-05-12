@@ -2,6 +2,10 @@
 // https://github.com/krystxf/metro-now
 
 func getPlatformLabel(_ platform: ApiPlatform) -> String {
+    if let direction = platform.direction, !direction.isEmpty {
+        return "\(platform.name) → \(direction)"
+    }
+
     if let code = platform.code {
         return "\(platform.name) \(code)"
     }

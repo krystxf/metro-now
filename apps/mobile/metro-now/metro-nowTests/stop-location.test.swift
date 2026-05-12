@@ -3,6 +3,7 @@
 
 import CoreLocation
 import Foundation
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.api, .map))
@@ -142,7 +143,7 @@ struct StopLocationTests {
                     name: "Václavské náměstí",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "3", name: "3")]
+                    routes: [ApiRoute(id: "3", name: "3", vehicleType: "TRAM")]
                 ),
             ]
         )
@@ -164,6 +165,64 @@ struct StopLocationTests {
         #expect(annotations.filter { !$0.isMetro }.allSatisfy { $0.stop.platforms.count == 1 })
     }
 
+    @Test("treats Barcelona subway routes as metro on the map")
+    func treatsBarcelonaSubwayRoutesAsMetro() {
+        let stop = ApiStop(
+            id: "BCN1",
+            name: "Catalunya",
+            avgLatitude: 41.387,
+            avgLongitude: 2.1699,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "BCN1P1",
+                    latitude: 41.3871,
+                    longitude: 2.17,
+                    name: "Catalunya",
+                    code: "1",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "L1", name: "L1", feed: "BARCELONA", vehicleType: "SUBWAY")]
+                ),
+            ]
+        )
+
+        let annotations = buildRailStopMapAnnotations(from: [stop])
+        let metroAnnotation = annotations.first(where: \.isMetro)
+
+        #expect(annotations.count == 1)
+        #expect(metroAnnotation != nil)
+        #expect(metroAnnotation?.metroLineNames == ["L1"])
+    }
+
+    @Test("treats subway routes as metro even without the legacy platform flag")
+    func treatsSubwayRoutesAsMetroWithoutPlatformFlag() {
+        let stop = ApiStop(
+            id: "BCN2",
+            name: "Passeig de Gracia",
+            avgLatitude: 41.391,
+            avgLongitude: 2.165,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "BCN2P1",
+                    latitude: 41.3911,
+                    longitude: 2.1651,
+                    name: "Passeig de Gracia",
+                    code: "2",
+                    isMetro: false,
+                    routes: [ApiRoute(id: "L3", name: "L3", feed: "BARCELONA", vehicleType: "SUBWAY")]
+                ),
+            ]
+        )
+
+        let annotations = buildRailStopMapAnnotations(from: [stop])
+        let metroAnnotation = annotations.first(where: \.isMetro)
+
+        #expect(annotations.count == 1)
+        #expect(metroAnnotation != nil)
+        #expect(metroAnnotation?.metroLineNames == ["L3"])
+    }
+
     @Test("renders train and surface platforms at their own coordinates")
     func rendersTrainAndSurfacePlatformsAtTheirOwnCoordinates() {
         let stop = ApiStop(
@@ -180,7 +239,7 @@ struct StopLocationTests {
                     name: "Praha-Smichov",
                     code: "1",
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "S7")]
+                    routes: [ApiRoute(id: "1", name: "S7", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U5000Z2P",
@@ -189,7 +248,7 @@ struct StopLocationTests {
                     name: "Praha-Smichov",
                     code: "2",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "R16")]
+                    routes: [ApiRoute(id: "2", name: "R16", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U5000Z3P",
@@ -198,7 +257,7 @@ struct StopLocationTests {
                     name: "Lihovar",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "172")]
+                    routes: [ApiRoute(id: "2", name: "172", vehicleType: "BUS")]
                 ),
             ]
         )
@@ -243,7 +302,7 @@ struct StopLocationTests {
                     name: "Praha Masarykovo n.",
                     code: nil,
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "S1")]
+                    routes: [ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN")]
                 ),
                 ApiPlatform(
                     id: "U480Z3P",
@@ -252,7 +311,7 @@ struct StopLocationTests {
                     name: "Masarykovo nádraží",
                     code: "C",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "14")]
+                    routes: [ApiRoute(id: "2", name: "14", vehicleType: "TRAM")]
                 ),
                 ApiPlatform(
                     id: "U480Z1P",
@@ -261,7 +320,7 @@ struct StopLocationTests {
                     name: "Náměstí Republiky",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "3", name: "207")]
+                    routes: [ApiRoute(id: "3", name: "207", vehicleType: "BUS")]
                 ),
             ]
         )
@@ -291,7 +350,7 @@ struct StopLocationTests {
                     name: "Vyton pristav",
                     code: "P",
                     isMetro: false,
-                    routes: [ApiRoute(id: "1", name: "P3")]
+                    routes: [ApiRoute(id: "1", name: "P3", vehicleType: "FERRY")]
                 ),
                 ApiPlatform(
                     id: "U6000Z2P",
@@ -300,7 +359,7 @@ struct StopLocationTests {
                     name: "Vyton",
                     code: "A",
                     isMetro: false,
-                    routes: [ApiRoute(id: "2", name: "17")]
+                    routes: [ApiRoute(id: "2", name: "17", vehicleType: "TRAM")]
                 ),
             ]
         )
@@ -335,8 +394,8 @@ struct StopLocationTests {
                     code: "1",
                     isMetro: false,
                     routes: [
-                        ApiRoute(id: "1", name: "S1"),
-                        ApiRoute(id: "2", name: "177"),
+                        ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN"),
+                        ApiRoute(id: "2", name: "177", vehicleType: "BUS"),
                     ]
                 ),
             ]
@@ -361,6 +420,9 @@ struct MetroDepartureRowsTests {
     private let baseDate = Date(timeIntervalSince1970: 1000)
 
     private func metroStop() -> ApiStop {
+        // Terminus — both platforms serve the same outbound direction, and
+        // have no `direction` populated because there's no "next stop" in
+        // GTFS from a terminal.
         ApiStop(
             id: "U1071",
             name: "Depo Hostivař",
@@ -390,6 +452,40 @@ struct MetroDepartureRowsTests {
         )
     }
 
+    private func regularMetroStop() -> ApiStop {
+        // Through-station — each platform has its own `direction` (the next
+        // stop along the trip), which is how the dataloader populates it.
+        ApiStop(
+            id: "U100",
+            name: "Můstek",
+            avgLatitude: 50.083,
+            avgLongitude: 14.425,
+            entrances: [],
+            platforms: [
+                ApiPlatform(
+                    id: "U100Z101P",
+                    latitude: 50.083,
+                    longitude: 14.425,
+                    name: "Můstek",
+                    code: "A1",
+                    direction: "Staroměstská",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "991", name: "A")]
+                ),
+                ApiPlatform(
+                    id: "U100Z102P",
+                    latitude: 50.0831,
+                    longitude: 14.4251,
+                    name: "Můstek",
+                    code: "A2",
+                    direction: "Muzeum",
+                    isMetro: true,
+                    routes: [ApiRoute(id: "991", name: "A")]
+                ),
+            ]
+        )
+    }
+
     private func departure(
         id: String,
         platformId: String,
@@ -410,12 +506,13 @@ struct MetroDepartureRowsTests {
             delay: 0,
             route: "A",
             routeId: "L991",
+            routeColor: nil,
             isRealtime: nil
         )
     }
 
-    @Test("collapses terminal metro departures with the same headsign across platforms")
-    func collapsesTerminalMetroDepartures() {
+    @Test("emits one row per departure sorted by predicted time")
+    func emitsOneRowPerDepartureSortedByTime() {
         let rows = buildMetroDepartureRows(
             for: metroStop(),
             departures: [
@@ -440,15 +537,73 @@ struct MetroDepartureRowsTests {
             ]
         )
 
-        #expect(rows?.count == 1)
-        #expect(rows?.first?.headsign == "Nemocnice Motol")
-        #expect(rows?.first?.platformId == "U1071Z102P")
-        #expect(rows?.first?.departure == baseDate.addingTimeInterval(4 * 60))
-        #expect(rows?.first?.nextDeparture == baseDate.addingTimeInterval(12 * 60))
+        #expect(rows?.count == 3)
+        #expect(rows?.map(\.departure) == [
+            baseDate.addingTimeInterval(4 * 60),
+            baseDate.addingTimeInterval(12 * 60),
+            baseDate.addingTimeInterval(20 * 60),
+        ])
+        #expect(rows?.map(\.platformId) == [
+            "U1071Z102P",
+            "U1071Z101P",
+            "U1071Z101P",
+        ])
     }
 
     @Test("keeps opposite metro directions as separate rows")
     func keepsOppositeMetroDirectionsSeparate() {
+        let rows = buildMetroDepartureRows(
+            for: regularMetroStop(),
+            departures: [
+                departure(
+                    id: "first",
+                    platformId: "U100Z101P",
+                    headsign: "Nemocnice Motol",
+                    predictedOffsetMinutes: 4
+                ),
+                departure(
+                    id: "second",
+                    platformId: "U100Z102P",
+                    headsign: "Depo Hostivař",
+                    predictedOffsetMinutes: 6
+                ),
+            ]
+        )
+
+        #expect(rows?.count == 2)
+        #expect(rows?.first?.headsign == "Nemocnice Motol")
+        #expect(rows?.last?.headsign == "Depo Hostivař")
+    }
+
+    @Test("lists short and long runs on the same platform as separate rows")
+    func listsShortAndLongRunsOnSamePlatformSeparately() {
+        let rows = buildMetroDepartureRows(
+            for: regularMetroStop(),
+            departures: [
+                departure(
+                    id: "short",
+                    platformId: "U100Z102P",
+                    headsign: "Skalka",
+                    predictedOffsetMinutes: 1
+                ),
+                departure(
+                    id: "long",
+                    platformId: "U100Z102P",
+                    headsign: "Depo Hostivař",
+                    predictedOffsetMinutes: 4
+                ),
+            ]
+        )
+
+        #expect(rows?.count == 2)
+        #expect(rows?.first?.headsign == "Skalka")
+        #expect(rows?.first?.departure == baseDate.addingTimeInterval(1 * 60))
+        #expect(rows?.last?.headsign == "Depo Hostivař")
+        #expect(rows?.last?.departure == baseDate.addingTimeInterval(4 * 60))
+    }
+
+    @Test("tracks the following metro departure for the same platform and headsign")
+    func tracksFollowingMetroDeparture() {
         let rows = buildMetroDepartureRows(
             for: metroStop(),
             departures: [
@@ -460,16 +615,31 @@ struct MetroDepartureRowsTests {
                 ),
                 departure(
                     id: "second",
+                    platformId: "U1071Z101P",
+                    headsign: "Nemocnice Motol",
+                    predictedOffsetMinutes: 12
+                ),
+                departure(
+                    id: "third",
                     platformId: "U1071Z102P",
-                    headsign: "Depo Hostivař",
+                    headsign: "Nemocnice Motol",
                     predictedOffsetMinutes: 6
+                ),
+                departure(
+                    id: "fourth",
+                    platformId: "U1071Z101P",
+                    headsign: "Skalka",
+                    predictedOffsetMinutes: 8
                 ),
             ]
         )
 
-        #expect(rows?.count == 2)
-        #expect(rows?.first?.headsign == "Nemocnice Motol")
-        #expect(rows?.last?.headsign == "Depo Hostivař")
+        #expect(rows?.map(\.nextDeparture) == [
+            baseDate.addingTimeInterval(12 * 60),
+            nil,
+            nil,
+            nil,
+        ])
     }
 }
 
@@ -497,6 +667,7 @@ struct PlatformDepartureGroupsTests {
             delay: 0,
             route: route,
             routeId: nil,
+            routeColor: nil,
             isRealtime: nil
         )
     }
@@ -518,8 +689,8 @@ struct PlatformDepartureGroupsTests {
                     code: "1",
                     isMetro: false,
                     routes: [
-                        ApiRoute(id: "1", name: "S1"),
-                        ApiRoute(id: "2", name: "177"),
+                        ApiRoute(id: "1", name: "S1", vehicleType: "TRAIN"),
+                        ApiRoute(id: "2", name: "177", vehicleType: "BUS"),
                     ]
                 ),
             ]

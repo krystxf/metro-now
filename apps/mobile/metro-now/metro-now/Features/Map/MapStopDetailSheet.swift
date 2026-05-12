@@ -7,6 +7,19 @@ struct MapStopDetailSheet: View {
     let stop: ApiStop
     let allStops: [ApiStop]?
     @ObservedObject var favoritesViewModel: FavoritesViewModel
+    let onClose: (() -> Void)?
+
+    init(
+        stop: ApiStop,
+        allStops: [ApiStop]?,
+        favoritesViewModel: FavoritesViewModel,
+        onClose: (() -> Void)? = nil
+    ) {
+        self.stop = stop
+        self.allStops = allStops
+        _favoritesViewModel = ObservedObject(wrappedValue: favoritesViewModel)
+        self.onClose = onClose
+    }
 
     private var originalStopId: String {
         allStops?.first { original in
@@ -17,10 +30,11 @@ struct MapStopDetailSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             SearchStopDetailView(
                 stop: stop,
                 showsDistanceFromUser: true,
+                onClose: onClose,
                 viewModel: SearchPageDetailViewModel(
                     platformIds: stop.platforms.map(\.id)
                 )
@@ -45,7 +59,6 @@ struct MapStopDetailSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
     }
 }
 

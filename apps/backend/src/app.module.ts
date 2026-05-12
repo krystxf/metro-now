@@ -43,6 +43,7 @@ import { StopModule } from "src/modules/stop/stop.module";
                 autoTransformHttpErrors: true,
                 formatError: formatGraphQLError,
                 plugins: [graphqlQueryLoggingPlugin],
+                persistedQueries: {},
             }),
             inject: [GraphQLQueryLoggingPlugin],
         }),

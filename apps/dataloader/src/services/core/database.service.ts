@@ -1,5 +1,5 @@
 import { type DatabaseClient, sql } from "@metro-now/database";
-import { createDatabaseClient } from "@metro-now/shared";
+import { createDatabaseClient } from "@metro-now/server";
 
 export class DatabaseService {
     readonly db: DatabaseClient;
@@ -13,7 +13,6 @@ export class DatabaseService {
     async getDatabaseStats(): Promise<{
         stops: number;
         platforms: number;
-        routes: number;
         platformRoutes: number;
         gtfsRoutes: number;
         gtfsRouteStops: number;
@@ -23,7 +22,6 @@ export class DatabaseService {
         const [
             stopsResult,
             platformsResult,
-            routesResult,
             platformRoutesResult,
             gtfsRoutesResult,
             gtfsRouteStopsResult,
@@ -36,10 +34,6 @@ export class DatabaseService {
                 .executeTakeFirstOrThrow(),
             this.db
                 .selectFrom("Platform")
-                .select(({ fn }) => fn.countAll<number>().as("count"))
-                .executeTakeFirstOrThrow(),
-            this.db
-                .selectFrom("Route")
                 .select(({ fn }) => fn.countAll<number>().as("count"))
                 .executeTakeFirstOrThrow(),
             this.db
@@ -67,7 +61,6 @@ export class DatabaseService {
         return {
             stops: Number(stopsResult.count),
             platforms: Number(platformsResult.count),
-            routes: Number(routesResult.count),
             platformRoutes: Number(platformRoutesResult.count),
             gtfsRoutes: Number(gtfsRoutesResult.count),
             gtfsRouteStops: Number(gtfsRouteStopsResult.count),

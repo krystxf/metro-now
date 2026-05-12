@@ -7,81 +7,29 @@ import SwiftUI
 struct SearchStopDetailView: View {
     let stop: ApiStop
     var showsDistanceFromUser = false
+    var onClose: (() -> Void)?
 
     @StateObject var viewModel: SearchPageDetailViewModel
-    @State private var routePreviewItem: SheetIdItem?
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var locationModel: LocationViewModel
-
-    private var metroPlatforms: [ApiPlatform] {
-        stop.platforms.filter(\.isMetro)
-    }
-
-    private var nonMetroPlatforms: [ApiPlatform] {
-        stop.platforms
-            .filter { platform in
-                !platform.isMetro
-            }
-            .sorted { left, right in
-                getPlatformLabel(left) < getPlatformLabel(right)
-            }
-    }
-
-    private var hasRealtimeData: Bool {
-        viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
-    }
-
-    private var stopDistanceFromUser: CLLocationDistance? {
-        guard showsDistanceFromUser,
-              let location = locationModel.location
-        else {
-            return nil
-        }
-
-        return stop.distance(to: location)
-    }
-
-    private var formattedStopDistanceFromUser: String? {
-        guard let stopDistanceFromUser else {
-            return nil
-        }
-
-        return Measurement(value: stopDistanceFromUser, unit: UnitLength.meters).formatted(
-            .measurement(
-                width: .abbreviated,
-                usage: .road,
-                numberFormatStyle: .number.precision(.fractionLength(0))
-            )
-        )
-    }
-
-    private var metroStop: ApiStop {
-        ApiStop(
-            id: stop.id,
-            name: stop.name,
-            avgLatitude: stop.avgLatitude,
-            avgLongitude: stop.avgLongitude,
-            entrances: stop.entrances,
-            platforms: metroPlatforms
-        )
-    }
+    @State var routePreviewItem: SheetIdItem?
+    @State var allDeparturesRequest: AllDeparturesRequest?
+    @State var showingAllInfotexts = false
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.sidebarRoutePreviewPresenter) var sidebarRoutePreviewPresenter
+    @EnvironmentObject var locationModel: LocationViewModel
+    @EnvironmentObject var infotextsViewModel: InfotextsViewModel
 
     var body: some View {
         List {
-            if let formattedStopDistanceFromUser {
-                Section {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(formattedStopDistanceFromUser)
-                                .font(.headline)
+            if let topInfotext = relatedInfotexts.first {
+                InfotextsItem(infotext: topInfotext, showsRelatedStops: false)
 
-                            Text("from your location")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "location")
-                            .foregroundStyle(.tint)
+                if relatedInfotexts.count > 1 {
+                    let remaining = relatedInfotexts.count - 1
+                    Button {
+                        showingAllInfotexts = true
+                    } label: {
+                        Text("\(remaining) more \(remaining == 1 ? "alert" : "alerts")")
+                            .font(.footnote)
                     }
                 }
             }
@@ -91,7 +39,8 @@ struct SearchStopDetailView: View {
                     MetroDeparturesListView(
                         closestStop: metroStop,
                         departures: viewModel.departures,
-                        onRoutePreviewRequested: { routePreviewItem = $0 }
+                        onRoutePreviewRequested: handleRoutePreview,
+                        onShowAllDeparturesRequested: { allDeparturesRequest = $0 }
                     )
                 }
             }
@@ -100,9 +49,17 @@ struct SearchStopDetailView: View {
                 PlatformDeparturesListView(
                     platform: platform,
                     departures: viewModel.departures,
-                    onRoutePreviewRequested: { routePreviewItem = $0 }
+                    primaryLabel: platformPrimaryLabel(platform),
+                    onRoutePreviewRequested: handleRoutePreview,
+                    onShowAllDeparturesRequested: { allDeparturesRequest = $0 }
                 )
             }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            SearchStopDetailHeaderBadge(
+                formattedDistance: formattedStopDistanceFromUser,
+                hasRealtimeData: hasRealtimeData
+            )
         }
         .navigationTitle(stop.name)
         .sheet(item: $routePreviewItem) { item in
@@ -114,22 +71,25 @@ struct SearchStopDetailView: View {
             )
             .presentationDetents([.medium, .large])
         }
+        .sheet(item: $allDeparturesRequest) { request in
+            AllDeparturesSheetView(request: request)
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showingAllInfotexts) {
+            SearchStopInfotextsSheet(
+                infotexts: relatedInfotexts,
+                onDone: { showingAllInfotexts = false }
+            )
+        }
         .toolbar {
-            if hasRealtimeData {
-                ToolbarItem(placement: .topBarLeading) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
-                        .symbolEffect(
-                            .variableColor.cumulative.dimInactiveLayers.nonReversing,
-                            options: .repeating
-                        )
-                        .foregroundStyle(.green)
-                }
-            }
-
             ToolbarItem(placement: .topBarTrailing) {
                 Button(
                     action: {
-                        dismiss()
+                        if let onClose {
+                            onClose()
+                        } else {
+                            dismiss()
+                        }
                     }
                 ) {
                     Label("Close", systemImage: "xmark")
@@ -153,4 +113,5 @@ struct SearchStopDetailView: View {
     .environmentObject(
         LocationViewModel(previewLocation: PreviewData.userLocation)
     )
+    .environmentObject(InfotextsViewModel())
 }

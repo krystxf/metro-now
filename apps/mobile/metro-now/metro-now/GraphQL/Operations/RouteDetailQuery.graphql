@@ -16,6 +16,7 @@ query RouteDetail($id: ID!) {
         longitude
         isMetro
         code
+        direction
       }
     }
     shapes {

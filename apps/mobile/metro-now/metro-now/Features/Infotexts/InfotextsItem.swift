@@ -5,7 +5,7 @@ import SwiftUI
 
 struct InfotextsItem: View {
     let infotext: ApiInfotext
-    let englishText: InfotextEnglishText?
+    var showsRelatedStops: Bool = true
 
     private static func parseISO8601(_ string: String) -> Date? {
         let formatter = ISO8601DateFormatter()
@@ -46,22 +46,6 @@ struct InfotextsItem: View {
         return nil
     }
 
-    private var automaticTranslationBadge: some View {
-        Label(
-            NSLocalizedString(
-                "Auto-translated",
-                comment: "Badge shown for infotexts translated automatically"
-            ),
-            systemImage: "globe"
-        )
-        .font(.caption2)
-        .fontWeight(.semibold)
-        .foregroundStyle(.blue)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(.blue.opacity(0.12), in: Capsule())
-    }
-
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
@@ -79,19 +63,7 @@ struct InfotextsItem: View {
                 Text(infotext.text)
                     .font(.callout)
 
-                if let englishText {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if englishText.isAutomatic {
-                            automaticTranslationBadge
-                        }
-
-                        Text(englishText.text)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                if !infotext.relatedStopNames.isEmpty {
+                if showsRelatedStops, !infotext.relatedStopNames.isEmpty {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -118,11 +90,7 @@ struct InfotextsItem: View {
 #Preview {
     List {
         InfotextsItem(
-            infotext: PreviewData.infotext,
-            englishText: InfotextEnglishText(
-                text: "Metro line A service is limited between Dejvicka and Namesti Miru due to maintenance.",
-                isAutomatic: true
-            )
+            infotext: PreviewData.infotext
         )
     }
 }

@@ -10,15 +10,14 @@
             "apps/dataloader/**/*.js",
             "apps/dataloader/tsconfig.json",
             "apps/dataloader/package.json",
-            "apps/database/**/*.ts",
-            "apps/database/**/*.json",
             "apps/web/**/*.ts",
             "apps/web/**/*.json",
             "apps/web/tsconfig.json",
             "lib/**/*.ts",
             "lib/**/*.js",
+            "lib/**/*.json",
+            "lib/database/tsconfig.json",
             "lib/shared/tsconfig.json",
-            "lib/shared/package.json",
             ".github/**/*.yaml",
             ".github/**/*.yml",
             "biome.json",
@@ -31,7 +30,7 @@
             "**/dist/**",
             "**/.next/**",
             "apps/backend/src/types/graphql.generated.ts",
-            "apps/database/seeds/**"
+            "lib/database/seeds/**"
         ]
     },
     "formatter": {

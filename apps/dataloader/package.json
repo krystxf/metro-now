@@ -10,7 +10,14 @@
         "lint": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json",
         "lint:fix": "biome check --config-path ../../biome.json ../../apps/dataloader/src ../../apps/dataloader/package.json ../../apps/dataloader/tsconfig.json --write",
         "test:unit": "pnpm run build && node --test $(find dist -name '*.spec.js' -type f)",
+        "test:cov": "pnpm run build && c8 node --test $(find dist -name '*.spec.js' -type f)",
         "types:check": "tsc --noEmit"
+    },
+    "c8": {
+        "reporter": ["text-summary", "lcov", "json-summary"],
+        "reports-dir": "./coverage",
+        "include": ["dist/**/*.js"],
+        "exclude": ["dist/**/*.spec.js", "dist/tests/**"]
     },
     "keywords": [],
     "author": "",
@@ -18,6 +25,7 @@
     "dependencies": {
         "@fast-csv/parse": "^5.0.5",
         "@metro-now/database": "workspace:*",
+        "@metro-now/server": "workspace:*",
         "@metro-now/shared": "workspace:*",
         "express": "^5.2.1",
         "ioredis": "^5.10.1",
@@ -31,6 +39,7 @@
         "@types/node": "^25.5.0",
         "@types/node-cron": "^3.0.11",
         "@types/unzipper": "^0.10.11",
+        "c8": "^10.1.3",
         "nodemon": "^3.1.14",
         "typescript": "^5.8.3"
     }

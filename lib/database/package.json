@@ -1,0 +1,27 @@
+{
+    "name": "@metro-now/database",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "lint": "biome check --config-path ../../biome.json ../../lib/database/index.ts ../../lib/database/migrate.ts ../../lib/database/seed.ts ../../lib/database/seed-mapping.ts ../../lib/database/stop-feed-prefix.ts ../../lib/database/migrations ../../lib/database/tests ../../lib/database/package.json ../../lib/database/tsconfig.json",
+        "lint:fix": "biome check --config-path ../../biome.json ../../lib/database/index.ts ../../lib/database/migrate.ts ../../lib/database/seed.ts ../../lib/database/seed-mapping.ts ../../lib/database/stop-feed-prefix.ts ../../lib/database/migrations ../../lib/database/tests ../../lib/database/package.json ../../lib/database/tsconfig.json --write",
+        "migrate:deploy": "dotenv -e ../../apps/backend/.env.local -- ts-node migrate.ts up",
+        "migrate:rollback": "dotenv -e ../../apps/backend/.env.local -- ts-node migrate.ts down",
+        "seed": "dotenv -e ../../apps/backend/.env.local -- ts-node seed.ts",
+        "test:unit": "pnpm run build && node --test $(find dist/tests -name '*.spec.js' -type f)",
+        "types:check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "kysely": "^0.28.14",
+        "pg": "^8.20.0"
+    },
+    "devDependencies": {
+        "@types/pg": "^8.15.5",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "optionalDependencies": {
+        "dotenv-cli": "^8.0.0"
+    }
+}

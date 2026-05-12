@@ -1,4 +1,4 @@
-import { commonServerEnvSchema } from "@metro-now/shared";
+import { commonServerEnvSchema } from "@metro-now/server";
 import { z } from "zod";
 
 export const envSchema = commonServerEnvSchema.extend({

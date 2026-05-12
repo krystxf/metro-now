@@ -2,6 +2,7 @@
 // https://github.com/krystxf/metro-now
 
 import CoreLocation
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.utils))
@@ -58,6 +59,9 @@ struct FindClosestStopTests {
 
         let distance = getStopDistance(location, stop)
         #expect(distance > 0)
-        #expect(distance == stop.distance(to: location))
+        // CoreLocation's distance computation can differ by sub-meter
+        // amounts between successive calls; 1 mm is far below any
+        // meaningful UI threshold and keeps the test deterministic.
+        #expect(abs(distance - stop.distance(to: location)) < 0.001)
     }
 }

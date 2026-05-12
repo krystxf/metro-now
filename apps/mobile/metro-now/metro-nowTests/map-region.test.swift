@@ -4,6 +4,7 @@
 import CoreGraphics
 import CoreLocation
 import MapKit
+@testable import metro_now
 import Testing
 
 @Suite(.tags(.map))
