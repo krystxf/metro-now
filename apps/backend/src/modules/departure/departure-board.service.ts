@@ -4,6 +4,7 @@ import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import { GolemioService } from "src/modules/golemio/golemio.service";
+import { searchParamsEntries } from "src/utils/url-search-params.utils";
 
 type DepartureBoardSearchParams = Record<
     string,
@@ -73,18 +74,10 @@ export class DepartureBoardService {
             });
         }
 
-        const searchParams = new URLSearchParams(
-            resolvedPlatformIds
-                .map((id) => ["ids", id])
-                .concat(
-                    Object.entries(params)
-                        .filter(
-                            ([, value]) =>
-                                value !== null && value !== undefined,
-                        )
-                        .map(([key, value]) => [key, String(value)]),
-                ),
-        );
+        const searchParams = new URLSearchParams([
+            ...resolvedPlatformIds.map((id) => ["ids", id] as [string, string]),
+            ...searchParamsEntries(params),
+        ]);
 
         const data = await this.golemioService.getGolemioData(
             `/v2/pid/departureboards?${searchParams.toString()}`,
