@@ -100,9 +100,6 @@ struct FrequencyWidgetTimelineProvider: TimelineProvider {
                 entries.append(entry)
             }
 
-            print("entries")
-            print(entries.count)
-
             // Finalize the timeline with all entries
             let timeline = Timeline(entries: entries, policy: .atEnd)
             completion(timeline)
