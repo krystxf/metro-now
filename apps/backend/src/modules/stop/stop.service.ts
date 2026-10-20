@@ -50,6 +50,10 @@ type StopGraphQLRecord = StopRecordBase & {
     platforms: StopGraphQLPlatformRecord[];
 };
 
+type StopWithDistanceGraphQLRecord = StopGraphQLRecord & {
+    distance: number;
+};
+
 type SearchableStopTerm = {
     normalizedTokens: string[];
     normalizedValue: string;
@@ -981,46 +985,35 @@ export class StopService {
     }: {
         latitude: number;
         longitude: number;
-        limit?: number;
-    }): Promise<{ stop: StopGraphQLRecord; distance: number }[]> {
-        return this.cacheManager.wrap(
-            CACHE_KEYS.stop.getClosestGraphQL({ latitude, longitude, limit }),
-            async () => {
-                const limitClause =
-                    typeof limit === "number" && limit > 0
-                        ? sql`LIMIT ${limit}`
-                        : sql``;
-                const result = await sql<{ distance: number; id: string }>`
-                    SELECT
-                        "Stop"."id",
-                        earth_distance(
-                            ll_to_earth("Stop"."avgLatitude", "Stop"."avgLongitude"),
-                            ll_to_earth(${latitude}, ${longitude})
-                        ) AS "distance"
-                    FROM "Stop"
-                    ORDER BY "distance"
-                    ${limitClause}
-                `.execute(this.database.db);
+        limit: number;
+    }): Promise<StopWithDistanceGraphQLRecord[]> {
+        const result = await sql<{ distance: number; id: string }>`
+            SELECT
+                "Stop"."id",
+                earth_distance(
+                    ll_to_earth("Stop"."avgLatitude", "Stop"."avgLongitude"),
+                    ll_to_earth(${latitude}, ${longitude})
+                ) AS "distance"
+            FROM "Stop"
+            ORDER BY "distance"
+            LIMIT ${limit}
+        `.execute(this.database.db);
 
-                const orderedIds = result.rows.map(({ id }) => id);
-                const distanceById = new Map(
-                    result.rows.map(({ id, distance }) => [id, distance]),
-                );
-                const stops = await this.getGraphQLByIds(orderedIds);
-                const stopById = new Map(stops.map((stop) => [stop.id, stop]));
-
-                return orderedIds.flatMap((id) => {
-                    const stop = stopById.get(id);
-
-                    if (!stop) {
-                        return [];
-                    }
-
-                    return [{ stop, distance: distanceById.get(id) ?? 0 }];
-                });
-            },
-            STOP_DATA_CACHE_TTL_MS,
+        const orderedIds = result.rows.map(({ id }) => id);
+        const distanceById = new Map(
+            result.rows.map(({ id, distance }) => [id, distance]),
         );
+        const stopsById = await this.loadGraphQLStopsByIds(orderedIds);
+
+        return orderedIds.flatMap((id) => {
+            const stop = stopsById.get(id);
+
+            if (!stop) {
+                return [];
+            }
+
+            return [{ ...stop, distance: distanceById.get(id) ?? 0 }];
+        });
     }
 
     async getOneById(id: string): Promise<StopRecord | null> {
