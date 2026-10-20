@@ -8,7 +8,7 @@ func formatVersionNumber(version: String?, build: String?) -> String {
         if let build {
             return "(\(build))"
         } else {
-            return "uknknown version"
+            return "unknown version"
         }
     }
 

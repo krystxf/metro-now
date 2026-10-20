@@ -25,10 +25,7 @@ struct FormatVersionNumberTests {
 
     @Test("falls back to the unknown-version literal when both are missing")
     func fallbackWhenBothNil() {
-        // Locking in the current user-visible text verbatim (typo included)
-        // so a future rename is an explicit, reviewed behaviour change
-        // rather than an accidental regression.
-        #expect(formatVersionNumber(version: nil, build: nil) == "uknknown version")
+        #expect(formatVersionNumber(version: nil, build: nil) == "unknown version")
     }
 
     @Test("preserves semver with pre-release identifiers")
