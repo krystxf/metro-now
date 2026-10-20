@@ -439,6 +439,7 @@ export class ZsrImportService {
             .filter((stop) => !matchedZsrStopIds.has(stop.id))
             .map((stop) => ({
                 id: stop.id,
+                feed: GtfsFeedId.ZSR,
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,

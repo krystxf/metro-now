@@ -1,4 +1,5 @@
 import type {
+    GtfsFeedId,
     GtfsStationEntrance,
     Platform,
     Route,
@@ -18,7 +19,7 @@ import { loadCachedBatch } from "src/utils/cache-batch";
 
 type StopRecordBase = Pick<
     Stop,
-    "avgLatitude" | "avgLongitude" | "id" | "name"
+    "avgLatitude" | "avgLongitude" | "feed" | "id" | "name"
 >;
 
 type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
@@ -409,7 +410,7 @@ export class StopService {
 
         let query = this.database.db
             .selectFrom("Stop")
-            .select(["id", "name", "avgLatitude", "avgLongitude"]);
+            .select(["id", "feed", "name", "avgLatitude", "avgLongitude"]);
 
         if (ids) {
             query = query.where("id", "in", [...ids]);

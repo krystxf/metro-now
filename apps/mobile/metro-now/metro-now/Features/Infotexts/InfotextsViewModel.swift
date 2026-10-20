@@ -43,30 +43,7 @@ enum InfotextSeverity: String {
     }
 }
 
-struct ApiInfotextRelatedStop: Decodable {
-    let name: String
-}
-
-struct ApiInfotext: Decodable {
-    let id: String
-    let text: String
-    let textEn: String?
-    let priority: String
-    let displayType: String
-    let validFrom: String?
-    let validTo: String?
-    let relatedStops: [ApiInfotextRelatedStop]
-
-    var relatedStopNames: [String] {
-        relatedStops.reduce(into: [String]()) { result, stop in
-            guard !stop.name.isEmpty, !result.contains(stop.name) else {
-                return
-            }
-
-            result.append(stop.name)
-        }
-    }
-
+extension ApiInfotext {
     var severity: InfotextSeverity {
         InfotextSeverity(rawValue: priority) ?? .normal
     }

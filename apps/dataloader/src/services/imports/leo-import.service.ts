@@ -435,6 +435,7 @@ export class LeoImportService {
             .filter((stop) => !matchedLeoStopIds.has(stop.id))
             .map((stop) => ({
                 id: stop.id,
+                feed: GtfsFeedId.LEO,
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,

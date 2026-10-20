@@ -58,6 +58,7 @@ describe("Stop GraphQL (e2e)", () => {
                         Stop: [
                             {
                                 id: "U1072",
+                                feed: "PID",
                                 name: "Mustek",
                                 avgLatitude: 50.08353,
                                 avgLongitude: 14.42456,

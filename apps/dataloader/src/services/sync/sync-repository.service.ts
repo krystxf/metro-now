@@ -226,6 +226,7 @@ export class SyncRepository {
                 const timestamp = new Date();
                 const values: NewStop[] = chunk.map((stop) => ({
                     id: stop.id,
+                    feed: stop.feed,
                     name: stop.name,
                     avgLatitude: stop.avgLatitude,
                     avgLongitude: stop.avgLongitude,
@@ -240,6 +241,7 @@ export class SyncRepository {
                         conflict
                             .column("id")
                             .doUpdateSet((expressionBuilder) => ({
+                                feed: expressionBuilder.ref("excluded.feed"),
                                 name: expressionBuilder.ref("excluded.name"),
                                 avgLatitude: expressionBuilder.ref(
                                     "excluded.avgLatitude",
