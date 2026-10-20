@@ -74,6 +74,10 @@ export class CacheInvalidationService {
         this.redis = null;
     }
 
+    getClient(): Redis | null {
+        return this.redis;
+    }
+
     async invalidateForChangedEntities(
         changedEntities: readonly string[],
     ): Promise<number> {

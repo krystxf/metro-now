@@ -351,6 +351,7 @@ export class UstiImportService {
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
             name: stop.name,
+            feed: GtfsFeedId.USTI,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
         }));

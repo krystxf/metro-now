@@ -1,4 +1,5 @@
 import type { DatabaseService } from "src/modules/database/database.service";
+import type { BrnoRealtimeService } from "src/modules/departure/brno-realtime.service";
 import type { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import type { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
@@ -73,12 +74,17 @@ describe("DepartureServiceV2", () => {
             getMatchedLeoStopByLocalStopId: jest.fn(async () => new Map()),
         } as unknown as LeoStopMatcherService;
 
+        const brnoRealtimeService = {
+            getRouteDelays: jest.fn(async () => null),
+        } as unknown as BrnoRealtimeService;
+
         return {
             service: new DepartureServiceV2(
                 departureBoardService,
                 database,
                 leoGtfsService,
                 leoStopMatcherService,
+                brnoRealtimeService,
             ),
             leoGtfsService,
         };

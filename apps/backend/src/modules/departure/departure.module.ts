@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { RoutesByPlatformIdLoaderModule } from "src/modules/dataloader/RoutesByPlatformIdLoader.module";
 import { DataloaderModule } from "src/modules/dataloader/dataloader.module";
+import { BrnoRealtimeService } from "src/modules/departure/brno-realtime.service";
 import { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import { DepartureServiceV1 } from "src/modules/departure/departure-v1.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
@@ -14,6 +15,7 @@ import { StopDataModule } from "src/modules/stop/stop-data.module";
 @Module({
     controllers: [DepartureController],
     providers: [
+        BrnoRealtimeService,
         DepartureBoardService,
         DepartureServiceV1,
         DepartureServiceV2,

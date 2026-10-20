@@ -440,6 +440,7 @@ export class ZsrImportService {
             .map((stop) => ({
                 id: stop.id,
                 name: stop.name,
+                feed: GtfsFeedId.ZSR,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
             }));

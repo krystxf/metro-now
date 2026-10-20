@@ -852,19 +852,51 @@ export class StopService {
         );
     }
 
+    private async loadStopIdsByFeed(feed: string): Promise<string[]> {
+        const rows = await this.database.db
+            .selectFrom("GtfsStopTime")
+            .innerJoin("Platform", "Platform.id", "GtfsStopTime.platformId")
+            .select("Platform.stopId")
+            .distinct()
+            .where("GtfsStopTime.feedId", "=", feed as never)
+            .where("Platform.stopId", "is not", null)
+            .orderBy("Platform.stopId", "asc")
+            .execute();
+
+        return rows.flatMap(({ stopId }) => (stopId ? [stopId] : []));
+    }
+
     async getAllGraphQL({
+        feed,
         limit,
         offset,
     }: {
+        feed?: string;
         limit?: number;
         offset?: number;
     }): Promise<StopGraphQLRecord[]> {
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.getAllGraphQL({
+                feed,
                 limit,
                 offset,
             }),
             async () => {
+                if (feed) {
+                    const stopIds = await this.loadStopIdsByFeed(feed);
+                    const start = offset ?? 0;
+                    const end =
+                        typeof limit === "number"
+                            ? start + limit
+                            : stopIds.length;
+                    const paginatedIds = stopIds.slice(start, end);
+                    const stops = await this.loadStopRows({
+                        ids: paginatedIds,
+                    });
+
+                    return this.hydrateGraphQLStops(stops);
+                }
+
                 const stops = await this.loadStopRows({
                     ...(typeof limit === "number" ? { limit } : {}),
                     ...(typeof offset === "number" ? { offset } : {}),
@@ -878,10 +910,12 @@ export class StopService {
 
     async searchGraphQL({
         query,
+        feed,
         limit,
         offset,
     }: {
         query: string;
+        feed?: string;
         limit?: number;
         offset?: number;
     }): Promise<StopGraphQLRecord[]> {
@@ -894,11 +928,19 @@ export class StopService {
         return this.cacheManager.wrap(
             CACHE_KEYS.stop.searchGraphQL({
                 query: normalizedQuery,
+                feed,
                 limit,
                 offset,
             }),
             async () => {
+                const feedStopIds = feed
+                    ? new Set(await this.loadStopIdsByFeed(feed))
+                    : null;
                 const matchingStops = (await this.loadSearchableStopRows())
+                    .filter(
+                        (stop) =>
+                            !feedStopIds || feedStopIds.has(stop.id),
+                    )
                     .flatMap((stop) => {
                         const score = getStopSearchMatchScore({
                             normalizedQuery,

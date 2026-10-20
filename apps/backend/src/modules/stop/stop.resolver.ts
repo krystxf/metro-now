@@ -21,6 +21,7 @@ export class StopResolver {
     @Query("stops")
     async getMultiple(
         @Args("ids") ids: string[] | undefined,
+        @Args("feed") feed: string | undefined,
         @Args("limit") limit: number | undefined,
         @Args("offset") offset: number | undefined,
     ) {
@@ -33,6 +34,7 @@ export class StopResolver {
         }
 
         const res = await this.stopService.getAllGraphQL({
+            ...(feed ? { feed } : {}),
             ...(typeof limit === "number" ? { limit } : {}),
             ...(typeof offset === "number" ? { offset } : {}),
         });
@@ -43,11 +45,13 @@ export class StopResolver {
     @Query("searchStops")
     search(
         @Args("query") query: string,
+        @Args("feed") feed: string | undefined,
         @Args("limit") limit: number | undefined,
         @Args("offset") offset: number | undefined,
     ) {
         return this.stopService.searchGraphQL({
             query,
+            ...(feed ? { feed } : {}),
             ...(typeof limit === "number" ? { limit } : {}),
             ...(typeof offset === "number" ? { offset } : {}),
         });

@@ -12,6 +12,7 @@ enum Feed {
     PID
     BRNO
     BRATISLAVA
+    CISJR
     LEO
     LIBEREC
     PMDP

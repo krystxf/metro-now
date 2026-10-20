@@ -350,6 +350,7 @@ export class PmdpImportService {
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
             name: stop.name,
+            feed: GtfsFeedId.PMDP,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
         }));

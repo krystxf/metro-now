@@ -11,6 +11,7 @@ const createSnapshot = (): SyncSnapshot => ({
         {
             id: "U1",
             name: "Stop 1",
+            feed: "PID" as const,
             avgLatitude: 50.1,
             avgLongitude: 14.4,
         },

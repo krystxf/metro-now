@@ -436,6 +436,7 @@ export class LeoImportService {
             .map((stop) => ({
                 id: stop.id,
                 name: stop.name,
+                feed: GtfsFeedId.LEO,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
             }));

@@ -5,6 +5,7 @@ import { CacheInvalidationService } from "./services/core/cache-invalidation.ser
 import { CronService } from "./services/core/cron.service";
 import { DatabaseLogStore } from "./services/core/database-log-store.service";
 import { DatabaseService } from "./services/core/database.service";
+import { BrnoRealtimeService } from "./services/realtime/brno-realtime.service";
 import { SyncService } from "./services/sync/sync.service";
 import { logger } from "./utils/logger";
 
@@ -25,6 +26,7 @@ const syncService = new SyncService(databaseService.db, {
     cacheInvalidation,
 });
 const cronService = new CronService();
+const brnoRealtime = new BrnoRealtimeService();
 
 app.use(express.json());
 
@@ -60,6 +62,7 @@ app.get("/status", (_req: Request, res: Response) => {
         uptimeSeconds: process.uptime(),
         sync: syncService.getStatus(),
         cron: cronService.getJobStatus(),
+        brnoRealtime: brnoRealtime.getStatus(),
         timestamp: new Date().toISOString(),
     });
 });
@@ -131,6 +134,12 @@ const bootstrap = async (): Promise<void> => {
             host: redisHost,
             port: redisPort,
         });
+
+        const redisClient = cacheInvalidation.getClient();
+
+        if (redisClient) {
+            brnoRealtime.start(redisClient);
+        }
     } catch (error) {
         logger.warn(
             "Failed to connect to Redis for cache invalidation, continuing without it",
@@ -167,6 +176,7 @@ const bootstrap = async (): Promise<void> => {
 
 const shutdown = async (signal: string): Promise<void> => {
     logger.info("Received shutdown signal", { signal });
+    brnoRealtime.stop();
     cronService.shutdown();
     await cacheInvalidation.disconnect();
     await logger.flush();

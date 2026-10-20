@@ -227,6 +227,7 @@ export class SyncRepository {
                 const values: NewStop[] = chunk.map((stop) => ({
                     id: stop.id,
                     name: stop.name,
+                    feed: stop.feed,
                     avgLatitude: stop.avgLatitude,
                     avgLongitude: stop.avgLongitude,
                     createdAt: timestamp,
@@ -241,6 +242,7 @@ export class SyncRepository {
                             .column("id")
                             .doUpdateSet((expressionBuilder) => ({
                                 name: expressionBuilder.ref("excluded.name"),
+                                feed: expressionBuilder.ref("excluded.feed"),
                                 avgLatitude: expressionBuilder.ref(
                                     "excluded.avgLatitude",
                                 ),

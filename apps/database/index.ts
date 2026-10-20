@@ -37,6 +37,7 @@ export const GtfsFeedId = {
     PMDP: "PMDP",
     USTI: "USTI",
     ZSR: "ZSR",
+    CISJR: "CISJR",
 } as const;
 
 export type GtfsFeedId = (typeof GtfsFeedId)[keyof typeof GtfsFeedId];
@@ -51,6 +52,7 @@ export type GeoJsonLineString = {
 export interface StopTable {
     id: string;
     name: string;
+    feed: GtfsFeedId;
     avgLatitude: number;
     avgLongitude: number;
     createdAt: Generated<Date>;

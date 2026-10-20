@@ -419,6 +419,7 @@ export const classifyRoute = ({
             });
         case GtfsFeedId.LEO:
         case GtfsFeedId.ZSR:
+        case GtfsFeedId.CISJR:
             return {
                 vehicleType: ClassifiedVehicleType.TRAIN,
                 isNight: false,

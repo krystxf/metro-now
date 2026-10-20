@@ -4,6 +4,10 @@ import { group } from "radash";
 
 import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
+import {
+    BrnoRealtimeService,
+    extractKordisStopNumber,
+} from "src/modules/departure/brno-realtime.service";
 import { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import type { DepartureSchema } from "src/modules/departure/schema/departure.schema";
 import { departureSchema } from "src/modules/departure/schema/departure.schema";
@@ -241,6 +245,7 @@ export class DepartureServiceV2 {
         private readonly database: DatabaseService,
         private readonly leoGtfsService: LeoGtfsService,
         private readonly leoStopMatcherService: LeoStopMatcherService,
+        private readonly brnoRealtimeService: BrnoRealtimeService,
     ) {}
 
     async getDepartures(args: {
@@ -556,37 +561,83 @@ export class DepartureServiceV2 {
                     feedIds,
                     serviceDates,
                 });
-            const departures = await this.database.db
-                .selectFrom("GtfsStopTime")
-                .innerJoin("GtfsTrip", (join) =>
-                    join
-                        .onRef("GtfsTrip.feedId", "=", "GtfsStopTime.feedId")
-                        .onRef("GtfsTrip.tripId", "=", "GtfsStopTime.tripId"),
-                )
-                .innerJoin("GtfsRoute", (join) =>
-                    join
-                        .onRef("GtfsRoute.feedId", "=", "GtfsTrip.feedId")
-                        .onRef("GtfsRoute.id", "=", "GtfsTrip.routeId"),
-                )
-                .leftJoin("Platform", "Platform.id", "GtfsStopTime.platformId")
-                .select([
-                    "GtfsStopTime.id as stopTimeId",
-                    "GtfsStopTime.feedId as feedId",
-                    "GtfsStopTime.tripId as tripId",
-                    "GtfsStopTime.stopSequence as stopSequence",
-                    "GtfsStopTime.platformId as platformId",
-                    "GtfsStopTime.arrivalTime as arrivalTime",
-                    "GtfsStopTime.departureTime as departureTime",
-                    "GtfsTrip.serviceId as serviceId",
-                    "GtfsTrip.routeId as routeId",
-                    "GtfsTrip.tripHeadsign as tripHeadsign",
-                    "GtfsRoute.shortName as routeShortName",
-                    "GtfsRoute.longName as routeLongName",
-                    "Platform.code as platformCode",
-                ])
-                .where("GtfsStopTime.platformId", "in", fallbackPlatformIds)
-                .where("GtfsStopTime.feedId", "in", feedIds)
-                .execute();
+            const hasBrno = feedIds.includes(GtfsFeedId.BRNO);
+            const [departures, brnoVehicles, brnoRouteStopRows] =
+                await Promise.all([
+                    this.database.db
+                        .selectFrom("GtfsStopTime")
+                        .innerJoin("GtfsTrip", (join) =>
+                            join
+                                .onRef(
+                                    "GtfsTrip.feedId",
+                                    "=",
+                                    "GtfsStopTime.feedId",
+                                )
+                                .onRef(
+                                    "GtfsTrip.tripId",
+                                    "=",
+                                    "GtfsStopTime.tripId",
+                                ),
+                        )
+                        .innerJoin("GtfsRoute", (join) =>
+                            join
+                                .onRef(
+                                    "GtfsRoute.feedId",
+                                    "=",
+                                    "GtfsTrip.feedId",
+                                )
+                                .onRef("GtfsRoute.id", "=", "GtfsTrip.routeId"),
+                        )
+                        .leftJoin(
+                            "Platform",
+                            "Platform.id",
+                            "GtfsStopTime.platformId",
+                        )
+                        .select([
+                            "GtfsStopTime.id as stopTimeId",
+                            "GtfsStopTime.feedId as feedId",
+                            "GtfsStopTime.tripId as tripId",
+                            "GtfsStopTime.stopSequence as stopSequence",
+                            "GtfsStopTime.platformId as platformId",
+                            "GtfsStopTime.arrivalTime as arrivalTime",
+                            "GtfsStopTime.departureTime as departureTime",
+                            "GtfsTrip.serviceId as serviceId",
+                            "GtfsTrip.routeId as routeId",
+                            "GtfsTrip.directionId as directionId",
+                            "GtfsTrip.tripHeadsign as tripHeadsign",
+                            "GtfsRoute.shortName as routeShortName",
+                            "GtfsRoute.longName as routeLongName",
+                            "Platform.code as platformCode",
+                        ])
+                        .where(
+                            "GtfsStopTime.platformId",
+                            "in",
+                            fallbackPlatformIds,
+                        )
+                        .where("GtfsStopTime.feedId", "in", feedIds)
+                        .execute(),
+                    hasBrno
+                        ? this.brnoRealtimeService.getVehicles()
+                        : Promise.resolve(null),
+                    hasBrno
+                        ? this.database.db
+                              .selectFrom("GtfsRouteStop")
+                              .select([
+                                  "routeId",
+                                  "directionId",
+                                  "stopId",
+                                  "stopSequence",
+                              ])
+                              .where("feedId", "=", GtfsFeedId.BRNO)
+                              .orderBy("routeId")
+                              .orderBy("directionId")
+                              .orderBy("stopSequence")
+                              .execute()
+                        : Promise.resolve([]),
+                ]);
+            const brnoStopSequences = brnoVehicles
+                ? this.brnoRealtimeService.buildStopSequences(brnoRouteStopRows)
+                : new Map<string, never>();
             const fallbackDepartures = departures.flatMap((row) => {
                 const platformId = row.platformId;
                 const serviceId = row.serviceId;
@@ -629,16 +680,35 @@ export class DepartureServiceV2 {
                         return [];
                     }
 
-                    const timestamp = predictedDate.toISOString();
+                    const scheduled = predictedDate.toISOString();
+                    const vehicleDelay =
+                        row.feedId === GtfsFeedId.BRNO &&
+                        brnoVehicles &&
+                        row.directionId
+                            ? this.findBrnoVehicleDelay({
+                                  brnoVehicles,
+                                  brnoStopSequences,
+                                  routeShortName: row.routeShortName,
+                                  routeId: row.routeId,
+                                  directionId: row.directionId,
+                                  platformId,
+                              })
+                            : null;
+                    const predicted =
+                        vehicleDelay !== null
+                            ? new Date(
+                                  predictedMs + vehicleDelay * 1000,
+                              ).toISOString()
+                            : scheduled;
 
                     return [
                         {
                             id: `${row.stopTimeId}::${serviceDate}`,
                             departure: {
-                                predicted: timestamp,
-                                scheduled: timestamp,
+                                predicted,
+                                scheduled,
                             },
-                            delay: 0,
+                            delay: vehicleDelay ?? 0,
                             headsign:
                                 row.tripHeadsign ??
                                 row.routeLongName ??
@@ -647,7 +717,7 @@ export class DepartureServiceV2 {
                             routeId: row.routeId,
                             platformId,
                             platformCode: row.platformCode,
-                            isRealtime: false,
+                            isRealtime: vehicleDelay !== null,
                         } satisfies DepartureSchema,
                     ];
                 });
@@ -756,6 +826,46 @@ export class DepartureServiceV2 {
         }
 
         return result;
+    }
+
+    private findBrnoVehicleDelay(args: {
+        brnoVehicles: Map<
+            string,
+            {
+                line: string;
+                delay: number;
+                lastStop: number;
+                finalStop: number;
+            }[]
+        >;
+        brnoStopSequences: Map<
+            string,
+            { kordisStops: number[]; terminal: number }
+        >;
+        routeShortName: string;
+        routeId: string;
+        directionId: string;
+        platformId: string;
+    }): number | null {
+        const vehiclesOnLine = args.brnoVehicles.get(args.routeShortName);
+
+        if (!vehiclesOnLine) {
+            return null;
+        }
+
+        const kordisStop = extractKordisStopNumber(args.platformId);
+
+        if (kordisStop === null) {
+            return null;
+        }
+
+        return this.brnoRealtimeService.findVehicleDelay({
+            vehiclesOnLine,
+            stopSequences: args.brnoStopSequences,
+            routeId: args.routeId,
+            directionId: args.directionId,
+            kordisStopNumber: kordisStop,
+        });
     }
 
     private isMissingGtfsTimetableError(error: unknown): boolean {

@@ -17,6 +17,7 @@ import { LiberecImportService } from "../imports/liberec-import.service";
 import { PidImportService } from "../imports/pid-import.service";
 import { PmdpImportService } from "../imports/pmdp-import.service";
 import { UstiImportService } from "../imports/usti-import.service";
+import { CisjrImportService } from "../imports/cisjr-import.service";
 import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
@@ -31,6 +32,7 @@ export class SyncService {
     private readonly liberecImportService = new LiberecImportService();
     private readonly bratislavaImportService = new BratislavaImportService();
     private readonly zsrImportService = new ZsrImportService();
+    private readonly cisjrImportService = new CisjrImportService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
     private readonly cacheInvalidation: CacheInvalidationService | null;
@@ -212,6 +214,10 @@ export class SyncService {
             {
                 name: "ZSR",
                 load: () => this.zsrImportService.getZsrSnapshot(pidStops),
+            },
+            {
+                name: "CISJR",
+                load: () => this.cisjrImportService.getCisjrSnapshot(),
             },
         ];
 

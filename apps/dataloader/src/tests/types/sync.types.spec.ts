@@ -7,7 +7,7 @@ import type { SyncSnapshot } from "../../types/sync.types";
 import { getSyncCounts } from "../../types/sync.types";
 
 const createMinimalSnapshot = (): SyncSnapshot => ({
-    stops: [{ id: "S1", name: "Stop", avgLatitude: 50, avgLongitude: 14 }],
+    stops: [{ id: "S1", name: "Stop", feed: "PID" as const, avgLatitude: 50, avgLongitude: 14 }],
     platforms: [
         {
             id: "P1",
@@ -92,6 +92,7 @@ test("getSyncCounts reflects multiple items per entity", () => {
     snapshot.stops.push({
         id: "S2",
         name: "Stop 2",
+        feed: "PID" as const,
         avgLatitude: 50.1,
         avgLongitude: 14.1,
     });

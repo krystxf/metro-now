@@ -74,6 +74,7 @@ describe("StopResolver", () => {
                 ["U1072"],
                 undefined,
                 undefined,
+                undefined,
             );
 
             expect(stopService.getGraphQLByIds).toHaveBeenCalledWith(["U1072"]);
@@ -111,7 +112,7 @@ describe("StopResolver", () => {
 
             stopService.getGraphQLByIds.mockResolvedValue(stops);
 
-            const result = await resolver.getMultiple(["S1", "S2", "S3"], 1, 1);
+            const result = await resolver.getMultiple(["S1", "S2", "S3"], undefined, 1, 1);
 
             expect(result).toEqual([stops[1]]);
         });
@@ -131,7 +132,7 @@ describe("StopResolver", () => {
 
             stopService.getAllGraphQL.mockResolvedValue(stops);
 
-            const result = await resolver.getMultiple(undefined, 10, undefined);
+            const result = await resolver.getMultiple(undefined, undefined, 10, undefined);
 
             expect(stopService.getAllGraphQL).toHaveBeenCalledWith({
                 limit: 10,
@@ -144,7 +145,7 @@ describe("StopResolver", () => {
 
             stopService.getAllGraphQL.mockResolvedValue([]);
 
-            await resolver.getMultiple([], undefined, undefined);
+            await resolver.getMultiple([], undefined, undefined, undefined);
 
             expect(stopService.getAllGraphQL).toHaveBeenCalled();
             expect(stopService.getGraphQLByIds).not.toHaveBeenCalled();
@@ -184,7 +185,7 @@ describe("StopResolver", () => {
 
             stopService.searchGraphQL.mockResolvedValue(stops);
 
-            const result = await resolver.search("václav", 10, 5);
+            const result = await resolver.search("václav", undefined, 10, 5);
 
             expect(stopService.searchGraphQL).toHaveBeenCalledWith({
                 query: "václav",

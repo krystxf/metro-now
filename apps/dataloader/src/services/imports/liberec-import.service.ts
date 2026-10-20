@@ -350,6 +350,7 @@ export class LiberecImportService {
         const stops = logicalStops.map((stop) => ({
             id: stop.id,
             name: stop.name,
+            feed: GtfsFeedId.LIBEREC,
             avgLatitude: stop.avgLatitude,
             avgLongitude: stop.avgLongitude,
         }));

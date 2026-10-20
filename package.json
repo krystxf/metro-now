@@ -18,13 +18,10 @@
         "typegen": "turbo run typegen",
         "docker:up:dev": "docker compose up postgres redis-stack",
         "docker:up": "docker compose up -d --build",
-        "docker:down": "docker compose down --remove-orphans --volumes",
-        "prepare": "husky"
+        "docker:down": "docker compose down --remove-orphans --volumes"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
-        "husky": "^9.1.7",
-        "lint-staged": "^16.4.0",
         "turbo": "^2.5.0"
     },
     "homepage": "https://metro-now.vercel.app/",
@@ -39,11 +36,6 @@
         "name": "Krystof Kratky",
         "url": "https://github.com/krystxf",
         "email": "krystof.kratky2003@gmail.com"
-    },
-    "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-            "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
-        ]
     },
     "pnpm": {
         "overrides": {
