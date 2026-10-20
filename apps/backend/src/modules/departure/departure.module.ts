@@ -5,6 +5,7 @@ import { DataloaderModule } from "src/modules/dataloader/dataloader.module";
 import { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
 import { DepartureResolver } from "src/modules/departure/departure.resolver";
+import { GtfsFallbackDepartureService } from "src/modules/departure/gtfs-fallback-departure.service";
 import { DepartureServiceV1 } from "src/modules/departure/legacy/departure-v1.service";
 import { DepartureController } from "src/modules/departure/legacy/departure.controller";
 import { GolemioModule } from "src/modules/golemio/golemio.module";
@@ -18,6 +19,7 @@ import { StopDataModule } from "src/modules/stop/stop-data.module";
         DepartureServiceV1,
         DepartureServiceV2,
         DepartureResolver,
+        GtfsFallbackDepartureService,
     ],
     imports: [
         GolemioModule,

@@ -2,6 +2,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { Cache } from "cache-manager";
 
+import { UpstreamError } from "src/common/errors";
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import {
     getErrorMessage,
@@ -64,7 +65,7 @@ export class GolemioService {
                         continue;
                     }
 
-                    throw new Error(message);
+                    throw new UpstreamError(message, { code: "golemio" });
                 }
 
                 return await res.json();
@@ -85,7 +86,9 @@ export class GolemioService {
             }
         }
 
-        throw new Error(`Exhausted Golemio fetch retries for ${url}`);
+        throw new UpstreamError(`Exhausted Golemio fetch retries for ${url}`, {
+            code: "golemio",
+        });
     }
 
     async getGolemioData(path: string): Promise<unknown> {

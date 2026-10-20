@@ -1,4 +1,5 @@
-export const API_URL = "https://api.metronow.dev";
+export const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ?? "https://api.metronow.dev";
 
 export const APPSTORE_URL =
     "https://apps.apple.com/cz/app/metro-now/id6504659402";

@@ -3,6 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
 import { Open as unzipperOpen } from "unzipper";
 
+import { MissingDataError, UpstreamError } from "src/common/errors";
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { buildLeoCatalogFromCsv } from "src/modules/leo/leo-gtfs.parser";
 import type {
@@ -26,8 +27,9 @@ export class LeoGtfsService {
                 const response = await fetch(LEO_GTFS_ARCHIVE_URL);
 
                 if (!response.ok) {
-                    throw new Error(
+                    throw new UpstreamError(
                         `Failed to fetch Leo GTFS archive: ${response.status} ${response.statusText}`,
+                        { code: "leo-gtfs-archive" },
                     );
                 }
 
@@ -40,8 +42,9 @@ export class LeoGtfsService {
                     );
 
                     if (!file) {
-                        throw new Error(
+                        throw new MissingDataError(
                             `Leo GTFS archive is missing '${path}'`,
+                            { code: "leo-gtfs-missing-file" },
                         );
                     }
 

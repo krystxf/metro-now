@@ -57,9 +57,10 @@ CMD [ "node", "dist/main" ]
 
 FROM ${NODE_IMAGE} AS metro-now_dataloader
 LABEL org.opencontainers.image.source="https://github.com/krystxf/metro-now"
+ARG DATALOADER_MAX_OLD_SPACE_MB=4096
 COPY --from=deploy_dataloader --chown=node:node /prod/dataloader /prod/dataloader
 WORKDIR /prod/dataloader
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=${DATALOADER_MAX_OLD_SPACE_MB}"
 USER node
 EXPOSE 3008
 CMD [ "node", "dist/app.js" ]

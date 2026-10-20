@@ -39,6 +39,17 @@ private func makeURLSession() -> URLSession {
     return URLSession(configuration: configuration)
 }
 
+/// Resolves the GraphQL endpoint from `GRAPHQL_URL`, falling back to a
+/// syntactically-valid but unreachable URL on misconfiguration so the app
+/// surfaces a network error instead of crashing at launch.
+private func resolveGraphQLEndpoint() -> URL {
+    if let url = URL(string: GRAPHQL_URL) {
+        return url
+    }
+    assertionFailure("Invalid GRAPHQL_URL: \(GRAPHQL_URL). Check APIURL in Secrets.xcconfig.")
+    return URL(string: "https://invalid.metronow.dev/graphql")!
+}
+
 private let apolloClient: ApolloClient = {
     print("[GraphQL] endpoint=\(GRAPHQL_URL)")
 
@@ -46,7 +57,7 @@ private let apolloClient: ApolloClient = {
         urlSession: makeURLSession(),
         interceptorProvider: DefaultInterceptorProvider.shared,
         store: apolloStore,
-        endpointURL: URL(string: GRAPHQL_URL)!,
+        endpointURL: resolveGraphQLEndpoint(),
         additionalHeaders: appRequestHeaders()
     )
 
@@ -61,7 +72,7 @@ private let persistedApolloClient: ApolloClient = {
         urlSession: makeURLSession(),
         interceptorProvider: DefaultInterceptorProvider.shared,
         store: apolloStore,
-        endpointURL: URL(string: GRAPHQL_URL)!,
+        endpointURL: resolveGraphQLEndpoint(),
         additionalHeaders: appRequestHeaders(),
         apqConfig: AutoPersistedQueryConfiguration(autoPersistQueries: true),
         useGETForQueries: true

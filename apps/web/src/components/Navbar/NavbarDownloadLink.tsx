@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { APPSTORE_URL } from "@/constants/api";
+import { AppStoreQRCode } from "@/components/AppStoreQRCode/AppStoreQRCode";
 import { motion } from "framer-motion";
 import { DevicePhoneMobileIcon } from "@heroicons/react/24/solid";
-import { QRCodeSVG } from "qrcode.react";
 
 export const NavbarDownloadLink = () => {
     const [showQRCode, setShowQRCode] = useState(false);
@@ -29,21 +29,7 @@ export const NavbarDownloadLink = () => {
                         "p-2 backdrop-blur-lg bg-white rounded-xl absolute top-10 left-1/2 -translate-x-1/2 border border-neutral-100 dark:border-neutral-400/20 shadow-md"
                     }
                 >
-                    <QRCodeSVG
-                        value={APPSTORE_URL}
-                        fgColor="#000000"
-                        bgColor="transparent"
-                        level="Q"
-                        imageSettings={{
-                            src: "/appstore-icon.svg",
-                            x: undefined,
-                            y: undefined,
-                            height: 24,
-                            width: 24,
-                            opacity: 1,
-                            excavate: true,
-                        }}
-                    />
+                    <AppStoreQRCode />
                 </motion.div>
             </motion.div>
         </Link>

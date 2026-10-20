@@ -39,13 +39,19 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.get("/health", async (_req: Request, res: Response) => {
     try {
-        const health = await databaseService.performHealthCheck();
+        const [health, redisReachable] = await Promise.all([
+            databaseService.performHealthCheck(),
+            cacheInvalidation.ping(),
+        ]);
 
-        res.json({
-            status: "ok",
+        const status = redisReachable ? "ok" : "degraded";
+
+        res.status(redisReachable ? 200 : 503).json({
+            status,
             service: "dataloader",
             timestamp: new Date().toISOString(),
             database: "connected",
+            redis: redisReachable ? "connected" : "unreachable",
             extensions: health.extensions,
         });
     } catch (error) {
@@ -153,10 +159,14 @@ const bootstrap = async (): Promise<void> => {
             port: redisPort,
         });
     } catch (error) {
-        logger.warn(
-            "Failed to connect to Redis for cache invalidation, continuing without it",
+        // Promoted from warn to error so operators see this in alerting.
+        // Marker `cache-invalidation:redis-connect-failed` is stable for log queries.
+        logger.error(
+            "cache-invalidation:redis-connect-failed — backend cache will be stale until restart",
             {
                 error: error instanceof Error ? error.message : String(error),
+                host: redisHost,
+                port: redisPort,
             },
         );
     }

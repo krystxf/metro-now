@@ -3,9 +3,16 @@ import {
     GraphQLError as OriginalGraphQLError,
 } from "graphql";
 
+export type GraphQLErrorCode =
+    | "BAD_USER_INPUT"
+    | "NOT_FOUND"
+    | "UPSTREAM_FAILED"
+    | "MISSING_DATA"
+    | "INTERNAL";
+
 type Params = {
     message: string;
-    code: "BAD_USER_INPUT";
+    code: GraphQLErrorCode;
 };
 
 export const GraphQLError = ({ message, code }: Params) => {

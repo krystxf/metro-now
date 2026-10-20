@@ -22,10 +22,9 @@
         "./src/*"
       ]
     },
-    "strictNullChecks": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "target": "ES2017"
   },

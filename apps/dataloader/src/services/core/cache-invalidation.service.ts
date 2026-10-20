@@ -72,6 +72,22 @@ export class CacheInvalidationService {
         this.redis = null;
     }
 
+    isConnected(): boolean {
+        return this.redis !== null && this.redis.status === "ready";
+    }
+
+    async ping(): Promise<boolean> {
+        if (!this.redis) {
+            return false;
+        }
+        try {
+            const reply = await this.redis.ping();
+            return reply === "PONG";
+        } catch {
+            return false;
+        }
+    }
+
     async invalidateForChangedEntities(
         changedEntities: readonly string[],
     ): Promise<number> {

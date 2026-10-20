@@ -1,10 +1,6 @@
-import {
-    APPSTORE_URL,
-    GRAPHQL_URL,
-    SOURCE_CODE_URL,
-} from "@/constants/api";
+import { GRAPHQL_URL, SOURCE_CODE_URL } from "@/constants/api";
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react";
+import { AppStoreQRCode } from "@/components/AppStoreQRCode/AppStoreQRCode";
 import { GolemioLogo } from "../GolemioLogo/GolemioLogo";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { FooterLink } from "@/components/Footer/FooterLink";
@@ -13,7 +9,7 @@ import { FooterSectionHeading } from "@/components/Footer/FooterSectionHeading";
 
 export const Footer = () => {
     return (
-        <div className="w-full flex justify-center bg-zinc-50 dark:bg-zinc-950 text-black dark:text-whit border-t dark:border-neutral-900 border-neutral-200">
+        <div className="w-full flex justify-center bg-zinc-50 dark:bg-zinc-950 text-black dark:text-white border-t dark:border-neutral-900 border-neutral-200">
             <div className="max-w-screen-lg w-full py-12 px-8 flex gap-12 justify-between items-start flex-wrap">
                 <FooterSection>
                     <Link href={SOURCE_CODE_URL} target="_blank">
@@ -57,22 +53,7 @@ export const Footer = () => {
                 </FooterSection>
                 <FooterSection>
                     <FooterSectionHeading>Download</FooterSectionHeading>
-                    <QRCodeSVG
-                        value={APPSTORE_URL}
-                        className="dark:p-2 dark:rounded-xl dark:bg-white transition-all ease-in-out dark:border dark:border-neutral-900 rounded dark:shadow-lg"
-                        bgColor="transparent"
-                        fgColor="black"
-                        level="Q"
-                        imageSettings={{
-                            src: "/appstore-icon.svg",
-                            x: undefined,
-                            y: undefined,
-                            height: 24,
-                            width: 24,
-                            opacity: 1,
-                            excavate: true,
-                        }}
-                    />
+                    <AppStoreQRCode className="dark:p-2 dark:rounded-xl dark:bg-white transition-all ease-in-out dark:border dark:border-neutral-900 rounded dark:shadow-lg" />
                 </FooterSection>
             </div>
         </div>
