@@ -22,6 +22,11 @@ const nextConfig = {
                 permanent: true,
             },
             {
+                source: "/docs/api",
+                destination: "/api-guide",
+                permanent: true,
+            },
+            {
                 source: "/docs/terms-and-conditions",
                 destination: "/terms-and-conditions",
                 permanent: true,
