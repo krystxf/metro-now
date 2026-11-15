@@ -24,7 +24,7 @@ import { logger } from "../../utils/logger";
 import { buildGtfsPersistenceSnapshot } from "../gtfs/gtfs-persistence.utils";
 
 const ZSR_GTFS_ARCHIVE_URL =
-    "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
+    "https://data.slovensko.sk/download?id=adf2c0db-600e-45c9-906c-7e441f78472f";
 
 const ZSR_STOP_PREFIX = "ZRS:";
 const ZSR_PLATFORM_PREFIX = "ZRP:";
