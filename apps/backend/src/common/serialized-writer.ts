@@ -25,7 +25,9 @@ export class SerializedWriter {
                             catch: (cause) => new LogWriteError({ cause }),
                         }).pipe(
                             Effect.catchTag("LogWriteError", (error) =>
-                                Effect.sync(() => onError(error)),
+                                Effect.sync(() => onError(error)).pipe(
+                                    Effect.catchAllDefect(() => Effect.void),
+                                ),
                             ),
                         );
                     }),
