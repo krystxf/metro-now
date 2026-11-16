@@ -24,6 +24,18 @@ describe("RouteByIdLoader", () => {
         ]);
     });
 
+    it("resolves bare PID route IDs to the same route as lookup IDs", async () => {
+        const routeService = {
+            getGraphQLByIds: jest.fn().mockResolvedValue([{ id: "147" }]),
+        } as unknown as jest.Mocked<RouteService>;
+        const loader = new RouteByIdLoader(routeService);
+
+        await expect(
+            Promise.all([loader.load("147"), loader.load("L147")]),
+        ).resolves.toEqual([{ id: "147" }, { id: "147" }]);
+        expect(routeService.getGraphQLByIds).toHaveBeenCalledWith(["L147"]);
+    });
+
     it("returns null for all IDs when service returns empty array", async () => {
         const routeService = {
             getGraphQLByIds: jest.fn().mockResolvedValue([]),
