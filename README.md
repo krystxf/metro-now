@@ -152,10 +152,9 @@ local service settings and a placeholder API key, so these backend suites do not
 need the Golemio secret. Xcode jobs and the Docker bundle integration test should
 keep their existing setup: devenv does not replace those toolchains or checks.
 
-`devenv.yaml` pins the package and module sources. The first devenv command
-resolves their dependencies into `devenv.lock`; commit that generated file after
-verifying `devenv test`. Use `devenv update` to refresh it, review the diff, and
-rerun the tests. To upgrade the pinned sources or devenv CLI, update
+`devenv.yaml` pins the package and module sources, and the committed
+`devenv.lock` records their resolved dependencies. Use `devenv update` to refresh
+the lock, review the diff, and rerun `devenv test`. To upgrade the pinned sources or devenv CLI, update
 `devenv.yaml` and any CI install command together.
 
 ### Manual setup
