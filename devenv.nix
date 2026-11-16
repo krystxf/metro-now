@@ -67,6 +67,7 @@ in
     cd "$DEVENV_ROOT"
     test "$(node --version | cut -d. -f1)" = v22
     test "$(pnpm --version)" = "$(node -p "require('./package.json').packageManager.split('@')[1]")"
+    wait_for_processes
     wait_for_port ${toString postgresPort}
     wait_for_port ${toString redisPort}
     metro-setup
