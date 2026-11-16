@@ -9,7 +9,8 @@ import {
     Version,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { z } from "zod";
+import { Either, Schema } from "effect";
+import { coerceNumber } from "src/schema/coercion";
 
 import { ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
@@ -57,19 +58,27 @@ export class DepartureController {
         },
     ])
     async getDeparturesV1(@Query() query): Promise<DepartureSchema[]> {
-        const schema = z.object({
-            metroOnly: metroOnlySchema,
-            platform: z.string().array().optional().default([]),
-            stop: z.string().array().optional().default([]),
-        });
-        const parsed = schema.safeParse(query);
-        if (!parsed.success) {
+        const schema = Schema.mutable(
+            Schema.Struct({
+                metroOnly: metroOnlySchema,
+                platform: Schema.optionalWith(
+                    Schema.mutable(Schema.Array(Schema.String)),
+                    { default: () => [] },
+                ),
+                stop: Schema.optionalWith(
+                    Schema.mutable(Schema.Array(Schema.String)),
+                    { default: () => [] },
+                ),
+            }),
+        );
+        const parsed = Schema.decodeUnknownEither(schema)(query);
+        if (Either.isLeft(parsed)) {
             throw new HttpException(
                 "Invalid query params",
                 HttpStatus.BAD_REQUEST,
             );
         }
-        const parsedQuery = parsed.data;
+        const parsedQuery = parsed.right;
 
         if (parsedQuery.platform.length + parsedQuery.stop.length === 0) {
             throw new HttpException(
@@ -84,7 +93,9 @@ export class DepartureController {
             metroOnly: parsedQuery.metroOnly,
         });
 
-        return departureSchema.array().parse(departures);
+        return Schema.decodeUnknownSync(
+            Schema.mutable(Schema.Array(departureSchema)),
+        )(departures);
     }
 
     @Get()
@@ -109,17 +120,17 @@ export class DepartureController {
         {
             name: "vehicleType",
             description: "Vehicle type",
-            enum: vehicleTypeSchema.Enum,
-            example: vehicleTypeSchema.Enum.all,
+            enum: ["metro", "all"],
+            example: "all",
             required: false,
             schema: {
-                default: vehicleTypeSchema.Enum.all,
+                default: "all",
             },
         },
         {
             name: "excludeVehicleType",
             description: "Excluded vehicle type",
-            enum: vehicleTypeSchema.exclude(["all"]).Enum,
+            enum: ["metro"],
             example: null,
             required: false,
             schema: {
@@ -157,33 +168,50 @@ export class DepartureController {
         },
     ])
     async getDeparturesV2(@Query() query): Promise<DepartureSchema[]> {
-        const schema = z.object({
-            vehicleType: vehicleTypeSchema.default("all"),
-            excludeVehicleType: vehicleTypeSchema
-                .exclude(["all"])
-                .nullable()
-                .optional()
-                .default(null),
-            platform: z.string().array().optional().default([]),
-            stop: z.string().array().optional().default([]),
-            limit: z.coerce.number().int().optional().nullable().default(null), // limit of results (departures) per platform and route
-            totalLimit: z.coerce
-                .number()
-                .int()
-                .optional()
-                .nullable()
-                .default(null), // total limit of results (departures)
-            minutesBefore: z.coerce.number().optional().nullable().default(0),
-            minutesAfter: z.coerce.number().optional().nullable().default(null),
-        });
-        const parsed = schema.safeParse(query);
-        if (!parsed.success) {
+        const schema = Schema.mutable(
+            Schema.Struct({
+                vehicleType: Schema.optionalWith(vehicleTypeSchema, {
+                    default: () => "all",
+                }),
+                excludeVehicleType: Schema.optionalWith(
+                    Schema.NullOr(
+                        vehicleTypeSchema.pipe(Schema.pickLiteral("metro")),
+                    ),
+                    { default: () => null },
+                ),
+                platform: Schema.optionalWith(
+                    Schema.mutable(Schema.Array(Schema.String)),
+                    { default: () => [] },
+                ),
+                stop: Schema.optionalWith(
+                    Schema.mutable(Schema.Array(Schema.String)),
+                    { default: () => [] },
+                ),
+                limit: Schema.optionalWith(
+                    Schema.NullOr(coerceNumber.pipe(Schema.int())),
+                    { default: () => null },
+                ),
+                totalLimit: Schema.optionalWith(
+                    Schema.NullOr(coerceNumber.pipe(Schema.int())),
+                    { default: () => null },
+                ),
+                minutesBefore: Schema.optionalWith(
+                    Schema.NullOr(coerceNumber),
+                    { default: () => 0 },
+                ),
+                minutesAfter: Schema.optionalWith(Schema.NullOr(coerceNumber), {
+                    default: () => null,
+                }),
+            }),
+        );
+        const parsed = Schema.decodeUnknownEither(schema)(query);
+        if (Either.isLeft(parsed)) {
             throw new HttpException(
                 "Invalid query params",
                 HttpStatus.BAD_REQUEST,
             );
         }
-        const parsedQuery = parsed.data;
+        const parsedQuery = parsed.right;
 
         if (parsedQuery.platform.length + parsedQuery.stop.length === 0) {
             throw new HttpException(
@@ -203,7 +231,9 @@ export class DepartureController {
             minutesAfter: parsedQuery.minutesAfter ?? 2 * 60,
         });
 
-        departureSchema.array().parse(departures);
+        Schema.decodeUnknownSync(Schema.mutable(Schema.Array(departureSchema)))(
+            departures,
+        );
 
         return departures;
     }

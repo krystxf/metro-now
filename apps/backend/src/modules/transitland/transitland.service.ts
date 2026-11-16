@@ -1,6 +1,7 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
+import { Schema } from "effect";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import {
@@ -50,9 +51,9 @@ export class TransitlandService {
                     );
                 }
 
-                return transitlandStopDeparturesSchema.parse(
-                    await response.json(),
-                );
+                return Schema.decodeUnknownSync(
+                    transitlandStopDeparturesSchema,
+                )(await response.json());
             },
             CACHE_TTL.transitlandDepartures,
         );

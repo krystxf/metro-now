@@ -1,25 +1,41 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
 import { InfotextPriority } from "src/types/graphql.generated";
 
-export const golemioResponseSchema = z
-    .object({
-        valid_from: z.string().nullable(),
-        valid_to: z.string().nullable(),
-        text: z.string(),
-        text_en: z.string().nullable(),
-        display_type: z.string(),
-        priority: z
-            .enum(["low", "normal", "high"])
-            .transform((val) => val.toUpperCase())
-            .pipe(z.nativeEnum(InfotextPriority)),
-        related_stops: z.array(
-            z.object({
-                id: z.string(),
-                name: z.string(),
-                platform_code: z.string().nullable(),
+export const golemioResponseSchema = Schema.mutable(
+    Schema.Array(
+        Schema.mutable(
+            Schema.Struct({
+                valid_from: Schema.NullOr(Schema.String),
+                valid_to: Schema.NullOr(Schema.String),
+                text: Schema.String,
+                text_en: Schema.NullOr(Schema.String),
+                display_type: Schema.String,
+                priority: Schema.compose(
+                    Schema.transform(
+                        Schema.Literal(...["low", "normal", "high"]),
+                        Schema.String,
+                        {
+                            strict: false,
+                            decode: (val) => val.toUpperCase(),
+                            encode: (value) => value.toLowerCase(),
+                        },
+                    ),
+                    Schema.Enums(InfotextPriority),
+                ),
+                related_stops: Schema.mutable(
+                    Schema.Array(
+                        Schema.mutable(
+                            Schema.Struct({
+                                id: Schema.String,
+                                name: Schema.String,
+                                platform_code: Schema.NullOr(Schema.String),
+                            }),
+                        ),
+                    ),
+                ),
+                id: Schema.String,
             }),
         ),
-        id: z.string(),
-    })
-    .array();
+    ),
+);

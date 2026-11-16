@@ -103,9 +103,6 @@ importers:
       unzipper:
         specifier: ^0.12.3
         version: 0.12.3
-      zod:
-        specifier: ^3.24.2
-        version: 3.24.2
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.16

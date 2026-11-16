@@ -1,5 +1,5 @@
 import { parseString } from "@fast-csv/parse";
-import { z } from "zod";
+import { Schema } from "effect";
 
 import {
     toLeoPlatformId,
@@ -24,50 +24,60 @@ const EMPTY_LOCATION_TYPE = "0";
 const LOCATION_TYPE_PLATFORM = new Set(["0", "4"]);
 const LOCATION_TYPE_ENTRANCE = "2";
 
-const agencyRowSchema = z.object({
-    agency_id: z.string().min(1),
-    agency_name: z.string().min(1),
-});
+const agencyRowSchema = Schema.mutable(
+    Schema.Struct({
+        agency_id: Schema.String.pipe(Schema.minLength(1)),
+        agency_name: Schema.String.pipe(Schema.minLength(1)),
+    }),
+);
 
-const routeRowSchema = z.object({
-    route_id: z.string().min(1),
-    agency_id: z.string().min(1),
-    route_short_name: z.string().min(1),
-    route_long_name: z.string().optional(),
-    route_type: z.string().min(1),
-    route_url: z.string().optional(),
-    route_color: z.string().optional(),
-});
+const routeRowSchema = Schema.mutable(
+    Schema.Struct({
+        route_id: Schema.String.pipe(Schema.minLength(1)),
+        agency_id: Schema.String.pipe(Schema.minLength(1)),
+        route_short_name: Schema.String.pipe(Schema.minLength(1)),
+        route_long_name: Schema.optionalWith(Schema.String, {}),
+        route_type: Schema.String.pipe(Schema.minLength(1)),
+        route_url: Schema.optionalWith(Schema.String, {}),
+        route_color: Schema.optionalWith(Schema.String, {}),
+    }),
+);
 
-const tripRowSchema = z.object({
-    trip_id: z.string().min(1),
-    route_id: z.string().min(1),
-    trip_headsign: z.string().optional(),
-    trip_short_name: z.string().optional(),
-    direction_id: z.string().optional(),
-});
+const tripRowSchema = Schema.mutable(
+    Schema.Struct({
+        trip_id: Schema.String.pipe(Schema.minLength(1)),
+        route_id: Schema.String.pipe(Schema.minLength(1)),
+        trip_headsign: Schema.optionalWith(Schema.String, {}),
+        trip_short_name: Schema.optionalWith(Schema.String, {}),
+        direction_id: Schema.optionalWith(Schema.String, {}),
+    }),
+);
 
-const stopRowSchema = z.object({
-    stop_id: z.string().min(1),
-    stop_name: z.string(),
-    stop_lat: z.string().min(1),
-    stop_lon: z.string().min(1),
-    location_type: z.string().optional(),
-    parent_station: z.string().optional(),
-    platform_code: z.string().optional(),
-});
+const stopRowSchema = Schema.mutable(
+    Schema.Struct({
+        stop_id: Schema.String.pipe(Schema.minLength(1)),
+        stop_name: Schema.String,
+        stop_lat: Schema.String.pipe(Schema.minLength(1)),
+        stop_lon: Schema.String.pipe(Schema.minLength(1)),
+        location_type: Schema.optionalWith(Schema.String, {}),
+        parent_station: Schema.optionalWith(Schema.String, {}),
+        platform_code: Schema.optionalWith(Schema.String, {}),
+    }),
+);
 
-const stopTimeRowSchema = z.object({
-    trip_id: z.string().min(1),
-    stop_id: z.string().min(1),
-    stop_sequence: z.string().min(1),
-});
+const stopTimeRowSchema = Schema.mutable(
+    Schema.Struct({
+        trip_id: Schema.String.pipe(Schema.minLength(1)),
+        stop_id: Schema.String.pipe(Schema.minLength(1)),
+        stop_sequence: Schema.String.pipe(Schema.minLength(1)),
+    }),
+);
 
-type AgencyRow = z.infer<typeof agencyRowSchema>;
-type RouteRow = z.infer<typeof routeRowSchema>;
-type TripRow = z.infer<typeof tripRowSchema>;
-type StopRow = z.infer<typeof stopRowSchema>;
-type StopTimeRow = z.infer<typeof stopTimeRowSchema>;
+type AgencyRow = Schema.Schema.Type<typeof agencyRowSchema>;
+type RouteRow = Schema.Schema.Type<typeof routeRowSchema>;
+type TripRow = Schema.Schema.Type<typeof tripRowSchema>;
+type StopRow = Schema.Schema.Type<typeof stopRowSchema>;
+type StopTimeRow = Schema.Schema.Type<typeof stopTimeRowSchema>;
 
 type ParsedStop = {
     id: string;
@@ -140,7 +150,7 @@ export const normalizeStopName = (name: string): string =>
         .toLowerCase();
 
 const parseStop = (row: StopRow): ParsedStop => {
-    const parsed = stopRowSchema.parse(row);
+    const parsed = Schema.decodeUnknownSync(stopRowSchema)(row);
     const latitude = Number(parsed.stop_lat);
     const longitude = Number(parsed.stop_lon);
 
@@ -163,7 +173,7 @@ const parseStop = (row: StopRow): ParsedStop => {
 };
 
 const parseRoute = (row: RouteRow): ParsedRoute => {
-    const parsed = routeRowSchema.parse(row);
+    const parsed = Schema.decodeUnknownSync(routeRowSchema)(row);
 
     return {
         id: parsed.route_id,
@@ -177,7 +187,7 @@ const parseRoute = (row: RouteRow): ParsedRoute => {
 };
 
 const parseTrip = (row: TripRow): ParsedTrip => {
-    const parsed = tripRowSchema.parse(row);
+    const parsed = Schema.decodeUnknownSync(tripRowSchema)(row);
 
     return {
         id: parsed.trip_id,
@@ -189,7 +199,7 @@ const parseTrip = (row: TripRow): ParsedTrip => {
 };
 
 const parseStopTime = (row: StopTimeRow): ParsedStopTime => {
-    const parsed = stopTimeRowSchema.parse(row);
+    const parsed = Schema.decodeUnknownSync(stopTimeRowSchema)(row);
     const stopSequence = Number(parsed.stop_sequence);
 
     if (!Number.isInteger(stopSequence)) {
@@ -390,7 +400,7 @@ export const buildLeoCatalogFromCsv = ({
         ]);
         const leoAgencyIds = new Set(
             agencies
-                .map((row) => agencyRowSchema.parse(row))
+                .map((row) => Schema.decodeUnknownSync(agencyRowSchema)(row))
                 .filter((agency) =>
                     TARGET_AGENCY_NAMES.has(agency.agency_name.trim()),
                 )

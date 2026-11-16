@@ -1,37 +1,53 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
 import { infoTextSchema } from "src/modules/departure/schema/info-text.schema";
 import { delaySchema } from "src/schema/delay.schema";
 import { timestampSchema } from "src/schema/timestamp.schema";
 
-export const departureBoardsSchema = z.object({
-    stops: z
-        .object({
-            platform_code: z.unknown(),
-        })
-        .array(),
-    departures: z.array(
-        z.object({
-            delay: delaySchema,
-            departure_timestamp: timestampSchema,
-            arrival_timestamp: timestampSchema,
-            trip: z.object({
-                id: z.string(),
-                headsign: z.string(),
-                direction: z.string().nullable(),
-            }),
-            route: z.object({
-                short_name: z.string(),
-                is_night: z.boolean(),
-                is_substitute_transport: z.boolean(),
-            }),
-            stop: z.object({
-                id: z.string(),
-                platform_code: z.string().nullable(),
-            }),
-        }),
-    ),
-    infotexts: infoTextSchema.array(),
-});
+export const departureBoardsSchema = Schema.mutable(
+    Schema.Struct({
+        stops: Schema.mutable(
+            Schema.Array(
+                Schema.mutable(
+                    Schema.Struct({ platform_code: Schema.Unknown }),
+                ),
+            ),
+        ),
+        departures: Schema.mutable(
+            Schema.Array(
+                Schema.mutable(
+                    Schema.Struct({
+                        delay: delaySchema,
+                        departure_timestamp: timestampSchema,
+                        arrival_timestamp: timestampSchema,
+                        trip: Schema.mutable(
+                            Schema.Struct({
+                                id: Schema.String,
+                                headsign: Schema.String,
+                                direction: Schema.NullOr(Schema.String),
+                            }),
+                        ),
+                        route: Schema.mutable(
+                            Schema.Struct({
+                                short_name: Schema.String,
+                                is_night: Schema.Boolean,
+                                is_substitute_transport: Schema.Boolean,
+                            }),
+                        ),
+                        stop: Schema.mutable(
+                            Schema.Struct({
+                                id: Schema.String,
+                                platform_code: Schema.NullOr(Schema.String),
+                            }),
+                        ),
+                    }),
+                ),
+            ),
+        ),
+        infotexts: Schema.mutable(Schema.Array(infoTextSchema)),
+    }),
+);
 
-export type DepartureBoardsSchema = z.infer<typeof departureBoardsSchema>;
+export type DepartureBoardsSchema = Schema.Schema.Type<
+    typeof departureBoardsSchema
+>;

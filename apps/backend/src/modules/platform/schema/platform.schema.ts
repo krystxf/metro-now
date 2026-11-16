@@ -1,17 +1,26 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const platformSchema = z.object({
-    id: z.string(),
-    latitude: z.number(),
-    longitude: z.number(),
-    name: z.string(),
-    routes: z
-        .object({
-            id: z.string(),
-            name: z.string(),
-            color: z.string().nullable().optional(),
-        })
-        .array(),
-});
+export const platformSchema = Schema.mutable(
+    Schema.Struct({
+        id: Schema.String,
+        latitude: Schema.Number.pipe(Schema.nonNaN()),
+        longitude: Schema.Number.pipe(Schema.nonNaN()),
+        name: Schema.String,
+        routes: Schema.mutable(
+            Schema.Array(
+                Schema.mutable(
+                    Schema.Struct({
+                        id: Schema.String,
+                        name: Schema.String,
+                        color: Schema.optionalWith(
+                            Schema.NullOr(Schema.String),
+                            {},
+                        ),
+                    }),
+                ),
+            ),
+        ),
+    }),
+);
 
-export type PlatformSchema = z.infer<typeof platformSchema>;
+export type PlatformSchema = Schema.Schema.Type<typeof platformSchema>;

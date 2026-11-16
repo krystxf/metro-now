@@ -1,10 +1,14 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const metroOnlySchema = z.preprocess(
-    (value) => value === "true",
-    z.boolean(),
+export const metroOnlySchema = Schema.compose(
+    Schema.transform(Schema.Unknown, Schema.Unknown, {
+        strict: false,
+        decode: (value) => value === "true",
+        encode: (value) => value,
+    }),
+    Schema.Boolean,
 );
 
-export const vehicleTypeSchema = z.enum(["metro", "all"]);
+export const vehicleTypeSchema = Schema.Literal(...["metro", "all"]);
 
-export type VehicleTypeSchema = z.infer<typeof vehicleTypeSchema>;
+export type VehicleTypeSchema = Schema.Schema.Type<typeof vehicleTypeSchema>;

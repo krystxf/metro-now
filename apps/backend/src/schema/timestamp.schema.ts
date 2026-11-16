@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { Schema } from "effect";
+import { coerceString } from "src/schema/coercion";
 
-export const timestampSchema = z.object({
-    predicted: z.coerce.string(),
-    scheduled: z.coerce.string(),
-});
+export const timestampSchema = Schema.mutable(
+    Schema.Struct({ predicted: coerceString, scheduled: coerceString }),
+);
 
-export type TimestampSchema = z.infer<typeof timestampSchema>;
+export type TimestampSchema = Schema.Schema.Type<typeof timestampSchema>;
