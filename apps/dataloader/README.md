@@ -2,6 +2,19 @@
 
 Background worker that syncs transit data from external APIs into the database on a cron schedule. Built with TypeScript, Express, and node-cron.
 
+## Supported providers
+
+The worker imports Prague/PID and the existing Leo Express integration only.
+PID supplies Prague integrated transit, including its regional rail services;
+Leo Express adds the existing rail feed and stop matching. Leo's current feed
+coverage is preserved.
+
+Brno, Bratislava, Liberec, Plzeň/PMDP, Ústí, and Slovak ŽSR importers have been
+removed. Their stored entities are pruned by the existing transactional snapshot
+sync on its next successful run. Historical database and GraphQL feed enum values
+remain for compatibility with existing databases and clients; they do not enable
+additional importers.
+
 ## Prerequisites
 
 - Node.js 20
