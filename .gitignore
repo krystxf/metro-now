@@ -15,3 +15,7 @@ apps/mobile/metro-now/Secrets.xcconfig
 
 dist
 tmp
+
+# devenv and direnv local state
+.devenv*
+.direnv
