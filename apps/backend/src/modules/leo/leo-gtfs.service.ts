@@ -14,7 +14,7 @@ import type {
 } from "src/modules/leo/leo.types";
 
 const LEO_GTFS_ARCHIVE_URL =
-    "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
+    "https://data.slovensko.sk/download?id=adf2c0db-600e-45c9-906c-7e441f78472f";
 
 @Injectable()
 export class LeoGtfsService {
@@ -33,9 +33,18 @@ export class LeoGtfsService {
                     );
                 }
 
-                const directory = await unzipperOpen.buffer(
-                    Buffer.from(await response.arrayBuffer()),
-                );
+                const archive = Buffer.from(await response.arrayBuffer());
+
+                // ZIP files start with "PK". Anything else (e.g. an HTML page
+                // served after the feed was moved) would make unzipper fail
+                // with an opaque FILE_ENDED error.
+                if (archive.subarray(0, 2).toString("latin1") !== "PK") {
+                    throw new Error(
+                        `Leo GTFS archive at ${response.url} is not a ZIP file (content-type: ${response.headers.get("content-type")})`,
+                    );
+                }
+
+                const directory = await unzipperOpen.buffer(archive);
                 const getFile = (path: string): Promise<string> => {
                     const file = directory.files.find(
                         (entry) => entry.path === path,

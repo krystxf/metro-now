@@ -4,7 +4,7 @@ import type { StopSnapshot, SyncSnapshot } from "../../types/sync.types";
 import { importPidMatchedGtfsFeed } from "./pid-matched-gtfs-import";
 
 const LEO_GTFS_ARCHIVE_URL =
-    "https://www.zsr.sk/files/pre-cestujucich/cestovny-poriadok/gtfs/gtfs.zip";
+    "https://data.slovensko.sk/download?id=adf2c0db-600e-45c9-906c-7e441f78472f";
 
 const LEO_AGENCY_NAMES = new Set([
     "Leo Express s.r.o.",

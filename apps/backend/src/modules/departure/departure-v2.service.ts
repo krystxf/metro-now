@@ -1,5 +1,5 @@
 import { GtfsFeedId, type Stop } from "@metro-now/database";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
@@ -24,6 +24,8 @@ const ROUTE_ID_BY_NAME = {
 
 @Injectable()
 export class DepartureServiceV2 {
+    private readonly logger = new Logger(DepartureServiceV2.name);
+
     constructor(
         private readonly departureBoardService: DepartureBoardService,
         private readonly database: DatabaseService,
@@ -72,6 +74,15 @@ export class DepartureServiceV2 {
                       totalLimit,
                       minutesBefore: args.minutesBefore,
                       minutesAfter: args.minutesAfter,
+                  }).catch((error: unknown) => {
+                      // Leo data comes from an external GTFS feed; if it is
+                      // unavailable, still serve the local departures.
+                      this.logger.error(
+                          "Failed to load Leo departures",
+                          error instanceof Error ? error.stack : error,
+                      );
+
+                      return [];
                   })
                 : Promise.resolve([]),
         ]);
