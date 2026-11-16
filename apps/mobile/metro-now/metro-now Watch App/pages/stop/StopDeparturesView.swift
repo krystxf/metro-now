@@ -60,6 +60,8 @@ struct StopDeparturesView: View {
                     metroLine: platform.metroLine,
                     departures: platform.departures
                 )
+            } else {
+                EmptyView()
             }
         }
     }

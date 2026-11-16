@@ -69,6 +69,8 @@ struct PlatformDeparturesListView: View {
                     }
                 }
             }
+        } else {
+            EmptyView()
         }
     }
 }
