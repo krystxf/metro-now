@@ -78,6 +78,7 @@ async function main() {
             "Stop",
             stops.map((stop) => ({
                 id: stop.id,
+                feed: "PID",
                 name: stop.name,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
