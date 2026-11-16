@@ -15,54 +15,56 @@ struct MetroDeparturesListView: View {
     }
 
     var body: some View {
-        if let departureRows = buildMetroDepartureRows(
-            for: closestStop,
-            departures: departures
-        ) {
-            ForEach(departureRows) { departureRow in
-                ClosestStopPageListItemView(
-                    routeLabel: departureRow.routeLabel,
-                    routeLabelBackground: getRouteColor(
-                        routeName: departureRow.routeLabel,
-                        routeId: departureRow.previewRouteId,
-                        availableRoutes: closestStop.platforms
-                            .filter(\.isMetro)
-                            .flatMap(\.routes)
-                    ),
-                    headsign: departureRow.headsign,
-                    departure: departureRow.departure,
-                    nextHeadsign: departureRow.nextHeadsign,
-                    nextDeparture: departureRow.nextDeparture
-                )
-                .onLongPressGesture {
-                    if let previewRouteId = departureRow.previewRouteId {
+        Group {
+            if let departureRows = buildMetroDepartureRows(
+                for: closestStop,
+                departures: departures
+            ) {
+                ForEach(departureRows) { departureRow in
+                    ClosestStopPageListItemView(
+                        routeLabel: departureRow.routeLabel,
+                        routeLabelBackground: getRouteColor(
+                            routeName: departureRow.routeLabel,
+                            routeId: departureRow.previewRouteId,
+                            availableRoutes: closestStop.platforms
+                                .filter(\.isMetro)
+                                .flatMap(\.routes)
+                        ),
+                        headsign: departureRow.headsign,
+                        departure: departureRow.departure,
+                        nextHeadsign: departureRow.nextHeadsign,
+                        nextDeparture: departureRow.nextDeparture
+                    )
+                    .onLongPressGesture {
+                        if let previewRouteId = departureRow.previewRouteId {
+                            onRoutePreviewRequested?(
+                                SheetIdItem(
+                                    id: previewRouteId,
+                                    headsign: departureRow.headsign,
+                                    currentPlatformId: departureRow.platformId,
+                                    currentPlatformName: departureRow.platformName
+                                )
+                            )
+                        }
+                    }
+                }
+            } else {
+                ForEach(placeholderPlatforms, id: \.id) { platform in
+                    let route = platform.routes[0]
+
+                    ClosestStopPageListItemPlaceholderView(
+                        routeLabel: route.name,
+                        routeLabelBackground: getRouteColor(route)
+                    )
+                    .onLongPressGesture {
                         onRoutePreviewRequested?(
                             SheetIdItem(
-                                id: previewRouteId,
-                                headsign: departureRow.headsign,
-                                currentPlatformId: departureRow.platformId,
-                                currentPlatformName: departureRow.platformName
+                                id: route.backendRouteId,
+                                currentPlatformId: platform.id,
+                                currentPlatformName: platform.name
                             )
                         )
                     }
-                }
-            }
-        } else {
-            ForEach(placeholderPlatforms, id: \.id) { platform in
-                let route = platform.routes[0]
-
-                ClosestStopPageListItemPlaceholderView(
-                    routeLabel: route.name,
-                    routeLabelBackground: getRouteColor(route)
-                )
-                .onLongPressGesture {
-                    onRoutePreviewRequested?(
-                        SheetIdItem(
-                            id: route.backendRouteId,
-                            currentPlatformId: platform.id,
-                            currentPlatformName: platform.name
-                        )
-                    )
                 }
             }
         }
