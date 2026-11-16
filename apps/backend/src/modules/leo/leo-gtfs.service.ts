@@ -1,7 +1,10 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
+import { Effect } from "effect";
 import { Open as unzipperOpen } from "unzipper";
+
+import { UpstreamError, fetchResponse, runPromise } from "src/common/upstream";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { buildLeoCatalogFromCsv } from "src/modules/leo/leo-gtfs.parser";
@@ -22,49 +25,68 @@ export class LeoGtfsService {
     async getCatalog(): Promise<LeoCatalog> {
         return this.cacheManager.wrap(
             CACHE_KEYS.leo.getCatalog,
-            async () => {
-                const response = await fetch(LEO_GTFS_ARCHIVE_URL);
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Failed to fetch Leo GTFS archive: ${response.status} ${response.statusText}`,
-                    );
-                }
-
-                const archive = Buffer.from(await response.arrayBuffer());
-
-                // ZIP files start with "PK". Anything else (e.g. an HTML page
-                // served after the feed was moved) would make unzipper fail
-                // with an opaque FILE_ENDED error.
-                if (archive.subarray(0, 2).toString("latin1") !== "PK") {
-                    throw new Error(
-                        `Leo GTFS archive at ${response.url} is not a ZIP file (content-type: ${response.headers.get("content-type")})`,
-                    );
-                }
-
-                const directory = await unzipperOpen.buffer(archive);
-                const getFile = (path: string): Promise<string> => {
-                    const file = directory.files.find(
-                        (entry) => entry.path === path,
-                    );
-
-                    if (!file) {
-                        throw new Error(
-                            `Leo GTFS archive is missing '${path}'`,
+            () =>
+                runPromise(
+                    Effect.gen(function* () {
+                        const response = yield* fetchResponse(
+                            "Leo GTFS",
+                            LEO_GTFS_ARCHIVE_URL,
                         );
-                    }
-
-                    return file.buffer().then((buffer) => buffer.toString());
-                };
-
-                return buildLeoCatalogFromCsv({
-                    agenciesCsv: await getFile("agency.txt"),
-                    routesCsv: await getFile("routes.txt"),
-                    stopsCsv: await getFile("stops.txt"),
-                    stopTimesCsv: await getFile("stop_times.txt"),
-                    tripsCsv: await getFile("trips.txt"),
-                });
-            },
+                        const archive = yield* Effect.tryPromise({
+                            try: async () =>
+                                Buffer.from(await response.arrayBuffer()),
+                            catch: (cause) =>
+                                new UpstreamError({
+                                    service: "Leo GTFS",
+                                    operation: "archive download",
+                                    cause,
+                                }),
+                        });
+                        if (
+                            archive.subarray(0, 2).toString("latin1") !== "PK"
+                        ) {
+                            return yield* Effect.fail(
+                                new UpstreamError({
+                                    service: "Leo GTFS",
+                                    operation:
+                                        "archive validation (not a ZIP file)",
+                                }),
+                            );
+                        }
+                        return yield* Effect.tryPromise({
+                            try: async () => {
+                                const directory =
+                                    await unzipperOpen.buffer(archive);
+                                const getFile = async (
+                                    path: string,
+                                ): Promise<string> => {
+                                    const file = directory.files.find(
+                                        (entry) => entry.path === path,
+                                    );
+                                    if (!file)
+                                        throw new Error(
+                                            `Leo GTFS archive is missing '${path}'`,
+                                        );
+                                    return (await file.buffer()).toString();
+                                };
+                                return buildLeoCatalogFromCsv({
+                                    agenciesCsv: await getFile("agency.txt"),
+                                    routesCsv: await getFile("routes.txt"),
+                                    stopsCsv: await getFile("stops.txt"),
+                                    stopTimesCsv:
+                                        await getFile("stop_times.txt"),
+                                    tripsCsv: await getFile("trips.txt"),
+                                });
+                            },
+                            catch: (cause) =>
+                                new UpstreamError({
+                                    service: "Leo GTFS",
+                                    operation: "archive decoding",
+                                    cause,
+                                }),
+                        });
+                    }),
+                ),
             CACHE_TTL.leoCatalog,
         );
     }
