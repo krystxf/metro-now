@@ -10,14 +10,8 @@ import type {
 import { logger } from "../../utils/logger";
 import type { CacheInvalidationService } from "../core/cache-invalidation.service";
 import { GtfsService } from "../gtfs/gtfs.service";
-import { BratislavaImportService } from "../imports/bratislava-import.service";
-import { BrnoImportService } from "../imports/brno-import.service";
 import { LeoImportService } from "../imports/leo-import.service";
-import { LiberecImportService } from "../imports/liberec-import.service";
 import { PidImportService } from "../imports/pid-import.service";
-import { PmdpImportService } from "../imports/pmdp-import.service";
-import { UstiImportService } from "../imports/usti-import.service";
-import { ZsrImportService } from "../imports/zsr-import.service";
 import { SyncRepository } from "./sync-repository.service";
 import { SyncSnapshotValidator } from "./sync-snapshot-validator.service";
 
@@ -25,12 +19,6 @@ export class SyncService {
     private readonly importService = new PidImportService();
     private readonly gtfsService = new GtfsService();
     private readonly leoImportService = new LeoImportService();
-    private readonly pmdpImportService = new PmdpImportService();
-    private readonly brnoImportService = new BrnoImportService();
-    private readonly ustiImportService = new UstiImportService();
-    private readonly liberecImportService = new LiberecImportService();
-    private readonly bratislavaImportService = new BratislavaImportService();
-    private readonly zsrImportService = new ZsrImportService();
     private readonly validator = new SyncSnapshotValidator();
     private readonly repository: SyncRepository;
     private readonly cacheInvalidation: CacheInvalidationService | null;
@@ -148,10 +136,10 @@ export class SyncService {
     private async createSnapshot(): Promise<SyncSnapshot> {
         const stopSnapshot = await this.importService.getStopSnapshot();
 
-        const citySnapshots = await this.loadCitySnapshots(stopSnapshot.stops);
+        const railSnapshots = await this.loadRailSnapshots(stopSnapshot.stops);
 
         const allPlatforms = stopSnapshot.platforms.concat(
-            citySnapshots.flatMap((snapshot) => snapshot.platforms),
+            railSnapshots.flatMap((snapshot) => snapshot.platforms),
         );
         const gtfsSnapshot = await this.gtfsService.getGtfsSnapshot({
             platformIds: new Set(allPlatforms.map((platform) => platform.id)),
@@ -167,51 +155,26 @@ export class SyncService {
         const merged = this.mergeSnapshots(
             stopSnapshot,
             gtfsSnapshot,
-            citySnapshots,
+            railSnapshots,
             allPlatforms,
         );
-        citySnapshots.length = 0;
+        railSnapshots.length = 0;
 
         return merged;
     }
 
-    private async loadCitySnapshots(
+    private async loadRailSnapshots(
         pidStops: SyncSnapshot["stops"],
     ): Promise<SyncSnapshot[]> {
-        type CityLoader = {
+        type RailLoader = {
             name: string;
             load: () => Promise<SyncSnapshot>;
         };
 
-        const loaders: CityLoader[] = [
+        const loaders: RailLoader[] = [
             {
                 name: "Leo",
                 load: () => this.leoImportService.getLeoSnapshot(pidStops),
-            },
-            {
-                name: "PMDP",
-                load: () => this.pmdpImportService.getPmdpSnapshot(),
-            },
-            {
-                name: "Brno",
-                load: () => this.brnoImportService.getBrnoSnapshot(),
-            },
-            {
-                name: "Usti",
-                load: () => this.ustiImportService.getUstiSnapshot(),
-            },
-            {
-                name: "Liberec",
-                load: () => this.liberecImportService.getLiberecSnapshot(),
-            },
-            {
-                name: "Bratislava",
-                load: () =>
-                    this.bratislavaImportService.getBratislavaSnapshot(),
-            },
-            {
-                name: "ZSR",
-                load: () => this.zsrImportService.getZsrSnapshot(pidStops),
             },
         ];
 
@@ -246,7 +209,7 @@ export class SyncService {
     private mergeSnapshots(
         stopSnapshot: StopSnapshot,
         gtfsSnapshot: GtfsSnapshot,
-        citySnapshots: SyncSnapshot[],
+        railSnapshots: SyncSnapshot[],
         allPlatforms: SyncSnapshot["platforms"],
     ): SyncSnapshot {
         const stops = [stopSnapshot.stops];
@@ -262,7 +225,7 @@ export class SyncService {
         const gtfsCalendarDates = [gtfsSnapshot.gtfsCalendarDates];
         const gtfsTransfers = [gtfsSnapshot.gtfsTransfers];
 
-        for (const snapshot of citySnapshots) {
+        for (const snapshot of railSnapshots) {
             stops.push(snapshot.stops);
             routes.push(snapshot.routes);
             platformRoutes.push(snapshot.platformRoutes);
