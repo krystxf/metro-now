@@ -72,7 +72,7 @@ in
     wait_for_port ${toString redisPort}
     metro-setup
     metro-db-setup
-    # Forward the service environment through Turbo and always run against this DB.
-    pnpm turbo run test:e2e --filter=@metro-now/backend --env-mode=loose --force
+    # Turbo forwards the service variables and disables E2E result caching.
+    pnpm turbo run test:e2e --filter=@metro-now/backend
   '';
 }
