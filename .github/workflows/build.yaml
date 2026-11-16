@@ -67,12 +67,15 @@ jobs:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+            - name: Prepare mobile configuration
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
             - name: Build mobile
               run: |
                   xcodebuild build \
                     -project apps/mobile/metro-now/metro-now.xcodeproj \
                     -scheme metro-now \
-                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+                    -destination 'generic/platform=iOS Simulator' \
                     CODE_SIGNING_ALLOWED=NO
 
     web:
