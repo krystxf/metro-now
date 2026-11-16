@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { Either, Schema } from "effect";
-import { coerceNumber } from "src/schema/coercion";
+import { coerceNumber, integer } from "src/schema/coercion";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
@@ -94,7 +94,7 @@ Sort platforms by distance to a given location. Location may be saved in logs.
                 latitude: coerceNumber,
                 longitude: coerceNumber,
                 count: Schema.optionalWith(
-                    coerceNumber.pipe(Schema.int()).pipe(Schema.nonNegative()),
+                    coerceNumber.pipe(integer).pipe(Schema.nonNegative()),
                     { default: () => 0 },
                 ),
                 metroOnly: metroOnlySchema,

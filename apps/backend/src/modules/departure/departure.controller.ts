@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Either, Schema } from "effect";
-import { coerceNumber } from "src/schema/coercion";
+import { coerceNumber, integer } from "src/schema/coercion";
 
 import { ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
@@ -188,11 +188,11 @@ export class DepartureController {
                     { default: () => [] },
                 ),
                 limit: Schema.optionalWith(
-                    Schema.NullOr(coerceNumber.pipe(Schema.int())),
+                    Schema.NullOr(coerceNumber.pipe(integer)),
                     { default: () => null },
                 ),
                 totalLimit: Schema.optionalWith(
-                    Schema.NullOr(coerceNumber.pipe(Schema.int())),
+                    Schema.NullOr(coerceNumber.pipe(integer)),
                     { default: () => null },
                 ),
                 minutesBefore: Schema.optionalWith(

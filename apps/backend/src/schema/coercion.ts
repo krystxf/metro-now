@@ -25,3 +25,13 @@ export const coerceDate = Schema.transform(
         encode: (value) => value,
     },
 ).pipe(Schema.validDate());
+
+// Zod's integer check accepts integers outside the safe-integer range.
+export const integer = <A extends number, I, R>(
+    schema: Schema.Schema<A, I, R>,
+) =>
+    schema.pipe(
+        Schema.filter((value) => Number.isInteger(value), {
+            identifier: "integer",
+        }),
+    );

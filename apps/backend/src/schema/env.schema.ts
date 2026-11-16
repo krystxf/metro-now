@@ -1,7 +1,7 @@
 import { Schema } from "effect";
-import { coerceNumber } from "src/schema/coercion";
+import { coerceNumber, integer } from "src/schema/coercion";
 
-const port = coerceNumber.pipe(Schema.int(), Schema.positive());
+const port = coerceNumber.pipe(integer, Schema.positive());
 const nonEmptyString = Schema.String.pipe(Schema.minLength(1));
 
 export const envSchema = Schema.Struct({

@@ -3,8 +3,8 @@ import { coerceDate } from "src/schema/coercion";
 
 export const infoTextSchema = Schema.mutable(
     Schema.Struct({
-        valid_from: Schema.Union(coerceDate, Schema.Null, Schema.Undefined),
-        valid_to: Schema.Union(coerceDate, Schema.Null, Schema.Undefined),
+        valid_from: Schema.optional(coerceDate),
+        valid_to: Schema.optional(coerceDate),
         text: Schema.String,
         text_en: Schema.Union(Schema.String, Schema.Null, Schema.Undefined),
         display_type: Schema.Unknown,

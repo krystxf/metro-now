@@ -1,8 +1,9 @@
 import { Either, Schema } from "effect";
 import { DepartureController } from "src/modules/departure/departure.controller";
+import { infoTextSchema } from "src/modules/departure/schema/info-text.schema";
 import { golemioResponseSchema } from "src/modules/infotexts/schema/golemio-response.schema";
 import { boundingBoxSchema } from "./bounding-box.schema";
-import { coerceDate, coerceNumber } from "./coercion";
+import { coerceDate, coerceNumber, integer } from "./coercion";
 import { envSchema } from "./env.schema";
 import { metroOnlySchema } from "./metro-only.schema";
 import { timestampSchema } from "./timestamp.schema";
@@ -41,11 +42,33 @@ describe("Effect validation compatibility", () => {
         ).toEqual({ predicted: "123", scheduled: "null" });
         expect(Schema.decodeUnknownSync(coerceNumber)(null)).toBe(0);
         expect(
+            Schema.decodeUnknownSync(coerceNumber.pipe(integer))(
+                "100000000000000000000",
+            ),
+        ).toBe(1e20);
+        expect(
             Either.isLeft(Schema.decodeUnknownEither(coerceNumber)("bad")),
         ).toBe(true);
         expect(
             Either.isLeft(Schema.decodeUnknownEither(coerceDate)("bad")),
         ).toBe(true);
+    });
+
+    it("preserves date coercion for nullable upstream infotext dates", () => {
+        const decode = Schema.decodeUnknownSync(infoTextSchema);
+        const entry = {
+            valid_from: null,
+            valid_to: "2026-01-01T00:00:00Z",
+            text: "hello",
+            related_stops: [],
+        };
+        expect(decode(entry)).toMatchObject({
+            valid_from: new Date(0),
+            valid_to: new Date("2026-01-01T00:00:00Z"),
+        });
+        expect(
+            decode({ text: "hello", related_stops: [] }).valid_from,
+        ).toBeUndefined();
     });
 
     it("validates environment ports and accepts an empty optional Transitland key", () => {
