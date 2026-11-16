@@ -7,7 +7,15 @@ import type { SyncSnapshot } from "../../types/sync.types";
 import { getSyncCounts } from "../../types/sync.types";
 
 const createMinimalSnapshot = (): SyncSnapshot => ({
-    stops: [{ id: "S1", feed: GtfsFeedId.PID, name: "Stop", avgLatitude: 50, avgLongitude: 14 }],
+    stops: [
+        {
+            id: "S1",
+            feed: GtfsFeedId.PID,
+            name: "Stop",
+            avgLatitude: 50,
+            avgLongitude: 14,
+        },
+    ],
     platforms: [
         {
             id: "P1",
