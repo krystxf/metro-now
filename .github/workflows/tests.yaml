@@ -102,10 +102,31 @@ jobs:
             - name: Check out code
               uses: actions/checkout@v4
 
+            - name: Prepare mobile configuration
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - name: Select available iOS simulator
+              id: simulator
+              run: |
+                  destination=$(xcodebuild -showdestinations \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now | python3 -c '
+                  import re
+                  import sys
+
+                  destinations = sys.stdin.read()
+                  match = re.search(r"platform:iOS Simulator,.*?id:([0-9A-Fa-f-]{36}),", destinations)
+                  if not match:
+                      sys.exit("No available iOS Simulator destination found")
+                  print("platform=iOS Simulator,id=" + match.group(1))
+                  ')
+                  echo "destination=$destination" >> "$GITHUB_OUTPUT"
+
             - name: Run Swift unit tests
               run: |
                   xcodebuild test \
                     -project apps/mobile/metro-now/metro-now.xcodeproj \
                     -scheme metro-now \
-                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-                    -only-testing:metro-nowTests
+                    -destination '${{ steps.simulator.outputs.destination }}' \
+                    -only-testing:metro-nowTests \
+                    CODE_SIGNING_ALLOWED=NO
