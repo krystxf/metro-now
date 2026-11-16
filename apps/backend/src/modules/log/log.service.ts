@@ -7,6 +7,7 @@ import { Injectable, type OnModuleDestroy } from "@nestjs/common";
 import type { GraphQLError } from "graphql";
 
 import { DatabaseService } from "src/modules/database/database.service";
+import { graphQLQueryStringFromApolloContext } from "src/modules/log/graphql-request-query-string";
 
 const SERVICE_NAME = "backend";
 
@@ -70,10 +71,7 @@ export class LogService implements OnModuleDestroy {
                     requestContext.request.operationName ??
                     null,
                 operationType: requestContext.operation?.operation ?? null,
-                query:
-                    requestContext.source ??
-                    requestContext.request.query ??
-                    null,
+                query: graphQLQueryStringFromApolloContext(requestContext),
                 variables: requestContext.request.variables ?? null,
                 extensions: requestContext.request.extensions ?? null,
                 queryHash: requestContext.queryHash ?? null,

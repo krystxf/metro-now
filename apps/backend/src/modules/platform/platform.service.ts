@@ -11,7 +11,9 @@ import type { BoundingBox } from "src/schema/bounding-box.schema";
 import { loadCachedBatch } from "src/utils/cache-batch";
 import { minMax } from "src/utils/math";
 
-type PlatformRouteRecord = Pick<Route, "id" | "name">;
+type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
+    color: string | null;
+};
 
 type PlatformRecordBase = Pick<
     Platform,
@@ -94,10 +96,12 @@ export class PlatformService {
         const rows = await this.database.db
             .selectFrom("PlatformsOnRoutes")
             .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
+            .leftJoin("GtfsRoute", "GtfsRoute.id", "PlatformsOnRoutes.routeId")
             .select([
                 "PlatformsOnRoutes.platformId as platformId",
                 "Route.id as routeId",
                 "Route.name as routeName",
+                "GtfsRoute.color as routeColor",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
@@ -108,6 +112,7 @@ export class PlatformService {
             routesByPlatformId.get(row.platformId)?.push({
                 id: row.routeId,
                 name: row.routeName,
+                color: row.routeColor ?? null,
             });
         }
 

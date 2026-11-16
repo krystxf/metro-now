@@ -8,6 +8,17 @@ enum VehicleType {
     TROLLEYBUS
 }
 
+enum Feed {
+    PID
+    BRNO
+    BRATISLAVA
+    LEO
+    LIBEREC
+    PMDP
+    USTI
+    ZSR
+}
+
 type RouteDirection {
     id: ID!
     """
@@ -26,6 +37,8 @@ type RouteShape {
 type Route {
     id: ID!
     name: String
+    color: String
+    feed: Feed!
     directions: [RouteDirection!]!
     shapes: [RouteShape!]!
     isSubstitute: Boolean!

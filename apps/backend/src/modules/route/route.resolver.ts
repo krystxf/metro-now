@@ -1,3 +1,4 @@
+import { type GtfsFeedId } from "@metro-now/database";
 import { Args, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 
 import { toLookupRouteId } from "src/modules/route/route-id.utils";
@@ -30,7 +31,12 @@ export class RouteResolver {
 
     @ResolveField("isNight")
     getIsNight(@Parent() route: ParentType<typeof this.getMany>) {
-        return this.routeService.isNight(route.name);
+        return this.routeService.isNight(
+            route.name,
+            typeof route.feed === "string"
+                ? (route.feed as GtfsFeedId)
+                : undefined,
+        );
     }
 
     @ResolveField("vehicleType")
@@ -39,6 +45,14 @@ export class RouteResolver {
     ): VehicleType {
         return this.routeService.getVehicleTypeForRoute({
             routeName: route.name ?? "",
+            ...((typeof route === "object" &&
+            route !== null &&
+            "feed" in route &&
+            typeof route.feed === "string"
+                ? {
+                      feedId: route.feed as GtfsFeedId,
+                  }
+                : {}) as { feedId?: GtfsFeedId | null }),
             ...((typeof route === "object" &&
             route !== null &&
             "type" in route &&

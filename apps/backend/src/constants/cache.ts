@@ -80,6 +80,10 @@ export const CACHE_KEYS = {
             buildCacheKey(`${STOP_CACHE_PREFIX}.getAll`, params),
         getAllGraphQL: (params: unknown) =>
             buildCacheKey(`${STOP_CACHE_PREFIX}.getAllGraphQL`, params),
+        getSearchRows: () =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getSearchRows.v4`),
+        searchGraphQL: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.searchGraphQL.v3`, params),
         getGraphQLById: (id: string) =>
             buildCacheKey(`${STOP_CACHE_PREFIX}.getGraphQLById`, id),
         getOne: (params: unknown) =>

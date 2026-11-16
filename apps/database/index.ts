@@ -50,6 +50,7 @@ export type GeoJsonLineString = {
 
 export interface StopTable {
     id: string;
+    feed: GtfsFeedId;
     name: string;
     avgLatitude: number;
     avgLongitude: number;
@@ -233,6 +234,7 @@ export interface RequestLogTable {
     userAgent: string | null;
     appVersion: string | null;
     headers: Record<string, unknown> | null;
+    graphqlQuery: string | null;
     createdAt: Generated<Date>;
 }
 

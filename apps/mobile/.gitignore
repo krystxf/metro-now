@@ -47,6 +47,7 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+swift-module-cache/
 
 # CocoaPods
 #
@@ -88,4 +89,3 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
-

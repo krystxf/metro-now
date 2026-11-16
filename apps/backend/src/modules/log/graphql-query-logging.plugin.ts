@@ -6,8 +6,11 @@ import {
 } from "@apollo/server";
 import { Plugin } from "@nestjs/apollo";
 import { Injectable } from "@nestjs/common";
+import type { Request } from "express";
 import type { GraphQLError } from "graphql";
 
+import { setGraphQLQueryForRequestLog } from "src/modules/log/graphql-query-for-request-log.store";
+import { graphQLQueryStringFromApolloContext } from "src/modules/log/graphql-request-query-string";
 import { LogService } from "src/modules/log/log.service";
 
 @Plugin()
@@ -29,6 +32,16 @@ export class GraphQLQueryLoggingPlugin
                 encounteredErrors = requestContext.errors;
             },
             async willSendResponse(requestContext) {
+                const httpReq = requestContext.contextValue as
+                    | { req?: Request }
+                    | undefined;
+                const req = httpReq?.req;
+                if (req) {
+                    setGraphQLQueryForRequestLog(
+                        req,
+                        graphQLQueryStringFromApolloContext(requestContext),
+                    );
+                }
                 logService.logGraphQLRequest({
                     durationMs: Date.now() - startedAt,
                     errors: encounteredErrors,

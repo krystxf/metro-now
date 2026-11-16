@@ -59,23 +59,24 @@ class FrequencyWidgetManager: NSObject, ObservableObject, CLLocationManagerDeleg
         guard let closestStop = closestMetroStop else { return }
 
         let platformIds = closestStop.platforms.map(\.id)
+        guard !platformIds.isEmpty else {
+            return
+        }
 
-        // Construct the API request URL with array-like syntax for `stop[]` and `platform[]`
-        let platformQuery = platformIds.map { "platform[]=\($0)" }.joined(separator: "&")
-
-        // API request to fetch departures
-        let request = apiSession.request("\(API_URL)/v2/departure?\(platformQuery)&limit=\(4)&minutesBefore=0&minutesAfter=\(12 * 60)", method: .get)
-
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-
-        request.validate().responseDecodable(of: [ApiDeparture].self, decoder: decoder) { response in
-            switch response.result {
-            case let .success(departures):
-                DispatchQueue.main.async {
+        Task {
+            do {
+                let departures = try await fetchDeparturesGraphQL(
+                    stopIds: [],
+                    platformIds: platformIds,
+                    limit: 4,
+                    metroOnly: nil,
+                    minutesBefore: 0,
+                    minutesAfter: 12 * 60
+                )
+                await MainActor.run {
                     self.nearestDepartures = departures
                 }
-            case let .failure(error):
+            } catch {
                 print("Failed to fetch departures: \(error)")
             }
         }

@@ -1,4 +1,10 @@
-import type { GtfsRoute, GtfsRouteShape, Platform } from "@metro-now/database";
+import {
+    GtfsFeedId,
+    type GtfsRoute,
+    type GtfsRouteShape,
+    type Platform,
+} from "@metro-now/database";
+import { classifyRoute } from "@metro-now/shared";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
@@ -17,17 +23,19 @@ import {
     toPublicRouteId,
 } from "src/modules/route/route-id.utils";
 import { getVehicleTypeFromGtfsType } from "src/modules/route/route-vehicle-type.utils";
-import {
-    BUS_PREFIXES,
-    METRO_LINES,
-    TRAIN_PREFIXES,
-} from "src/modules/route/route.const";
 import { VehicleType } from "src/types/graphql.generated";
 import { loadCachedBatch } from "src/utils/cache-batch";
 
 type RouteRow = Pick<
     GtfsRoute,
-    "color" | "id" | "isNight" | "longName" | "shortName" | "type" | "url"
+    | "color"
+    | "feedId"
+    | "id"
+    | "isNight"
+    | "longName"
+    | "shortName"
+    | "type"
+    | "url"
 >;
 
 type RoutePlatformRecord = Pick<
@@ -72,6 +80,7 @@ const processRoute = (
         ...route,
         id: toPublicRouteId(route.id),
         name: route.shortName,
+        feed: route.feedId,
         isNight: route.isNight ?? false,
         directions: Object.entries(
             group(routeStops, ({ directionId }) => directionId),
@@ -100,13 +109,15 @@ type GraphQLRouteRecord = ReturnType<typeof processRoute>;
 
 const leoRouteToGraphQLRecord = (leo: LeoRoute): GraphQLRouteRecord => ({
     id: leo.id,
+    feedId: GtfsFeedId.LEO,
     shortName: leo.shortName,
     longName: leo.longName ?? "",
     isNight: false,
-    color: leo.color ?? "",
+    color: leo.color,
     url: leo.url,
     type: leo.type,
     name: leo.shortName,
+    feed: GtfsFeedId.LEO,
     directions: leo.directions.map((direction) => ({
         id: direction.id,
         platforms: direction.platforms.map((platform) => ({ ...platform })),
@@ -143,6 +154,7 @@ export class RouteService {
             .selectFrom("GtfsRoute")
             .select([
                 "id",
+                "feedId",
                 "shortName",
                 "longName",
                 "isNight",
@@ -440,68 +452,58 @@ export class RouteService {
         return this.isSubstitute(routeName) ? routeName.slice(1) : routeName;
     }
 
-    isNight(routeName: string): boolean {
-        const routeNameParsed = this.getNameWithoutSubstitute(routeName);
-        const routeNumber = Number.parseInt(routeNameParsed);
-
-        if (Number.isNaN(routeNumber)) {
-            return false;
-        }
-
+    isNight(routeName: string, feedId: GtfsFeedId = GtfsFeedId.PID): boolean {
         return (
-            (routeNumber >= 90 && routeNumber < 100) ||
-            (routeNumber >= 900 && routeNumber < 1000)
+            classifyRoute({
+                feedId,
+                routeShortName: routeName,
+            }).isNight ?? false
         );
     }
 
     getVehicleType(routeName: string): VehicleType {
         return this.getVehicleTypeForRoute({
+            feedId: GtfsFeedId.PID,
             routeName,
         });
     }
 
     getVehicleTypeForRoute({
+        feedId = GtfsFeedId.PID,
         routeName,
         gtfsRouteType,
     }: {
+        feedId?: GtfsFeedId | null;
         routeName: string;
         gtfsRouteType?: string | null;
     }): VehicleType {
+        const classifiedRoute = classifyRoute({
+            feedId,
+            routeShortName: routeName,
+            routeType: gtfsRouteType,
+        });
         const gtfsVehicleType = getVehicleTypeFromGtfsType(gtfsRouteType);
+        const classifiedVehicleType =
+            classifiedRoute.vehicleType === "SUBWAY"
+                ? VehicleType.SUBWAY
+                : classifiedRoute.vehicleType === "TROLLEYBUS"
+                  ? VehicleType.TROLLEYBUS
+                  : classifiedRoute.vehicleType === "TRAM"
+                    ? VehicleType.TRAM
+                    : classifiedRoute.vehicleType === "TRAIN"
+                      ? VehicleType.TRAIN
+                      : classifiedRoute.vehicleType === "FERRY"
+                        ? VehicleType.FERRY
+                        : classifiedRoute.vehicleType === "FUNICULAR"
+                          ? VehicleType.FUNICULAR
+                          : classifiedRoute.vehicleType === "BUS"
+                            ? VehicleType.BUS
+                            : null;
 
-        if (gtfsVehicleType) {
-            return gtfsVehicleType;
+        if (classifiedVehicleType) {
+            return classifiedVehicleType;
         }
 
-        const routeNameParsed = this.getNameWithoutSubstitute(routeName);
-        const routeNumber = Number.parseInt(routeNameParsed);
-
-        if (!Number.isNaN(routeNumber)) {
-            if (routeNumber === 58 || routeNumber === 59) {
-                return VehicleType.TROLLEYBUS;
-            }
-            if (routeNumber < 100) {
-                return VehicleType.TRAM;
-            }
-            return VehicleType.BUS;
-        }
-        if (METRO_LINES.includes(routeNameParsed)) {
-            return VehicleType.SUBWAY;
-        }
-        if (routeName.startsWith("P")) {
-            return VehicleType.FERRY;
-        }
-        if (routeName === "LD") {
-            return VehicleType.FUNICULAR;
-        }
-        if (
-            TRAIN_PREFIXES.some((prefix) => routeNameParsed.startsWith(prefix))
-        ) {
-            return VehicleType.TRAIN;
-        }
-        if (BUS_PREFIXES.some((prefix) => routeNameParsed.startsWith(prefix))) {
-            return VehicleType.BUS;
-        }
-        return VehicleType.BUS;
+        return gtfsVehicleType ?? VehicleType.BUS;
     }
 }

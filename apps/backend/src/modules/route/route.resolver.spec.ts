@@ -1,3 +1,4 @@
+import { GtfsFeedId } from "@metro-now/database";
 import { RouteResolver } from "src/modules/route/route.resolver";
 import type { RouteService } from "src/modules/route/route.service";
 import { VehicleType } from "src/types/graphql.generated";
@@ -80,9 +81,15 @@ describe("RouteResolver", () => {
 
             routeService.isNight.mockReturnValue(true);
 
-            const result = resolver.getIsNight({ name: "910" } as never);
+            const result = resolver.getIsNight({
+                name: "N21",
+                feed: GtfsFeedId.BRATISLAVA,
+            } as never);
 
-            expect(routeService.isNight).toHaveBeenCalledWith("910");
+            expect(routeService.isNight).toHaveBeenCalledWith(
+                "N21",
+                GtfsFeedId.BRATISLAVA,
+            );
             expect(result).toBe(true);
         });
     });
@@ -97,10 +104,12 @@ describe("RouteResolver", () => {
 
             const result = resolver.getVehicleType({
                 name: "22",
+                feed: GtfsFeedId.BRNO,
                 type: "0",
             } as never);
 
             expect(routeService.getVehicleTypeForRoute).toHaveBeenCalledWith({
+                feedId: GtfsFeedId.BRNO,
                 routeName: "22",
                 gtfsRouteType: "0",
             });

@@ -10,6 +10,7 @@ const createSnapshot = (): SyncSnapshot => ({
     stops: [
         {
             id: "U1",
+            feed: GtfsFeedId.PID,
             name: "Stop 1",
             avgLatitude: 50.1,
             avgLongitude: 14.4,

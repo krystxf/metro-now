@@ -1,0 +1,20 @@
+query Departures($stopIds: [ID!], $platformIds: [ID!], $limit: Int, $metroOnly: Boolean, $minutesBefore: Int, $minutesAfter: Int) {
+  departures(stopIds: $stopIds, platformIds: $platformIds, limit: $limit, metroOnly: $metroOnly, minutesBefore: $minutesBefore, minutesAfter: $minutesAfter) {
+    id
+    delay
+    headsign
+    isRealtime
+    platformCode
+    departureTime {
+      predicted
+      scheduled
+    }
+    platform {
+      id
+    }
+    route {
+      id
+      name
+    }
+  }
+}

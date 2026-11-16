@@ -9,6 +9,7 @@ export const platformSchema = z.object({
         .object({
             id: z.string(),
             name: z.string(),
+            color: z.string().nullable().optional(),
         })
         .array(),
 });
