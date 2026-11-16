@@ -6,6 +6,8 @@ import { type NewLog } from "@metro-now/database";
 import { Injectable, type OnModuleDestroy } from "@nestjs/common";
 import type { GraphQLError } from "graphql";
 
+import { SerializedWriter } from "src/common/serialized-writer";
+
 import { DatabaseService } from "src/modules/database/database.service";
 import { graphQLQueryStringFromApolloContext } from "src/modules/log/graphql-request-query-string";
 
@@ -46,7 +48,7 @@ const getResultKeys = (
 
 @Injectable()
 export class LogService implements OnModuleDestroy {
-    private pendingWrite: Promise<void> = Promise.resolve();
+    private readonly writer = new SerializedWriter();
 
     constructor(private readonly database: DatabaseService) {}
 
@@ -92,23 +94,19 @@ export class LogService implements OnModuleDestroy {
             createdAt: new Date(),
         };
 
-        this.pendingWrite = this.pendingWrite
-            .then(async () => {
-                await this.database.db
-                    .insertInto("Log")
-                    .values(logEntry)
-                    .execute();
-            })
-            .catch((error) => {
+        this.writer.enqueue(
+            () => this.database.db.insertInto("Log").values(logEntry).execute(),
+            ({ cause }) => {
                 console.error("Failed to write backend GraphQL log", {
                     error:
-                        error instanceof Error ? error.message : String(error),
+                        cause instanceof Error ? cause.message : String(cause),
                 });
-            });
+            },
+        );
     }
 
     async flush(): Promise<void> {
-        await this.pendingWrite;
+        await this.writer.flush();
     }
 
     async onModuleDestroy() {
