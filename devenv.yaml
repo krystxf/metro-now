@@ -1,0 +1,5 @@
+inputs:
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/958ba64a6f8820ccb96a433a2e28bfd5f5e91fd7
+  devenv:
+    url: github:cachix/devenv/v2.4.0?dir=src/modules

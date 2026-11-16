@@ -1,5 +1,6 @@
 .env*
 !.env*.example
+!.envrc
 
 node_modules
 .turbo
