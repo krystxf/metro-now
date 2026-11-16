@@ -44,6 +44,25 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+            interval: 5s
+            timeout: 5s
+            retries: 12
+
+    migrations:
+        image: metro-now_migrations
+        pull_policy: build
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+            target: metro-now_migrations
+        env_file:
+            - ".env.docker"
+        depends_on:
+            postgres:
+                condition: service_healthy
+
     backend:
         image: metro-now_backend
         container_name: backend
@@ -54,8 +73,10 @@ services:
             - |
                 pnpm start:prod
         depends_on:
-            - postgres
-            - redis-stack
+            migrations:
+                condition: service_completed_successfully
+            redis-stack:
+                condition: service_started
         build:
             context: .
             dockerfile: ./Dockerfile
@@ -91,8 +112,10 @@ services:
         env_file:
             - ".env.docker"
         depends_on:
-            - postgres
-            - redis-stack
+            migrations:
+                condition: service_completed_successfully
+            redis-stack:
+                condition: service_started
         extra_hosts:
             - "host.docker.internal:host-gateway"
 
