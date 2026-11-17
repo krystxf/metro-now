@@ -45,7 +45,8 @@ services:
             - "host.docker.internal:host-gateway"
 
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+            # -h forces a TCP check; the first-boot init server accepts only Unix sockets.
+            test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
             interval: 5s
             timeout: 5s
             retries: 12
@@ -59,6 +60,8 @@ services:
             target: metro-now_migrations
         env_file:
             - ".env.docker"
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
