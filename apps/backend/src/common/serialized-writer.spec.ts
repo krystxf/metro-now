@@ -45,4 +45,19 @@ describe("SerializedWriter", () => {
         expect(write).toHaveBeenCalledTimes(1);
         await new SerializedWriter().flush();
     });
+    it("continues writing and flushes when the error handler throws", async () => {
+        const writer = new SerializedWriter();
+        const onError = jest.fn(() => {
+            throw new Error("logging failed");
+        });
+        const write = jest.fn().mockResolvedValue(undefined);
+        writer.enqueue(
+            () => Promise.reject(new Error("database unavailable")),
+            onError,
+        );
+        writer.enqueue(write, onError);
+        await expect(writer.flush()).resolves.toBeUndefined();
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(write).toHaveBeenCalledTimes(1);
+    });
 });
