@@ -217,9 +217,15 @@ export default function AppPage() {
     const [stopDistances, setStopDistances] = useState<Map<string, number>>(new Map());
     const [locationState, setLocationState] = useState<LocationState>({ status: "idle" });
     const [isLoadingNearby, setIsLoadingNearby] = useState(false);
+    const [nearbyError, setNearbyError] = useState(false);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Only the latest search may update results; older responses are ignored.
+    const searchRequestIdRef = useRef(0);
 
     const searchStops = useCallback(async (query: string) => {
+        const requestId = ++searchRequestIdRef.current;
+        const isCurrent = () => requestId === searchRequestIdRef.current;
+
         if (query.trim().length === 0) {
             setSearchResults([]);
             setIsSearching(false);
@@ -232,11 +238,17 @@ export default function AppPage() {
                 SEARCH_STOPS,
                 { query: query.trim() },
             );
-            setSearchResults(data.searchStops);
+            if (isCurrent()) {
+                setSearchResults(data.searchStops);
+            }
         } catch {
-            setSearchResults([]);
+            if (isCurrent()) {
+                setSearchResults([]);
+            }
         } finally {
-            setIsSearching(false);
+            if (isCurrent()) {
+                setIsSearching(false);
+            }
         }
     }, []);
 
@@ -251,6 +263,7 @@ export default function AppPage() {
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
+        searchRequestIdRef.current += 1;
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
@@ -261,6 +274,7 @@ export default function AppPage() {
 
     const loadNearbyStops = useCallback(async (lat: number, lon: number) => {
         setIsLoadingNearby(true);
+        setNearbyError(false);
         try {
             const data = await graphqlClient.request<{
                 closestStops: (StopResult & { distance: number })[];
@@ -274,6 +288,7 @@ export default function AppPage() {
             setNearbyStops(withDistance);
         } catch {
             setNearbyStops([]);
+            setNearbyError(true);
         } finally {
             setIsLoadingNearby(false);
         }
@@ -520,6 +535,21 @@ export default function AppPage() {
                             <button
                                 type="button"
                                 onClick={requestLocation}
+                                className="text-black dark:text-white text-sm font-medium hover:underline"
+                            >
+                                Try again
+                            </button>
+                        </div>
+                    ) : nearbyError && locationState.status === "loaded" ? (
+                        <div className="text-center py-8">
+                            <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-2">
+                                Could not load nearby stops
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    loadNearbyStops(locationState.latitude, locationState.longitude)
+                                }
                                 className="text-black dark:text-white text-sm font-medium hover:underline"
                             >
                                 Try again

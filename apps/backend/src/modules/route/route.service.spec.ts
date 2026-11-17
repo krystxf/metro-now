@@ -330,3 +330,55 @@ describe("RouteService platform route lookup", () => {
         ]);
     });
 });
+
+describe("RouteService Leo fallback", () => {
+    const createService = async () => {
+        const getRouteById = jest.fn().mockResolvedValue(null);
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                RouteService,
+                { provide: DatabaseService, useValue: { db: {} } },
+                {
+                    provide: CACHE_MANAGER,
+                    useValue: {
+                        get: jest.fn(),
+                        set: jest.fn(),
+                        wrap: jest.fn((_key: string, load: () => unknown) =>
+                            load(),
+                        ),
+                    },
+                },
+                {
+                    provide: LeoGtfsService,
+                    useValue: { getRouteById, getRoutesByIds: jest.fn() },
+                },
+            ],
+        }).compile();
+        const service = module.get<RouteService>(RouteService);
+        jest.spyOn(
+            service as unknown as {
+                loadGraphQLRoutesByIds: () => Promise<unknown[]>;
+            },
+            "loadGraphQLRoutesByIds",
+        ).mockResolvedValue([]);
+
+        return { service, getRouteById };
+    };
+
+    it("skips the Leo feed when another feed is requested", async () => {
+        const { service, getRouteById } = await createService();
+
+        await expect(
+            service.getOneGraphQL("LTL:2111", GtfsFeedId.PID),
+        ).resolves.toBeNull();
+        expect(getRouteById).not.toHaveBeenCalled();
+    });
+
+    it("uses the Leo feed for unscoped and Leo-scoped requests", async () => {
+        const { service, getRouteById } = await createService();
+
+        await service.getOneGraphQL("LTL:2111");
+        await service.getOneGraphQL("LTL:2111", GtfsFeedId.LEO);
+        expect(getRouteById).toHaveBeenCalledTimes(2);
+    });
+});

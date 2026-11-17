@@ -453,7 +453,10 @@ export class RouteService {
                     return route;
                 }
 
-                if (isLeoRouteId(lookupId)) {
+                if (
+                    isLeoRouteId(lookupId) &&
+                    (feedId === undefined || feedId === GtfsFeedId.LEO)
+                ) {
                     const leoRoute =
                         await this.leoGtfsService.getRouteById(lookupId);
 

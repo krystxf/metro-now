@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -78,7 +78,7 @@ const groupDepartures = (departures: Departure[]): DepartureGroup[] => {
   const groupMap = new Map<string, DepartureGroup>();
 
   for (const departure of departures) {
-    const key = `${departure.route?.name ?? "?"}::${departure.headsign ?? ""}`;
+    const key = `${departure.route?.name ?? "?"}::${departure.headsign ?? ""}::${departure.platformCode ?? ""}`;
     const existing = groupMap.get(key);
     if (existing) {
       existing.departures.push(departure);
@@ -207,31 +207,47 @@ export const DepartureBoard = ({ stopId }: { stopId: string }) => {
     null,
   );
   const hasLoadedDepartures = departures.length > 0;
+  // Only the latest request may update state; cleanup invalidates older ones.
+  const requestIdRef = useRef(0);
 
   const loadDepartures = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    const isCurrent = () => requestId === requestIdRef.current;
+
     try {
       const data = await graphqlClient.request<DepartureQueryData>(
         GET_DEPARTURES,
         { stopIds: [stopId] },
       );
 
+      if (!isCurrent()) return;
       setDepartures(sortDepartures(data.departures));
       setLastUpdated(new Date());
       setError(null);
     } catch {
+      if (!isCurrent()) return;
       setError(
         hasLoadedDepartures
           ? "Refresh failed. Showing the last loaded departures."
           : "Could not load departures",
       );
     } finally {
-      setIsLoading(false);
+      if (isCurrent()) {
+        setIsLoading(false);
+      }
     }
   }, [hasLoadedDepartures, stopId]);
 
   useEffect(() => {
     loadDepartures();
   }, [loadDepartures]);
+
+  useEffect(
+    () => () => {
+      requestIdRef.current += 1;
+    },
+    [stopId],
+  );
 
   useEffect(() => {
     const interval = setInterval(loadDepartures, REFRESH_INTERVAL_MS);
