@@ -240,6 +240,15 @@ export default function AppPage() {
         }
     }, []);
 
+    useEffect(
+        () => () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        },
+        [],
+    );
+
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
         if (searchTimeoutRef.current) {
@@ -280,7 +289,6 @@ export default function AppPage() {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                console.log("User location:", { latitude, longitude });
                 setLocationState({ status: "loaded", latitude, longitude });
                 loadNearbyStops(latitude, longitude);
             },
@@ -496,7 +504,7 @@ export default function AppPage() {
                             <button
                                 type="button"
                                 onClick={requestLocation}
-                                className="text-white text-sm font-medium hover:underline mb-3"
+                                className="text-black dark:text-white text-sm font-medium hover:underline mb-3"
                             >
                                 Try again
                             </button>
@@ -512,7 +520,7 @@ export default function AppPage() {
                             <button
                                 type="button"
                                 onClick={requestLocation}
-                                className="text-white text-sm font-medium hover:underline"
+                                className="text-black dark:text-white text-sm font-medium hover:underline"
                             >
                                 Try again
                             </button>

@@ -9,11 +9,7 @@ import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
 
-import {
-    CACHE_KEYS,
-    CACHE_TTL,
-    uniqueSortedStrings,
-} from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import { isLeoRouteId } from "src/modules/leo/leo-id.utils";
@@ -384,20 +380,20 @@ export class RouteService {
             .orderBy("routeId", "asc")
             .orderBy("feedId", "asc")
             .execute();
-        const routeKeys = uniqueSortedStrings(
-            routeLinks.map(({ feedId, routeId }) =>
-                getRouteCompositeKey(routeId, feedId),
-            ),
-        );
+        // Non-PID route IDs contain ":" (e.g. "BRR:123"), so iterate the
+        // distinct (feedId, routeId) pairs instead of re-parsing a joined key.
+        const routePairs = [
+            ...new Map(
+                routeLinks.map(({ feedId, routeId }) => [
+                    getRouteCompositeKey(routeId, feedId),
+                    { feedId, routeId },
+                ]),
+            ).values(),
+        ];
         const routes = await Promise.all(
-            routeKeys.map((routeKey) => {
-                const [feedId, routeId] = routeKey.split(":", 2) as [
-                    GtfsFeedId,
-                    string,
-                ];
-
-                return this.getOneGraphQL(routeId, feedId);
-            }),
+            routePairs.map(({ feedId, routeId }) =>
+                this.getOneGraphQL(routeId, feedId),
+            ),
         );
         const routeById = new Map<string, GraphQLRouteRecord>(
             routes.flatMap((route) =>

@@ -243,7 +243,7 @@ export const DepartureBoard = ({ stopId }: { stopId: string }) => {
       <>
         <Skeleton className="h-6 w-28 rounded-full mb-3" />
 
-        <div className="bg-white dark:bg-neutral-900 rounded-xl border border-red-500 dark:border-neutral-700 px-4">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-700 px-4">
           {Array.from({ length: 6 }).map((_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
             <div
@@ -272,7 +272,7 @@ export const DepartureBoard = ({ stopId }: { stopId: string }) => {
         <button
           type="button"
           onClick={loadDepartures}
-          className="text-white text-sm font-medium hover:underline"
+          className="text-black dark:text-white text-sm font-medium hover:underline"
         >
           Try again
         </button>

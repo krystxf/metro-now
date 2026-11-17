@@ -62,7 +62,7 @@ export class StopResolver {
         return this.stopService.getClosestStopsGraphQL({
             latitude,
             longitude,
-            limit: limit ?? 10,
+            limit: Math.min(Math.max(Math.trunc(limit ?? 10), 1), 100),
         });
     }
 
@@ -78,5 +78,20 @@ export class StopResolver {
     ) {
         const platformIds = stop.platforms.map((p) => p.id);
         return this.platformsByStopLoader.loadMany(platformIds);
+    }
+}
+
+@Resolver("StopWithDistance")
+export class StopWithDistanceResolver {
+    constructor(
+        private readonly platformsByStopLoader: PlatformsByStopLoader,
+    ) {}
+
+    // Closest stops carry only platform IDs; load full platforms like Stop does.
+    @ResolveField("platforms")
+    getPlatformsField(@Parent() stop: { platforms: { id: string }[] }) {
+        return this.platformsByStopLoader.loadMany(
+            stop.platforms.map((platform) => platform.id),
+        );
     }
 }

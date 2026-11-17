@@ -262,3 +262,71 @@ describe("RouteService", () => {
         });
     });
 });
+
+describe("RouteService platform route lookup", () => {
+    it("keeps route IDs that contain a colon (non-PID feeds)", async () => {
+        const routeLinks = [
+            { feedId: GtfsFeedId.BRNO, routeId: "BRR:123", platformId: "P1" },
+            { feedId: GtfsFeedId.PID, routeId: "L991", platformId: "P1" },
+            { feedId: GtfsFeedId.BRNO, routeId: "BRR:123", platformId: "P2" },
+        ];
+        const query = {
+            select: jest.fn().mockReturnThis(),
+            distinct: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            orderBy: jest.fn().mockReturnThis(),
+            execute: jest.fn().mockResolvedValue(routeLinks),
+        };
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                RouteService,
+                {
+                    provide: DatabaseService,
+                    useValue: { db: { selectFrom: jest.fn(() => query) } },
+                },
+                {
+                    provide: CACHE_MANAGER,
+                    useValue: {
+                        get: jest.fn(),
+                        set: jest.fn(),
+                        wrap: jest.fn(),
+                    },
+                },
+                {
+                    provide: LeoGtfsService,
+                    useValue: {
+                        getRouteById: jest.fn(),
+                        getRoutesByIds: jest.fn(),
+                    },
+                },
+            ],
+        }).compile();
+        const service = module.get<RouteService>(RouteService);
+        const getOne = jest
+            .spyOn(service, "getOneGraphQL")
+            .mockImplementation(async (id, feed) =>
+                feed === GtfsFeedId.BRNO
+                    ? ({ id: "BRR:123", feed: GtfsFeedId.BRNO } as never)
+                    : ({ id: "991", feed: GtfsFeedId.PID } as never),
+            );
+
+        const routesByPlatform = await (
+            service as unknown as {
+                loadGraphQLRoutesByPlatformIds: (
+                    ids: string[],
+                ) => Promise<Map<string, { id: string }[]>>;
+            }
+        ).loadGraphQLRoutesByPlatformIds(["P1", "P2"]);
+
+        expect(getOne).toHaveBeenCalledTimes(2);
+        expect(getOne).toHaveBeenCalledWith("BRR:123", GtfsFeedId.BRNO);
+        expect(getOne).toHaveBeenCalledWith("L991", GtfsFeedId.PID);
+        expect(routesByPlatform.get("P1")?.map((route) => route.id)).toEqual([
+            "BRR:123",
+            "991",
+        ]);
+        expect(routesByPlatform.get("P2")?.map((route) => route.id)).toEqual([
+            "BRR:123",
+        ]);
+    });
+});
