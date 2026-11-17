@@ -62,7 +62,7 @@ export class StopResolver {
         return this.stopService.getClosestStopsGraphQL({
             latitude,
             longitude,
-            ...(typeof limit === "number" ? { limit } : {}),
+            limit: limit ?? 10,
         });
     }
 

@@ -1,5 +1,5 @@
 import { GtfsFeedId, type Stop } from "@metro-now/database";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { group } from "radash";
 
 import { uniqueSortedStrings } from "src/constants/cache";
@@ -234,6 +234,7 @@ const getWeekdayFromGtfsDate = (
 
 @Injectable()
 export class DepartureServiceV2 {
+    private readonly logger = new Logger(DepartureServiceV2.name);
     private gtfsTimetableFallbackAvailable: boolean | undefined;
 
     constructor(
@@ -282,6 +283,15 @@ export class DepartureServiceV2 {
                       totalLimit: args.totalLimit ?? 1_000,
                       minutesBefore: args.minutesBefore,
                       minutesAfter: args.minutesAfter,
+                  }).catch((error: unknown) => {
+                      // Leo data comes from an external GTFS feed; if it is
+                      // unavailable, still serve the local departures.
+                      this.logger.error(
+                          "Failed to load Leo departures",
+                          error instanceof Error ? error.stack : error,
+                      );
+
+                      return [];
                   })
                 : Promise.resolve([]),
         ]);

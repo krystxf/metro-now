@@ -1,4 +1,5 @@
 import type {
+    GtfsFeedId,
     GtfsStationEntrance,
     Platform,
     Route,

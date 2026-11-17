@@ -26,7 +26,10 @@ describe("RouteResolver", () => {
 
             resolver.getOne("991");
 
-            expect(routeService.getOneGraphQL).toHaveBeenCalledWith("L991");
+            expect(routeService.getOneGraphQL).toHaveBeenCalledWith(
+                "L991",
+                undefined,
+            );
         });
 
         it("passes through an already-prefixed ID", () => {
@@ -36,7 +39,10 @@ describe("RouteResolver", () => {
 
             resolver.getOne("L991");
 
-            expect(routeService.getOneGraphQL).toHaveBeenCalledWith("L991");
+            expect(routeService.getOneGraphQL).toHaveBeenCalledWith(
+                "L991",
+                undefined,
+            );
         });
 
         it("passes through a colon-containing ID", () => {
@@ -46,7 +52,10 @@ describe("RouteResolver", () => {
 
             resolver.getOne("LTL:abc");
 
-            expect(routeService.getOneGraphQL).toHaveBeenCalledWith("LTL:abc");
+            expect(routeService.getOneGraphQL).toHaveBeenCalledWith(
+                "LTL:abc",
+                undefined,
+            );
         });
     });
 
