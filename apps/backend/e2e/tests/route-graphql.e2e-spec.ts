@@ -17,6 +17,17 @@ const createQueryBuilder = (rows: QueryRow[]) => {
     let currentRows = [...rows];
 
     const builder = {
+        $if(
+            condition: boolean,
+            callback: (query: {
+                where(column: string, operator: string, value: unknown): unknown;
+            }) => unknown,
+        ) {
+            if (condition) {
+                callback(builder);
+            }
+            return builder;
+        },
         distinct() {
             return builder;
         },
