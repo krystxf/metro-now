@@ -1,6 +1,9 @@
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
+import { Effect, Schema } from "effect";
+
+import { UpstreamError, fetchJson, runPromise } from "src/common/upstream";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import {
@@ -24,9 +27,11 @@ export class TransitlandService {
         const apiKey = process.env.TRANSIT_LAND_API_KEY?.trim();
 
         if (!apiKey) {
-            throw new Error(
-                "TRANSIT_LAND_API_KEY is required for Leo departures",
-            );
+            throw new UpstreamError({
+                service: "Transitland",
+                operation:
+                    "configuration (TRANSIT_LAND_API_KEY is required for Leo departures)",
+            });
         }
 
         const searchParams = new URLSearchParams(
@@ -41,19 +46,28 @@ export class TransitlandService {
 
         return this.cacheManager.wrap(
             CACHE_KEYS.transitland.get(path),
-            async () => {
-                const response = await fetch(`${TRANSITLAND_API_URL}${path}`);
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Failed to fetch Transitland data: ${response.status} ${response.statusText}`,
-                    );
-                }
-
-                return transitlandStopDeparturesSchema.parse(
-                    await response.json(),
-                );
-            },
+            () =>
+                runPromise(
+                    fetchJson(
+                        "Transitland",
+                        `${TRANSITLAND_API_URL}${path}`,
+                    ).pipe(
+                        Effect.flatMap(
+                            Schema.decodeUnknown(
+                                transitlandStopDeparturesSchema,
+                            ),
+                        ),
+                        Effect.mapError((cause) =>
+                            cause instanceof UpstreamError
+                                ? cause
+                                : new UpstreamError({
+                                      service: "Transitland",
+                                      operation: "response validation",
+                                      cause,
+                                  }),
+                        ),
+                    ),
+                ),
             CACHE_TTL.transitlandDepartures,
         );
     }

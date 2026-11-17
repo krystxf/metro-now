@@ -9,7 +9,8 @@ import {
     Version,
 } from "@nestjs/common";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
-import { z } from "zod";
+import { Either, Schema } from "effect";
+import { coerceNumber, integer } from "src/schema/coercion";
 
 import { ApiDescription, ApiQueries } from "src/decorators/swagger.decorator";
 import { EndpointVersion } from "src/enums/endpoint-version";
@@ -44,20 +45,22 @@ export class PlatformController {
     })
     @ApiQuery(metroOnlyQuery)
     async getAllPlatformsV1(@Query() query): Promise<PlatformSchema[]> {
-        const schema = z.object({
-            metroOnly: metroOnlySchema,
-        });
-        const parsed = schema.safeParse(query);
-        if (!parsed.success) {
+        const schema = Schema.mutable(
+            Schema.Struct({ metroOnly: metroOnlySchema }),
+        );
+        const parsed = Schema.decodeUnknownEither(schema)(query);
+        if (Either.isLeft(parsed)) {
             throw new HttpException(
-                parsed.error.format(),
+                parsed.left.message,
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        const platforms = await this.platformService.getAll(parsed.data);
+        const platforms = await this.platformService.getAll(parsed.right);
 
-        return platformSchema.array().parse(platforms);
+        return Schema.decodeUnknownSync(
+            Schema.mutable(Schema.Array(platformSchema)),
+        )(platforms);
     }
 
     @Get("/closest")
@@ -86,27 +89,34 @@ Sort platforms by distance to a given location. Location may be saved in logs.
     async getPlatformsByDistanceV1(
         @Query() query,
     ): Promise<PlatformWithDistanceSchema[]> {
-        const schema = z.object({
-            latitude: z.coerce.number(),
-            longitude: z.coerce.number(),
-            count: z.coerce.number().int().nonnegative().default(0),
-            metroOnly: metroOnlySchema,
-        });
+        const schema = Schema.mutable(
+            Schema.Struct({
+                latitude: coerceNumber,
+                longitude: coerceNumber,
+                count: Schema.optionalWith(
+                    coerceNumber.pipe(integer).pipe(Schema.nonNegative()),
+                    { default: () => 0 },
+                ),
+                metroOnly: metroOnlySchema,
+            }),
+        );
 
-        const parsed = schema.safeParse(query);
+        const parsed = Schema.decodeUnknownEither(schema)(query);
 
-        if (!parsed.success) {
+        if (Either.isLeft(parsed)) {
             throw new HttpException(
-                parsed.error.format(),
+                parsed.left.message,
                 HttpStatus.BAD_REQUEST,
             );
         }
 
         const platforms = await this.platformService.getPlatformsByDistance(
-            parsed.data,
+            parsed.right,
         );
 
-        return platformWithDistanceSchema.array().parse(platforms);
+        return Schema.decodeUnknownSync(
+            Schema.mutable(Schema.Array(platformWithDistanceSchema)),
+        )(platforms);
     }
 
     @Get("/in-box")
@@ -118,11 +128,13 @@ Sort platforms by distance to a given location. Location may be saved in logs.
     async getPlatformsInBoundingBoxV1(
         @Query() query,
     ): Promise<PlatformSchema[]> {
-        const schema = z.object({
-            boundingBox: boundingBoxSchema,
-            metroOnly: metroOnlySchema,
-        });
-        const parsed = schema.safeParse({
+        const schema = Schema.mutable(
+            Schema.Struct({
+                boundingBox: boundingBoxSchema,
+                metroOnly: metroOnlySchema,
+            }),
+        );
+        const parsed = Schema.decodeUnknownEither(schema)({
             boundingBox: {
                 latitude: query?.latitude,
                 longitude: query?.longitude,
@@ -130,7 +142,7 @@ Sort platforms by distance to a given location. Location may be saved in logs.
             metroOnly: query?.metroOnly,
         });
 
-        if (!parsed.success) {
+        if (Either.isLeft(parsed)) {
             throw new HttpException(
                 "Invalid query params",
                 HttpStatus.BAD_REQUEST,
@@ -138,9 +150,11 @@ Sort platforms by distance to a given location. Location may be saved in logs.
         }
 
         const platforms = await this.platformService.getPlatformsInBoundingBox(
-            parsed.data,
+            parsed.right,
         );
 
-        return platformSchema.array().parse(platforms);
+        return Schema.decodeUnknownSync(
+            Schema.mutable(Schema.Array(platformSchema)),
+        )(platforms);
     }
 }

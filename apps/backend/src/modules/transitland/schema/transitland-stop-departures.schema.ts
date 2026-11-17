@@ -1,43 +1,89 @@
-import { z } from "zod";
+import { Schema } from "effect";
+import { coerceString } from "src/schema/coercion";
 
-export const transitlandStopDeparturesSchema = z.object({
-    stops: z.array(
-        z.object({
-            stop_id: z.string(),
-            stop_name: z.string(),
-            platform_code: z.string().nullable(),
-            departures: z.array(
-                z.object({
-                    date: z.string(),
-                    service_date: z.string(),
-                    departure_time: z.string(),
-                    stop_sequence: z.number(),
-                    schedule_relationship: z.string(),
-                    departure: z.object({
-                        scheduled_local: z.string().nullable(),
-                        scheduled_utc: z.string().nullable(),
-                        estimated_local: z.string().nullable(),
-                        estimated_utc: z.string().nullable(),
+export const transitlandStopDeparturesSchema = Schema.mutable(
+    Schema.Struct({
+        stops: Schema.mutable(
+            Schema.Array(
+                Schema.mutable(
+                    Schema.Struct({
+                        stop_id: Schema.String,
+                        stop_name: Schema.String,
+                        platform_code: Schema.NullOr(Schema.String),
+                        departures: Schema.mutable(
+                            Schema.Array(
+                                Schema.mutable(
+                                    Schema.Struct({
+                                        date: Schema.String,
+                                        service_date: Schema.String,
+                                        departure_time: Schema.String,
+                                        stop_sequence: Schema.Number.pipe(
+                                            Schema.nonNaN(),
+                                        ),
+                                        schedule_relationship: Schema.String,
+                                        departure: Schema.mutable(
+                                            Schema.Struct({
+                                                scheduled_local: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                scheduled_utc: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                estimated_local: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                estimated_utc: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                            }),
+                                        ),
+                                        trip: Schema.mutable(
+                                            Schema.Struct({
+                                                id: coerceString,
+                                                direction_id: Schema.NullOr(
+                                                    Schema.Number.pipe(
+                                                        Schema.nonNaN(),
+                                                    ),
+                                                ),
+                                                trip_headsign: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                trip_id: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                trip_short_name: Schema.NullOr(
+                                                    Schema.String,
+                                                ),
+                                                route: Schema.mutable(
+                                                    Schema.Struct({
+                                                        route_id: Schema.NullOr(
+                                                            Schema.String,
+                                                        ),
+                                                        route_short_name:
+                                                            Schema.String,
+                                                        route_long_name:
+                                                            Schema.NullOr(
+                                                                Schema.String,
+                                                            ),
+                                                        route_type:
+                                                            Schema.Number.pipe(
+                                                                Schema.nonNaN(),
+                                                            ),
+                                                    }),
+                                                ),
+                                            }),
+                                        ),
+                                    }),
+                                ),
+                            ),
+                        ),
                     }),
-                    trip: z.object({
-                        id: z.coerce.string(),
-                        direction_id: z.number().nullable(),
-                        trip_headsign: z.string().nullable(),
-                        trip_id: z.string().nullable(),
-                        trip_short_name: z.string().nullable(),
-                        route: z.object({
-                            route_id: z.string().nullable(),
-                            route_short_name: z.string(),
-                            route_long_name: z.string().nullable(),
-                            route_type: z.number(),
-                        }),
-                    }),
-                }),
+                ),
             ),
-        }),
-    ),
-});
+        ),
+    }),
+);
 
-export type TransitlandStopDeparturesSchema = z.infer<
+export type TransitlandStopDeparturesSchema = Schema.Schema.Type<
     typeof transitlandStopDeparturesSchema
 >;

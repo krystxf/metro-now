@@ -35,14 +35,14 @@
         "cache-manager": "^7.2.9",
         "cacheable": "^2.5.0",
         "dataloader": "^2.2.3",
+        "effect": "^3.22.4",
         "graphql": "^16.15.0",
         "keyv": "^5.6.0",
         "radash": "^12.1.1",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.2",
         "ts-morph": "^25.0.1",
-        "unzipper": "^0.12.5",
-        "zod": "^3.25.76"
+        "unzipper": "^0.12.5"
     },
     "devDependencies": {
         "@nestjs/cli": "^11.0.24",

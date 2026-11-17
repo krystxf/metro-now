@@ -1,9 +1,11 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const delaySchema = z.object({
-    is_available: z.boolean(),
-    minutes: z.number().nullable(),
-    seconds: z.number().nullable(),
-});
+export const delaySchema = Schema.mutable(
+    Schema.Struct({
+        is_available: Schema.Boolean,
+        minutes: Schema.NullOr(Schema.Number.pipe(Schema.nonNaN())),
+        seconds: Schema.NullOr(Schema.Number.pipe(Schema.nonNaN())),
+    }),
+);
 
-export type DelaySchema = z.infer<typeof delaySchema>;
+export type DelaySchema = Schema.Schema.Type<typeof delaySchema>;

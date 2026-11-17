@@ -2,7 +2,13 @@ import * as fs from "node:fs";
 
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import type { MetroNowDatabase, NewPlatform, NewRoute, NewStop } from "./index";
+import {
+    GtfsFeedId,
+    type MetroNowDatabase,
+    type NewPlatform,
+    type NewRoute,
+    type NewStop,
+} from "./index";
 
 type Stop = {
     id: string;
@@ -76,44 +82,53 @@ async function main() {
         await insertInBatches(
             transaction,
             "Stop",
-            stops.map((stop) => ({
-                id: stop.id,
-                feed: "PID",
-                name: stop.name,
-                avgLatitude: stop.avgLatitude,
-                avgLongitude: stop.avgLongitude,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
+            stops.map(
+                (stop) =>
+                    ({
+                        id: stop.id,
+                        feed: GtfsFeedId.PID,
+                        name: stop.name,
+                        avgLatitude: stop.avgLatitude,
+                        avgLongitude: stop.avgLongitude,
+                        createdAt: timestamp,
+                        updatedAt: timestamp,
+                    }) satisfies NewStop,
+            ),
         );
 
         await insertInBatches(
             transaction,
             "Platform",
-            platforms.map((platform) => ({
-                id: platform.id,
-                name: platform.name,
-                isMetro: platform.isMetro,
-                latitude: platform.latitude,
-                longitude: platform.longitude,
-                stopId: platform.stopId ?? null,
-                code: null,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
+            platforms.map(
+                (platform) =>
+                    ({
+                        id: platform.id,
+                        name: platform.name,
+                        isMetro: platform.isMetro,
+                        latitude: platform.latitude,
+                        longitude: platform.longitude,
+                        stopId: platform.stopId ?? null,
+                        code: null,
+                        createdAt: timestamp,
+                        updatedAt: timestamp,
+                    }) satisfies NewPlatform,
+            ),
         );
 
         await insertInBatches(
             transaction,
             "Route",
-            routes.map((route) => ({
-                id: route.id,
-                name: route.name,
-                vehicleType: null,
-                isNight: null,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            })),
+            routes.map(
+                (route) =>
+                    ({
+                        id: route.id,
+                        name: route.name,
+                        vehicleType: null,
+                        isNight: null,
+                        createdAt: timestamp,
+                        updatedAt: timestamp,
+                    }) satisfies NewRoute,
+            ),
         );
     });
 

@@ -2,6 +2,8 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import type { Cache } from "cache-manager";
 
+import { fetchJson, runPromise } from "src/common/upstream";
+
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 
 const GOLEMIO_API = "https://api.golemio.cz";
@@ -23,23 +25,16 @@ export class GolemioService {
 
         return this.cacheManager.wrap(
             CACHE_KEYS.golemio.getGolemioData(path),
-            async () => {
-                const res = await fetch(url, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
-                    },
-                });
-
-                if (!res.ok) {
-                    throw new Error(
-                        `Failed to fetch Golemio data: ${res.status} ${res.statusText}`,
-                    );
-                }
-
-                return await res.json();
-            },
+            () =>
+                runPromise(
+                    fetchJson("Golemio", url, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Access-Token": process.env.GOLEMIO_API_KEY ?? "",
+                        },
+                    }),
+                ),
             getTtlForPath(path),
         );
     }

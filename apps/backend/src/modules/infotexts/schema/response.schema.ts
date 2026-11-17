@@ -1,20 +1,28 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const responseSchema = z
-    .object({
-        id: z.string(),
-        text: z.string(),
-        textEn: z.string().nullable(),
-        priority: z.enum(["LOW", "NORMAL", "HIGH"]),
-        displayType: z.string(),
-        relatedStops: z.array(
-            z.object({
-                id: z.string(),
-                name: z.string(),
-                platformCode: z.string().nullable(),
+export const responseSchema = Schema.mutable(
+    Schema.Array(
+        Schema.mutable(
+            Schema.Struct({
+                id: Schema.String,
+                text: Schema.String,
+                textEn: Schema.NullOr(Schema.String),
+                priority: Schema.Literal(...["LOW", "NORMAL", "HIGH"]),
+                displayType: Schema.String,
+                relatedStops: Schema.mutable(
+                    Schema.Array(
+                        Schema.mutable(
+                            Schema.Struct({
+                                id: Schema.String,
+                                name: Schema.String,
+                                platformCode: Schema.NullOr(Schema.String),
+                            }),
+                        ),
+                    ),
+                ),
+                validFrom: Schema.NullOr(Schema.String),
+                validTo: Schema.NullOr(Schema.String),
             }),
         ),
-        validFrom: z.string().nullable(),
-        validTo: z.string().nullable(),
-    })
-    .array();
+    ),
+);

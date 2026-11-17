@@ -1,5 +1,6 @@
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
+import { Either, Schema } from "effect";
 
 import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { GolemioService } from "src/modules/golemio/golemio.service";
@@ -17,13 +18,13 @@ export class InfotextsService {
         const data =
             await this.golemioService.getGolemioData("/v3/pid/infotexts");
 
-        const parsed = golemioResponseSchema.safeParse(data);
+        const parsed = Schema.decodeUnknownEither(golemioResponseSchema)(data);
 
-        if (!parsed.success) {
-            throw new Error(parsed.error.message);
+        if (Either.isLeft(parsed)) {
+            throw new Error(parsed.left.message);
         }
 
-        const parsedResponse = parsed.data.map((infotext) => ({
+        const parsedResponse = parsed.right.map((infotext) => ({
             ...infotext,
             textEn: infotext.text_en,
             displayType: infotext.display_type,
@@ -35,7 +36,7 @@ export class InfotextsService {
             validTo: infotext.valid_to,
         }));
 
-        return responseSchema.parse(parsedResponse);
+        return Schema.decodeUnknownSync(responseSchema)(parsedResponse);
     }
 
     async getAll() {

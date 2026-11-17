@@ -1,12 +1,15 @@
-import { z } from "zod";
+import { Schema } from "effect";
+import { coerceDate } from "src/schema/coercion";
 
-export const infoTextSchema = z.object({
-    valid_from: z.union([z.coerce.date(), z.null(), z.undefined()]),
-    valid_to: z.union([z.coerce.date(), z.null(), z.undefined()]),
-    text: z.string(),
-    text_en: z.union([z.string(), z.null(), z.undefined()]),
-    display_type: z.unknown(),
-    related_stops: z.string().array(),
-});
+export const infoTextSchema = Schema.mutable(
+    Schema.Struct({
+        valid_from: Schema.optional(coerceDate),
+        valid_to: Schema.optional(coerceDate),
+        text: Schema.String,
+        text_en: Schema.Union(Schema.String, Schema.Null, Schema.Undefined),
+        display_type: Schema.Unknown,
+        related_stops: Schema.mutable(Schema.Array(Schema.String)),
+    }),
+);
 
-export type InfoTextSchema = z.infer<typeof infoTextSchema>;
+export type InfoTextSchema = Schema.Schema.Type<typeof infoTextSchema>;

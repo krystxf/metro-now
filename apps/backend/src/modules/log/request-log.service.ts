@@ -1,11 +1,13 @@
 import { type NewRequestLog } from "@metro-now/database";
 import { Injectable, type OnModuleDestroy } from "@nestjs/common";
 
+import { SerializedWriter } from "src/common/serialized-writer";
+
 import { DatabaseService } from "src/modules/database/database.service";
 
 @Injectable()
 export class RequestLogService implements OnModuleDestroy {
-    private pendingWrite: Promise<void> = Promise.resolve();
+    private readonly writer = new SerializedWriter();
 
     constructor(private readonly database: DatabaseService) {}
 
@@ -15,23 +17,23 @@ export class RequestLogService implements OnModuleDestroy {
             createdAt: new Date(),
         };
 
-        this.pendingWrite = this.pendingWrite
-            .then(async () => {
-                await this.database.db
+        this.writer.enqueue(
+            () =>
+                this.database.db
                     .insertInto("RequestLog")
                     .values(logEntry)
-                    .execute();
-            })
-            .catch((error) => {
+                    .execute(),
+            ({ cause }) => {
                 console.error("Failed to write request log", {
                     error:
-                        error instanceof Error ? error.message : String(error),
+                        cause instanceof Error ? cause.message : String(cause),
                 });
-            });
+            },
+        );
     }
 
     async flush(): Promise<void> {
-        await this.pendingWrite;
+        await this.writer.flush();
     }
 
     async onModuleDestroy() {

@@ -1,5 +1,5 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
 const METRO_LINES = ["A", "B", "C"] as const;
 
-export const metroLine = z.enum(METRO_LINES);
+export const metroLine = Schema.Literal(...METRO_LINES);

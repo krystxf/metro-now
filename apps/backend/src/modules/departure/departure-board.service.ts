@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Schema } from "effect";
 
 import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
@@ -76,7 +77,7 @@ export class DepartureBoardService {
         );
 
         if (resolvedPlatformIds.length === 0) {
-            return departureBoardsSchema.parse({
+            return Schema.decodeUnknownSync(departureBoardsSchema)({
                 departures: [],
                 infotexts: [],
                 stops: [],
@@ -100,6 +101,6 @@ export class DepartureBoardService {
             `/v2/pid/departureboards?${searchParams.toString()}`,
         );
 
-        return departureBoardsSchema.parse(data);
+        return Schema.decodeUnknownSync(departureBoardsSchema)(data);
     }
 }

@@ -1,5 +1,6 @@
 import { GtfsFeedId, type Stop } from "@metro-now/database";
 import { Injectable, Logger } from "@nestjs/common";
+import { Schema } from "effect";
 import { group } from "radash";
 
 import { uniqueSortedStrings } from "src/constants/cache";
@@ -297,9 +298,9 @@ export class DepartureServiceV2 {
         ]);
         const limit = args.limit;
         const totalLimit = args.totalLimit ?? 1_000;
-        const parsedDepartures = departureSchema
-            .array()
-            .parse(localDepartures.concat(leoDepartures));
+        const parsedDepartures = Schema.decodeUnknownSync(
+            Schema.mutable(Schema.Array(departureSchema)),
+        )(localDepartures.concat(leoDepartures));
         const limitedByPlatformAndRoute =
             limit !== null && limit < totalLimit
                 ? getLimitedRes(parsedDepartures, limit)
