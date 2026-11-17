@@ -112,18 +112,23 @@ jobs:
             - name: Select available iOS simulator
               id: simulator
               run: |
-                  destination=$(xcodebuild -showdestinations \
-                    -project apps/mobile/metro-now/metro-now.xcodeproj \
-                    -scheme metro-now | python3 -c '
-                  import re
+                  xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
+                  destination=$(python3 - "$RUNNER_TEMP/simulators.json" <<'PYTHON'
+                  import json
                   import sys
 
-                  destinations = sys.stdin.read()
-                  match = re.search(r"platform:iOS Simulator,.*?id:([0-9A-Fa-f-]{36}),", destinations)
-                  if not match:
-                      sys.exit("No available iOS Simulator destination found")
-                  print("platform=iOS Simulator,id=" + match.group(1))
-                  ')
+                  with open(sys.argv[1]) as source:
+                      devices = json.load(source)["devices"]
+                  for runtime, candidates in sorted(devices.items(), reverse=True):
+                      if ".iOS-" not in runtime:
+                          continue
+                      for device in candidates:
+                          if device.get("isAvailable") and device["name"].startswith("iPhone"):
+                              print("platform=iOS Simulator,id=" + device["udid"])
+                              sys.exit(0)
+                  sys.exit("No available iPhone simulator found: " + repr(devices))
+                  PYTHON
+                  )
                   echo "destination=$destination" >> "$GITHUB_OUTPUT"
 
             - name: Run Swift unit tests
