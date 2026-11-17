@@ -254,12 +254,12 @@ export default function AppPage() {
         setIsLoadingNearby(true);
         try {
             const data = await graphqlClient.request<{
-                closestStops: { distance: number; stop: StopResult }[];
+                closestStops: (StopResult & { distance: number })[];
             }>(CLOSEST_STOPS, { latitude: lat, longitude: lon, limit: 7 });
             const distances = new Map<string, number>();
-            const withDistance = data.closestStops.map(({ distance, stop }) => {
-                distances.set(stop.id, distance);
-                return { ...stop, distance };
+            const withDistance = data.closestStops.map((stop) => {
+                distances.set(stop.id, stop.distance);
+                return stop;
             });
             setStopDistances(distances);
             setNearbyStops(withDistance);

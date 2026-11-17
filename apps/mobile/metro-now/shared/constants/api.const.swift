@@ -4,7 +4,8 @@
 import Alamofire
 import Foundation
 
-let API_URL: String = "http://192.168.1.224"
+let API_URL: String = "https://api.metronow.dev"
+/// let API_URL: String = "http://192.168.1.224:3009"
 let GRAPHQL_URL: String = "\(API_URL)/graphql"
 
 let apiSession: Session = {

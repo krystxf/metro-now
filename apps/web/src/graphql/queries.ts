@@ -44,19 +44,17 @@ export const CLOSEST_STOPS = gql`
     query ClosestStops($latitude: Float!, $longitude: Float!, $limit: Int) {
         closestStops(latitude: $latitude, longitude: $longitude, limit: $limit) {
             distance
-            stop {
+            id
+            feed
+            name
+            avgLatitude
+            avgLongitude
+            platforms {
                 id
-                feed
-                name
-                avgLatitude
-                avgLongitude
-                platforms {
-                    id
-                    routes {
-                        name
-                        color
-                        vehicleType
-                    }
+                routes {
+                    name
+                    color
+                    vehicleType
                 }
             }
         }
