@@ -91,7 +91,11 @@ describe("LeoGtfsService", () => {
     it("getPlatformsByIds returns only platforms with matching ids across stops", async () => {
         const service = createServiceWithCatalog(sampleCatalog);
 
-        const result = await service.getPlatformsByIds(["P1", "P3", "P_missing"]);
+        const result = await service.getPlatformsByIds([
+            "P1",
+            "P3",
+            "P_missing",
+        ]);
 
         expect(result.map((p) => p.id).sort()).toEqual(["P1", "P3"]);
     });
@@ -120,11 +124,7 @@ describe("LeoGtfsService", () => {
             "P_missing",
         ]);
 
-        expect([...result.keys()].sort()).toEqual([
-            "P1",
-            "P3",
-            "P_missing",
-        ]);
+        expect([...result.keys()].sort()).toEqual(["P1", "P3", "P_missing"]);
         expect(result.get("P1")?.map((r) => r.id)).toEqual(["R1", "R2"]);
         expect(result.get("P3")).toEqual([]);
         expect(result.get("P_missing")).toEqual([]);

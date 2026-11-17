@@ -987,7 +987,7 @@
 			repositoryURL = "https://github.com/apollographql/apollo-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.3;
+				minimumVersion = 2.5.0;
 			};
 		};
 		AA0001032D07A00100000003 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
@@ -995,7 +995,7 @@
 			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
 			requirement = {
 				kind = exactVersion;
-				version = 11.20.2;
+				version = 11.35.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

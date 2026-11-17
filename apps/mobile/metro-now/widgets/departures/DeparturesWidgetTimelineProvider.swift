@@ -100,7 +100,9 @@ struct DeparturesWidgetTimelineProvider: AppIntentTimelineProvider {
             .sorted { lhs, rhs in
                 let lhsIndex = metroLineOrder.firstIndex(of: lhs.routeLabel.uppercased()) ?? metroLineOrder.count
                 let rhsIndex = metroLineOrder.firstIndex(of: rhs.routeLabel.uppercased()) ?? metroLineOrder.count
-                if lhsIndex != rhsIndex { return lhsIndex < rhsIndex }
+                if lhsIndex != rhsIndex {
+                    return lhsIndex < rhsIndex
+                }
                 return lhs.headsign.localizedCompare(rhs.headsign) == .orderedAscending
             }
 

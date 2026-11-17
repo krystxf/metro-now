@@ -22,9 +22,9 @@ const makeQueryBuilder = (rows: Array<{ id: string }>): MockQueryBuilder => {
 const makeService = (rowsByCall: Array<Array<{ id: string }>>) => {
     const builders = rowsByCall.map((rows) => makeQueryBuilder(rows));
     const selectFrom = jest.fn();
-    builders.forEach((builder) => {
+    for (const builder of builders) {
         selectFrom.mockReturnValueOnce(builder);
-    });
+    }
     const database = { db: { selectFrom } } as unknown as DatabaseService;
     const golemioService = {
         getGolemioData: jest.fn(),

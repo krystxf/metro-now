@@ -47,7 +47,11 @@ describe("LeoStopMatcherService", () => {
     describe("findMatchingLeoStop", () => {
         it("returns undefined when no leo stop has the same normalized name", () => {
             const result = findMatchingLeoStop(
-                { name: "Hlavná stanica", avgLatitude: 48.15, avgLongitude: 17.11 },
+                {
+                    name: "Hlavná stanica",
+                    avgLatitude: 48.15,
+                    avgLongitude: 17.11,
+                },
                 [leoStop("L1", "Predmestie", 48.15, 17.11, "predmestie")],
             );
             expect(result).toBeUndefined();

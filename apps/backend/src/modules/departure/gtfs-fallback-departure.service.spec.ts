@@ -2,7 +2,9 @@ import type { DatabaseService } from "src/modules/database/database.service";
 import { GtfsFallbackDepartureService } from "src/modules/departure/gtfs-fallback-departure.service";
 
 const makeMissingTableError = () => {
-    const error = new Error('relation "GtfsStopTime" does not exist') as Error & {
+    const error = new Error(
+        'relation "GtfsStopTime" does not exist',
+    ) as Error & {
         code: string;
     };
     error.code = "42P01";

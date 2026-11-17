@@ -55,7 +55,9 @@ test("invalidateForChangedEntities returns 0 when no entities map to cache group
     const service = new CacheInvalidationService("localhost", 6379);
     attachRedis(service, makeFakeRedis());
 
-    const result = await service.invalidateForChangedEntities(["unknown-entity"]);
+    const result = await service.invalidateForChangedEntities([
+        "unknown-entity",
+    ]);
 
     assert.equal(result, 0);
 });

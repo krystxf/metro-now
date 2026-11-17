@@ -135,21 +135,27 @@ app.get("/api/sync/status", (_req: Request, res: Response) => {
     });
 });
 
-app.post("/api/cron/start/:jobName", (req: Request, res: Response) => {
-    const success = cronService.startJob(req.params.jobName);
+app.post(
+    "/api/cron/start/:jobName",
+    (req: Request<{ jobName: string }>, res: Response) => {
+        const success = cronService.startJob(req.params.jobName);
 
-    res.status(success ? 200 : 404).json({
-        success,
-    });
-});
+        res.status(success ? 200 : 404).json({
+            success,
+        });
+    },
+);
 
-app.post("/api/cron/stop/:jobName", (req: Request, res: Response) => {
-    const success = cronService.stopJob(req.params.jobName);
+app.post(
+    "/api/cron/stop/:jobName",
+    (req: Request<{ jobName: string }>, res: Response) => {
+        const success = cronService.stopJob(req.params.jobName);
 
-    res.status(success ? 200 : 404).json({
-        success,
-    });
-});
+        res.status(success ? 200 : 404).json({
+            success,
+        });
+    },
+);
 
 const bootstrap = async (): Promise<void> => {
     try {

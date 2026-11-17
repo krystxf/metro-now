@@ -208,7 +208,10 @@ describe("PlatformService", () => {
 
     describe("getGraphQLByIds", () => {
         it("loads missing ids, caches results, and returns them in input order without duplicates", async () => {
-            const rows = [samplePlatform("P1", false), samplePlatform("P2", true)];
+            const rows = [
+                samplePlatform("P1", false),
+                samplePlatform("P2", true),
+            ];
             const { service, cacheManager } = createService({
                 platformRows: rows,
             });

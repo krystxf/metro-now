@@ -13,13 +13,13 @@
         "types:check": "tsc --noEmit"
     },
     "dependencies": {
-        "kysely": "^0.28.14",
-        "pg": "^8.20.0"
+        "kysely": "^0.28.20",
+        "pg": "^8.23.1"
     },
     "devDependencies": {
-        "@types/pg": "^8.15.5",
+        "@types/pg": "^8.23.1",
         "ts-node": "^10.9.2",
-        "typescript": "^5.8.3"
+        "typescript": "^5.9.3"
     },
     "optionalDependencies": {
         "dotenv-cli": "^8.0.0"
