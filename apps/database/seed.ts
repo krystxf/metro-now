@@ -2,7 +2,13 @@ import * as fs from "node:fs";
 
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import type { MetroNowDatabase, NewPlatform, NewRoute, NewStop } from "./index";
+import {
+    GtfsFeedId,
+    type MetroNowDatabase,
+    type NewPlatform,
+    type NewRoute,
+    type NewStop,
+} from "./index";
 
 type Stop = {
     id: string;
@@ -78,8 +84,8 @@ async function main() {
             "Stop",
             stops.map((stop) => ({
                 id: stop.id,
-                feed: "PID",
                 name: stop.name,
+                feed: GtfsFeedId.PID,
                 avgLatitude: stop.avgLatitude,
                 avgLongitude: stop.avgLongitude,
                 createdAt: timestamp,

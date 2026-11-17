@@ -1,5 +1,6 @@
 .env*
 !.env*.example
+!.envrc
 
 node_modules
 .turbo
@@ -15,3 +16,7 @@ apps/mobile/metro-now/Secrets.xcconfig
 
 dist
 tmp
+
+# devenv and direnv local state
+.devenv*
+.direnv
