@@ -121,7 +121,9 @@
             refreshTask = Task { [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: UInt64(interval * Double(NSEC_PER_SEC)))
-                    if Task.isCancelled { break }
+                    if Task.isCancelled {
+                        break
+                    }
                     await self?.refreshAll()
                 }
             }
@@ -253,11 +255,17 @@
             routeName: String
         ) -> Bool {
             if let routeId, let departureRouteId = departure.routeId, !routeId.isEmpty {
-                if departureRouteId == routeId { return true }
+                if departureRouteId == routeId {
+                    return true
+                }
                 // `previewRouteId` may be a backendRouteId ("L<id>") derived from the
                 // platform's route list; match that form too.
-                if departureRouteId == "L\(routeId)" { return true }
-                if routeId == "L\(departureRouteId)" { return true }
+                if departureRouteId == "L\(routeId)" {
+                    return true
+                }
+                if routeId == "L\(departureRouteId)" {
+                    return true
+                }
             }
             return departure.route.caseInsensitiveCompare(routeName) == .orderedSame
         }

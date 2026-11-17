@@ -58,7 +58,6 @@ extension ContentView {
         }
     }
 
-    @ViewBuilder
     var sidebarTabContainer: some View {
         #if targetEnvironment(macCatalyst)
             catalystSidebarTabContainer
@@ -119,7 +118,6 @@ extension ContentView {
         }
     #endif
 
-    @ViewBuilder
     func sidebarResizeHandle(containerWidth: CGFloat) -> some View {
         #if targetEnvironment(macCatalyst)
             Color.clear

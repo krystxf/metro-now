@@ -58,10 +58,8 @@ enum MacWindowTitlebar {
             let sharedSelector = NSSelectorFromString("sharedApplication")
             guard nsAppClass.responds(to: sharedSelector),
                   let sharedApp = (nsAppClass as AnyObject).perform(sharedSelector)?
-                  .takeUnretainedValue() as? NSObject
-            else { return }
-
-            guard let windows = sharedApp.value(forKey: "windows") as? [NSObject],
+                      .takeUnretainedValue() as? NSObject,
+                  let windows = sharedApp.value(forKey: "windows") as? [NSObject],
                   !windows.isEmpty
             else { return }
 

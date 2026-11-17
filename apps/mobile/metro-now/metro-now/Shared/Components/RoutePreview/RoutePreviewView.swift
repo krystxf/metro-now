@@ -141,8 +141,7 @@ struct RoutePreviewView: View {
         atPlatformId platformId: String,
         excludingRouteId: String?
     ) -> [ApiRoute] {
-        guard let stops = stopsViewModel.stops else { return [] }
-        guard let parentStop = stops.first(where: { stop in
+        guard let stops = stopsViewModel.stops, let parentStop = stops.first(where: { stop in
             stop.platforms.contains(where: { $0.id == platformId })
         }) else { return [] }
 

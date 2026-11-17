@@ -32,11 +32,13 @@ struct AllDeparturesSheetView: View {
         return fetchedDepartures
             .filter { dep in
                 if let filter = request.routeFilter {
-                    if dep.routeId != filter.routeId { return false }
+                    if dep.routeId != filter.routeId {
+                        return false
+                    }
                     if let normalizedHeadsign,
                        dep.headsign
-                       .trimmingCharacters(in: .whitespacesAndNewlines)
-                       != normalizedHeadsign
+                           .trimmingCharacters(in: .whitespacesAndNewlines)
+                           != normalizedHeadsign
                     {
                         return false
                     }

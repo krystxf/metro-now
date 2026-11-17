@@ -116,11 +116,7 @@ private func visibleNextDepartureTime(
     for row: MetroDepartureRow,
     referenceDate: Date
 ) -> Date? {
-    guard let nextDeparture = row.nextDeparture else {
-        return nil
-    }
-
-    guard nextDeparture.timeIntervalSince(referenceDate) < departuresWidgetNextDepartureDisplayThreshold else {
+    guard let nextDeparture = row.nextDeparture, nextDeparture.timeIntervalSince(referenceDate) < departuresWidgetNextDepartureDisplayThreshold else {
         return nil
     }
 

@@ -43,17 +43,17 @@ class ClosestStopPageViewModel: NSObject, ObservableObject, CLLocationManagerDel
     ) -> String {
         switch status {
         case .notDetermined:
-            return "notDetermined"
+            "notDetermined"
         case .restricted:
-            return "restricted"
+            "restricted"
         case .denied:
-            return "denied"
+            "denied"
         case .authorizedAlways:
-            return "authorizedAlways"
+            "authorizedAlways"
         case .authorizedWhenInUse:
-            return "authorizedWhenInUse"
+            "authorizedWhenInUse"
         @unknown default:
-            return "unknown(\(status.rawValue))"
+            "unknown(\(status.rawValue))"
         }
     }
 

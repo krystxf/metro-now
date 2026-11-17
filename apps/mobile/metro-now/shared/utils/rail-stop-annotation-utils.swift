@@ -389,11 +389,7 @@ func isBarcelonaMapTramRoute(_ route: ApiRoute) -> Bool {
         .trimmingCharacters(in: .whitespacesAndNewlines)
         .uppercased()
 
-    guard normalizedName.hasPrefix("T"), normalizedName.count == 2 else {
-        return false
-    }
-
-    guard let lineNumber = Int(normalizedName.dropFirst()) else {
+    guard normalizedName.hasPrefix("T"), normalizedName.count == 2, let lineNumber = Int(normalizedName.dropFirst()) else {
         return false
     }
 
