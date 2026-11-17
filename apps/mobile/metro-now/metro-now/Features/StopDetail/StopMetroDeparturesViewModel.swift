@@ -11,7 +11,7 @@ class StopMetroDeparturesViewModel: NSObject, ObservableObject {
 
     @Published var departures: [ApiDeparture]?
 
-    private var refreshTimer: Timer?
+    private var refreshTask: Task<Void, Never>?
 
     init(stopId: String) {
         self.stopId = stopId
@@ -24,84 +24,83 @@ class StopMetroDeparturesViewModel: NSObject, ObservableObject {
         stopPeriodicRefresh()
     }
 
-    func refresh() {
-        getDepartures(
+    func refresh() async {
+        await fetchAndApplyDepartures(
             stopsIds: [stopId],
             platformsIds: []
         )
     }
 
     private func startPeriodicRefresh() {
-        stopPeriodicRefresh() // Stop any existing timer to avoid duplication.
-        refreshTimer = Timer.scheduledTimer(
-            withTimeInterval: REFETCH_INTERVAL,
-            repeats: true
-        ) { [weak self] _ in
-            guard
-                let self
-            else {
-                return
-            }
+        stopPeriodicRefresh()
+        refreshTask = Task(priority: .utility) { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(REFETCH_INTERVAL))
+                guard !Task.isCancelled, let self else { return }
 
-            getDepartures(
-                stopsIds: [stopId],
-                platformsIds: []
-            )
+                await fetchAndApplyDepartures(
+                    stopsIds: [stopId],
+                    platformsIds: []
+                )
+            }
         }
     }
 
     private func stopPeriodicRefresh() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        refreshTask?.cancel()
+        refreshTask = nil
     }
 
-    private func getDepartures(
+    private func fetchAndApplyDepartures(
         stopsIds: [String],
         platformsIds: [String]
-    ) {
-        Task {
-            do {
-                let response = try await fetchGraphQLQuery(
-                    MetroNowAPI.DeparturesQuery(
-                        stopIds: .some(stopsIds),
-                        platformIds: .some(platformsIds),
-                        limit: .some(20),
-                        metroOnly: .some(true),
-                        minutesBefore: .some(1),
-                        minutesAfter: .some(Int32(1 * 60))
-                    )
+    ) async {
+        do {
+            let response = try await fetchGraphQLQuery(
+                MetroNowAPI.DeparturesQuery(
+                    stopIds: .some(stopsIds),
+                    platformIds: .some(platformsIds),
+                    limit: .some(20),
+                    metroOnly: .some(true),
+                    minutesBefore: .some(1),
+                    minutesAfter: .some(Int32(1 * 60))
                 )
+            )
 
-                let fetchedDepartures = response.departures.compactMap {
-                    mapGraphQLDeparture($0)
-                }
-
-                await MainActor.run {
-                    if let oldDepartures = self.departures {
-                        let oldStuff = oldDepartures.filter { oldDeparture in
-                            !fetchedDepartures.contains(where: { fetchedDeparture in
-                                fetchedDeparture.id == oldDeparture.id
-                            })
-                        }
-                        self.departures = uniqueBy(
-                            array: oldStuff + fetchedDepartures,
-                            by: \.id
-                        )
-                        .filter {
-                            $0.departure.predicted > Date.now - SECONDS_BEFORE
-                        }
-                        .sorted(by: {
-                            $0.departure.scheduled < $1.departure.scheduled
-                        })
-                    } else {
-                        self.departures = fetchedDepartures
-                    }
-
-                    print("Fetched \(fetchedDepartures.count) departures")
-                }
-            } catch {
-                print("Error fetching departures: \(error)")
+            let fetchedDepartures = response.departures.compactMap {
+                mapGraphQLDeparture($0)
             }
+
+            let oldDepartures = await MainActor.run { self.departures }
+
+            let newDepartures: [ApiDeparture]
+            if let oldDepartures {
+                let fetchedIds = Set(fetchedDepartures.compactMap(\.id))
+                let retainedOld = oldDepartures.filter { old in
+                    guard let id = old.id else { return true }
+                    return !fetchedIds.contains(id)
+                }
+                newDepartures = uniqueBy(
+                    array: retainedOld + fetchedDepartures,
+                    by: \.id
+                )
+                .filter {
+                    $0.departure.predicted > Date.now - SECONDS_BEFORE
+                }
+                .sorted(by: {
+                    $0.departure.scheduled < $1.departure.scheduled
+                })
+            } else {
+                newDepartures = fetchedDepartures
+            }
+
+            await MainActor.run {
+                self.departures = newDepartures
+            }
+
+            print("Fetched \(fetchedDepartures.count) departures")
+        } catch {
+            print("Error fetching departures: \(error)")
         }
     }
 }

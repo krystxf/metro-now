@@ -28,7 +28,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -50,7 +50,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -72,7 +72,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -111,7 +111,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -119,3 +119,17 @@ jobs:
 
       - name: Audit dependencies
         run: pnpm audit --audit-level=critical
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

@@ -6,57 +6,59 @@ import SwiftUI
 struct StopDetailPageView: View {
     @StateObject private var viewModel: ClosestStopPageViewModel
     @State private var routePreviewItem: SheetIdItem?
-    @AppStorage(
-        AppStorageKeys.showMetroOnly.rawValue
-    ) var showMetroOnly = false
+    @Environment(\.sidebarRoutePreviewPresenter) private var sidebarRoutePreviewPresenter
+
+    private func handleRoutePreview(_ item: SheetIdItem) {
+        if let sidebarRoutePreviewPresenter {
+            sidebarRoutePreviewPresenter(item)
+        } else {
+            routePreviewItem = item
+        }
+    }
 
     init(viewModel: ClosestStopPageViewModel = ClosestStopPageViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     private var hasRealtimeData: Bool {
-        viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let general = viewModel.departures?.contains(where: { $0.isRealtime == true }) ?? false
+        let metro = viewModel.metroDepartures?.contains(where: { $0.isRealtime == true }) ?? false
+        return general || metro
     }
 
     var body: some View {
-        if viewModel.metroStops != nil || viewModel.allStops != nil {
+        if viewModel.nearbyStops != nil {
             List {
                 if let closestMetroStop = viewModel.closestMetroStop {
                     Section(header: Text("Metro")) {
                         MetroDeparturesListView(
                             closestStop: closestMetroStop,
-                            departures: viewModel.departures,
-                            onRoutePreviewRequested: { routePreviewItem = $0 }
+                            departures: viewModel.metroDepartures,
+                            onRoutePreviewRequested: handleRoutePreview
                         )
                     }
                 }
 
-                if showMetroOnly {
-                    Button("Show all public transport departures") {
-                        showMetroOnly.toggle()
-                    }
-                } else {
-                    if let closestStop = viewModel.closestStop {
-                        let platforms = closestStop.platforms
-                            .filter { platform in
-                                platform.routes.contains(where: {
-                                    let routeName = $0.name.uppercased()
-                                    let containsMetro = METRO_LINES.contains(routeName)
+                if let closestStop = viewModel.closestStop {
+                    let platforms = closestStop.platforms
+                        .filter { platform in
+                            platform.routes.contains(where: {
+                                let routeName = $0.name.uppercased()
+                                let containsMetro = METRO_LINES.contains(routeName)
 
-                                    return !containsMetro
-                                })
-                            }
-                            .sorted(by: {
-                                getPlatformLabel($0) < getPlatformLabel($1)
+                                return !containsMetro
                             })
-
-                        ForEach(platforms, id: \.id) { platform in
-                            PlatformDeparturesListView(
-                                platform: platform,
-                                departures: viewModel.departures,
-                                onRoutePreviewRequested: { routePreviewItem = $0 }
-                            )
                         }
+                        .sorted(by: {
+                            getPlatformLabel($0) < getPlatformLabel($1)
+                        })
+
+                    ForEach(platforms, id: \.id) { platform in
+                        PlatformDeparturesListView(
+                            platform: platform,
+                            departures: viewModel.departures,
+                            onRoutePreviewRequested: handleRoutePreview
+                        )
                     }
                 }
             }
@@ -74,11 +76,8 @@ struct StopDetailPageView: View {
                 }
             }
             .refreshable {
-                do {
-                    print("Refreshing")
-
-                    viewModel.refresh()
-                }
+                print("Refreshing")
+                await viewModel.refresh()
             }
             .sheet(item: $routePreviewItem) { item in
                 RoutePreviewView(
@@ -100,8 +99,7 @@ struct StopDetailPageView: View {
         StopDetailPageView(
             viewModel: ClosestStopPageViewModel(
                 previewLocation: PreviewData.userLocation,
-                metroStops: [PreviewData.metroStop, PreviewData.transferStop],
-                allStops: PreviewData.stops,
+                nearbyStops: PreviewData.stops,
                 departures: PreviewData.departures
             )
         )

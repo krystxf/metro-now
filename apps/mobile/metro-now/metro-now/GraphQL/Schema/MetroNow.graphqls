@@ -1,126 +1,217 @@
+# This file is generated from backend module SDL files.
+# Run `pnpm --filter @metro-now/mobile graphql:schema:sync` after backend schema changes.
+
 scalar ISODateTime
 
-enum InfotextPriority {
-  LOW
-  NORMAL
-  HIGH
-}
-
-enum VehicleType {
-  BUS
-  TRAM
-  FERRY
-  TRAIN
-  FUNICULAR
-  SUBWAY
-  TROLLEYBUS
-}
-
-enum Feed {
-  PID
-  BRNO
-  BRATISLAVA
-  LEO
-  LIBEREC
-  PMDP
-  USTI
-  ZSR
-}
-
-type StopEntrance {
-  id: ID!
-  name: String!
-  latitude: Float!
-  longitude: Float!
-}
-
-type Route {
-  id: ID!
-  name: String
-  color: String
-  feed: Feed!
-  vehicleType: VehicleType!
-  isNight: Boolean!
-  isSubstitute: Boolean!
-  directions: [RouteDirection!]!
-  shapes: [RouteShape!]!
-}
-
-type RouteDirection {
-  id: ID!
-  platforms: [Platform!]!
-}
-
-type RouteShape {
-  id: ID!
-  directionId: ID!
-  tripCount: Int!
-  geoJson: String!
-}
-
-type Platform {
-  id: ID!
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  isMetro: Boolean!
-  code: String
-  routes: [Route!]!
-}
-
-type Stop {
-  id: ID!
-  name: String!
-  avgLatitude: Float!
-  avgLongitude: Float!
-  entrances: [StopEntrance!]!
-  platforms: [Platform!]!
-}
-
+# Source: apps/backend/src/modules/departure/schema.graphql
 type DepartureTime {
-  predicted: ISODateTime!
-  scheduled: ISODateTime!
+    predicted: ISODateTime!
+    scheduled: ISODateTime!
 }
 
 type Departure {
-  id: ID
-  delay: Int
-  headsign: String
-  isRealtime: Boolean!
-  platformCode: String
-  platform: Platform!
-  departureTime: DepartureTime!
-  route: Route
-}
+    id: ID
 
-type InfotextRelatedStop {
-  id: ID!
-  name: String!
-  platformCode: String
-}
+    """
+    in seconds
+    """
+    delay: Int
 
-type Infotext {
-  id: ID!
-  text: String!
-  textEn: String
-  priority: InfotextPriority!
-  displayType: String!
-  relatedStops: [InfotextRelatedStop!]!
-  validFrom: ISODateTime
-  validTo: ISODateTime
+    headsign: String
+    isRealtime: Boolean!
+    platformCode: String
+
+    platform: Platform!
+    departureTime: DepartureTime!
+    route: Route
 }
 
 type Query {
-  stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
-  searchStops(query: String!, limit: Int, offset: Int): [Stop!]!
-  infotexts: [Infotext!]!
-  departures(
-    stopIds: [ID!]
-    platformIds: [ID!]
-    limit: Int
-    metroOnly: Boolean
-    minutesBefore: Int
-    minutesAfter: Int
-  ): [Departure!]!
-  route(id: ID!): Route
+    departures(
+        stopIds: [ID!]
+        platformIds: [ID!]
+        """
+        maximum number of departures to return (max: 100)
+        """
+        limit: Int
+        metroOnly: Boolean
+        minutesBefore: Int
+        minutesAfter: Int
+    ): [Departure!]!
+}
+
+# Source: apps/backend/src/modules/hello/schema.graphql
+extend type Query {
+    hello: String!
+}
+
+# Source: apps/backend/src/modules/infotexts/schema.graphql
+enum InfotextPriority {
+    LOW
+    NORMAL
+    HIGH
+}
+
+type InfotextRelatedStop {
+    id: ID!
+    name: String!
+    platformCode: String
+}
+
+type Infotext {
+    id: ID!
+    text: String!
+    textEn: String
+    priority: InfotextPriority!
+    displayType: String!
+
+    relatedStops: [InfotextRelatedStop!]!
+
+    validFrom: ISODateTime
+    validTo: ISODateTime
+}
+
+extend type Query {
+    infotexts: [Infotext!]!
+}
+
+# Source: apps/backend/src/modules/platform/schema.graphql
+type Platform {
+    id: ID!
+    name: String!
+    latitude: Float!
+    longitude: Float!
+    isMetro: Boolean!
+    code: String
+    direction: String
+    stop: Stop
+    routes: [Route!]!
+}
+
+extend type Query {
+    platforms(ids: [ID!]): [Platform!]!
+    platform(id: ID!): Platform
+}
+
+# Source: apps/backend/src/modules/route/schema.graphql
+enum VehicleType {
+    BUS
+    TRAM
+    FERRY
+    TRAIN
+    FUNICULAR
+    SUBWAY
+    TROLLEYBUS
+}
+
+enum Feed {
+    PID
+    BRNO
+    BRATISLAVA
+    LEO
+    LIBEREC
+    PMDP
+    USTI
+    ZSR
+    BARCELONA
+}
+
+type RouteDirection {
+    id: ID!
+    """
+    Platforms are sorted
+    """
+    platforms: [Platform!]!
+}
+
+type RouteShape {
+    id: ID!
+    directionId: ID!
+    tripCount: Int!
+    geoJson: String!
+}
+
+type Route {
+    id: ID!
+    name: String
+    color: String
+    feed: Feed!
+    directions: [RouteDirection!]!
+    shapes: [RouteShape!]!
+    isSubstitute: Boolean!
+
+    """
+    might not be accurate if isSubstitute is true
+    (shows the original vehicle type, not the substitute vehicle type)
+    """
+    vehicleType: VehicleType!
+
+    """
+    applies to BUS and TRAM only - defaults to false
+    """
+    isNight: Boolean!
+}
+
+extend type Query {
+    route(id: ID!): Route
+    routes(vehicleType: [VehicleType!]): [Route!]!
+}
+
+# Source: apps/backend/src/modules/stop/schema.graphql
+type StopEntrance {
+    id: ID!
+    name: String!
+    latitude: Float!
+    longitude: Float!
+}
+
+type Stop {
+    id: ID!
+    feed: Feed!
+    name: String!
+    avgLatitude: Float!
+    avgLongitude: Float!
+    entrances: [StopEntrance!]!
+    platforms: [Platform!]!
+    """
+    True if any platform at this stop is a metro/subway platform.
+    Pre-computed so map clients don't need to fetch platforms.
+    """
+    isMetro: Boolean!
+    """
+    Distinct vehicle types across all routes serving this stop.
+    Pre-computed so map clients don't need to fetch platforms/routes.
+    """
+    vehicleTypes: [VehicleType!]!
+}
+
+type StopWithDistance {
+    id: ID!
+    feed: Feed!
+    name: String!
+    avgLatitude: Float!
+    avgLongitude: Float!
+    entrances: [StopEntrance!]!
+    platforms: [Platform!]!
+    isMetro: Boolean!
+    vehicleTypes: [VehicleType!]!
+    distance: Float!
+}
+
+extend type Query {
+    stops(ids: [ID!], limit: Int, offset: Int): [Stop!]!
+    stop(id: ID!): Stop
+    searchStops(
+        query: String!
+        limit: Int
+        offset: Int
+        latitude: Float
+        longitude: Float
+    ): [Stop!]!
+    closestStops(
+        latitude: Float!
+        longitude: Float!
+        limit: Int
+    ): [StopWithDistance!]!
+    stopDataLastUpdatedAt: ISODateTime
 }

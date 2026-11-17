@@ -1,34 +1,38 @@
 import XCTest
 
 final class metro_nowUITests: XCTestCase {
+    // Tests here mix welcome-seen and first-launch configurations, so each
+    // test intentionally launches a fresh app instance. Do not migrate this
+    // class to a class-level setUp.
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
     func testFirstLaunchShowsWelcomeScreen() {
-        let app = configuredApp(hasSeenWelcome: false)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: false)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
-        XCTAssertTrue(app.buttons["button.continue-welcome"].waitForExistence(timeout: 5))
+        XCTAssertTrue(continueButton(in: app).waitForExistence(timeout: 5))
     }
 
     func testLaunchCanSkipWelcomeScreen() {
-        let app = configuredApp(hasSeenWelcome: true)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: true)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
-        XCTAssertFalse(app.buttons["button.continue-welcome"].waitForExistence(timeout: 2))
+        XCTAssertFalse(continueButton(in: app).waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["button.open-settings"].waitForExistence(timeout: 5))
     }
 
     func testSettingsSheetCanOpenAndClose() {
-        let app = configuredApp(hasSeenWelcome: true)
+        let app = UITestAppLauncher.makeConfiguredApp(hasSeenWelcome: true)
 
         app.launch()
-        dismissSystemAlertIfNeeded(in: app)
+        UITestAppLauncher.dismissSystemAlertIfNeeded(in: app)
 
         let settingsButton = app.buttons["button.open-settings"]
         XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
@@ -44,27 +48,17 @@ final class metro_nowUITests: XCTestCase {
         XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
     }
 
-    private func configuredApp(hasSeenWelcome: Bool) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["UITEST_RESET_STATE"]
-        app.launchEnvironment["UITEST_HAS_SEEN_WELCOME"] = hasSeenWelcome ? "1" : "0"
-        return app
-    }
-
-    private func dismissSystemAlertIfNeeded(in app: XCUIApplication) {
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let alert = springboard.alerts.firstMatch
-
-        guard alert.waitForExistence(timeout: 2) else {
-            return
+    private func continueButton(in app: XCUIApplication) -> XCUIElement {
+        let identifiedButton = app.buttons["button.continue-welcome"]
+        if identifiedButton.exists {
+            return identifiedButton
         }
 
-        let dismissButton = alert.buttons.element(boundBy: 0)
-        guard dismissButton.exists else {
-            return
+        let labeledButton = app.buttons["Continue"]
+        if labeledButton.exists {
+            return labeledButton
         }
 
-        dismissButton.tap()
-        _ = app.wait(for: .runningForeground, timeout: 5)
+        return app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Continue")).firstMatch
     }
 }

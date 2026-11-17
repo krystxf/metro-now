@@ -45,7 +45,8 @@ flowchart LR
 
     subgraph Shared["Shared packages"]
         database["Database package<br/>schema, migrations, seeds"]
-        shared["Shared library<br/>types and helpers"]
+        server["Server package<br/>env + db runtime helpers"]
+        shared["Shared library<br/>domain helpers"]
     end
 
     subgraph Sources["External data sources"]
@@ -61,8 +62,10 @@ flowchart LR
     dataloader -->|"downloads scheduled datasets"| pid
     dataloader -->|"normalizes and writes snapshots"| postgres
     database -.->|"defines schema for"| postgres
-    shared -.->|"shared code for"| backend
-    shared -.->|"shared code for"| dataloader
+    server -.->|"runtime wiring for"| backend
+    server -.->|"runtime wiring for"| dataloader
+    shared -.->|"domain logic for"| backend
+    shared -.->|"domain logic for"| dataloader
 ```
 
 ## Workspace layout
@@ -75,6 +78,7 @@ apps/
   mobile/       iOS / watchOS app (Xcode)
   web/          Next.js website
 lib/
+  server/       server-only env and database helpers
   shared/       shared TypeScript package
 ```
 

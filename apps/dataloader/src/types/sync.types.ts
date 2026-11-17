@@ -1,6 +1,6 @@
-import {
-    type GeoJsonLineString,
-    type GtfsFeedId,
+import type {
+    GeoJsonLineString,
+    GtfsFeedId,
     VehicleType,
 } from "@metro-now/database";
 
@@ -12,6 +12,7 @@ export type SyncedStop = {
     name: string;
     avgLatitude: number;
     avgLongitude: number;
+    country?: string | null;
 };
 
 export type SyncedPlatform = {
@@ -24,15 +25,9 @@ export type SyncedPlatform = {
     stopId: string | null;
 };
 
-export type SyncedRoute = {
-    id: string;
-    name: string;
-    vehicleType: VehicleType | null;
-    isNight: boolean | null;
-};
-
 export type SyncedPlatformRoute = {
     platformId: string;
+    feedId: GtfsFeedId;
     routeId: string;
 };
 
@@ -42,6 +37,7 @@ export type SyncedGtfsRoute = {
     shortName: string;
     longName: string | null;
     type: string;
+    vehicleType: VehicleType | null;
     color: string | null;
     isNight: boolean | null;
     url: string | null;
@@ -87,7 +83,6 @@ export type SyncedGtfsTrip = {
     blockId: string | null;
     wheelchairAccessible: string | null;
     bikesAllowed: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsStopTime = {
@@ -102,7 +97,6 @@ export type SyncedGtfsStopTime = {
     pickupType: string | null;
     dropOffType: string | null;
     timepoint: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsCalendar = {
@@ -118,7 +112,6 @@ export type SyncedGtfsCalendar = {
     sunday: boolean;
     startDate: string | null;
     endDate: string | null;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsCalendarDate = {
@@ -127,7 +120,6 @@ export type SyncedGtfsCalendarDate = {
     serviceId: string;
     date: string;
     exceptionType: number;
-    rawData: Record<string, string>;
 };
 
 export type SyncedGtfsTransfer = {
@@ -141,13 +133,21 @@ export type SyncedGtfsTransfer = {
     toTripId: string | null;
     transferType: number | null;
     minTransferTime: number | null;
-    rawData: Record<string, string>;
+};
+
+export type SyncedGtfsFrequency = {
+    id: string;
+    feedId: GtfsFeedId;
+    tripId: string;
+    startTime: string;
+    endTime: string;
+    headwaySecs: number;
+    exactTimes: number;
 };
 
 export type StopSnapshot = {
     stops: SyncedStop[];
     platforms: SyncedPlatform[];
-    routes: SyncedRoute[];
     platformRoutes: SyncedPlatformRoute[];
 };
 
@@ -161,6 +161,7 @@ export type GtfsSnapshot = {
     gtfsCalendars: SyncedGtfsCalendar[];
     gtfsCalendarDates: SyncedGtfsCalendarDate[];
     gtfsTransfers: SyncedGtfsTransfer[];
+    gtfsFrequencies: SyncedGtfsFrequency[];
 };
 
 export type SyncSnapshot = StopSnapshot & GtfsSnapshot;
@@ -168,7 +169,6 @@ export type SyncSnapshot = StopSnapshot & GtfsSnapshot;
 export type SyncCounts = {
     stops: number;
     platforms: number;
-    routes: number;
     platformRoutes: number;
     gtfsRoutes: number;
     gtfsRouteStops: number;
@@ -179,6 +179,7 @@ export type SyncCounts = {
     gtfsCalendars: number;
     gtfsCalendarDates: number;
     gtfsTransfers: number;
+    gtfsFrequencies: number;
 };
 
 export type SyncRunResult = {
@@ -206,7 +207,6 @@ export type SyncPersistenceResult =
 export const getSyncCounts = (snapshot: SyncSnapshot): SyncCounts => ({
     stops: snapshot.stops.length,
     platforms: snapshot.platforms.length,
-    routes: snapshot.routes.length,
     platformRoutes: snapshot.platformRoutes.length,
     gtfsRoutes: snapshot.gtfsRoutes.length,
     gtfsRouteStops: snapshot.gtfsRouteStops.length,
@@ -217,4 +217,5 @@ export const getSyncCounts = (snapshot: SyncSnapshot): SyncCounts => ({
     gtfsCalendars: snapshot.gtfsCalendars.length,
     gtfsCalendarDates: snapshot.gtfsCalendarDates.length,
     gtfsTransfers: snapshot.gtfsTransfers.length,
+    gtfsFrequencies: snapshot.gtfsFrequencies.length,
 });

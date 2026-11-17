@@ -48,6 +48,10 @@ export class PlatformResolver {
         platform: ParentType<typeof this.getMultiple> &
             ParentType<typeof this.getOne>,
     ) {
+        if ("routes" in platform && Array.isArray(platform.routes)) {
+            return platform.routes;
+        }
+
         return this.routesByPlatformIdLoader.load(platform.id);
     }
 }

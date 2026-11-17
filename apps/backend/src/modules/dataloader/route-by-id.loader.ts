@@ -13,11 +13,16 @@ export class RouteByIdLoader extends DataLoader<string, Route | null> {
     }
 
     private async batchLoadFn(routeIds: readonly string[]) {
-        const routes = await this.routeService.getGraphQLByIds(routeIds);
+        // Callers may pass a bare PID ID ("147") or a lookup ID ("L147").
+        // Normalize both so they match the keys of the route map.
+        const lookupIds = routeIds.map(toLookupRouteId);
+        const routes = await this.routeService.getGraphQLByIds([
+            ...new Set(lookupIds),
+        ]);
         const routeMap = new Map(
             routes.map((route) => [toLookupRouteId(route.id), route]),
         );
 
-        return routeIds.map((id) => routeMap.get(id) ?? null);
+        return lookupIds.map((id) => routeMap.get(id) ?? null);
     }
 }

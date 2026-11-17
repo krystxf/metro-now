@@ -210,26 +210,25 @@ struct DeparturesWidgetView: View {
     }
 }
 
-#Preview {
-    DeparturesWidgetView(
-        entry: DeparturesWidgetTimelineEntry(
-            date: .now,
-            stopName: "Mustek",
-            departures: [
-                WidgetDepartureGroup(
-                    routeLabel: "A",
-                    headsign: "Depo Hostivar",
-                    departureTime: .now + 2 * 60,
-                    nextDepartureTime: .now + 6 * 60
-                ),
-                WidgetDepartureGroup(
-                    routeLabel: "B",
-                    headsign: "Cerny Most",
-                    departureTime: .now + 4 * 60,
-                    nextDepartureTime: .now + 8 * 60
-                ),
-            ]
-        )
+#Preview(as: .systemMedium) {
+    DeparturesWidget()
+} timeline: {
+    DeparturesWidgetTimelineEntry(
+        date: .now,
+        stopName: "Mustek",
+        departures: [
+            WidgetDepartureGroup(
+                routeLabel: "A",
+                headsign: "Depo Hostivar",
+                departureTime: .now + 2 * 60,
+                nextDepartureTime: .now + 6 * 60
+            ),
+            WidgetDepartureGroup(
+                routeLabel: "B",
+                headsign: "Cerny Most",
+                departureTime: .now + 4 * 60,
+                nextDepartureTime: .now + 8 * 60
+            ),
+        ]
     )
-    .previewContext(WidgetPreviewContext(family: .systemMedium))
 }

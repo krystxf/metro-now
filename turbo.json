@@ -8,7 +8,8 @@
     },
     "typegen": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "inputs": ["src/**/*.graphql", "src/scripts/generate-types.ts"],
+      "outputs": ["src/types/graphql.generated.ts"]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -24,8 +25,12 @@
       "outputs": []
     },
     "test:unit": {
-      "dependsOn": ["typegen", "^build"],
+      "dependsOn": ["typegen", "^build", "^test:unit"],
       "outputs": []
+    },
+    "test:cov": {
+      "dependsOn": ["typegen", "^build"],
+      "outputs": ["coverage/**"]
     },
     "test:e2e": {
       "dependsOn": ["typegen", "^build"],
@@ -50,6 +55,11 @@
     "seed": {
       "cache": false,
       "outputs": []
+    },
+    "@metro-now/server#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "cache": false
     }
   }
 }

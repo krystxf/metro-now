@@ -3,85 +3,71 @@
 
 import SwiftUI
 
-func isSubstituteRoute(_ routeName: String?) -> Bool {
-    guard let routeName else {
+func isSubstituteRoute(_ routeName: String?, feed: String? = nil) -> Bool {
+    guard isPidFeed(feed), let routeName else {
         return false
     }
 
     return routeName.hasPrefix("X")
 }
 
-func getRouteColor(_ routeName: String?) -> Color {
-    if isSubstituteRoute(routeName) {
+func getRouteColor(_ routeName: String?, feed: String? = nil) -> Color {
+    if isSubstituteRoute(routeName, feed: feed) {
         return .orange
     }
 
-    return getRouteType(routeName).color
+    return getRouteType(routeName, feed: feed).color
 }
 
-func isRailRoute(_ routeName: String?) -> Bool {
-    switch getRouteType(routeName) {
-    case .metro, .train, .leoExpress:
-        true
+func getRouteType(_ route: ApiRoute) -> RouteType {
+    if route.isNight == true {
+        return .night
+    }
+
+    guard let vehicleType = route.vehicleType?.uppercased() else {
+        return getRouteType(route.name, feed: route.feed)
+    }
+
+    switch vehicleType {
+    case "SUBWAY":
+        if let metroLine = MetroLine(rawValue: route.name.uppercased()) {
+            return .metro(metroLine)
+        }
+        return .train
+    case "TRAM":
+        return .tram
+    case "BUS", "TROLLEYBUS":
+        return .bus
+    case "FERRY":
+        return .ferry
+    case "FUNICULAR":
+        return .funicular
+    case "TRAIN":
+        if route.feed?.uppercased() == "LEO" {
+            return .leoExpress
+        }
+        return .train
     default:
-        false
+        return .fallback
     }
 }
 
-func getRouteType(_ routeName: String?) -> RouteType {
-    guard var routeName else {
-        return RouteType.fallback
+/// String-only fallback used where only a route label is available (widgets,
+/// live activities, Watch app). These surfaces are metro-only in practice, so
+/// classification is limited to Prague metro lines A/B/C.
+func getRouteType(_ routeName: String?, feed _: String? = nil) -> RouteType {
+    guard let routeName else {
+        return .fallback
     }
 
-    if routeName.hasPrefix("X") {
-        routeName.removeFirst()
+    var normalized = routeName
+    if normalized.hasPrefix("X") {
+        normalized.removeFirst()
     }
 
-    // metro
-    if let metroLine = MetroLine(rawValue: routeName.uppercased()) {
-        return RouteType.metro(metroLine)
-    }
-    // funicular
-    else if routeName.hasPrefix("LD") {
-        return RouteType.funicular
-    }
-    // Leo Express
-    else if routeName.hasPrefix("LE") {
-        return RouteType.leoExpress
-    }
-    // train
-    else if TRAIN_ROUTE_PREFIXES.contains(where: { routeName.hasPrefix($0) }) {
-        return RouteType.train
-    }
-    // ferry
-    else if routeName.hasPrefix("P") {
-        return RouteType.ferry
-    } else if routeName.hasPrefix("BB") {
-        return RouteType.bus
-    }
-    // bus or tram
-    else if let routeNumber = Int(routeName) {
-        // tram
-        if routeNumber < 90 {
-            return RouteType.tram
-        }
-        // night tram
-        else if routeNumber < 100 {
-            return RouteType.night
-        }
-        // bus
-        else if routeNumber < 900 {
-            return RouteType.bus
-        }
-        // night bus
-        else if routeNumber < 1000 {
-            return RouteType.night
-        }
-        // fallback
-        else {
-            return RouteType.bus
-        }
+    if let metroLine = MetroLine(rawValue: normalized.uppercased()) {
+        return .metro(metroLine)
     }
 
-    return RouteType.fallback
+    return .fallback
 }

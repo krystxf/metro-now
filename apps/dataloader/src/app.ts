@@ -5,6 +5,7 @@ import { CacheInvalidationService } from "./services/core/cache-invalidation.ser
 import { CronService } from "./services/core/cron.service";
 import { DatabaseLogStore } from "./services/core/database-log-store.service";
 import { DatabaseService } from "./services/core/database.service";
+import { LogRetentionService } from "./services/core/log-retention.service";
 import { SyncService } from "./services/sync/sync.service";
 import { logger } from "./utils/logger";
 
@@ -24,6 +25,10 @@ const syncService = new SyncService(databaseService.db, {
     relationBatchSize: env.relationBatchSize,
     cacheInvalidation,
 });
+const logRetentionService = new LogRetentionService(
+    databaseService.db,
+    env.logRetentionDays,
+);
 const cronService = new CronService();
 
 app.use(express.json());
@@ -34,13 +39,19 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.get("/health", async (_req: Request, res: Response) => {
     try {
-        const health = await databaseService.performHealthCheck();
+        const [health, redisReachable] = await Promise.all([
+            databaseService.performHealthCheck(),
+            cacheInvalidation.ping(),
+        ]);
 
-        res.json({
-            status: "ok",
+        const status = redisReachable ? "ok" : "degraded";
+
+        res.status(redisReachable ? 200 : 503).json({
+            status,
             service: "dataloader",
             timestamp: new Date().toISOString(),
             database: "connected",
+            redis: redisReachable ? "connected" : "unreachable",
             extensions: health.extensions,
         });
     } catch (error) {
@@ -100,6 +111,22 @@ app.post("/api/sync/run", async (_req: Request, res: Response) => {
     }
 });
 
+app.post("/api/log-retention/run", async (_req: Request, res: Response) => {
+    try {
+        const result = await logRetentionService.purgeOldLogs();
+
+        res.json({
+            success: true,
+            result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : String(error),
+        });
+    }
+});
+
 app.get("/api/sync/status", (_req: Request, res: Response) => {
     res.json({
         success: true,
@@ -138,10 +165,14 @@ const bootstrap = async (): Promise<void> => {
             port: redisPort,
         });
     } catch (error) {
-        logger.warn(
-            "Failed to connect to Redis for cache invalidation, continuing without it",
+        // Promoted from warn to error so operators see this in alerting.
+        // Marker `cache-invalidation:redis-connect-failed` is stable for log queries.
+        logger.error(
+            "cache-invalidation:redis-connect-failed — backend cache will be stale until restart",
             {
                 error: error instanceof Error ? error.message : String(error),
+                host: redisHost,
+                port: redisPort,
             },
         );
     }
@@ -155,6 +186,18 @@ const bootstrap = async (): Promise<void> => {
         },
         async () => {
             await syncService.syncEverything("cron");
+        },
+    );
+
+    cronService.addJob(
+        {
+            name: "log-retention",
+            description: `Deletes Log and RequestLog rows older than ${env.logRetentionDays} days`,
+            enabled: true,
+            schedule: env.logRetentionSchedule,
+        },
+        async () => {
+            await logRetentionService.purgeOldLogs();
         },
     );
 

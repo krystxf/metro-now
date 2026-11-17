@@ -143,9 +143,7 @@ extension MapPageView {
             }
 
             lastVisibleStopIds = nextIds
-            visibleDetailedStopAnnotations = zoomVisibility.showsDetailedStopAnnotations
-                ? nextAnnotations
-                : []
+            visibleDetailedStopAnnotations = nextAnnotations
 
             let features = nextAnnotations.map(buildVisibleStopFeature)
             visibleStopSourceData = .featureCollection(

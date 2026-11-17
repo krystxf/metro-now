@@ -1,5 +1,4 @@
-import { commonServerEnvSchema } from "@metro-now/shared";
-import { z } from "zod";
+import { commonServerEnvSchema, z } from "@metro-now/server";
 
 export const envSchema = commonServerEnvSchema.extend({
     GOLEMIO_API_KEY: z.string().min(1),

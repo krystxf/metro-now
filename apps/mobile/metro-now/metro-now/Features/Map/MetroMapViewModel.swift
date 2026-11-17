@@ -9,6 +9,7 @@ struct FlatRoutePolyline: Identifiable {
     let id: String
     let coordinates: [CLLocationCoordinate2D]
     let color: UIColor
+    let isMetro: Bool
 }
 
 @MainActor
@@ -26,6 +27,7 @@ final class MetroMapViewModel: ObservableObject {
 
     func loadRoutes(routeIds: [String]) async {
         let normalizedRouteIds = Array(Set(routeIds.map(normalizeRouteId))).sorted()
+        print("[map-debug] loadRoutes called with \(routeIds.count) ids -> normalized \(normalizedRouteIds)")
 
         if normalizedRouteIds.isEmpty {
             lastLoadedRouteIds = []
@@ -46,14 +48,21 @@ final class MetroMapViewModel: ObservableObject {
         await withTaskGroup(of: (String, ApiRouteDetail?).self) { group in
             for routeId in normalizedRouteIds {
                 group.addTask {
-                    let request = apiSession.request(
-                        "\(API_URL)/v1/route/\(routeId)",
-                        method: .get
-                    )
+                    do {
+                        let result = try await fetchGraphQLQuery(
+                            MetroNowAPI.RouteDetailQuery(id: routeId),
+                            cachePolicy: .networkFirst
+                        )
 
-                    let routeDetail = try? await fetchData(request, ofType: ApiRouteDetail.self)
+                        guard let route = result.route else {
+                            return (routeId, nil)
+                        }
 
-                    return (routeId, routeDetail)
+                        return (routeId, mapGraphQLRouteDetail(route))
+                    } catch {
+                        print("Error fetching route via GraphQL for map: \(routeId), \(error)")
+                        return (routeId, nil)
+                    }
                 }
             }
 
@@ -73,6 +82,7 @@ final class MetroMapViewModel: ObservableObject {
 
         lastLoadedRouteIds = normalizedRouteIds
         routeDetailsById = fetchedRouteDetails
+        print("[map-debug] loadRoutes done: fetched \(fetchedRouteDetails.count) routes; shapeCounts=\(fetchedRouteDetails.mapValues { $0.shapes.count })")
         isLoading = false
     }
 

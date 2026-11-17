@@ -1,15 +1,6 @@
 {
-  "originHash" : "80ec823c256a577c87e9d11c23338c5cdba1894dc9f7ec3c768909085c304228",
+  "originHash" : "51a46b0e069e7640f3296644fb9ebdfef5fd3990f9ab49571b40c23e92598d33",
   "pins" : [
-    {
-      "identity" : "alamofire",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Alamofire/Alamofire.git",
-      "state" : {
-        "revision" : "bda9ed57d72988a3a2ada33d824583541f86eac6",
-        "version" : "5.12.2"
-      }
-    },
     {
       "identity" : "apollo-ios",
       "kind" : "remoteSourceControl",

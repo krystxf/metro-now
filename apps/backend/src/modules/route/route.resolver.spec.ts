@@ -58,7 +58,19 @@ describe("RouteResolver", () => {
 
             resolver.getMany();
 
-            expect(routeService.getManyGraphQL).toHaveBeenCalled();
+            expect(routeService.getManyGraphQL).toHaveBeenCalledWith({});
+        });
+
+        it("passes through the requested vehicle type filter", () => {
+            const { resolver, routeService } = createMocks();
+
+            routeService.getManyGraphQL.mockResolvedValue([]);
+
+            resolver.getMany([VehicleType.SUBWAY, VehicleType.TRAM]);
+
+            expect(routeService.getManyGraphQL).toHaveBeenCalledWith({
+                vehicleType: [VehicleType.SUBWAY, VehicleType.TRAM],
+            });
         });
     });
 
@@ -95,6 +107,18 @@ describe("RouteResolver", () => {
     });
 
     describe("getVehicleType", () => {
+        it("uses persisted vehicleType from the route record when present", () => {
+            const { resolver, routeService } = createMocks();
+
+            const result = resolver.getVehicleType({
+                name: "201",
+                vehicleType: "TROLLEYBUS",
+            } as never);
+
+            expect(routeService.getVehicleTypeForRoute).not.toHaveBeenCalled();
+            expect(result).toBe(VehicleType.TROLLEYBUS);
+        });
+
         it("delegates to routeService with route name and gtfs type", () => {
             const { resolver, routeService } = createMocks();
 

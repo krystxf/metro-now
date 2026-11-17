@@ -1,7 +1,9 @@
 "use client";
 
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useState } from "react";
 import MapGL, { Source, Layer } from "react-map-gl";
+import { API_URL } from "@/constants/api";
 import { pragueCoorinates } from "@/constants/coordinates";
 import { pointsLayer } from "@/app/map/map-layers/point-layer";
 import { heatmapLayer } from "@/app/map/map-layers/heatmap-layer";
@@ -13,12 +15,23 @@ type Datapoint = {
     name: string;
 };
 
+type StopFeatureCollection = {
+    type: "FeatureCollection";
+    features: Array<{
+        type: "Feature";
+        geometry: {
+            type: "Point";
+            coordinates: [number, number];
+        };
+    }>;
+};
+
 export default function MapPage() {
-    const [geojson, setGeojson] = useState<any>(null);
+    const [geojson, setGeojson] = useState<StopFeatureCollection | null>(null);
     const [allowZoom, setAllowZoom] = useState(false);
 
     const udpateGeojson = async () => {
-        const res = await fetch("https://api.metronow.dev/v1/platform/all");
+        const res = await fetch(`${API_URL}/v1/platform/all`);
         const data: Datapoint[] = await res.json();
 
         setGeojson({
@@ -71,7 +84,7 @@ export default function MapPage() {
                     attributionControl={false}
                 >
                     {geojson && (
-                        <Source type="geojson" data={geojson as any}>
+                        <Source type="geojson" data={geojson}>
                             <Layer {...heatmapLayer} />
                             <Layer {...pointsLayer} />
                         </Source>

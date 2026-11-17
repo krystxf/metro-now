@@ -28,7 +28,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -36,6 +36,75 @@ jobs:
 
             - name: Run unit tests
               run: pnpm test:unit
+
+    coverage:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: ".nvmrc"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run coverage
+              run: pnpm test:cov
+
+            - name: Print coverage summary
+              run: |
+                  for app in backend dataloader; do
+                      summary="apps/$app/coverage/coverage-summary.json"
+                      if [ -f "$summary" ]; then
+                          echo "## $app" >> "$GITHUB_STEP_SUMMARY"
+                          node -e "
+                              const t = require('./$summary').total;
+                              const fmt = (k) => \`\${k}: \${t[k].pct}% (\${t[k].covered}/\${t[k].total})\`;
+                              console.log(['lines','statements','functions','branches'].map(fmt).join('\\n'));
+                          " | tee -a "$GITHUB_STEP_SUMMARY"
+                      fi
+                  done
+
+            - name: Upload coverage reports
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage
+                  path: |
+                      apps/backend/coverage/lcov.info
+                      apps/backend/coverage/coverage-summary.json
+                      apps/dataloader/coverage/lcov.info
+                      apps/dataloader/coverage/coverage-summary.json
+                  if-no-files-found: error
+
+    mobile-schema-check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: ".nvmrc"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate mobile GraphQL operations against backend schema
+              run: pnpm --filter=@metro-now/backend run validate:mobile-schema
 
     backend-e2e:
         runs-on: ubuntu-latest
@@ -75,7 +144,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -100,30 +169,65 @@ jobs:
 
     swift:
         runs-on: macos-latest
-        timeout-minutes: 20
+        timeout-minutes: 40
 
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Prepare mobile configuration
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: ".nvmrc"
+
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+              with:
+                  xcode-version: "^26.0"
+
+            - name: Seed Secrets.xcconfig
               run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - name: Resolve Swift packages
+              run: |
+                  xcodebuild -resolvePackageDependencies \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now
+
+            - name: Extract apollo-ios-cli
+              run: |
+                  tar -xzf ~/Library/Developer/Xcode/DerivedData/metro-now-*/SourcePackages/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz \
+                    -C apps/mobile/metro-now/
+
+            - name: Sync mobile GraphQL schema
+              run: pnpm --filter @metro-now/mobile graphql:schema:sync
+
+            - name: Generate Apollo code
+              working-directory: apps/mobile/metro-now
+              run: ./apollo-ios-cli generate
 
             - name: Select available iOS simulator
               id: simulator
               run: |
-                  destination=$(xcodebuild -showdestinations \
-                    -project apps/mobile/metro-now/metro-now.xcodeproj \
-                    -scheme metro-now | python3 -c '
-                  import re
+                  xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
+                  destination=$(python3 - "$RUNNER_TEMP/simulators.json" <<'PYTHON'
+                  import json
                   import sys
 
-                  destinations = sys.stdin.read()
-                  match = re.search(r"platform:iOS Simulator,.*?id:([0-9A-Fa-f-]{36}),", destinations)
-                  if not match:
-                      sys.exit("No available iOS Simulator destination found")
-                  print("platform=iOS Simulator,id=" + match.group(1))
-                  ')
+                  with open(sys.argv[1]) as source:
+                      devices = json.load(source)["devices"]
+                  for runtime, candidates in sorted(devices.items(), reverse=True):
+                      if ".iOS-" not in runtime:
+                          continue
+                      for device in candidates:
+                          if device.get("isAvailable") and device["name"].startswith("iPhone"):
+                              print("platform=iOS Simulator,id=" + device["udid"])
+                              sys.exit(0)
+                  sys.exit("No available iPhone simulator found: " + repr(devices))
+                  PYTHON
+                  )
                   echo "destination=$destination" >> "$GITHUB_OUTPUT"
 
             - name: Run Swift unit tests
@@ -133,4 +237,13 @@ jobs:
                     -scheme metro-now \
                     -destination '${{ steps.simulator.outputs.destination }}' \
                     -only-testing:metro-nowTests \
+                    CODE_SIGNING_ALLOWED=NO
+
+            - name: Run Swift UI tests
+              run: |
+                  xcodebuild test \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now \
+                    -destination '${{ steps.simulator.outputs.destination }}' \
+                    -only-testing:metro-nowUITests \
                     CODE_SIGNING_ALLOWED=NO

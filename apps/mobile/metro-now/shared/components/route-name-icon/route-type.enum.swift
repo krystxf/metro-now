@@ -23,15 +23,6 @@ let METRO_LINES = [
     MetroLine.C.rawValue,
 ]
 
-let TRAIN_ROUTE_PREFIXES = [
-    "L",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-]
-
 enum RouteType {
     case fallback
     case metro(MetroLine)

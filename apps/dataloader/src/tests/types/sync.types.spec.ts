@@ -27,8 +27,9 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
             stopId: "S1",
         },
     ],
-    routes: [{ id: "R1", name: "Route", vehicleType: null, isNight: false }],
-    platformRoutes: [{ platformId: "P1", routeId: "R1" }],
+    platformRoutes: [
+        { platformId: "P1", feedId: GtfsFeedId.PID, routeId: "G1" },
+    ],
     gtfsRoutes: [
         {
             id: "G1",
@@ -36,6 +37,7 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
             shortName: "A",
             longName: null,
             type: "metro",
+            vehicleType: null,
             color: null,
             isNight: false,
             url: null,
@@ -73,6 +75,7 @@ const createMinimalSnapshot = (): SyncSnapshot => ({
     gtfsCalendars: [],
     gtfsCalendarDates: [],
     gtfsTransfers: [],
+    gtfsFrequencies: [],
 });
 
 test("getSyncCounts returns the correct count for each entity type", () => {
@@ -81,7 +84,6 @@ test("getSyncCounts returns the correct count for each entity type", () => {
 
     assert.equal(counts.stops, 1);
     assert.equal(counts.platforms, 1);
-    assert.equal(counts.routes, 1);
     assert.equal(counts.platformRoutes, 1);
     assert.equal(counts.gtfsRoutes, 1);
     assert.equal(counts.gtfsRouteStops, 1);

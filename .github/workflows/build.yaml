@@ -28,7 +28,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -50,7 +50,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -69,6 +69,39 @@ jobs:
 
             - name: Prepare mobile configuration
               run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: ".nvmrc"
+
+            - name: Select Xcode 26
+              uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+              with:
+                  xcode-version: "^26.0"
+
+            - name: Seed Secrets.xcconfig
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - name: Resolve Swift packages
+              run: |
+                  xcodebuild -resolvePackageDependencies \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now
+
+            - name: Extract apollo-ios-cli
+              run: |
+                  tar -xzf ~/Library/Developer/Xcode/DerivedData/metro-now-*/SourcePackages/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz \
+                    -C apps/mobile/metro-now/
+
+            - name: Sync mobile GraphQL schema
+              run: pnpm --filter @metro-now/mobile graphql:schema:sync
+
+            - name: Generate Apollo code
+              working-directory: apps/mobile/metro-now
+              run: ./apollo-ios-cli generate
 
             - name: Build mobile
               run: |
@@ -91,7 +124,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
-                  node-version: 20
+                  node-version-file: ".nvmrc"
                   cache: "pnpm"
 
             - name: Install dependencies

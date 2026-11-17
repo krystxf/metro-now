@@ -23,5 +23,8 @@
     "operations": {
       "inSchemaModule": {}
     }
+  },
+  "options": {
+    "operationDocumentFormat": ["definition", "operationId"]
   }
 }

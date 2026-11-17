@@ -98,7 +98,9 @@ struct SettingsAboutPageView: View {
                     }
                 }
             }
-        }.background(Color(UIColor.systemGroupedBackground))
+        }
+        .navigationTitle("About")
+        .background(Color(UIColor.systemGroupedBackground))
     }
 }
 

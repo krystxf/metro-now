@@ -1,36 +1,38 @@
 // metro-now
 // https://github.com/krystxf/metro-now
 
-import Alamofire
 import SwiftUI
 
+@MainActor
 class RoutePreviewViewModel: ObservableObject {
     @Published var routeId: String
     @Published var data: ApiRouteDetail?
+    @Published var errorMessage: String?
 
     init(routeId: String) {
         self.routeId = routeId
-
-        fetchRoute(routeId: routeId)
+        Task {
+            await fetchRoute(routeId: routeId)
+        }
     }
 
-    private func fetchRoute(routeId: String) {
-        let request = apiSession.request(
-            "\(API_URL)/v1/route/\(routeId)",
-            method: .get
-        )
+    private func fetchRoute(routeId: String) async {
+        do {
+            let result = try await fetchGraphQLQuery(
+                MetroNowAPI.RouteDetailQuery(id: routeId),
+                cachePolicy: .networkFirst
+            )
 
-        request
-            .validate()
-            .responseDecodable(of: ApiRouteDetail.self) { response in
-                switch response.result {
-                case let .success(data):
-                    DispatchQueue.main.async {
-                        self.data = data
-                    }
-                case let .failure(error):
-                    print("Error fetching route: \(error)")
-                }
+            guard let route = result.route else {
+                errorMessage = "Route not found"
+                return
             }
+
+            data = mapGraphQLRouteDetail(route)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Error fetching route via GraphQL: \(error)")
+        }
     }
 }

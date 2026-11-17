@@ -12,7 +12,7 @@ export const minMax = (
     const flatValues = values.flat();
 
     return {
-        min: min(flatValues),
-        max: max(flatValues),
+        min: Math.min(...flatValues),
+        max: Math.max(...flatValues),
     };
 };

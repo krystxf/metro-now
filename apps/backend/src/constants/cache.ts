@@ -46,6 +46,7 @@ export const uniqueSortedStrings = <Value extends string>(
 export const CACHE_KEYS = {
     infotexts: {
         getAll: "infotexts.getAll",
+        getAllFallback: "infotexts.getAllFallback",
     },
     golemio: {
         getGolemioData: (url: string) =>
@@ -120,6 +121,7 @@ export const CACHE_TTL = {
     stopData: ttl({ hours: 36 }),
     platformData: ttl({ hours: 36 }),
     infotexts: ttl({ minutes: 5 }),
+    infotextsFallback: ttl({ hours: 1 }),
     golemioDepartureBoards: ttl({ seconds: 10 }),
     golemioDefault: ttl({ seconds: 30 }),
     transitlandDepartures: ttl({ seconds: 30 }),

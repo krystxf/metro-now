@@ -22,26 +22,11 @@ query Departures($stopIds: [ID!], $platformIds: [ID!], $limit: Int, $metroOnly: 
     route {
       id
       name
+      color
     }
   }
 }
 """
-
-private let iso8601WithFraction: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return f
-}()
-
-private let iso8601NoFraction: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime]
-    return f
-}()
-
-private func parseDepartureISO8601(_ string: String) -> Date? {
-    iso8601WithFraction.date(from: string) ?? iso8601NoFraction.date(from: string)
-}
 
 private struct GQLDeparturesResponse: Decodable {
     struct DataBox: Decodable {
@@ -74,6 +59,7 @@ private struct GQLPlatformRow: Decodable {
 private struct GQLRouteRow: Decodable {
     let id: String
     let name: String?
+    let color: String?
 }
 
 private func graphQLRequestHeaders() -> [String: String] {
@@ -136,8 +122,8 @@ func fetchDeparturesGraphQL(
 
     return rows.compactMap { row in
         guard
-            let predicted = parseDepartureISO8601(row.departureTime.predicted),
-            let scheduled = parseDepartureISO8601(row.departureTime.scheduled)
+            let predicted = parseBackendISO8601(row.departureTime.predicted),
+            let scheduled = parseBackendISO8601(row.departureTime.scheduled)
         else {
             return nil
         }
@@ -154,6 +140,7 @@ func fetchDeparturesGraphQL(
             delay: row.delay ?? 0,
             route: row.route?.name ?? "",
             routeId: row.route?.id,
+            routeColor: row.route?.color,
             isRealtime: row.isRealtime
         )
     }

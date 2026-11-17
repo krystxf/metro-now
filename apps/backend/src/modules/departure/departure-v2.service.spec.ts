@@ -1,6 +1,7 @@
 import type { DatabaseService } from "src/modules/database/database.service";
 import type { DepartureBoardService } from "src/modules/departure/departure-board.service";
 import { DepartureServiceV2 } from "src/modules/departure/departure-v2.service";
+import type { GtfsFallbackDepartureService } from "src/modules/departure/gtfs-fallback-departure.service";
 import type { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import type { LeoStopMatcherService } from "src/modules/leo/leo-stop-matcher.service";
 
@@ -72,6 +73,9 @@ describe("DepartureServiceV2", () => {
         const leoStopMatcherService = {
             getMatchedLeoStopByLocalStopId: jest.fn(async () => new Map()),
         } as unknown as LeoStopMatcherService;
+        const gtfsFallbackDepartureService = {
+            loadDepartures: jest.fn(async () => []),
+        } as unknown as GtfsFallbackDepartureService;
 
         return {
             service: new DepartureServiceV2(
@@ -79,13 +83,16 @@ describe("DepartureServiceV2", () => {
                 database,
                 leoGtfsService,
                 leoStopMatcherService,
+                gtfsFallbackDepartureService,
             ),
             leoGtfsService,
+            gtfsFallbackDepartureService,
         };
     };
 
     it("resolves Leo platform IDs from Leo stops and queries GTFS timetable", async () => {
-        const { service, leoGtfsService } = createService();
+        const { service, leoGtfsService, gtfsFallbackDepartureService } =
+            createService();
 
         const departures = await service.getDepartures({
             stopIds: ["TLS:station-a"],
@@ -99,6 +106,7 @@ describe("DepartureServiceV2", () => {
         });
 
         expect(leoGtfsService.getStops).toHaveBeenCalled();
+        expect(gtfsFallbackDepartureService.loadDepartures).toHaveBeenCalled();
         expect(departures).toEqual([]);
     });
 

@@ -7,6 +7,7 @@ import {
     type TransitlandStopDeparturesSchema,
     transitlandStopDeparturesSchema,
 } from "src/modules/transitland/schema/transitland-stop-departures.schema";
+import { searchParamsEntries } from "src/utils/url-search-params.utils";
 
 const TRANSITLAND_API_URL = "https://transit.land/api/v2/rest";
 
@@ -30,12 +31,7 @@ export class TransitlandService {
         }
 
         const searchParams = new URLSearchParams(
-            Object.entries({
-                apikey: apiKey,
-                ...params,
-            })
-                .filter(([, value]) => value !== null && value !== undefined)
-                .map(([key, value]) => [key, String(value)]),
+            searchParamsEntries({ apikey: apiKey, ...params }),
         );
         const path = `/stops/${encodeURIComponent(stopKey)}/departures?${searchParams.toString()}`;
 

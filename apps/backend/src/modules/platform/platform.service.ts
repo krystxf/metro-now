@@ -1,5 +1,5 @@
-import type { Platform, Route } from "@metro-now/database";
-import { sql } from "@metro-now/database";
+import type { GtfsRoute, Platform } from "@metro-now/database";
+import { GtfsFeedId, sql } from "@metro-now/database";
 import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 
@@ -11,22 +11,35 @@ import type { BoundingBox } from "src/schema/bounding-box.schema";
 import { loadCachedBatch } from "src/utils/cache-batch";
 import { minMax } from "src/utils/math";
 
-type PlatformRouteRecord = Pick<Route, "id" | "name"> & {
+type PlatformRouteRecord = Pick<GtfsRoute, "id"> & {
+    name: string;
     color: string | null;
+    feed: GtfsFeedId;
 };
 
 type PlatformRecordBase = Pick<
     Platform,
-    "code" | "id" | "isMetro" | "latitude" | "longitude" | "name" | "stopId"
+    | "code"
+    | "direction"
+    | "id"
+    | "isMetro"
+    | "latitude"
+    | "longitude"
+    | "name"
+    | "stopId"
 >;
 
 type PlatformRecord = PlatformRecordBase & {
     routes: PlatformRouteRecord[];
 };
 
-type PlatformGraphQLRecord = PlatformRecordBase;
-
 const PLATFORM_DATA_CACHE_TTL_MS = CACHE_TTL.platformData;
+
+type PlatformLoadFilters = {
+    ids?: readonly string[];
+    metroOnly?: boolean;
+    boundingBox?: BoundingBox;
+};
 
 @Injectable()
 export class PlatformService {
@@ -39,11 +52,7 @@ export class PlatformService {
         ids,
         metroOnly,
         boundingBox,
-    }: {
-        ids?: readonly string[];
-        metroOnly?: boolean;
-        boundingBox?: BoundingBox;
-    }): Promise<PlatformRecordBase[]> {
+    }: PlatformLoadFilters): Promise<PlatformRecordBase[]> {
         if (ids && ids.length === 0) {
             return [];
         }
@@ -58,6 +67,7 @@ export class PlatformService {
                 "isMetro",
                 "stopId",
                 "code",
+                "direction",
             ]);
 
         if (ids) {
@@ -95,17 +105,21 @@ export class PlatformService {
 
         const rows = await this.database.db
             .selectFrom("PlatformsOnRoutes")
-            .innerJoin("Route", "Route.id", "PlatformsOnRoutes.routeId")
-            .leftJoin("GtfsRoute", "GtfsRoute.id", "PlatformsOnRoutes.routeId")
+            .innerJoin("GtfsRoute", (join) =>
+                join
+                    .onRef("GtfsRoute.id", "=", "PlatformsOnRoutes.routeId")
+                    .onRef("GtfsRoute.feedId", "=", "PlatformsOnRoutes.feedId"),
+            )
             .select([
                 "PlatformsOnRoutes.platformId as platformId",
-                "Route.id as routeId",
-                "Route.name as routeName",
+                "GtfsRoute.id as routeId",
+                "GtfsRoute.shortName as routeName",
                 "GtfsRoute.color as routeColor",
+                "GtfsRoute.feedId as routeFeedId",
             ])
             .where("PlatformsOnRoutes.platformId", "in", [...platformIds])
             .orderBy("PlatformsOnRoutes.platformId", "asc")
-            .orderBy("Route.id", "asc")
+            .orderBy("GtfsRoute.id", "asc")
             .execute();
 
         for (const row of rows) {
@@ -113,26 +127,17 @@ export class PlatformService {
                 id: row.routeId,
                 name: row.routeName,
                 color: row.routeColor ?? null,
+                feed: row.routeFeedId,
             });
         }
 
         return routesByPlatformId;
     }
 
-    private async loadPlatformsWithRoutes({
-        ids,
-        metroOnly,
-        boundingBox,
-    }: {
-        ids?: readonly string[];
-        metroOnly?: boolean;
-        boundingBox?: BoundingBox;
-    }): Promise<PlatformRecord[]> {
-        const platforms = await this.loadPlatformRows({
-            ...(ids ? { ids } : {}),
-            ...(metroOnly ? { metroOnly } : {}),
-            ...(boundingBox ? { boundingBox } : {}),
-        });
+    private async loadPlatformsWithRoutes(
+        filters: PlatformLoadFilters,
+    ): Promise<PlatformRecord[]> {
+        const platforms = await this.loadPlatformRows(filters);
         const routesByPlatformId = await this.loadRoutesByPlatformIds(
             platforms.map((platform) => platform.id),
         );
@@ -141,25 +146,6 @@ export class PlatformService {
             ...platform,
             routes: routesByPlatformId.get(platform.id) ?? [],
         }));
-    }
-
-    private async loadGraphQLPlatformsByIds(
-        ids: readonly string[],
-    ): Promise<Map<string, PlatformGraphQLRecord | null>> {
-        const platforms = await this.loadPlatformRows({
-            ids,
-        });
-        const platformsById = new Map<string, PlatformGraphQLRecord | null>(
-            platforms.map((platform) => [platform.id, platform]),
-        );
-
-        for (const id of ids) {
-            if (!platformsById.has(id)) {
-                platformsById.set(id, null);
-            }
-        }
-
-        return platformsById;
     }
 
     async getPlatformsByDistance({
@@ -186,7 +172,8 @@ export class PlatformService {
                 ) AS "distance"
             FROM "Platform"
             ${whereClause}
-            ORDER BY "distance"
+            ORDER BY ll_to_earth("Platform"."latitude", "Platform"."longitude")
+                <-> ll_to_earth(${latitude}, ${longitude})
             ${limitClause}
         `.execute(this.database.db);
 
@@ -201,25 +188,20 @@ export class PlatformService {
             platforms.map((platform) => [platform.id, platform]),
         );
 
-        return orderedPlatformIds
-            .map((id) => {
-                const platform = platformsById.get(id);
+        return orderedPlatformIds.flatMap((id) => {
+            const platform = platformsById.get(id);
 
-                if (!platform) {
-                    return null;
-                }
+            if (!platform) {
+                return [];
+            }
 
-                return {
+            return [
+                {
                     ...platform,
                     distance: distanceByPlatformId.get(id) ?? 0,
-                };
-            })
-            .filter(
-                (
-                    platform,
-                ): platform is PlatformWithDistanceSchema & PlatformRecord =>
-                    platform !== null,
-            );
+                },
+            ];
+        });
     }
 
     async getPlatformsInBoundingBox({
@@ -249,7 +231,7 @@ export class PlatformService {
         metroOnly,
     }: {
         metroOnly: boolean;
-    }): Promise<PlatformGraphQLRecord[]> {
+    }): Promise<PlatformRecordBase[]> {
         return this.cacheManager.wrap(
             CACHE_KEYS.platform.getAllGraphQL({
                 metroOnly,
@@ -264,21 +246,27 @@ export class PlatformService {
 
     async getGraphQLByIds(
         ids: readonly string[],
-    ): Promise<PlatformGraphQLRecord[]> {
+    ): Promise<PlatformRecordBase[]> {
         const platformsById = await loadCachedBatch({
             cacheManager: this.cacheManager,
             getCacheKey: CACHE_KEYS.platform.getGraphQLById,
             keys: ids,
-            loadMissing: async (missingIds) =>
-                this.loadGraphQLPlatformsByIds(missingIds),
+            loadMissing: async (missingIds) => {
+                const platforms = await this.loadPlatformRows({
+                    ids: missingIds,
+                });
+
+                return new Map<string, PlatformRecordBase | null>(
+                    platforms.map((platform) => [platform.id, platform]),
+                );
+            },
             ttlMs: PLATFORM_DATA_CACHE_TTL_MS,
         });
 
         return Array.from(new Set(ids))
             .map((id) => platformsById.get(id))
             .filter(
-                (platform): platform is PlatformGraphQLRecord =>
-                    platform !== null,
+                (platform): platform is PlatformRecordBase => platform !== null,
             );
     }
 

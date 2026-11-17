@@ -4,6 +4,7 @@ import { uniqueSortedStrings } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { departureBoardsSchema } from "src/modules/departure/schema/departure-boards.schema";
 import { GolemioService } from "src/modules/golemio/golemio.service";
+import { searchParamsEntries } from "src/utils/url-search-params.utils";
 
 type DepartureBoardSearchParams = Record<
     string,
@@ -28,39 +29,29 @@ export class DepartureBoardService {
         metroOnly?: boolean;
         limit?: number;
     }): Promise<string[]> {
-        let directPlatformQuery = this.database.db
-            .selectFrom("Platform")
-            .select("id")
-            .where("id", "in", [...platformIds]);
-        if (metroOnly !== undefined) {
-            directPlatformQuery = directPlatformQuery.where(
-                "isMetro",
-                "=",
-                metroOnly,
-            );
-        }
+        const findPlatformIds = async (
+            column: "id" | "stopId",
+            values: readonly string[],
+        ): Promise<string[]> => {
+            if (values.length === 0) return [];
+            let query = this.database.db
+                .selectFrom("Platform")
+                .select("id")
+                .where(column, "in", [...values]);
+            if (metroOnly !== undefined) {
+                query = query.where("isMetro", "=", metroOnly);
+            }
+            const rows = await query.execute();
+            return rows.map((row) => row.id);
+        };
 
-        let stopPlatformQuery = this.database.db
-            .selectFrom("Platform")
-            .select("id")
-            .where("stopId", "in", [...stopIds]);
-        if (metroOnly !== undefined) {
-            stopPlatformQuery = stopPlatformQuery.where(
-                "isMetro",
-                "=",
-                metroOnly,
-            );
-        }
+        const directIds = await findPlatformIds("id", platformIds);
+        const stopPlatformIds = await findPlatformIds("stopId", stopIds);
 
-        const directPlatforms =
-            platformIds.length === 0 ? [] : await directPlatformQuery.execute();
-        const stopPlatforms =
-            stopIds.length === 0 ? [] : await stopPlatformQuery.execute();
-
-        return uniqueSortedStrings([
-            ...directPlatforms.map((platform) => platform.id),
-            ...stopPlatforms.map((platform) => platform.id),
-        ]).slice(0, limit);
+        return uniqueSortedStrings([...directIds, ...stopPlatformIds]).slice(
+            0,
+            limit,
+        );
     }
 
     async fetchDepartureBoard({
@@ -83,18 +74,10 @@ export class DepartureBoardService {
             });
         }
 
-        const searchParams = new URLSearchParams(
-            resolvedPlatformIds
-                .map((id) => ["ids", id])
-                .concat(
-                    Object.entries(params)
-                        .filter(
-                            ([, value]) =>
-                                value !== null && value !== undefined,
-                        )
-                        .map(([key, value]) => [key, String(value)]),
-                ),
-        );
+        const searchParams = new URLSearchParams([
+            ...resolvedPlatformIds.map((id) => ["ids", id] as [string, string]),
+            ...searchParamsEntries(params),
+        ]);
 
         const data = await this.golemioService.getGolemioData(
             `/v2/pid/departureboards?${searchParams.toString()}`,
