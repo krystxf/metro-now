@@ -69,7 +69,8 @@ export const CACHE_KEYS = {
             buildCacheKey("route.getManyGraphQL", params),
         getManyGraphQLByPlatformId: (platformId: string) =>
             buildCacheKey("route.getManyGraphQLByPlatformId", platformId),
-        getOneGraphQL: (id: string) => buildCacheKey("route.getOneGraphQL", id),
+        getOneGraphQL: (params: unknown) =>
+            buildCacheKey("route.getOneGraphQL", params),
     },
     status: {
         getDbDataStatus: "status.getDbDataStatus",
@@ -88,6 +89,8 @@ export const CACHE_KEYS = {
             buildCacheKey(`${STOP_CACHE_PREFIX}.getGraphQLById`, id),
         getOne: (params: unknown) =>
             buildCacheKey(`${STOP_CACHE_PREFIX}.getOne`, params),
+        getClosestGraphQL: (params: unknown) =>
+            buildCacheKey(`${STOP_CACHE_PREFIX}.getClosestGraphQL`, params),
     },
 };
 

@@ -29,16 +29,13 @@ private let apolloClient: ApolloClient = {
 
     return ApolloClient(
         networkTransport: transport,
-        store: store,
-        defaultRequestConfiguration: RequestConfiguration(
-            writeResultsToCache: false
-        )
+        store: store
     )
 }()
 
 func fetchGraphQLQuery<Query: ApolloAPI.GraphQLQuery>(
     _ query: Query,
-    cachePolicy: CachePolicy.Query.SingleResponse = .networkOnly
+    cachePolicy: CachePolicy.Query.SingleResponse = .networkFirst
 ) async throws -> Query.Data where Query.ResponseFormat == ApolloAPI.SingleResponseFormat {
     let response = try await apolloClient.fetch(
         query: query,

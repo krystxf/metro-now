@@ -105,6 +105,7 @@ describe("GraphQL schema", () => {
             "stops",
             "stop",
             "searchStops",
+            "closestStops",
             "stopDataLastUpdatedAt",
             "platforms",
             "platform",

@@ -9,11 +9,7 @@ import { CACHE_MANAGER, type Cache } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { group } from "radash";
 
-import {
-    CACHE_KEYS,
-    CACHE_TTL,
-    uniqueSortedStrings,
-} from "src/constants/cache";
+import { CACHE_KEYS, CACHE_TTL } from "src/constants/cache";
 import { DatabaseService } from "src/modules/database/database.service";
 import { LeoGtfsService } from "src/modules/leo/leo-gtfs.service";
 import { isLeoRouteId } from "src/modules/leo/leo-id.utils";
@@ -44,6 +40,7 @@ type RoutePlatformRecord = Pick<
 >;
 
 type RouteStopRow = {
+    feedId: GtfsFeedId;
     directionId: string;
     platform: RoutePlatformRecord | null;
     routeId: string;
@@ -52,8 +49,11 @@ type RouteStopRow = {
 
 type RouteExactShapeRow = Pick<
     GtfsRouteShape,
-    "directionId" | "geoJson" | "routeId" | "shapeId" | "tripCount"
+    "directionId" | "feedId" | "geoJson" | "routeId" | "shapeId" | "tripCount"
 >;
+
+const getRouteCompositeKey = (routeId: string, feedId: GtfsFeedId): string =>
+    `${feedId}:${routeId}`;
 
 const processRoute = (
     route: RouteRow,
@@ -143,9 +143,13 @@ export class RouteService {
         @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     ) {}
 
-    private async loadRouteRows(
-        routeIds?: readonly string[],
-    ): Promise<RouteRow[]> {
+    private async loadRouteRows({
+        routeIds,
+        feedId,
+    }: {
+        routeIds?: readonly string[];
+        feedId?: GtfsFeedId;
+    }): Promise<RouteRow[]> {
         if (routeIds && routeIds.length === 0) {
             return [];
         }
@@ -167,14 +171,23 @@ export class RouteService {
             query = query.where("id", "in", [...routeIds]);
         }
 
-        return query.orderBy("id", "asc").execute();
+        if (feedId) {
+            query = query.where("feedId", "=", feedId);
+        }
+
+        return query.orderBy("id", "asc").orderBy("feedId", "asc").execute();
     }
 
     private async loadRouteStops(
         routeIds: readonly string[],
+        feedId?: GtfsFeedId,
     ): Promise<Map<string, RouteStopRow[]>> {
         const routeStopsByRouteId = new Map<string, RouteStopRow[]>(
-            routeIds.map((routeId) => [routeId, []]),
+            routeIds.map((routeId) =>
+                feedId
+                    ? [getRouteCompositeKey(routeId, feedId), []]
+                    : [routeId, []],
+            ),
         );
 
         if (routeIds.length === 0) {
@@ -185,6 +198,7 @@ export class RouteService {
             .selectFrom("GtfsRouteStop")
             .leftJoin("Platform", "Platform.id", "GtfsRouteStop.stopId")
             .select([
+                "GtfsRouteStop.feedId as feedId",
                 "GtfsRouteStop.routeId as routeId",
                 "GtfsRouteStop.directionId as directionId",
                 "GtfsRouteStop.stopSequence as stopSequence",
@@ -196,13 +210,22 @@ export class RouteService {
                 "Platform.code as platformCode",
             ])
             .where("GtfsRouteStop.routeId", "in", [...routeIds])
+            .$if(Boolean(feedId), (qb) =>
+                qb.where("GtfsRouteStop.feedId", "=", feedId as GtfsFeedId),
+            )
             .orderBy("GtfsRouteStop.routeId", "asc")
+            .orderBy("GtfsRouteStop.feedId", "asc")
             .orderBy("GtfsRouteStop.directionId", "asc")
             .orderBy("GtfsRouteStop.stopSequence", "asc")
             .execute();
 
         for (const row of rows) {
-            routeStopsByRouteId.get(row.routeId)?.push({
+            const key = feedId
+                ? getRouteCompositeKey(row.routeId, row.feedId)
+                : row.routeId;
+
+            routeStopsByRouteId.get(key)?.push({
+                feedId: row.feedId,
                 routeId: row.routeId,
                 directionId: row.directionId,
                 stopSequence: row.stopSequence,
@@ -224,9 +247,14 @@ export class RouteService {
 
     private async loadRouteExactShapes(
         routeIds: readonly string[],
+        feedId?: GtfsFeedId,
     ): Promise<Map<string, RouteExactShapeRow[]>> {
         const routeExactShapesByRouteId = new Map<string, RouteExactShapeRow[]>(
-            routeIds.map((routeId) => [routeId, []]),
+            routeIds.map((routeId) =>
+                feedId
+                    ? [getRouteCompositeKey(routeId, feedId), []]
+                    : [routeId, []],
+            ),
         );
 
         if (routeIds.length === 0) {
@@ -244,14 +272,19 @@ export class RouteService {
                 .selectFrom("GtfsRouteShape")
                 .select([
                     "routeId",
+                    "feedId",
                     "directionId",
                     "shapeId",
                     "tripCount",
                     "geoJson",
                 ])
                 .where("routeId", "in", [...routeIds])
+                .$if(Boolean(feedId), (qb) =>
+                    qb.where("feedId", "=", feedId as GtfsFeedId),
+                )
                 .where("isPrimary", "=", true)
                 .orderBy("routeId", "asc")
+                .orderBy("feedId", "asc")
                 .orderBy("directionId", "asc")
                 .orderBy("shapeId", "asc")
                 .execute();
@@ -267,7 +300,11 @@ export class RouteService {
         }
 
         for (const row of rows) {
-            routeExactShapesByRouteId.get(row.routeId)?.push(row);
+            const key = feedId
+                ? getRouteCompositeKey(row.routeId, row.feedId)
+                : row.routeId;
+
+            routeExactShapesByRouteId.get(key)?.push(row);
         }
 
         return routeExactShapesByRouteId;
@@ -295,19 +332,31 @@ export class RouteService {
 
     private async loadGraphQLRoutesByIds(
         routeIds: readonly string[],
+        feedId?: GtfsFeedId,
     ): Promise<GraphQLRouteRecord[]> {
         const [routes, routeStopsByRouteId, routeExactShapesByRouteId] =
             await Promise.all([
-                this.loadRouteRows(routeIds),
-                this.loadRouteStops(routeIds),
-                this.loadRouteExactShapes(routeIds),
+                this.loadRouteRows({
+                    routeIds,
+                    ...(feedId ? { feedId } : {}),
+                }),
+                this.loadRouteStops(routeIds, feedId),
+                this.loadRouteExactShapes(routeIds, feedId),
             ]);
 
         return routes.map((route) =>
             processRoute(
                 route,
-                routeStopsByRouteId.get(route.id) ?? [],
-                routeExactShapesByRouteId.get(route.id) ?? [],
+                routeStopsByRouteId.get(
+                    feedId
+                        ? getRouteCompositeKey(route.id, route.feedId)
+                        : route.id,
+                ) ?? [],
+                routeExactShapesByRouteId.get(
+                    feedId
+                        ? getRouteCompositeKey(route.id, route.feedId)
+                        : route.id,
+                ) ?? [],
             ),
         );
     }
@@ -325,21 +374,45 @@ export class RouteService {
 
         const routeLinks = await this.database.db
             .selectFrom("GtfsRouteStop")
-            .select(["routeId", "stopId as platformId"])
+            .select(["feedId", "routeId", "stopId as platformId"])
             .distinct()
             .where("stopId", "in", [...platformIds])
             .orderBy("routeId", "asc")
+            .orderBy("feedId", "asc")
             .execute();
-        const routeIds = uniqueSortedStrings(
-            routeLinks.map(({ routeId }) => routeId),
+        // Non-PID route IDs contain ":" (e.g. "BRR:123"), so iterate the
+        // distinct (feedId, routeId) pairs instead of re-parsing a joined key.
+        const routePairs = [
+            ...new Map(
+                routeLinks.map(({ feedId, routeId }) => [
+                    getRouteCompositeKey(routeId, feedId),
+                    { feedId, routeId },
+                ]),
+            ).values(),
+        ];
+        const routes = await Promise.all(
+            routePairs.map(({ feedId, routeId }) =>
+                this.getOneGraphQL(routeId, feedId),
+            ),
         );
-        const routes = await this.loadGraphQLRoutesByIds(routeIds);
         const routeById = new Map<string, GraphQLRouteRecord>(
-            routes.map((route) => [toLookupRouteId(route.id), route] as const),
+            routes.flatMap((route) =>
+                route
+                    ? [
+                          [
+                              getRouteCompositeKey(
+                                  toLookupRouteId(route.id),
+                                  route.feed,
+                              ),
+                              route,
+                          ] as const,
+                      ]
+                    : [],
+            ),
         );
 
-        for (const { platformId, routeId } of routeLinks) {
-            const route = routeById.get(routeId);
+        for (const { platformId, routeId, feedId } of routeLinks) {
+            const route = routeById.get(getRouteCompositeKey(routeId, feedId));
 
             if (route) {
                 routesByPlatformId.get(platformId)?.push(route);
@@ -353,7 +426,7 @@ export class RouteService {
         return this.cacheManager.wrap(
             CACHE_KEYS.route.getManyGraphQL({}),
             async () => {
-                const routeRows = await this.loadRouteRows();
+                const routeRows = await this.loadRouteRows({});
 
                 return this.loadGraphQLRoutesByIds(
                     routeRows.map((route) => route.id),
@@ -363,18 +436,27 @@ export class RouteService {
         );
     }
 
-    async getOneGraphQL(id: string): Promise<GraphQLRouteRecord | null> {
+    async getOneGraphQL(
+        id: string,
+        feedId?: GtfsFeedId,
+    ): Promise<GraphQLRouteRecord | null> {
         return this.cacheManager.wrap(
-            CACHE_KEYS.route.getOneGraphQL(id),
+            CACHE_KEYS.route.getOneGraphQL({ id, feedId }),
             async () => {
                 const lookupId = toLookupRouteId(id);
-                const [route] = await this.loadGraphQLRoutesByIds([lookupId]);
+                const [route] = await this.loadGraphQLRoutesByIds(
+                    [lookupId],
+                    feedId,
+                );
 
                 if (route) {
                     return route;
                 }
 
-                if (isLeoRouteId(lookupId)) {
+                if (
+                    isLeoRouteId(lookupId) &&
+                    (feedId === undefined || feedId === GtfsFeedId.LEO)
+                ) {
                     const leoRoute =
                         await this.leoGtfsService.getRouteById(lookupId);
 

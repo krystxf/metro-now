@@ -74,11 +74,8 @@ struct StopDetailPageView: View {
                 }
             }
             .refreshable {
-                do {
-                    print("Refreshing")
-
-                    viewModel.refresh()
-                }
+                print("Refreshing")
+                await viewModel.refresh()
             }
             .sheet(item: $routePreviewItem) { item in
                 RoutePreviewView(

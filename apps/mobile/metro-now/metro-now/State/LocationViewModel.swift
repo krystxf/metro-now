@@ -6,6 +6,7 @@ import Foundation
 
 class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
+    private static let minimumDistanceChange: CLLocationDistance = 10 // meters
 
     @Published var location: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus?
@@ -25,6 +26,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = Self.minimumDistanceChange
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         authorizationStatus = locationManager.authorizationStatus

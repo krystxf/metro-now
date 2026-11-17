@@ -3,5 +3,5 @@ export const getTitle = (title?: string | null) => {
         return "Metro Now";
     }
 
-    `${title} | Metro Now`;
+    return `${title} | Metro Now`;
 };
