@@ -130,8 +130,8 @@ This starts PostgreSQL and Redis, waits for readiness, installs locked JavaScrip
 dependencies, migrates and seeds a test database, runs the existing backend E2E
 suites, and stops services even when tests fail. Tests use `metro-now-test` and
 prefer ports 15432/16379, separate from development. Stop `devenv up` before
-running `devenv test`: both start their services from the same `.devenv/` state
-in this checkout. Test seeding replaces test
+running `devenv test`: both use the checkout's process manager, so a running
+`devenv up` makes the test run fail with `Processes already running`. Test seeding replaces test
 transit records. A non-secret placeholder satisfies the Golemio configuration
 validation; these suites query local data and do not test upstream authentication.
 
