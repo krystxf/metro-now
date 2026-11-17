@@ -25,7 +25,7 @@
       "outputs": []
     },
     "test:unit": {
-      "dependsOn": ["typegen", "^build"],
+      "dependsOn": ["typegen", "^build", "^test:unit"],
       "outputs": []
     },
     "test:cov": {
@@ -55,6 +55,11 @@
     "seed": {
       "cache": false,
       "outputs": []
+    },
+    "@metro-now/server#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "cache": false
     }
   }
 }

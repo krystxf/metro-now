@@ -45,7 +45,7 @@ importers:
         version: link:../../lib/database
       '@metro-now/server':
         specifier: workspace:*
-        version: file:lib/server
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -169,7 +169,7 @@ importers:
         version: link:../../lib/database
       '@metro-now/server':
         specifier: workspace:*
-        version: file:lib/server
+        version: link:../../lib/server
       '@metro-now/shared':
         specifier: workspace:*
         version: link:../../lib/shared
@@ -1282,12 +1282,6 @@ packages:
     resolution: {integrity: sha512-zQH//gdOmuu7nt2oJR29vFhDv88oGPmVw6BggmrHeMI+xgEkp1B2dX9/bMBSYtK0dyLX/aOmesKS09g222K1/g==}
     peerDependencies:
       react: '>=16'
-
-  '@metro-now/database@file:lib/database':
-    resolution: {directory: lib/database, type: directory}
-
-  '@metro-now/server@file:lib/server':
-    resolution: {directory: lib/server, type: directory}
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.22':
     resolution: {integrity: sha512-JQZdnDNm8o43A5GOzwN/0Tz3CDBQtBUNqzVwEopm32uayjdjxev1Csp1JeaqF3v9djLDIvsSE39ecsN2LhCKKQ==}
@@ -7485,7 +7479,7 @@ snapshots:
 
   '@jest/pattern@30.5.0':
     dependencies:
-      '@types/node': 25.9.9
+      '@types/node': 22.20.5
       jest-regex-util: 30.5.0
     optional: true
 
@@ -7602,7 +7596,7 @@ snapshots:
       '@jest/schemas': 30.5.0
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 25.9.9
+      '@types/node': 22.20.5
       '@types/yargs': 17.0.35
       chalk: 4.1.2
     optional: true
@@ -7696,24 +7690,6 @@ snapshots:
       '@types/mdx': 2.0.14
       '@types/react': 18.3.31
       react: 18.3.1
-
-  '@metro-now/database@file:lib/database':
-    dependencies:
-      kysely: 0.28.20
-      pg: 8.23.1
-    optionalDependencies:
-      dotenv-cli: 8.0.0
-    transitivePeerDependencies:
-      - pg-native
-
-  '@metro-now/server@file:lib/server':
-    dependencies:
-      '@metro-now/database': file:lib/database
-      kysely: 0.28.20
-      pg: 8.23.1
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - pg-native
 
   '@napi-rs/simple-git-android-arm-eabi@0.1.22':
     optional: true
@@ -11117,7 +11093,7 @@ snapshots:
     dependencies:
       '@jest/types': 30.5.1
       '@parcel/watcher': 2.6.0
-      '@types/node': 25.9.9
+      '@types/node': 22.20.5
       anymatch: 3.1.3
       fb-watchman: 2.0.4
       fdir: 6.5.0(picomatch@4.0.7)
@@ -11276,7 +11252,7 @@ snapshots:
   jest-util@30.5.1:
     dependencies:
       '@jest/types': 30.5.1
-      '@types/node': 25.9.9
+      '@types/node': 22.20.5
       chalk: 4.1.2
       ci-info: 4.5.0
       graceful-fs: 4.2.12
@@ -11318,7 +11294,7 @@ snapshots:
 
   jest-worker@30.5.1:
     dependencies:
-      '@types/node': 25.9.9
+      '@types/node': 22.20.5
       '@ungap/structured-clone': 1.4.0
       jest-util: 30.5.1
       merge-stream: 2.0.0
