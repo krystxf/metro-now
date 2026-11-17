@@ -2,12 +2,17 @@ name: Tests
 
 on:
     push:
+        branches: [main]
     pull_request:
     workflow_dispatch:
 
 concurrency:
     group: tests-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
+
+permissions:
+    contents: read
+    actions: write
 
 jobs:
     js:
@@ -16,12 +21,12 @@ jobs:
 
         steps:
             - name: Check out code
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - uses: pnpm/action-setup@v4
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
             - name: Setup Node.js environment
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 20
                   cache: "pnpm"
@@ -63,12 +68,12 @@ jobs:
 
         steps:
             - name: Check out code
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - uses: pnpm/action-setup@v4
+            - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
             - name: Setup Node.js environment
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 20
                   cache: "pnpm"
@@ -99,12 +104,33 @@ jobs:
 
         steps:
             - name: Check out code
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Prepare mobile configuration
+              run: cp apps/mobile/metro-now/Secrets.xcconfig.example apps/mobile/metro-now/Secrets.xcconfig
+
+            - name: Select available iOS simulator
+              id: simulator
+              run: |
+                  destination=$(xcodebuild -showdestinations \
+                    -project apps/mobile/metro-now/metro-now.xcodeproj \
+                    -scheme metro-now | python3 -c '
+                  import re
+                  import sys
+
+                  destinations = sys.stdin.read()
+                  match = re.search(r"platform:iOS Simulator,.*?id:([0-9A-Fa-f-]{36}),", destinations)
+                  if not match:
+                      sys.exit("No available iOS Simulator destination found")
+                  print("platform=iOS Simulator,id=" + match.group(1))
+                  ')
+                  echo "destination=$destination" >> "$GITHUB_OUTPUT"
 
             - name: Run Swift unit tests
               run: |
                   xcodebuild test \
                     -project apps/mobile/metro-now/metro-now.xcodeproj \
                     -scheme metro-now \
-                    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-                    -only-testing:metro-nowTests
+                    -destination '${{ steps.simulator.outputs.destination }}' \
+                    -only-testing:metro-nowTests \
+                    CODE_SIGNING_ALLOWED=NO

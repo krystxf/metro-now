@@ -10,7 +10,9 @@ struct InfotextsItem: View {
     private static func parseISO8601(_ string: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
-        if let date = formatter.date(from: string) { return date }
+        if let date = formatter.date(from: string) {
+            return date
+        }
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.date(from: string)
     }
