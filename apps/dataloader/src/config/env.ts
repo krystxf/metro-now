@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { commonServerEnvSchema, validateEnv } from "@metro-now/server";
-import { z } from "zod";
+import { commonServerEnvSchema, validateEnv, z } from "@metro-now/server";
 
 type DataloaderEnv = {
     port: number;
